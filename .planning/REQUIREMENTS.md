@@ -228,16 +228,161 @@ Requisitos reconhecidos, mas deliberadamente fora do primeiro roadmap.
 
 ## Traceability
 
-Preenchida durante a criação do roadmap. Cada requisito v1 deverá mapear para exatamente uma fase.
+Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase do roadmap aprovado em 2026-08-01.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| ARCH-01 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Pending |
+| ARCH-03 | Phase 1 | Pending |
+| IDEN-01 | Phase 1 | Pending |
+| IDEN-02 | Phase 1 | Pending |
+| IDEN-03 | Phase 1 | Pending |
+| IDEN-04 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-06 | Phase 1 | Pending |
+| API-01 | Phase 1 | Pending |
+| API-02 | Phase 1 | Pending |
+| OPS-01 | Phase 1 | Pending |
+| OPS-02 | Phase 1 | Pending |
+| OPS-03 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Pending |
+| TEST-02 | Phase 1 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| PROF-01 | Phase 2 | Pending |
+| PROF-02 | Phase 2 | Pending |
+| VERI-01 | Phase 2 | Pending |
+| VERI-02 | Phase 2 | Pending |
+| VERI-03 | Phase 2 | Pending |
+| VERI-04 | Phase 2 | Pending |
+| VERI-05 | Phase 2 | Pending |
+| VERI-06 | Phase 2 | Pending |
+| VERI-07 | Phase 2 | Pending |
+| VERI-08 | Phase 2 | Pending |
+| VERI-09 | Phase 2 | Pending |
+| VERI-11 | Phase 2 | Pending |
+| VERI-12 | Phase 2 | Pending |
+| OPER-01 | Phase 2 | Pending |
+| OPER-02 | Phase 2 | Pending |
+| OPER-03 | Phase 2 | Pending |
+| OPER-04 | Phase 2 | Pending |
+| OPER-05 | Phase 2 | Pending |
+| OPER-06 | Phase 2 | Pending |
+| IDEN-05 | Phase 2 | Pending |
+| PRIV-01 | Phase 2 | Pending |
+| PRIV-02 | Phase 2 | Pending |
+| AUDT-01 | Phase 2 | Pending |
+| AUDT-02 | Phase 2 | Pending |
+| AUTH-01 | Phase 3 | Pending |
+| SPRT-01 | Phase 3 | Pending |
+| SPRT-02 | Phase 3 | Pending |
+| SPRT-03 | Phase 3 | Pending |
+| SPRT-04 | Phase 3 | Pending |
+| SPRT-05 | Phase 3 | Pending |
+| SPRT-06 | Phase 3 | Pending |
+| SPRT-07 | Phase 3 | Pending |
+| SPRT-08 | Phase 3 | Pending |
+| SPRT-09 | Phase 3 | Pending |
+| SPRT-10 | Phase 3 | Pending |
+| SPRT-11 | Phase 3 | Pending |
+| SPRT-12 | Phase 3 | Pending |
+| SPRT-13 | Phase 3 | Pending |
+| SPRT-14 | Phase 3 | Pending |
+| ODDS-01 | Phase 4 | Pending |
+| ODDS-02 | Phase 4 | Pending |
+| ODDS-03 | Phase 4 | Pending |
+| ODDS-04 | Phase 4 | Pending |
+| ODDS-05 | Phase 4 | Pending |
+| ODDS-06 | Phase 4 | Pending |
+| ODDS-07 | Phase 4 | Pending |
+| ODDS-08 | Phase 4 | Pending |
+| ODDS-09 | Phase 4 | Pending |
+| ODDS-10 | Phase 4 | Pending |
+| ODDS-11 | Phase 4 | Pending |
+| ODDS-12 | Phase 4 | Pending |
+| ODDS-13 | Phase 4 | Pending |
+| VERI-10 | Phase 5 | Pending |
+| CRED-01 | Phase 5 | Pending |
+| CRED-02 | Phase 5 | Pending |
+| CRED-03 | Phase 5 | Pending |
+| CRED-04 | Phase 5 | Pending |
+| CRED-05 | Phase 5 | Pending |
+| CRED-06 | Phase 5 | Pending |
+| CRED-08 | Phase 5 | Pending |
+| CRED-10 | Phase 5 | Pending |
+| ODDS-14 | Phase 5 | Pending |
+| PRED-01 | Phase 5 | Pending |
+| PRED-02 | Phase 5 | Pending |
+| PRED-03 | Phase 5 | Pending |
+| PRED-04 | Phase 5 | Pending |
+| PRED-05 | Phase 5 | Pending |
+| PRED-06 | Phase 5 | Pending |
+| PRED-07 | Phase 5 | Pending |
+| PRED-08 | Phase 5 | Pending |
+| INTE-01 | Phase 5 | Pending |
+| INTE-02 | Phase 5 | Pending |
+| INTE-03 | Phase 5 | Pending |
+| INTE-04 | Phase 5 | Pending |
+| DATA-03 | Phase 5 | Pending |
+| DATA-04 | Phase 5 | Pending |
+| DATA-05 | Phase 5 | Pending |
+| API-03 | Phase 5 | Pending |
+| CRED-07 | Phase 6 | Pending |
+| CRED-09 | Phase 6 | Pending |
+| PRED-09 | Phase 6 | Pending |
+| ODDS-15 | Phase 6 | Pending |
+| SETL-01 | Phase 6 | Pending |
+| SETL-02 | Phase 6 | Pending |
+| SETL-03 | Phase 6 | Pending |
+| SETL-04 | Phase 6 | Pending |
+| SETL-05 | Phase 6 | Pending |
+| SETL-06 | Phase 6 | Pending |
+| SETL-07 | Phase 6 | Pending |
+| SETL-08 | Phase 6 | Pending |
+| SETL-09 | Phase 6 | Pending |
+| SETL-10 | Phase 6 | Pending |
+| SETL-11 | Phase 6 | Pending |
+| RANK-01 | Phase 6 | Pending |
+| RANK-02 | Phase 6 | Pending |
+| RANK-03 | Phase 6 | Pending |
+| RANK-04 | Phase 6 | Pending |
+| RANK-05 | Phase 6 | Pending |
+| RANK-06 | Phase 6 | Pending |
+| RANK-07 | Phase 6 | Pending |
+| RANK-08 | Phase 6 | Pending |
+| POOL-01 | Phase 6 | Pending |
+| POOL-02 | Phase 6 | Pending |
+| POOL-03 | Phase 6 | Pending |
+| POOL-04 | Phase 6 | Pending |
+| ACHV-01 | Phase 6 | Pending |
+| ACHV-02 | Phase 6 | Pending |
+| ACHV-03 | Phase 6 | Pending |
+| TEST-04 | Phase 6 | Pending |
+| CHAT-01 | Phase 7 | Pending |
+| CHAT-02 | Phase 7 | Pending |
+| CHAT-03 | Phase 7 | Pending |
+| CHAT-04 | Phase 7 | Pending |
+| CHAT-05 | Phase 7 | Pending |
+| CHAT-06 | Phase 7 | Pending |
+| RT-01 | Phase 7 | Pending |
+| INTE-05 | Phase 7 | Pending |
+| PRIV-03 | Phase 7 | Pending |
+| PRIV-04 | Phase 7 | Pending |
+| PRIV-05 | Phase 7 | Pending |
+| OPS-04 | Phase 7 | Pending |
+| TEST-03 | Phase 7 | Pending |
+| TEST-05 | Phase 7 | Pending |
+| UX-01 | Phase 7 | Pending |
+| UX-02 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 145 total
-- Mapped to phases: 0
-- Unmapped: 145 ⚠️
+- Mapped to phases: 145
+- Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-08-01*
-*Last updated: 2026-08-01 after consolidation of approved scope and architecture*
+*Requisitos definidos em: 2026-08-01*
+*Última atualização: 2026-08-01 após aprovação do roadmap e mapeamento da rastreabilidade*
