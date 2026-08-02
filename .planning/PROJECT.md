@@ -119,7 +119,8 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - WebSocket/STOMP para chat e atualizações; mensagens persistidas no PostgreSQL.
 - Monorepo com `backend/`, `frontend/`, `infra/` e `docs/`; Docker Compose no desenvolvimento.
 - PostgreSQL, Redis, Keycloak, MinIO e e-mail de desenvolvimento compõem o ambiente local.
-- O frontend é o contêiner Nginx que serve os arquivos estáticos do Angular; Spring e Keycloak usam contêineres separados.
+- O desenvolvimento local possui dois modos suportados. No modo diário padrão, as dependências de infraestrutura rodam em contêineres e Spring Boot e Angular rodam pelo terminal ou pela IDE. No perfil completo de validação, Spring também roda em contêiner e o frontend Angular compilado é servido por um contêiner Nginx.
+- Os dois modos usam os mesmos contratos e configurações-base, com wrappers, versões de runtime e imagens de contêiner fixados.
 - Ambientes de desenvolvimento, homologação e produção; PostgreSQL e S3 gerenciados são preferíveis em produção se o orçamento permitir.
 - Logs estruturados, correlation ID, Spring Actuator, métricas, backups com restauração testada e segredos fora do repositório.
 
