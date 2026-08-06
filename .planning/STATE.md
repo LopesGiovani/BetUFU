@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: "Ready to execute"
-stopped_at: Os 28 planos da Fase 1 foram aprovados pelo usuário; aguardando autorização separada para commit ou execução
+stopped_at: Documentos aprovados da Fase 1 versionados no commit 7dca20d; execução ainda não iniciada
 last_updated: "2026-08-06T15:16:30.158Z"
 last_activity: 2026-08-06
-last_activity_desc: Os 28 planos passaram pela verificação independente e foram aprovados pelo usuário; permanecem sem implementação, stage ou commit.
+last_activity_desc: Os 28 planos passaram pela verificação independente, foram aprovados pelo usuário e versionados no commit 7dca20d; nenhuma implementação foi iniciada.
 progress:
   total_phases: 7
   completed_phases: 0
@@ -23,14 +23,14 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Fase 1 planejada e aprovada; aguardar autorização separada antes de commit ou execução
+**Current focus:** Preparar a documentação pública do projeto antes de autorizar a execução da Fase 1
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
 Plan: 0 of 28
 Status: Ready to execute — 28 planos aprovados pelo usuário; execução ainda não autorizada
-Last activity: 2026-08-06 — Planejamento da Fase 1 aprovado pelo usuário; não houve implementação, stage ou commit.
+Last activity: 2026-08-06 — Planejamento da Fase 1 versionado no commit 7dca20d; nenhuma implementação foi iniciada.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -61,7 +61,6 @@ As decisões ficam registradas na tabela Key Decisions de PROJECT.md. As premiss
 
 ### Pendências
 
-- Decidir separadamente se os documentos de planejamento serão commitados.
 - Autorizar explicitamente a execução quando for o momento de implementar a Fase 1.
 
 ### Bloqueios e pontos de atenção
@@ -80,5 +79,5 @@ As decisões ficam registradas na tabela Key Decisions de PROJECT.md. As premiss
 ## Session Continuity
 
 Last session: 2026-08-06
-Stopped at: Planejamento da Fase 1 aprovado; aguardando decisão separada sobre commit e execução
+Stopped at: Planejamento da Fase 1 versionado; documentação pública em preparação antes da execução
 Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-VALIDATION.md
