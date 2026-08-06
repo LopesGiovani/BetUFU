@@ -1,6 +1,6 @@
-# Issues GitHub — Fase 1
+# Registro de issues GitHub — Fase 1
 
-> Estrutura aprovada e publicada no GitHub em 2026-08-06. As correções documentais locais ainda aguardam commit e push separados.
+> Estrutura aprovada e publicada no GitHub em 2026-08-06. As correções documentais que originaram as issues estão versionadas na branch principal.
 
 ## Resultado remoto
 
@@ -10,7 +10,7 @@
 - **Labels próprias:** 16
 - **Auditoria remota:** 29/29 issues no milestone, 28/28 itens no checklist, 0 divergências de corpo, labels ou dependências
 
-## Decisão estrutural recomendada
+## Decisão estrutural aplicada
 
 - **1 milestone:** `Fase 1 — Fundação Segura da Plataforma`
 - **1 issue de acompanhamento:** objetivo, critérios globais e checklist ordenado
@@ -20,14 +20,15 @@
 
 Manter uma issue por plano preserva a relação direta entre issue, plano, wave, prova focal, summary e futuro commit. Foram avaliados agrupamentos como `01-01 + 01-02`, `01-06 + 01-07` e `01-17 + 01-18`, mas cada plano possui gate ou verificação própria; uni-los criaria issues grandes e parcialmente concluídas.
 
-## Estado remoto observado
+## Estado remoto atual
 
 - Repositório privado.
-- Nenhuma issue existente.
-- Nenhum milestone existente.
-- Somente as labels padrão do GitHub estão presentes.
+- 28 issues executáveis abertas.
+- Issue de acompanhamento `#29` aberta.
+- Milestone `Fase 1 — Fundação Segura da Plataforma` aberto.
+- 16 labels próprias, além das labels padrão do GitHub.
 
-## Milestone proposto
+## Milestone publicado
 
 **Título:** `Fase 1 — Fundação Segura da Plataforma`
 
@@ -35,7 +36,7 @@ Manter uma issue por plano preserva a relação direta entre issue, plano, wave,
 
 > Entregar uma fundação modular, reproduzível e segura para a BETUFU, com BFF OIDC, sessões protegidas, PostgreSQL autoritativo, integração OpenAPI, observabilidade segura e uma estrutura Angular autenticada. A fase termina somente quando o gate Nyquist e a revisão humana estiverem aprovados.
 
-## Labels propostas
+## Labels publicadas
 
 | Label | Cor | Uso |
 |---|---|---|
@@ -56,7 +57,7 @@ Manter uma issue por plano preserva a relação direta entre issue, plano, wave,
 | `area:ui` | `C5DEF5` | Sistema visual e acessibilidade |
 | `area:testes` | `BFDADC` | Integração, E2E e quality gates |
 
-As labels padrão existentes não serão removidas. Labels de status, prioridade e responsável não são propostas porque essas decisões ainda não foram tomadas.
+As labels padrão existentes foram preservadas. Labels de status, prioridade e responsável não foram criadas porque essas decisões ainda não foram tomadas.
 
 ## Issue de acompanhamento
 
@@ -106,7 +107,7 @@ As labels padrão existentes não serão removidas. Labels de status, prioridade
 - [ ] F1/P28 — selar rotas técnicas em produção
 - [ ] F1/P16 — executar gate integral da fase
 
-Após a criação, cada item será substituído pelo link real da respectiva issue.
+A issue de acompanhamento `#29` contém os links reais; este checklist local preserva a mesma ordem de execução.
 
 ## Issues executáveis
 
@@ -448,17 +449,17 @@ Após a criação, cada item será substituído pelo link real da respectiva iss
 
 ## Ajustes documentais incorporados
 
-Estes pontos encontrados durante a auditoria foram alinhados localmente antes da criação remota:
+Estes pontos encontrados durante a auditoria foram alinhados e versionados antes da criação remota:
 
 1. **Referência D-15 em F1/P03:** a prova browser completa agora aponta para o plano `01-21`, em conformidade com `01-VALIDATION.md` e a ordem executável.
 2. **Cobertura de sincronização em F1/P07:** o `UserInfoOptOutIT` agora deve provar explicitamente repetição e concorrência para o mesmo `(iss, sub)`, convergência em uma identidade e ausência de papel de domínio inferido do Keycloak.
 3. **Prova focal em F1/P09:** a verificação agora combina compilação com enumeração estrutural exata dos dez módulos; os limites e o grafo continuam sob o gate bloqueante do plano `01-23`.
 
-## Ordem de criação após aprovação
+## Procedimento de publicação executado
 
-1. Criar as labels propostas sem alterar as labels padrão.
-2. Criar o milestone sem prazo.
-3. Criar as 28 issues executáveis na ordem das waves.
-4. Criar a issue de acompanhamento com links reais para as 28 issues.
-5. Associar todas as 29 issues ao milestone.
-6. Conferir títulos, labels, dependências, links e contagem antes de encerrar a operação.
+1. As 16 labels próprias foram criadas sem alterar as labels padrão.
+2. O milestone foi criado sem prazo.
+3. As 28 issues executáveis foram criadas na ordem das waves.
+4. A issue de acompanhamento `#29` foi criada com links para as 28 issues.
+5. Todas as 29 issues foram associadas ao milestone.
+6. Títulos, labels, dependências, links e contagem foram auditados sem divergências.

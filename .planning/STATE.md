@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: "Ready to execute"
-stopped_at: Documentos aprovados da Fase 1 versionados no commit 7dca20d; execução ainda não iniciada
-last_updated: "2026-08-06T15:16:30.158Z"
+stopped_at: Planejamento, README e rastreabilidade GitHub alinhados; aguardando autorização para executar F1/P01
+last_updated: "2026-08-06T18:51:52.117Z"
 last_activity: 2026-08-06
-last_activity_desc: Os 28 planos passaram pela verificação independente, foram aprovados pelo usuário e versionados no commit 7dca20d; nenhuma implementação foi iniciada.
+last_activity_desc: README profissional publicado; 28 issues executáveis e a issue de acompanhamento #29 criadas no milestone da Fase 1; três correções documentais alinhadas e versionadas; nenhuma implementação foi iniciada.
 progress:
   total_phases: 7
   completed_phases: 0
@@ -23,14 +23,17 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Preparar a documentação pública do projeto antes de autorizar a execução da Fase 1
+**Current focus:** Aguardar autorização explícita para executar o gate F1/P01 da Fase 1
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
 Plan: 0 of 28
 Status: Ready to execute — 28 planos aprovados pelo usuário; execução ainda não autorizada
-Last activity: 2026-08-06 — Planejamento da Fase 1 versionado no commit 7dca20d; nenhuma implementação foi iniciada.
+Last activity: 2026-08-06 — README, milestone e issues da Fase 1 publicados; planos alinhados e versionados; nenhuma implementação foi iniciada.
+
+GitHub: milestone `Fase 1 — Fundação Segura da Plataforma` com 28 issues executáveis abertas e a issue de acompanhamento `#29`.
+Git: branch principal `master`; nenhum artefato de implementação foi criado.
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -69,6 +72,7 @@ As decisões ficam registradas na tabela Key Decisions de PROJECT.md. As premiss
 - Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam ser decididas quando os requisitos correspondentes exigirem.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
+- Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
 
 ## Itens adiados
 
@@ -79,5 +83,5 @@ As decisões ficam registradas na tabela Key Decisions de PROJECT.md. As premiss
 ## Session Continuity
 
 Last session: 2026-08-06
-Stopped at: Planejamento da Fase 1 versionado; documentação pública em preparação antes da execução
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-VALIDATION.md
+Stopped at: Documentação e rastreabilidade GitHub alinhadas; aguardando autorização para iniciar F1/P01
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-01-PLAN.md

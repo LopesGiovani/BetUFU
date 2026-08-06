@@ -1,4 +1,6 @@
-# BETUFU — Handoff de contexto
+# BETUFU — Handoff de contexto arquivado
+
+> Registro histórico arquivado em 2026-08-06. Não representa o estado atual; consulte `.planning/STATE.md`.
 
 **Atualizado em:** 2026-08-01
 **Estado:** definições consolidadas em rascunho, aguardando revisão do usuário
