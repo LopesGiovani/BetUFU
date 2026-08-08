@@ -27,6 +27,11 @@
     "discuss_mode": "discuss",
     "skip_discuss": false
   },
+  "manager": {
+    "flags": {
+      "execute": "--interactive"
+    }
+  },
   "hooks": {
     "context_warnings": true
   },

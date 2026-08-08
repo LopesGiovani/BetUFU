@@ -139,7 +139,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - **Stack aprovada**: Angular/TypeScript no frontend e Java/Spring no backend; qualquer troca relevante volta para decisão explícita.
 - **Plataforma**: web responsiva primeiro, sem aplicativos nativos no MVP.
 - **Fonte de dados**: calendários, elencos e resultados dependem de fontes confiáveis e operação administrativa; integração oficial não é presumida.
-- **Processo**: nenhuma decisão arquitetural, documento de planejamento ou commit deve ser tratado como aprovado sem revisão explícita do usuário.
+- **Processo colaborativo obrigatório**: o responsável participa ativamente do desenvolvimento. Antes de cada plano, onda ou bloco material, o GSD deve explicar objetivo, abordagem, arquivos e comandos previstos, impactos, riscos e resultado esperado. Decisões relevantes, instalações, scaffolds, alterações de código, banco ou infraestrutura e ações externas exigem aprovação explícita e específica. Stage, commit e push exigem aprovação separada. Cada aprovação vale somente para o escopo apresentado e não autoriza automaticamente o próximo passo. A execução deve usar o modo interativo e pausar para revisão entre blocos.
 
 ## Open Decisions
 
@@ -188,6 +188,7 @@ Essas decisões devem permanecer configuráveis ou ser fechadas antes da fase qu
 | Incluir páginas de equipes, grupos, chat, moderação e conquistas no MVP | Fazer da BETUFU uma experiência social universitária | ✓ Aprovado |
 | Adiar notificações e contestação formal de resultados | Manter o MVP concentrado no ciclo principal | ✓ Aprovado |
 | Não expor publicamente a identidade pessoal do fundador | Separar presença pública pessoal da operação institucional legítima | ✓ Aprovado, sem promessa de irrastrabilidade |
+| Tornar obrigatória a participação ativa do responsável em todo o desenvolvimento | Impedir decisões, implementação e operações Git silenciosas e manter cada aprovação limitada ao escopo explicado | ✓ Aprovado; executar por onda em modo interativo |
 
 ## Evolution
 
@@ -207,4 +208,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-01 after consolidation of approved product, economy and architecture decisions*
+*Last updated: 2026-08-08 after approval of the mandatory active-participation workflow*
