@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 3/28 plans executed
+**Plans**: 4/28 plans executed
 Plans:
 **Wave 1**
 
@@ -50,7 +50,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 01-18-PLAN.md — Separar os profiles dev/homolog/prod sem segredos.
+- [x] 01-18-PLAN.md — Separar os profiles dev/homolog/prod sem segredos.
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -264,7 +264,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação Segura da Plataforma | 3/28 | In Progress | - |
+| 1. Fundação Segura da Plataforma | 4/28 | In Progress | - |
 | 2. Contas, Verificação e Operações Governadas | 0/TBD | Pending | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
