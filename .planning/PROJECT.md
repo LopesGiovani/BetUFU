@@ -98,7 +98,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 
 ### Identidade e segurança
 
-- Keycloak administra login, credenciais, recuperação de acesso, verificação de e-mail, sessões e MFA; a BETUFU administra perfil, verificação UFU, papéis de domínio, elegibilidade e conflitos de interesse.
+- Keycloak administra login, credenciais, recuperação de acesso, verificação de e-mail, sessões e MFA; nesta fase, o único papel BETUFU provisionado no realm é `TECHNICAL`. A BETUFU/PostgreSQL administra perfil, verificação UFU, papéis administrativos e de domínio, elegibilidade e conflitos de interesse.
 - Spring Security aplica autorização. O identificador estável é o par `(iss, sub)` emitido pelo Keycloak, nunca o e-mail.
 - A aplicação web usa BFF: Spring realiza OIDC e mantém tokens e sessão no servidor; o navegador recebe apenas cookie `HttpOnly`, `Secure` e `SameSite` compatível.
 - Operações mutáveis e o canal em tempo real são protegidos contra CSRF, origem indevida e acesso sem autorização.
@@ -109,7 +109,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - PostgreSQL 18 é a fonte oficial, com Flyway, Spring Data JPA para operações comuns e SQL/locks explícitos nas transações críticas.
 - Ledger, versões de odds, odds aceitas e auditoria são imutáveis; correções usam novos registros e lançamentos compensatórios.
 - Redis é auxiliar para sessões, rate limiting e suporte ao tempo real, nunca fonte de saldo, elegibilidade, resultado ou liquidação.
-- Comprovantes temporários ficam em armazenamento S3 compatível, privado e criptografado.
+- Comprovantes temporários ficam em armazenamento S3 compatível, privado e criptografado. O backend usa configuração genérica `BETUFU_S3_*`, incluindo `BETUFU_S3_ENDPOINT`, sem acoplamento ao serviço local.
 - BETUFU e Keycloak usam bancos e usuários separados, ainda que compartilhem inicialmente o mesmo servidor PostgreSQL.
 
 ### API, tempo real e operação
@@ -118,10 +118,10 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - Idempotency key em apostas, liquidações, devoluções, correções e outros comandos críticos.
 - WebSocket/STOMP para chat e atualizações; mensagens persistidas no PostgreSQL.
 - Monorepo com `backend/`, `frontend/`, `infra/` e `docs/`; Docker Compose no desenvolvimento.
-- PostgreSQL, Redis, Keycloak, MinIO e e-mail de desenvolvimento compõem o ambiente local.
+- PostgreSQL, Redis, Keycloak, SeaweedFS e e-mail de desenvolvimento compõem o ambiente local. SeaweedFS é somente a implementação S3 gratuita do MVP local, publica apenas a porta S3 8333 e usa volume Docker persistente.
 - O desenvolvimento local possui dois modos suportados. No modo diário padrão, as dependências de infraestrutura rodam em contêineres e Spring Boot e Angular rodam pelo terminal ou pela IDE. No perfil completo de validação, Spring também roda em contêiner e o frontend Angular compilado é servido por um contêiner Nginx.
 - Os dois modos usam os mesmos contratos e configurações-base, com wrappers, versões de runtime e imagens de contêiner fixados.
-- Ambientes de desenvolvimento, homologação e produção; PostgreSQL e S3 gerenciados são preferíveis em produção se o orçamento permitir.
+- Ambientes de desenvolvimento, homologação e produção; PostgreSQL gerenciado é preferível em produção se o orçamento permitir, enquanto a solução S3 de produção permanece deliberadamente não escolhida.
 - Logs estruturados, correlation ID, Spring Actuator, métricas, backups com restauração testada e segredos fora do repositório.
 
 ### Qualidade
@@ -156,6 +156,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - Indicadores e resposta operacional caso a margem e a ausência de reposição reduzam excessivamente a oferta total de créditos.
 - Modalidades, categorias e tabelas exatas da edição piloto.
 - Provedor de nuvem e plataforma de CI/CD.
+- Solução S3 compatível para homologação e produção; SeaweedFS foi aprovado somente para o ambiente local do MVP.
 
 Essas decisões devem permanecer configuráveis ou ser fechadas antes da fase que as implementar. Elas não autorizam novas mecânicas de obtenção de créditos.
 
@@ -172,7 +173,10 @@ Essas decisões devem permanecer configuráveis ou ser fechadas antes da fase qu
 | Usar Angular 22 e TypeScript 6 no frontend | Construir uma aplicação web tipada e estruturada | ✓ Aprovado |
 | Usar Java 25, Spring Boot 4.1 e Spring Modulith 2.1 | Começar com backend robusto e modular sem distribuir prematuramente | ✓ Aprovado |
 | Usar BFF com Keycloak e sessão de servidor | Evitar tokens no navegador e centralizar controles de segurança | ✓ Aprovado |
+| Manter somente `TECHNICAL` como papel BETUFU no Keycloak nesta fase | Separar autenticação e acesso técnico dos papéis administrativos e de domínio persistidos pela aplicação | ✓ Aprovado; papéis de domínio ficam na BETUFU/PostgreSQL |
 | Usar PostgreSQL 18 como fonte oficial e ledger imutável | Preservar consistência, auditoria e correções reproduzíveis | ✓ Aprovado |
+| Usar SeaweedFS como serviço S3 gratuito somente no ambiente local do MVP | Oferecer armazenamento local reproduzível sem escolher o serviço de produção | ✓ Aprovado para local; produção pendente |
+| Integrar objetos por contrato S3 e configuração `BETUFU_S3_*` | Manter o backend desacoplado da implementação local e permitir decisão posterior de produção | ✓ Aprovado |
 | Calcular odds automaticamente com baseline Elo | Evitar edição arbitrária e produzir um baseline explicável | ✓ Aprovado |
 | Começar com margem de odds configurável em 5% | Aplicar um parâmetro inicial explícito sem impedir ajuste futuro | ✓ Aprovado para o MVP |
 | Permitir override excepcional de odds com dupla aprovação | Corrigir distorções graves sem transformar intervenção manual em rotina | ✓ Aprovado |
@@ -208,4 +212,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-08 after approval of the mandatory active-participation workflow*
+*Last updated: 2026-08-09 after approval of the local S3 and interactive infrastructure gates*

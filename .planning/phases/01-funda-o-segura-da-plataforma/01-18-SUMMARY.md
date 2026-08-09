@@ -162,7 +162,7 @@ Nenhuma nesta etapa. Os futuros ambientes de homologação e produção deverão
 
 ## Prontidão para o próximo plano
 
-- O Plano `01-03` pode conectar PostgreSQL, Keycloak, Redis, MinIO e e-mail aos profiles agora separados.
+- O Plano `01-03` pode conectar PostgreSQL, Keycloak, Redis, SeaweedFS local pelo contrato S3 genérico e e-mail aos profiles agora separados.
 - `OPS-02` continua pendente na rastreabilidade global porque também é compartilhado pelos Planos `01-03`, `01-11`, `01-14`, `01-16` e `01-24`.
 - A ausência de flag diagnóstica está comprovada; a ausência física do bean e do mapping em produção continua pertencendo ao Plano `01-26`.
 - Valores reais de homologação e produção, escolha de proxy e implantação não foram inventados por este plano.

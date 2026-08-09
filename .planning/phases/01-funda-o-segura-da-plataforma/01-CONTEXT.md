@@ -1,6 +1,7 @@
 # Fase 1: Fundação Segura da Plataforma — Contexto
 
 **Coletado em:** 2026-08-01
+**Atualizado em:** 2026-08-09
 **Status:** Pronta para planejamento
 
 <domain>
@@ -32,7 +33,7 @@ Ela não entrega os fluxos de negócio das fases seguintes, como verificação d
 
 ### Ambiente local
 
-- **D-10:** O ambiente local terá dois modos suportados. O modo diário padrão será híbrido: PostgreSQL, Keycloak, Redis, MinIO e o serviço de e-mail de desenvolvimento rodarão em contêineres, enquanto Spring Boot e Angular rodarão pelo terminal ou pela IDE. Um perfil completo de validação também executará Spring em contêiner e servirá o Angular compilado por Nginx, permitindo verificar a composição reproduzível usada fora do ciclo rápido de desenvolvimento.
+- **D-10:** O ambiente local terá dois modos suportados. O modo diário padrão será híbrido: PostgreSQL, Keycloak, Redis, SeaweedFS como implementação S3 exclusivamente local e o serviço de e-mail de desenvolvimento rodarão em contêineres, enquanto Spring Boot e Angular rodarão pelo terminal ou pela IDE. Um perfil completo de validação também executará Spring em contêiner e servirá o Angular compilado por Nginx, permitindo verificar a composição reproduzível usada fora do ciclo rápido de desenvolvimento.
 - **D-11:** A primeira inicialização será automática e reproduzível. Ela preparará banco e migrações, Keycloak com clientes e papéis, Redis, armazenamento, serviço de e-mail de desenvolvimento e uma conta técnica exclusivamente local. Nenhuma credencial real será versionada no Git; wrappers, runtimes e imagens terão versões fixadas.
 - **D-12:** Parar e iniciar o ambiente preservará os dados locais. Haverá uma reinicialização separada e explícita que apagará somente os dados locais da BETUFU e recriará o ambiente, sempre após confirmação clara.
 - **D-13:** Windows 11 com Docker Desktop/WSL2 e Linux serão as plataformas principais de desenvolvimento do MVP; Linux também atenderá à integração contínua. macOS será compatível quando possível, mas não constituirá requisito obrigatório. Os comandos principais deverão ser independentes do sistema operacional sempre que possível.
@@ -44,11 +45,21 @@ Ela não entrega os fluxos de negócio das fases seguintes, como verificação d
 - **D-16:** Apenas consultas que carregam informações poderão ser repetidas automaticamente. Ações que alteram dados nunca serão repetidas silenciosamente; durante o envio, o controle de ação ficará bloqueado e, diante de uma falha, o usuário receberá uma opção segura de tentar novamente.
 - **D-17:** Uma falha isolada afetará somente a área correspondente da página, mantendo o restante e a navegação funcionais. Uma tela de erro completa será usada apenas quando a BETUFU não puder iniciar ou continuar com segurança.
 
+### Refinamentos aprovados para o Plano 01-03
+
+- **D-18:** SeaweedFS será o serviço S3 gratuito somente do ambiente local do MVP. O backend permanecerá desacoplado por contrato S3 e configuração `BETUFU_S3_*`, incluindo `BETUFU_S3_ENDPOINT`; nenhuma solução de armazenamento de produção foi escolhida.
+- **D-19:** A imagem SeaweedFS e as demais imagens do Compose exigem repositório, tag e digest exatos aprovados em Gate 1 humano antes de qualquer implementação. SeaweedFS publicará somente a porta S3 8333 e preservará objetos em volume Docker nomeado.
+- **D-20:** `TECHNICAL` será o único papel BETUFU provisionado no Keycloak nesta fase. Papéis administrativos e de domínio permanecerão autoritativos na BETUFU/PostgreSQL.
+- **D-21:** Todo comando Compose carregará explicitamente `--env-file infra/.env.example`. A implementação futura adicionará `infra/.env` à `.gitignore` sem ignorar o arquivo de exemplo.
+- **D-22:** O bootstrap será `infra/postgres/init-databases.sh`, montado e executado dentro do contêiner PostgreSQL com shell POSIX e finais LF, sem depender da execução no host Windows ou Linux.
+- **D-23:** Um validador Node sem dependências verificará papéis e redirects do realm; seu teste negativo deverá falhar para wildcard, `+` ou prefixo indevido.
+- **D-24:** Verificações compatíveis com PowerShell 5.1 usarão invocações separadas, avaliarão `$LASTEXITCODE`, interromperão no primeiro código não zero e não dependerão de operador de encadeamento incompatível.
+
 ### Discrição dos agentes posteriores
 
 - Definir quais eventos técnicos contam como atividade válida para renovar o prazo ocioso, mantendo a regra aprovada de 8 horas.
 - Definir regeneração de sessão e revogação administrativa ou de segurança exigidas por `IDEN-04`. Essas regras não foram decididas na discussão e não devem ser confundidas com o logout voluntário do dispositivo atual.
-- Escolher nomes e composição dos comandos de inicialização e reinicialização local, preservando o comportamento aprovado e limitando qualquer remoção aos recursos locais da BETUFU.
+- Definir wrappers adicionais de inicialização e reinicialização local, preservando `--env-file infra/.env.example`, invocações separadas e a limitação de qualquer remoção aos recursos locais da BETUFU.
 - Definir códigos estáveis, estrutura completa de Problem Details, quantidade de novas tentativas automáticas e estratégia de espera, respeitando as regras de apresentação e repetição aprovadas.
 - Definir detalhes visuais da estrutura inicial e dos estados de carregamento, vazio e sucesso que não contrariem as decisões registradas.
 

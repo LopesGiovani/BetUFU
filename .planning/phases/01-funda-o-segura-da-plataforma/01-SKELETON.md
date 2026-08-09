@@ -14,7 +14,7 @@ A prova usa `PUT /api/v1/tracer/identity/current` como interação idempotente n
 | Decision | Choice | Rationale |
 |---|---|---|
 | Framework | Java 25 + Spring Boot 4.1.0 + Spring Modulith 2.1.0 via Maven; Angular 22.1.x + TypeScript 6.0.x | Preserva ARCH-01/02; `scripts/maven.mjs` seleciona o Wrapper em Windows/Linux e os smokes bloqueiam downgrade. |
-| Data layer | PostgreSQL 18 + Flyway; Redis somente auxiliar; MinIO/S3 privado | PostgreSQL permanece a fonte autoritativa e toda mudança de schema é versionada. |
+| Data layer | PostgreSQL 18 + Flyway; Redis somente auxiliar; contrato S3 privado por `BETUFU_S3_*`, com SeaweedFS somente local | PostgreSQL permanece a fonte autoritativa, o backend não depende do provedor local e toda mudança de schema é versionada. |
 | Auth | Keycloak OIDC Authorization Code com `state`, `nonce` e PKCE; Spring como BFF; UserInfo OPT-OUT; revogação de refresh token e end-session via discovery | Mantém credenciais/tokens fora do Angular, prova D-15 no login nativo e fecha IDEN-01–IDEN-04 sem invalidar outras sessões. |
 | API boundary | REST JSON `/api/v1`, OpenAPI canônico, Problem Details e cliente `typescript-angular` gerado inicialmente no 01-20 e novamente no 01-26 | API-01/API-02 exigem contrato único, operationIds estáveis e check read-only de drift no gate. |
 | Deployment target | Dois modos locais na origem `http://localhost:4200`: daily com proxy Angular e full com Spring + Nginx | D-10/OPS-01 exigem desenvolvimento rápido e uma composição integral com o mesmo contrato same-origin. |

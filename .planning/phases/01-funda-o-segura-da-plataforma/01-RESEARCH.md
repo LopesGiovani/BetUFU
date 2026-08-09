@@ -1,6 +1,7 @@
 # Fase 1: Fundação Segura da Plataforma — Pesquisa
 
 **Pesquisado em:** 2026-08-01
+**Atualizado em:** 2026-08-09 — decisões de infraestrutura local refinadas antes do Plano 01-03
 **Domínio:** fundação de monólito modular Java/Spring, BFF OIDC, contratos OpenAPI e ambiente local reproduzível
 **Confiança:** MÉDIA — a compatibilidade principal foi verificada em documentação oficial; duas bordas de versão exigem gate de compilação.
 
@@ -26,10 +27,19 @@
 
 #### Ambiente local
 
-- **D-10:** O ambiente local terá dois modos suportados. O modo diário padrão será híbrido: PostgreSQL, Keycloak, Redis, MinIO e o serviço de e-mail de desenvolvimento rodarão em contêineres, enquanto Spring Boot e Angular rodarão pelo terminal ou pela IDE. Um perfil completo de validação também executará Spring em contêiner e servirá o Angular compilado por Nginx, permitindo verificar a composição reproduzível usada fora do ciclo rápido de desenvolvimento.
-- **D-11:** A primeira inicialização será automática e reproduzível. Ela preparará banco e migrações, Keycloak com clientes e papéis, Redis, armazenamento, serviço de e-mail de desenvolvimento e uma conta técnica exclusivamente local. Nenhuma credencial real será versionada no Git; wrappers, runtimes e imagens terão versões fixadas.
+- **D-10:** O ambiente local terá dois modos suportados. O modo diário padrão será híbrido: PostgreSQL, Keycloak, Redis, SeaweedFS como implementação S3 exclusivamente local e o serviço de e-mail de desenvolvimento rodarão em contêineres, enquanto Spring Boot e Angular rodarão pelo terminal ou pela IDE. Um perfil completo de validação também executará Spring em contêiner e servirá o Angular compilado por Nginx, permitindo verificar a composição reproduzível usada fora do ciclo rápido de desenvolvimento.
+- **D-11:** A primeira inicialização será automática e reproduzível. Ela preparará bancos separados, Keycloak com cliente confidencial e somente o papel BETUFU `TECHNICAL`, Redis, armazenamento S3 local, serviço de e-mail de desenvolvimento e uma conta técnica exclusivamente local. Nenhuma credencial real será versionada no Git; wrappers, runtimes e imagens terão versões aprovadas e fixadas antes da implementação.
 - **D-12:** Parar e iniciar o ambiente preservará os dados locais. Haverá uma reinicialização separada e explícita que apagará somente os dados locais da BETUFU e recriará o ambiente, sempre após confirmação clara.
 - **D-13:** Windows 11 com Docker Desktop/WSL2 e Linux serão as plataformas principais de desenvolvimento do MVP; Linux também atenderá à integração contínua. macOS será compatível quando possível, mas não constituirá requisito obrigatório. Os comandos principais deverão ser independentes do sistema operacional sempre que possível.
+
+#### Refinamentos do Plano 01-03
+
+- SeaweedFS é somente o serviço S3 gratuito local; o backend usa `BETUFU_S3_*` e a solução de produção permanece aberta.
+- Repositórios, tags e digests das cinco imagens exigem Gate 1 humano antes de qualquer arquivo de infraestrutura ou download; SeaweedFS publica apenas 8333 e usa volume persistente.
+- Papéis administrativos e de domínio permanecem na BETUFU/PostgreSQL; `TECHNICAL` é o único papel BETUFU do realm local.
+- Compose sempre recebe `--env-file infra/.env.example`; `infra/.env` será ignorado somente durante a implementação.
+- O bootstrap `init-databases.sh` roda dentro do contêiner PostgreSQL e o realm recebe validador/teste Node sem dependências.
+- No PowerShell 5.1, verificações são comandos separados, fail-fast, propagam `$LASTEXITCODE` e não usam operador de encadeamento incompatível.
 
 #### Erros da aplicação
 
@@ -42,7 +52,7 @@
 
 - Definir quais eventos técnicos contam como atividade válida para renovar o prazo ocioso, mantendo a regra aprovada de 8 horas.
 - Definir regeneração de sessão e revogação administrativa ou de segurança exigidas por `IDEN-04`. Essas regras não foram decididas na discussão e não devem ser confundidas com o logout voluntário do dispositivo atual.
-- Escolher nomes e composição dos comandos de inicialização e reinicialização local, preservando o comportamento aprovado e limitando qualquer remoção aos recursos locais da BETUFU.
+- Definir wrappers adicionais de inicialização e reinicialização local, preservando `--env-file infra/.env.example`, comandos separados e a limitação de qualquer remoção aos recursos locais da BETUFU.
 - Definir códigos estáveis, estrutura completa de Problem Details, quantidade de novas tentativas automáticas e estratégia de espera, respeitando as regras de apresentação e repetição aprovadas.
 - Definir detalhes visuais da estrutura inicial e dos estados de carregamento, vazio e sucesso que não contrariem as decisões registradas.
 
@@ -67,7 +77,7 @@
 | DATA-06 | Redis permanece auxiliar; comprovantes usam armazenamento S3 privado; BETUFU e Keycloak usam bancos e usuários separados. | Isolamento de bancos/roles e armazenamento não público. [VERIFIED: .planning/REQUIREMENTS.md:163-163] |
 | API-01 | O backend publica REST JSON versionado em `/api/v1`, contrato OpenAPI e erros compatíveis com Problem Details. | RFC 9457 / `ProblemDetail` e OpenAPI como fonte do cliente. [VERIFIED: .planning/REQUIREMENTS.md:169-169] |
 | API-02 | O frontend consome cliente TypeScript gerado do OpenAPI e o pipeline detecta divergência de contrato. | Geração determinística e diff limpo obrigatório. [VERIFIED: .planning/REQUIREMENTS.md:170-170] |
-| OPS-01 | Desenvolvimento oferece dois modos reproduzíveis. No modo diário padrão, Docker Compose executa PostgreSQL, Redis, Keycloak, MinIO e serviço de e-mail, enquanto Spring Boot e Angular rodam pelo terminal ou pela IDE. No perfil completo de validação, Spring também roda em contêiner e o Angular compilado é servido por Nginx. Ambos usam wrappers, versões de runtime e imagens fixados antes da implementação ou implantação correspondente. | Compose profiles, health checks, volumes nomeados e lockfiles/wrappers. [VERIFIED: .planning/REQUIREMENTS.md:177-177] |
+| OPS-01 | Desenvolvimento oferece dois modos reproduzíveis. No modo diário padrão, Docker Compose executa PostgreSQL, Redis, Keycloak, SeaweedFS como implementação S3 exclusivamente local e serviço de e-mail, enquanto Spring Boot e Angular rodam pelo terminal ou pela IDE. No perfil completo de validação, Spring também roda em contêiner e o Angular compilado é servido por Nginx. Ambos usam wrappers, versões de runtime e imagens aprovados e fixados antes da implementação correspondente. | Compose profiles, health checks, volumes nomeados e lockfiles/wrappers. [VERIFIED: .planning/REQUIREMENTS.md:176-176] |
 | OPS-02 | Desenvolvimento, homologação e produção possuem configurações separadas, e segredos nunca são versionados. | Arquivos de exemplo não secretos e injeção externa. [VERIFIED: .planning/REQUIREMENTS.md:178-178] |
 | OPS-03 | Aplicação fornece health checks, logs estruturados, correlation ID e métricas sem dados sensíveis. | Actuator mínimo protegido + Micrometer/OTLP. [VERIFIED: .planning/REQUIREMENTS.md:179-179] |
 | TEST-01 | Regras de domínio possuem testes JUnit e transações integradas usam PostgreSQL e dependências reais via Testcontainers. | JUnit + Testcontainers + migrations reais. [VERIFIED: .planning/REQUIREMENTS.md:181-181] |
@@ -77,7 +87,7 @@
 
 Planejar esta fase como uma fundação integrada, mas com um único fluxo vertical verificável: ambiente sobe, Keycloak inicia a conta técnica local, o navegador entra via Authorization Code no BFF, recebe somente a sessão por cookie e abre o diagnóstico protegido. O backend oferece health agregado e seguro, correlation ID e Problem Details; o frontend só consome o cliente gerado do contrato. [CITED: https://www.keycloak.org/securing-apps/oidc-layers] [CITED: https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html]
 
-Use PostgreSQL como único estado autoritativo desde a primeira migration. Redis, MinIO e Keycloak são dependências com estado próprio, mas não substituem a verdade de domínio; Keycloak deve receber banco e usuário PostgreSQL próprios. Migrações versionadas não são editadas depois de aplicadas: correções sempre avançam o schema. [CITED: https://documentation.red-gate.com/flyway/flyway-concepts/migrations/versioned-migrations] [VERIFIED: .planning/PROJECT.md:109-113]
+Use PostgreSQL como único estado autoritativo desde a primeira migration. Redis, SeaweedFS local e Keycloak são dependências com estado próprio, mas não substituem a verdade de domínio; o adapter de objetos fala somente S3 e Keycloak recebe banco e usuário PostgreSQL próprios. Migrações versionadas não são editadas depois de aplicadas: correções sempre avançam o schema. [CITED: https://documentation.red-gate.com/flyway/flyway-concepts/migrations/versioned-migrations] [VERIFIED: .planning/PROJECT.md]
 
 **Recomendação principal:** implemente primeiro o esqueleto monorepo e seu gate de ambiente/compilação; em seguida feche BFF + contrato + diagnóstico em uma jornada testada. Não prossiga para a implementação da base antes de elevar Java para 25, Node para uma versão aceita pelo Angular 22 e iniciar o daemon Docker. [CITED: https://angular.dev/reference/versions] [VERIFIED: ambiente local, 2026-08-01]
 
@@ -117,6 +127,7 @@ Use PostgreSQL como único estado autoritativo desde a primeira migration. Redis
 | OpenAPI Generator `typescript-angular` | versão do gerador imutável, validada por compile do Angular 22 | cliente TypeScript gerado | O gerador é estável, mas a página oficial ainda declara suporte de Angular 9 a 21: é um risco de compatibilidade, não uma garantia para Angular 22. [CITED: https://openapi-generator.tech/docs/generators/typescript-angular/] |
 | Micrometer + OpenTelemetry/OTLP | versões geridas pelo BOM Boot | traces e correlação | Spring Boot recomenda API Micrometer e fornece auto-configuração OTLP. [CITED: https://docs.spring.io/spring-boot/reference/actuator/tracing.html] |
 | Docker Compose | `5.1.3` disponível; imagens por digest | modos diário e completo | Profiles, health checks e volumes nomeados atendem os dois modos aprovados. [CITED: https://docs.docker.com/compose/how-tos/profiles/] |
+| SeaweedFS | repositório, tag e digest a aprovar no Gate 1 do 01-03 | serviço S3 gratuito somente local | Implementa o contrato S3 no desenvolvimento sem escolher o armazenamento de produção; publica apenas 8333 e usa volume persistente. [APPROVED: decisão do responsável, 2026-08-09] |
 
 ### Alternatives Considered
 
@@ -159,7 +170,7 @@ Spring Boot BFF ── Authorization Code + state/nonce/PKCE ──► Keycloak
   ├── metrics, structured logs, trace/correlation ID ──► operator-only endpoints
   ├── JPA + Flyway ───────────────────────► BETUFU PostgreSQL database/user
   ├── session/rate-limit/realtime support ─► Redis (auxiliary only)
-  └── private object adapter ──────────────► MinIO S3-compatible private bucket
+  └── private object adapter (BETUFU_S3_*) ─► SeaweedFS local via S3 private bucket
 
 Keycloak ─────────────────────────────────► separate PostgreSQL database/user
 ```
@@ -191,7 +202,7 @@ Esta estrutura é a convenção obrigatória já aprovada; os nomes internos de 
 
 ### Pattern 3: projeção de diagnóstico, não espelho bruto do Actuator
 
-**O quê:** mantenha Actuator e endpoints de gestão fora da superfície pública; exponha para a tela um DTO próprio, com estados `disponível`, `degradado`, `indisponível`, código/correlation ID e ação segura de retry. Não serialize exceções, URLs internas, propriedades, headers nem detalhes de health de dependência. Acesso é apenas técnico em dev/homologação e a rota é removida no build de produção. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:20-23]
+**O quê:** mantenha Actuator e endpoints de gestão fora da superfície pública; exponha para a tela um DTO próprio, com estados `disponível`, `degradado`, `indisponível`, código/correlation ID e ação segura de retry. Não serialize exceções, URLs internas, propriedades, headers nem detalhes de health de dependência. Acesso é apenas técnico em dev/homologação e a rota é removida no build de produção. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:21-24]
 
 **Quando usar:** health agregado do diagnóstico; o operador pode consultar endpoints de gestão separados, autorizados e restritos. Spring Boot expõe apenas `/health` por HTTP por padrão e orienta proteger cuidadosamente o que for adicionalmente exposto. [CITED: https://docs.spring.io/spring-boot/reference/actuator/endpoints.html]
 
@@ -240,7 +251,7 @@ Esta estrutura é a convenção obrigatória já aprovada; os nomes internos de 
 ### Pitfall 4: misturar sessão do BFF, sessão do Keycloak e política de inatividade
 
 **O que falha:** logout não encerra apenas o dispositivo, sessão dura mais/menos que 8h ociosas ou a renovação ocorre por tráfego irrelevante.
-**Por quê:** há ao menos duas camadas de sessão; o tempo ocioso aprovado é da sessão BETUFU e Keycloak possui configuração própria. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:27-31]
+**Por quê:** há ao menos duas camadas de sessão; o tempo ocioso aprovado é da sessão BETUFU e Keycloak possui configuração própria. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:28-32]
 **Como evitar:** criar um contrato de sessão com campos explícitos para `idleTimeout=8h`, `absoluteTimeout=null`, instante da última atividade válida, `sessionId` opaco, motivo de término e semântica de logout/revogação. O plano 01-06 fecha uma allowlist: request autenticado/intencional ou navegação protegida renovam; Actuator, assets, consulta de sessão, polling, preflight e heartbeats não renovam. [RESOLVED: 01-06-PLAN.md]
 **Sinal cedo:** qualquer endpoint/ping renova TTL sem passar por uma política central.
 
@@ -331,7 +342,7 @@ O cliente obtém token CSRF por endpoint BFF seguro e o envia no header do frame
 | Node para Angular 22 | frontend | ✗ | `v22.20.0`, abaixo de `^22.22.3` | Atualizar Node; não há fallback aprovado. [VERIFIED: ambiente local, 2026-08-01] [CITED: https://angular.dev/reference/versions] |
 | npm | frontend | ✓ | `10.9.3` | lockfile npm. [VERIFIED: ambiente local, 2026-08-01] |
 | Docker CLI / Compose | infra e Testcontainers | Parcial | CLI e Compose `v5.1.3` presentes, daemon Docker Desktop indisponível | Iniciar Docker Desktop/WSL2; sem daemon, Compose/Testcontainers bloqueiam. [VERIFIED: ambiente local, 2026-08-01] |
-| PostgreSQL, Redis, Keycloak, MinIO e e-mail dev | Compose | ✗ localmente | Não sondáveis sem daemon | Subir pelo Compose após o daemon ficar disponível. [VERIFIED: ambiente local, 2026-08-01] |
+| PostgreSQL, Redis, Keycloak, SeaweedFS e e-mail dev | Compose | ✗ localmente | Não sondáveis sem daemon | Aprovar primeiro as cinco imagens no Gate 1; depois subir pelo Compose com `--env-file infra/.env.example`. [VERIFIED: ambiente local, 2026-08-01; decisão atualizada em 2026-08-09] |
 
 **Dependências ausentes sem fallback:** JDK 25, Node suportado pelo Angular e daemon Docker.
 **Dependências ausentes com fallback:** nenhuma.
@@ -344,7 +355,7 @@ O cliente obtém token CSRF por endpoint BFF seguro e o envia no header do frame
 |-------------|-------|
 | Framework backend | JUnit 5, Spring Boot Test, Testcontainers, Spring Modulith Test e ArchUnit. [VERIFIED: .planning/PROJECT.md:127-131] |
 | Framework frontend | testes de componente Angular; Playwright fica preparado para jornadas posteriores, não substitui testes de unidade desta fase. [VERIFIED: .planning/PROJECT.md:127-131] |
-| Configuração | ainda não existe; 01-02 cria Maven Wrapper/POM e 01-04 cria o workspace Angular. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:76-88] |
+| Configuração | ainda não existe; 01-02 cria Maven Wrapper/POM e 01-04 cria o workspace Angular. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:91-103] |
 | Quick run | `node scripts/maven.mjs -f backend/pom.xml test` e `npm --prefix frontend test -- --watch=false` após 01-02/01-04. [ASSUMED] |
 | Suite completa | smoke Compose + backend + frontend build + geração/diff OpenAPI. [ASSUMED] |
 
@@ -384,7 +395,7 @@ O ASVS 5.0.0 é a referência estável atual; os rótulos abaixo preservam os fo
 |----------------|--------|-----------------|
 | V2 Authentication | sim | Keycloak, Authorization Code, discovery OIDC e MFA administrativo. [CITED: https://www.keycloak.org/securing-apps/oidc-layers] |
 | V3 Session Management | sim | sessão BFF server-side, cookie `HttpOnly`/`Secure`/SameSite, regeneração e logout por dispositivo. [CITED: https://docs.spring.io/spring-security/reference/features/exploits/csrf.html] |
-| V4 Access Control | sim | Spring Security no BFF/API; endpoint diagnóstico só para conta técnica em dev/homologação. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:20-23] |
+| V4 Access Control | sim | Spring Security no BFF/API; endpoint diagnóstico só para conta técnica em dev/homologação. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:21-24] |
 | V5 Validation, Sanitization and Encoding | sim | Bean Validation + handler Problem Details sanitizado; cliente não decide autorização. [ASSUMED] |
 | V6 Cryptography | sim | TLS, segredos externos e criptografia de objeto privada configurada pelo provedor; não implementar criptografia própria. [VERIFIED: .planning/PROJECT.md:111-113] |
 

@@ -45,7 +45,7 @@ Os padrões abaixo são restrições para a primeira implementação, derivadas 
 
 **Padrão obrigatório:** monorepo com `backend/`, `frontend/`, `infra/` e `docs/`; Java 25, Spring Boot `4.1.0`, Maven e Spring Modulith BOM `2.1.0`. Todo comando Maven passa pelo launcher Node portátil, que seleciona o Wrapper adequado em Windows/Linux sem cadeia de shell. Organizar backend por capacidade em um monólito modular, não por microsserviço. Somente APIs nomeadas são públicas entre módulos; implementação fica em subpacotes internos. Já nesta fase, preparar limites para identidade, verificação, esportes, odds, apostas, ledger, liquidação, ranking, chat e auditoria, sem implementar o negócio futuro.
 
-**Referência concreta de verificação** — `01-RESEARCH.md:258-265`:
+**Referência concreta de verificação** — `01-RESEARCH.md:269-276`:
 
 ```java
 class ModulithArchitectureTests {
@@ -94,7 +94,7 @@ O DTO é allowlist e contém somente: status agregado, seis componentes (`API`, 
 **Papel/fluxo:** middleware, utility e config; request-response/event-driven.
 **Análogo:** nenhum — primeira implementação.
 
-**Referência concreta de contrato** — `01-RESEARCH.md:270-276`:
+**Referência concreta de contrato** — `01-RESEARCH.md:281-287`:
 
 ```java
 ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, mensagemPublica);
@@ -115,7 +115,7 @@ Logs são estruturados e métricas/traces usam Micrometer/OTLP. Actuator é oper
 **Papel/fluxo:** config, migration, service e test; CRUD/batch.
 **Análogo:** nenhum — primeira implementação.
 
-**Padrão obrigatório:** PostgreSQL 18 é a fonte oficial. Schema muda exclusivamente por migration Flyway versionada, ordenada, validada por checksum e imutável após aplicação; jamais usar `ddl-auto`, scripts manuais ou editar migration aplicada. Mesmo a fundação deve provisionar bancos e usuários separados para BETUFU e Keycloak. Redis é somente auxiliar para sessão/rate-limit/tempo real; MinIO/S3 é privado e não é exposto pela projeção de diagnóstico.
+**Padrão obrigatório:** PostgreSQL 18 é a fonte oficial. Schema muda exclusivamente por migration Flyway versionada, ordenada, validada por checksum e imutável após aplicação; jamais usar `ddl-auto`, scripts manuais ou editar migration aplicada. Mesmo a fundação deve provisionar bancos e usuários separados para BETUFU e Keycloak. Redis é somente auxiliar para sessão/rate-limit/tempo real; objetos usam contrato S3 privado por `BETUFU_S3_*`, com SeaweedFS apenas no ambiente local e sem expor o provedor pela projeção de diagnóstico.
 
 **Testes:** integração de migration e persistência usa PostgreSQL real via Testcontainers e `@ServiceConnection`, não URLs hard-coded ou banco em memória substituto.
 
@@ -173,11 +173,11 @@ Atender WCAG 2.2 AA: ordem de foco coerente, rótulo acessível, operação por 
 **Papel/fluxo:** config; event-driven/file-I/O.
 **Análogo:** nenhum — primeira implementação.
 
-**Padrão obrigatório:** modo diário: Compose inicia PostgreSQL, Redis, Keycloak, MinIO e e-mail de desenvolvimento; Spring/Angular rodam por IDE/terminal. Perfil completo: Spring em contêiner e Angular compilado servido por Nginx. Ambos usam versões de runtime e imagens fixadas (tag + digest quando aplicável), volumes nomeados preservados entre `stop/start`, configurações separadas dev/homologação/produção e nenhum segredo real no Git.
+**Padrão obrigatório:** modo diário: Compose inicia PostgreSQL, Redis, Keycloak, SeaweedFS como S3 exclusivamente local e e-mail de desenvolvimento; Spring/Angular rodam por IDE/terminal. Perfil completo: Spring em contêiner e Angular compilado servido por Nginx. Ambos usam versões de runtime e imagens aprovadas em gate humano e fixadas por tag/digest, volumes nomeados preservados entre `stop/start`, configurações separadas dev/homologação/produção e nenhum segredo real no Git. Todo comando Compose recebe `--env-file infra/.env.example` e é executado separadamente com propagação de falha no PowerShell 5.1.
 
-Primeira inicialização provisiona banco/migrations, Keycloak (clientes/papéis), Redis, armazenamento, e-mail e conta técnica exclusivamente local. Reset é comando distinto, pede confirmação clara e remove somente dados locais BETUFU. Serviços dependentes usam healthcheck — não somente ordem de start.
+Primeira inicialização usa `init-databases.sh` dentro do contêiner PostgreSQL, provisiona cliente Keycloak com somente o papel BETUFU `TECHNICAL`, Redis, armazenamento S3 local, e-mail e conta técnica exclusivamente local. Papéis administrativos/de domínio ficam na BETUFU/PostgreSQL. Reset é comando distinto, pede confirmação clara e remove somente dados locais BETUFU. Serviços dependentes usam healthcheck — não somente ordem de start.
 
-**Referência concreta** — `01-RESEARCH.md:282-287`:
+**Referência concreta** — `01-RESEARCH.md:293-298`:
 
 ```yaml
 depends_on:

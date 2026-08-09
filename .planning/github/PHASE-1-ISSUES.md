@@ -167,7 +167,7 @@ A issue de acompanhamento `#29` contém os links reais; este checklist local pre
 - **Depende de:** F1/P18
 - **Requisitos:** `IDEN-01`, `DATA-06`, `OPS-01`, `OPS-02`
 - **Labels:** `fase:1`, `area:infra`, `area:identidade`, `area:dados`, `area:seguranca`
-- **Descrição:** subir PostgreSQL, Redis, Keycloak, MinIO e e-mail locais com isolamento, saúde e tema mínimo BETUFU.
+- **Descrição:** após gate humano das imagens, subir PostgreSQL, Redis, Keycloak, SeaweedFS como S3 exclusivamente local e e-mail com isolamento, saúde, contrato S3 genérico e tema mínimo BETUFU.
 - **Aceite:** cinco serviços saudáveis; bancos e roles separados; volumes persistentes; realm sem wildcards; nenhum segredo real; fluxos nativos Keycloak e acessibilidade preservados.
 - **Verificação:** validação do Compose, healthchecks e smoke do tema.
 

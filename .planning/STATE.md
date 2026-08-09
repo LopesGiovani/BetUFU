@@ -71,7 +71,7 @@ Progress: [█░░░░░░░░░] 14%
 ### Pendências
 
 - Revisar o próximo bloco e decidir se a execução do Plano 01-03 deve ser autorizada.
-- PostgreSQL, Keycloak, Redis, MinIO e e-mail reais permanecem no Plano 01-03 e não foram entregues pelo Plano 01-18.
+- PostgreSQL, Keycloak, Redis, SeaweedFS local por contrato S3 e e-mail reais permanecem no Plano 01-03 e não foram entregues pelo Plano 01-18.
 - Homologação e produção ainda precisarão fornecer origens e uma lista não vazia de proxies durante os planos de infraestrutura e implantação.
 
 ### Bloqueios e pontos de atenção
