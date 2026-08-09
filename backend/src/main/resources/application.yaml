@@ -1,6 +1,14 @@
 spring:
   application:
     name: betufu-backend
+  profiles:
+    group:
+      dev:
+        - runtime
+      homolog:
+        - runtime
+      prod:
+        - runtime
 
 server:
   servlet:
@@ -25,6 +33,11 @@ spring:
   config:
     activate:
       on-profile: "runtime | integrated"
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
   security:
     oauth2:
       client:

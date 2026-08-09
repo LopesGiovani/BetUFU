@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+betufu:
+  web:
+    public-origin: "${BETUFU_PUBLIC_ORIGIN}"
+    backend-origin: "${BETUFU_BACKEND_ORIGIN}"
+
+server:
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      host-header: "X-Forwarded-Host"
+      protocol-header: "X-Forwarded-Proto"
+      remote-ip-header: "X-Forwarded-For"
+      # Valor vazio faz o Tomcat confiar em qualquer proxy; o deploy deve fornecer uma lista não vazia.
+      internal-proxies: "${BETUFU_TRUSTED_PROXIES}"
