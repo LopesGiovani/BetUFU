@@ -169,13 +169,19 @@ Atender WCAG 2.2 AA: ordem de foco coerente, rótulo acessível, operação por 
 
 ### Infraestrutura local reproduzível
 
-**Arquivos:** `infra/compose.yaml`, Dockerfiles, configuração Nginx, import/reino Keycloak, `.env.example` e comandos/wrappers documentados
+**Arquivos:** `.gitattributes`, `infra/compose.yaml`, Dockerfiles, configuração Nginx, import/reino Keycloak, `.env.example`, gates e comandos/wrappers documentados
 **Papel/fluxo:** config; event-driven/file-I/O.
 **Análogo:** nenhum — primeira implementação.
 
 **Padrão obrigatório:** modo diário: Compose inicia PostgreSQL, Redis, Keycloak, SeaweedFS como S3 exclusivamente local e e-mail de desenvolvimento; Spring/Angular rodam por IDE/terminal. Perfil completo: Spring em contêiner e Angular compilado servido por Nginx. Ambos usam versões de runtime e imagens aprovadas em gate humano e fixadas por tag/digest, volumes nomeados preservados entre `stop/start`, configurações separadas dev/homologação/produção e nenhum segredo real no Git. Todo comando Compose recebe `--env-file infra/.env.example` e é executado separadamente com propagação de falha no PowerShell 5.1.
 
 Primeira inicialização usa `init-databases.sh` dentro do contêiner PostgreSQL, provisiona cliente Keycloak com somente o papel BETUFU `TECHNICAL`, Redis, armazenamento S3 local, e-mail e conta técnica exclusivamente local. Papéis administrativos/de domínio ficam na BETUFU/PostgreSQL. Reset é comando distinto, pede confirmação clara e remove somente dados locais BETUFU. Serviços dependentes usam healthcheck — não somente ordem de start.
+
+Antes do primeiro arquivo de implementação, `01-03-GATE.md` precisa registrar imagens e contrato local completos. Portas/binds, topologia SeaweedFS, bucket/autenticação, variáveis `BETUFU_S3_*`, credenciais locais descartáveis, SMTP, claim `TECHNICAL`, parent do tema e comandos de prova não possuem default implícito. `--env-file` alimenta interpolação do Compose, mas cada variável necessária ao processo do contêiner deve ser mapeada explicitamente.
+
+Compatibilidade Windows/Linux exige `.gitattributes` com `infra/postgres/*.sh text eol=lf` e prova por `git check-attr`; montar o script no contêiner não corrige CRLF. Saúde de contêiner também não substitui prova comportamental: consultar privilégios PostgreSQL, fazer PUT/GET S3 autenticado, rejeitar anônimo, reler após stop/start, confirmar SMTP local e solicitar uma página Keycloak realmente renderizada.
+
+O realm publica `TECHNICAL` somente pela claim de ID token aprovada no gate. O Plano 01-26 mapeia por allowlist apenas o valor exato para `ROLE_TECHNICAL`; e-mail, username, grupo, prefixo ou papel administrativo/de domínio nunca concedem autoridade.
 
 **Referência concreta** — `01-RESEARCH.md:293-298`:
 

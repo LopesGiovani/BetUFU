@@ -315,8 +315,22 @@ O cliente obtém token CSRF por endpoint BFF seguro e o envia no header do frame
 |---|-----------|-------|-------------------------|
 | A1 | A projeção de diagnóstico pode usar um DTO BFF separado e estados agregados em vez de expor Actuator. | Architecture Patterns | Implementação pode acoplar a UI a dados sensíveis de gestão. |
 | A2 | O contrato de sessão proposto com `absoluteTimeout=null` é a melhor representação técnica da ausência de TTL absoluto. | Common Pitfalls | Divergência entre contrato e política de sessão. |
+| A3 | Montar `init-databases.sh` dentro do PostgreSQL basta para compatibilidade Windows/Linux. | Infrastructure | `core.autocrlf=true` pode produzir CRLF e quebrar o entrypoint; o 01-03 deve prever `.gitattributes` e provar `eol: lf`. |
+| A4 | Provisionar `TECHNICAL` no realm basta para autorização Spring. | Authentication | Sem claim de ID token e mapper allowlistado, o 01-26 pode negar o usuário técnico ou conceder autoridade por fonte errada. |
+| A5 | `up --wait`/`ps` provam isolamento e privacidade. | Validation | Containers saudáveis não demonstram privilégio PostgreSQL, negação anônima S3, persistência nem tema renderizado. |
 
-## Open Questions (RESOLVED)
+## Open Questions — Plano 01-03 (BLOCKING)
+
+As respostas pertencem a `01-03-GATE.md`, exigem aprovação humana e não podem ser inferidas pelo executor:
+
+1. Quais referências oficiais completas e healthchecks compatíveis serão usados nas cinco imagens?
+2. Quais portas/binds e qual versão mínima do Compose sustentam o modo híbrido sem exposição silenciosa?
+3. Qual topologia SeaweedFS, bucket privado, autenticação e contrato `BETUFU_S3_*` serão adotados somente no local?
+4. Como credenciais locais descartáveis, SMTP, import do realm e a claim `TECHNICAL` serão provisionados e validados?
+5. Qual parent/template e estratégia de ativos/fontes permitem um tema compatível e um smoke HTTP real?
+6. Quais comandos exatos provam isolamento PostgreSQL, SMTP local, S3 autenticado/anônimo/persistente e tema renderizado?
+
+## Open Questions resolvidas
 
 1. **[RESOLVED — decisão fixada; evidência de execução pendente] Qual versão/ferramenta produz o cliente Angular 22?**
    - Decisão: `@openapitools/openapi-generator-cli@2.40.1` com `typescript-angular`, Angular 22.1.x e TypeScript 6.0.x, conforme 01-01/01-20.
@@ -355,7 +369,7 @@ O cliente obtém token CSRF por endpoint BFF seguro e o envia no header do frame
 |-------------|-------|
 | Framework backend | JUnit 5, Spring Boot Test, Testcontainers, Spring Modulith Test e ArchUnit. [VERIFIED: .planning/PROJECT.md:127-131] |
 | Framework frontend | testes de componente Angular; Playwright fica preparado para jornadas posteriores, não substitui testes de unidade desta fase. [VERIFIED: .planning/PROJECT.md:127-131] |
-| Configuração | ainda não existe; 01-02 cria Maven Wrapper/POM e 01-04 cria o workspace Angular. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:91-103] |
+| Configuração | ainda não existe; 01-02 cria Maven Wrapper/POM e 01-04 cria o workspace Angular. [VERIFIED: .planning/phases/01-funda-o-segura-da-plataforma/01-CONTEXT.md:105-117] |
 | Quick run | `node scripts/maven.mjs -f backend/pom.xml test` e `npm --prefix frontend test -- --watch=false` após 01-02/01-04. [ASSUMED] |
 | Suite completa | smoke Compose + backend + frontend build + geração/diff OpenAPI. [ASSUMED] |
 

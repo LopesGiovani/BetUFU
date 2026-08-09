@@ -55,6 +55,20 @@ Ela não entrega os fluxos de negócio das fases seguintes, como verificação d
 - **D-23:** Um validador Node sem dependências verificará papéis e redirects do realm; seu teste negativo deverá falhar para wildcard, `+` ou prefixo indevido.
 - **D-24:** Verificações compatíveis com PowerShell 5.1 usarão invocações separadas, avaliarão `$LASTEXITCODE`, interromperão no primeiro código não zero e não dependerão de operador de encadeamento incompatível.
 
+### Gate humano ainda pendente para o Plano 01-03
+
+`01-03-GATE.md` é a fonte do Gate 1 e permanece bloqueante. Os itens abaixo não são decisões aprovadas e não possuem default implícito:
+
+- repositório, tag, digest, manifesto/plataforma, release e healthcheck compatível das cinco imagens;
+- versão mínima do Compose, lista completa de portas/binds e qualquer exposição além de loopback;
+- topologia local SeaweedFS, volume, bucket privado, autenticação e conjunto exato de variáveis genéricas `BETUFU_S3_*`;
+- estratégia de credenciais exclusivamente locais/descartáveis e método determinístico de substituição/bootstrap do realm;
+- SMTP local, tipo/formato da claim `TECHNICAL` no ID token e seu handoff allowlistado para Spring no Plano 01-26;
+- parent/template Keycloak, fontes/ativos locais e smoke HTTP compatíveis com a imagem aprovada;
+- comandos comportamentais que provem isolamento PostgreSQL, SMTP local, S3 autenticado/anônimo/persistente e renderização do tema.
+
+Até a aprovação integral do gate e do sinal de retomada, não criar `.gitattributes`, `.gitignore`, `infra/`, scripts, downloads ou contêineres. Depois do gate, cada tarefa do 01-03 continua sendo um bloco material separado e exige aprovação própria.
+
 ### Discrição dos agentes posteriores
 
 - Definir quais eventos técnicos contam como atividade válida para renovar o prazo ocioso, mantendo a regra aprovada de 8 horas.
