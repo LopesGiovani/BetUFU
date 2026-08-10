@@ -20,7 +20,7 @@ created: 2026-08-01
 | Direção visual | Identidade esportiva proprietária, madura e escura; base azul-marinho/grafite, superfícies contrastadas e laranja quente de placar. Não usar verde-neon como marca, nem selo, brasão ou sinais de identidade institucional da UFU. | decisão do usuário / `01-CONTEXT.md` D-01 |
 | Navegação inicial | Mostrar somente a marca BETUFU, identidade da sessão autenticada e ação `Sair`. Não renderizar links, abas ou placeholders para capacidades futuras. | decisão do usuário |
 | Diagnóstico | Rota protegida, exclusivamente para conta técnica em desenvolvimento/homologação; não compilar a rota nem seus links no build de produção. | decisão do usuário / `01-CONTEXT.md` D-02–D-04 |
-| Autenticação | O Angular não implementa credenciais. Login, recuperação, verificação de e-mail e MFA são fluxos nativos do Keycloak, sob um tema BETUFU mínimo. | decisão do usuário / `REQUIREMENTS.md` IDEN-01–IDEN-04 |
+| Autenticação | O Angular não implementa credenciais. Login, recuperação, página após link de verificação de e-mail e MFA são fluxos nativos do Keycloak, sob um tema BETUFU mínimo; assunto e corpo dos e-mails permanecem no tema de e-mail nativo. | decisão do usuário / `REQUIREMENTS.md` IDEN-01–IDEN-04 |
 | Segurança da informação | Nunca renderizar token, cookie, segredo, endereço interno, payload técnico, stack trace ou detalhe bruto de health/Actuator. | `01-CONTEXT.md` D-03–D-04, D-14; `01-RESEARCH.md` |
 
 ## Sistema de design
@@ -31,16 +31,20 @@ created: 2026-08-01
 | Preset | Não aplicável. Não usar shadcn. |
 | Biblioteca de componentes | Angular Material/CDK; preferir `mat-toolbar`, `mat-menu`, `mat-button`, `mat-card`, `mat-icon`, `mat-progress-spinner` e CDK a componentes próprios equivalentes. |
 | Ícones | Angular Material Symbols Rounded, auto-hospedados no pacote da aplicação; ícone sempre acompanhado de texto visível ou de nome acessível. |
-| Fontes | Inter e Barlow Condensed, auto-hospedadas em `frontend`; nenhuma dependência de Google Fonts ou outra CDN. |
-| Tema | Somente escuro no MVP. Não criar alternância claro/escuro nem um tema claro incompleto. |
+| Fontes | Inter e Barlow Condensed auto-hospedadas com os mesmos bytes canônicos no tema de login Keycloak e em `frontend`; nenhuma dependência de Google Fonts ou outra CDN. |
+| Tema | Somente escuro no MVP, inclusive quando o sistema indicar preferência clara. Não criar alternância claro/escuro nem um tema claro incompleto. |
 | Forma | Raio de 8px em cartões e campos; 4px em chips/etiquetas; 999px somente em avatar e indicadores circulares. Sombra discreta `0 8px 24px rgba(0,0,0,.24)` apenas em superfícies elevadas. |
 
 ### Marca e Keycloak
 
+> **Governança deste adendo:** o `status: approved` e o sign-off de 2026-08-02 cobrem o contrato-base original da UI. As cinco entradas de ativos `TEMA-01` e a linha geral `Tema Keycloak`, incluindo parent/footer/CSS/smoke, foram aprovadas pelo responsável em 2026-08-09 e estão registradas no `01-03-GATE.md`. Essa aprovação registra o contrato documental; não autoriza download, implementação nem operação Git antes dos checkpoints materiais restantes.
+
 - O cabeçalho usa o monograma geométrico `B` inspirado em segmentos de placar, seguido do wordmark `BETUFU`. É uma marca inicial, não um brasão nem a marca definitiva.
 - A estrutura autenticada usa o wordmark no cabeçalho; o monograma isolado pode ser usado como favicon, avatar de marca e marca reduzida em telas estreitas, sempre com `aria-label="BETUFU"`.
-- Criar um tema Keycloak mínimo com a mesma paleta, raios, foco e fontes. Manter intactos os campos e a lógica nativos de credencial, recuperação, verificação de e-mail e MFA; o Angular apenas redireciona ao BFF/Keycloak e recebe o retorno de sessão.
-- Em todas as páginas Keycloak, após o formulário e antes de ajuda/rodapé, exibir: `A BETUFU é uma plataforma independente e não possui vínculo oficial com a UFU.` O aviso é texto comum, não um link nem uma alegação jurídica adicional.
+- Criar um tema filho de login com `parent=keycloak.v2`, `import=common/keycloak`, `darkMode=false` e somente a extensão oficial `footer.ftl`. Não copiar nem sobrescrever `template.ftl`, `login.ftl` ou qualquer template de página.
+- Aplicar a mesma paleta, raios, foco, famílias, pesos e quatro tamanhos tipográficos por CSS, sem alterar DOM, campos, mensagens ou lógica nativos de credencial, recuperação, página após link de verificação e MFA. O CTA primário do Keycloak usa laranja com texto `#0B1220`; preferências de sistema clara ou escura produzem a mesma aparência escura.
+- Em todas as páginas do tema de login Keycloak, no footer oficial após as áreas nativas de formulário/ajuda, exibir: `A BETUFU é uma plataforma independente e não possui vínculo oficial com a UFU.` O aviso aparece exatamente uma vez, como texto comum, sem link nem alegação jurídica adicional.
+- O escopo é somente o tema `login`; assunto e corpo de recuperação/verificação enviados por e-mail permanecem nativos do Keycloak nesta fase.
 - Não usar “login UFU”, “SSO UFU”, sigla estilizada como marca, selo universitário ou linguagem que sugira endosso da universidade.
 
 ---
@@ -80,7 +84,7 @@ Há exatamente quatro tamanhos e dois pesos neste contrato. Não introduzir peso
 | Título | Barlow Condensed | 24px | 600 | 1.2 | título de página e nome de seção técnica |
 | Destaque | Barlow Condensed | 32px | 600 | 1.2 | resumo geral do diagnóstico e eventuais numerais esportivos futuros |
 
-O wordmark pode usar Barlow Condensed 600, preservando a legibilidade da marca. Todo texto de interface e formulário permanece em Inter. Os valores numéricos do diagnóstico usam alinhamento tabular quando a fonte o suportar, sem adicionar outra família ou peso.
+O wordmark pode usar Barlow Condensed 600, preservando a legibilidade da marca. Todo texto de interface e formulário permanece em Inter. No Keycloak, rótulos e botões usam 14px/600, corpo, instruções, erros e aviso usam 16px/400, título usa 24px/600 e wordmark pode usar 32px/600; os templates e a ordem nativos não mudam. Os valores numéricos do diagnóstico usam alinhamento tabular quando a fonte o suportar, sem adicionar outra família ou peso.
 
 ## Cor e contraste
 
@@ -101,7 +105,7 @@ O wordmark pode usar Barlow Condensed 600, preservando a legibilidade da marca. 
 
 Contratos de contraste: texto normal mantém no mínimo 4,5:1 contra a superfície; texto grande e elementos gráficos informativos, no mínimo 3:1; a combinação `#0B1220` sobre `#FF8A3D` é obrigatória no botão primário. Não usar cor como único meio de estado: os três estados de diagnóstico exigem também ícone, palavra e descrição.
 
-O laranja fica reservado exclusivamente para: botão primário `Verificar novamente`, anel/contorno de foco, estado ativo do menu de sessão, monograma/wordmark e destaque do resumo geral quando não representar disponibilidade. Não aplicá-lo a todos os links, cartões, números ou status. Links simples usam `#F8FAFC` sublinhado e só recebem laranja no foco/hover.
+O laranja fica reservado exclusivamente para: botão primário `Verificar novamente`, CTA primário dos formulários Keycloak, anel/contorno de foco, estado ativo do menu de sessão, monograma/wordmark e destaque do resumo geral quando não representar disponibilidade. Não aplicá-lo a todos os links, cartões, números ou status. Links simples usam `#F8FAFC` sublinhado e só recebem laranja no foco/hover.
 
 ---
 
