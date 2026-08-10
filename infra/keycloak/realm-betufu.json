@@ -1,0 +1,115 @@
+{
+  "realm": "betufu-local",
+  "enabled": true,
+  "registrationAllowed": false,
+  "resetPasswordAllowed": true,
+  "verifyEmail": false,
+  "loginTheme": "betufu",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "no-reply@betufu.local",
+    "fromDisplayName": "BETUFU",
+    "auth": "false",
+    "ssl": "false",
+    "starttls": "false"
+  },
+  "roles": {
+    "realm": [],
+    "client": {
+      "betufu-bff": [
+        {
+          "name": "TECHNICAL",
+          "composite": false,
+          "clientRole": true
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "betufu-bff",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${BETUFU_OIDC_CLIENT_SECRET}",
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [
+        "http://localhost:4200/login/oauth2/code/keycloak"
+      ],
+      "webOrigins": [
+        "http://localhost:4200"
+      ],
+      "fullScopeAllowed": false,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "basic",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/"
+      },
+      "protocolMappers": [
+        {
+          "name": "betufu-client-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "usermodel.clientRoleMapping.clientId": "betufu-bff",
+            "multivalued": "true",
+            "claim.name": "betufu_roles",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "false",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "clientScopeMappings": {
+    "betufu-bff": [
+      {
+        "client": "betufu-bff",
+        "roles": [
+          "TECHNICAL"
+        ]
+      }
+    ]
+  },
+  "users": [
+    {
+      "id": "00000000-0000-0000-0000-000000000101",
+      "username": "technical",
+      "email": "technical@betufu.local",
+      "enabled": true,
+      "emailVerified": false,
+      "requiredActions": [],
+      "realmRoles": [],
+      "clientRoles": {
+        "betufu-bff": [
+          "TECHNICAL"
+        ]
+      },
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${BETUFU_TECHNICAL_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
