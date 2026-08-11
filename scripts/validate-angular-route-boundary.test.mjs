@@ -242,6 +242,27 @@ for (const replacementMutation of replacementMutations) {
   });
 }
 
+const ROUTER_PROVIDER_ENTRY = '    provideRouter(APP_ROUTES),\n';
+const HTTP_PROVIDER_ENTRY = `    provideHttpClient(
+      withXsrfConfiguration({
+        cookieName: 'XSRF-TOKEN',
+        headerName: 'X-XSRF-TOKEN',
+      }),
+    ),
+`;
+
+function replaceExactlyOnceLiteral(source, searchValue, replacement, label) {
+  const firstIndex = source.indexOf(searchValue);
+  assert.notEqual(firstIndex, -1, `${label} nao foi encontrado na fixture.`);
+  assert.equal(
+    source.indexOf(searchValue, firstIndex + searchValue.length),
+    -1,
+    `${label} apareceu mais de uma vez na fixture.`,
+  );
+
+  return `${source.slice(0, firstIndex)}${replacement}${source.slice(firstIndex + searchValue.length)}`;
+}
+
 const sourceMutations = [
   {
     name: 'import direto de production',
@@ -262,13 +283,83 @@ const sourceMutations = [
     name: 'provideRouter ausente',
     path: 'frontend/src/app/app.config.ts',
     rule: 'ROUTER_PROVIDER',
-    mutate: (source) => source.replace(/\s*provideRouter\(APP_ROUTES\),/u, ''),
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      ROUTER_PROVIDER_ENTRY,
+      '',
+      'provider Router',
+    ),
+  },
+  {
+    name: 'provideRouter fora de appConfig.providers',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'ROUTER_PROVIDER',
+    mutate: (source) => `${replaceExactlyOnceLiteral(
+      source,
+      ROUTER_PROVIDER_ENTRY,
+      '',
+      'provider Router',
+    )}\nprovideRouter(APP_ROUTES);\n`,
+  },
+  {
+    name: 'provideRouter aninhado em factory de provider',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'ROUTER_PROVIDER',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      ROUTER_PROVIDER_ENTRY,
+      "    { provide: 'router-decoy', useFactory: () => provideRouter(APP_ROUTES) },\n",
+      'provider Router',
+    ),
   },
   {
     name: 'provideHttpClient ausente',
     path: 'frontend/src/app/app.config.ts',
     rule: 'HTTP_PROVIDER',
-    mutate: (source) => source.replace(/\s*provideHttpClient\([\s\S]*?\n\s*\),\n/u, '\n'),
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      HTTP_PROVIDER_ENTRY,
+      '',
+      'provider HTTP',
+    ),
+  },
+  {
+    name: 'provideHttpClient fora de appConfig.providers',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'HTTP_PROVIDER',
+    mutate: (source) => `${replaceExactlyOnceLiteral(
+      source,
+      HTTP_PROVIDER_ENTRY,
+      '',
+      'provider HTTP',
+    )}
+provideHttpClient(
+  withXsrfConfiguration({
+    cookieName: 'XSRF-TOKEN',
+    headerName: 'X-XSRF-TOKEN',
+  }),
+);
+`,
+  },
+  {
+    name: 'provideHttpClient aninhado em factory de provider',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'HTTP_PROVIDER',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      HTTP_PROVIDER_ENTRY,
+      `    {
+      provide: 'http-decoy',
+      useFactory: () => provideHttpClient(
+        withXsrfConfiguration({
+          cookieName: 'XSRF-TOKEN',
+          headerName: 'X-XSRF-TOKEN',
+        }),
+      ),
+    },
+`,
+      'provider HTTP',
+    ),
   },
   {
     name: 'cookie XSRF divergente',
@@ -345,14 +436,35 @@ const sourceMutations = [
   {
     name: 'import dinamico de production',
     path: 'frontend/src/app/app.component.ts',
-    rule: 'DIRECT_PRODUCTION_IMPORT',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
     mutate: (source) => `${source}\nvoid import('./app.routes.production');\n`,
   },
   {
     name: 'import dinamico de production com template literal',
     path: 'frontend/src/app/app.component.ts',
-    rule: 'DIRECT_PRODUCTION_IMPORT',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
     mutate: (source) => `${source}\nvoid import(\`./app.routes.production\`);\n`,
+  },
+  {
+    name: 'import dinamico de production em interpolacao executavel',
+    path: 'frontend/src/app/app.component.ts',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
+    mutate: (source) => `${source}\nconst hiddenImport = \`\${import('./app.routes.production')}\`;\n`,
+  },
+  {
+    name: 'import dinamico de production com specifier concatenado',
+    path: 'frontend/src/app/app.component.ts',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
+    mutate: (source) => `${source}\nvoid import('./app.routes.' + 'production');\n`,
+  },
+  {
+    name: 'specifier estatico com escape Unicode',
+    path: 'frontend/src/app/app.component.ts',
+    rule: 'UNSUPPORTED_SCRIPT_ESCAPE',
+    mutate: (source) => [
+      String.raw`import './app.routes.\u0070roduction';`,
+      source,
+    ].join('\n'),
   },
   {
     name: 'mutacao posterior da lista production',
@@ -361,10 +473,239 @@ const sourceMutations = [
     mutate: (source) => `${source}\nBUILD_SPECIFIC_ROUTES.push({ path: 'technical', redirectTo: '' });\n`,
   },
   {
+    name: 'mutacao production em interpolacao executavel',
+    path: 'frontend/src/app/app.routes.production.ts',
+    rule: 'PRODUCTION_ROUTES_EMPTY',
+    mutate: (source) => `${source}\nconst hiddenMutation = \`\${BUILD_SPECIFIC_ROUTES.push({ path: 'technical', redirectTo: '' })}\`;\n`,
+  },
+  {
     name: 'mutacao posterior da lista final APP_ROUTES',
     path: 'frontend/src/app/app.routes.ts',
     rule: 'APP_ROUTES_USAGE',
     mutate: (source) => `${source}\nAPP_ROUTES.push({ path: 'technical', redirectTo: '' });\n`,
+  },
+  {
+    name: 'mutacao APP_ROUTES em interpolacao executavel',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'APP_ROUTES_USAGE',
+    mutate: (source) => `${source}\nconst hiddenMutation = \`\${APP_ROUTES.push({ path: 'technical', redirectTo: '' })}\`;\n`,
+  },
+  {
+    name: 'regex com barras fora do subconjunto lexico aprovado',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'UNSUPPORTED_SCRIPT_SLASH',
+    mutate: (source) => [
+      source,
+      String.raw`const slashes = /\/\//; localStorage.setItem('token', 'value');`,
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'regex depois de cabecalho de controle',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'UNSUPPORTED_SCRIPT_SLASH',
+    mutate: (source) => [
+      source,
+      String.raw`if (true) /\/\//.test('//'); localStorage.setItem('token', 'value');`,
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'regex depois de bloco de controle',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'UNSUPPORTED_SCRIPT_SLASH',
+    mutate: (source) => [
+      source,
+      String.raw`if (true) {} /\/\//.test('//'); localStorage.setItem('token', 'value');`,
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'divisao depois de propriedade chamada return',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'UNSUPPORTED_SCRIPT_SLASH',
+    mutate: (source) => [
+      source,
+      'const ratio = obj.return / APP_ROUTES.push({ path: \'technical\' }) / 2;',
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'divisao depois de incremento pos-fixado',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'UNSUPPORTED_SCRIPT_SLASH',
+    mutate: (source) => [
+      source,
+      'let counter = 0;',
+      "counter++ / APP_ROUTES.push({ path: 'technical' }) / 2;",
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'regex depois de export default',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'UNSUPPORTED_SCRIPT_SLASH',
+    mutate: (source) => [
+      source,
+      String.raw`export default /\/\//; APP_ROUTES.push({ path: 'technical' });`,
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'divisao depois de identificador contextual of',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'UNSUPPORTED_SCRIPT_SLASH',
+    mutate: (source) => [
+      source,
+      'const of = 1;',
+      "const ratio = of / APP_ROUTES.push({ path: 'technical' }) / 2;",
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'mutacao posterior de appConfig.providers',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'APP_CONFIG_IMMUTABLE',
+    mutate: (source) => `${source}\nappConfig.providers.length = 2;\n`,
+  },
+  {
+    name: 'sobrescrita posterior de providers via Object.assign',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'APP_CONFIG_IMMUTABLE',
+    mutate: (source) => `${source}\nObject.assign(appConfig, { providers: [] });\n`,
+  },
+  {
+    name: 'spread posterior sobrescrevendo providers no literal appConfig',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'APP_CONFIG_SHAPE',
+    mutate: (source) => source.replace(
+      '  ],\n};',
+      '  ],\n  ...{ providers: [] },\n};',
+    ),
+  },
+  {
+    name: 'provider ROUTES adicional fora da seam aprovada',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'APP_CONFIG_PROVIDER_LIST',
+    mutate: (source) => source
+      .replace(
+        "import { provideRouter } from '@angular/router';",
+        "import { provideRouter } from '@angular/router';\nimport { ROUTES } from '@angular/router';",
+      )
+      .replace(
+        '    provideRouter(APP_ROUTES),',
+        `    provideRouter(APP_ROUTES),
+    { provide: ROUTES, multi: true, useValue: [{ path: 'technical' }] },`,
+      ),
+  },
+  {
+    name: 'provider global de erros removido',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'APP_CONFIG_PROVIDER_LIST',
+    mutate: (source) => source.replace(
+      '    provideBrowserGlobalErrorListeners(),\n',
+      '',
+    ),
+  },
+  {
+    name: 'provider zoneless removido',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'APP_CONFIG_PROVIDER_LIST',
+    mutate: (source) => source.replace(
+      '    provideZonelessChangeDetection(),\n',
+      '',
+    ),
+  },
+  {
+    name: 'mutacao de appConfig a partir de main.ts',
+    path: 'frontend/src/main.ts',
+    rule: 'MAIN_BOOTSTRAP_SHAPE',
+    mutate: (source) => `${source}\nappConfig.providers.length = 0;\n`,
+  },
+  {
+    name: 'bootstrap canonico decoy seguido de bootstrap alternativo',
+    path: 'frontend/src/main.ts',
+    rule: 'MAIN_BOOTSTRAP_SHAPE',
+    mutate: (source) => source.replace(
+      'bootstrapApplication(AppComponent, appConfig).catch((error: unknown) => {',
+      `function approvedButUnused() {
+  return bootstrapApplication(AppComponent, appConfig);
+}
+
+bootstrapApplication(AppComponent, { providers: [] }).catch((error: unknown) => {`,
+    ),
+  },
+  {
+    name: 'Router.resetConfig no componente raiz',
+    path: 'frontend/src/app/app.component.ts',
+    rule: 'ROOT_COMPONENT_SHAPE',
+    mutate: (source) => source
+      .replace(
+        "import { RouterOutlet } from '@angular/router';",
+        "import { Router, RouterOutlet } from '@angular/router';",
+      )
+      .replace(
+        'export class AppComponent {}',
+        `export class AppComponent {
+  constructor(router: Router) {
+    router.resetConfig([{ path: 'technical', redirectTo: '' }]);
+  }
+}`,
+      ),
+  },
+  {
+    name: 'conteudo adicional no template raiz',
+    path: 'frontend/src/app/app.component.html',
+    rule: 'ROOT_TEMPLATE_SHAPE',
+    mutate: (source) => `${source}<a href="technical">Technical</a>\n`,
+  },
+  {
+    name: 'APP_ROUTES com escape Unicode no identificador',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'UNSUPPORTED_SCRIPT_ESCAPE',
+    mutate: (source) => [
+      source,
+      String.raw`APP\u005FROUTES.push({ path: 'technical' });`,
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'appConfig com escape Unicode no identificador',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'UNSUPPORTED_SCRIPT_ESCAPE',
+    mutate: (source) => [
+      source,
+      String.raw`app\u0043onfig.providers.length = 0;`,
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'localStorage com escape Unicode no identificador',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'UNSUPPORTED_SCRIPT_ESCAPE',
+    mutate: (source) => [
+      source,
+      String.raw`local\u0053torage.setItem('token', 'value');`,
+      '',
+    ].join('\n'),
+  },
+  {
+    name: 'codigo ativo depois de comentario encerrado por CR',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'APP_ROUTES_USAGE',
+    mutate: (source) => `${source}// harmless\rAPP_ROUTES.push({ path: 'technical' });\n`,
+  },
+  {
+    name: 'codigo ativo depois de comentario encerrado por U+2028',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'APP_ROUTES_USAGE',
+    mutate: (source) => `${source}// harmless\u2028APP_ROUTES.push({ path: 'technical' });\n`,
+  },
+  {
+    name: 'codigo ativo depois de comentario encerrado por U+2029',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'APP_ROUTES_USAGE',
+    mutate: (source) => `${source}// harmless\u2029APP_ROUTES.push({ path: 'technical' });\n`,
   },
   {
     name: 'spread posterior nas opcoes XSRF',

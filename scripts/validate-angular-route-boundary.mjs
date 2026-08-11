@@ -108,69 +108,115 @@ function expectPlainObject(value, rule, label) {
 }
 
 function normalizeText(text) {
-  return text.replaceAll('\r\n', '\n');
+  return text.replace(/\r\n?|\u2028|\u2029/gu, '\n');
 }
 
-function stripScriptComments(source) {
+function maskCharacter(character) {
+  return character === '\n' ? '\n' : ' ';
+}
+
+function previousNonWhitespaceIndex(source, startIndex) {
+  let cursor = startIndex;
+  while (cursor >= 0 && /\s/u.test(source[cursor])) {
+    cursor -= 1;
+  }
+  return cursor;
+}
+
+function transformScriptSource(source, { maskLiterals = false, stripComments = false } = {}) {
   let result = '';
-  let state = 'code';
-  let quote = '';
+  const contexts = [{ type: 'code', templateExpression: false, braceDepth: 0 }];
 
   for (let index = 0; index < source.length; index += 1) {
     const current = source[index];
     const next = source[index + 1];
+    const context = contexts.at(-1);
 
-    if (state === 'line-comment') {
+    if (context.type === 'line-comment') {
       if (current === '\n') {
         result += '\n';
-        state = 'code';
+        contexts.pop();
       } else {
         result += ' ';
       }
       continue;
     }
 
-    if (state === 'block-comment') {
+    if (context.type === 'block-comment') {
       if (current === '*' && next === '/') {
         result += '  ';
         index += 1;
-        state = 'code';
+        contexts.pop();
       } else {
-        result += current === '\n' ? '\n' : ' ';
+        result += maskCharacter(current);
       }
       continue;
     }
 
-    if (state === 'string') {
-      result += current;
+    if (context.type === 'string') {
       if (current === '\\' && next !== undefined) {
-        result += next;
+        result += maskLiterals ? `${maskCharacter(current)}${maskCharacter(next)}` : `${current}${next}`;
         index += 1;
-      } else if (current === quote) {
-        state = 'code';
-        quote = '';
+      } else if (current === context.quote) {
+        result += current;
+        contexts.pop();
+      } else {
+        result += maskLiterals ? maskCharacter(current) : current;
       }
       continue;
     }
 
-    if (current === '/' && next === '/') {
-      result += '  ';
-      index += 1;
-      state = 'line-comment';
+    if (context.type === 'template') {
+      if (current === '\\' && next !== undefined) {
+        result += maskLiterals ? `${maskCharacter(current)}${maskCharacter(next)}` : `${current}${next}`;
+        index += 1;
+      } else if (current === '`') {
+        result += current;
+        contexts.pop();
+      } else if (current === '$' && next === '{') {
+        result += '${';
+        index += 1;
+        contexts.push({ type: 'code', templateExpression: true, braceDepth: 1 });
+      } else {
+        result += maskLiterals ? maskCharacter(current) : current;
+      }
       continue;
     }
 
-    if (current === '/' && next === '*') {
+    if (stripComments && current === '/' && next === '/') {
       result += '  ';
       index += 1;
-      state = 'block-comment';
+      contexts.push({ type: 'line-comment' });
       continue;
     }
 
-    if (current === "'" || current === '"' || current === '`') {
+    if (stripComments && current === '/' && next === '*') {
+      result += '  ';
+      index += 1;
+      contexts.push({ type: 'block-comment' });
+      continue;
+    }
+
+    if (current === "'" || current === '"') {
       result += current;
-      quote = current;
-      state = 'string';
+      contexts.push({ type: 'string', quote: current });
+      continue;
+    }
+
+    if (current === '`') {
+      result += current;
+      contexts.push({ type: 'template' });
+      continue;
+    }
+
+    if (context.templateExpression && current === '{') {
+      context.braceDepth += 1;
+    } else if (context.templateExpression && current === '}') {
+      context.braceDepth -= 1;
+      result += current;
+      if (context.braceDepth === 0) {
+        contexts.pop();
+      }
       continue;
     }
 
@@ -180,40 +226,38 @@ function stripScriptComments(source) {
   return result;
 }
 
+function stripScriptComments(source) {
+  return transformScriptSource(source, { stripComments: true });
+}
+
 function maskScriptStrings(source) {
-  let result = '';
-  let state = 'code';
-  let quote = '';
+  return transformScriptSource(source, { maskLiterals: true });
+}
 
-  for (let index = 0; index < source.length; index += 1) {
-    const current = source[index];
-    const next = source[index + 1];
-
-    if (state === 'string') {
-      if (current === '\\' && next !== undefined) {
-        result += '  ';
-        index += 1;
-      } else if (current === quote) {
-        result += current;
-        state = 'code';
-        quote = '';
-      } else {
-        result += current === '\n' ? '\n' : ' ';
-      }
+function validateScriptLexicalSafety(sources) {
+  for (const [relativePath, source] of sources) {
+    if (!relativePath.endsWith('.ts')) {
       continue;
     }
 
-    if (current === "'" || current === '"' || current === '`') {
-      result += current;
-      state = 'string';
-      quote = current;
-      continue;
-    }
-
-    result += current;
+    const code = stripScriptComments(source);
+    const executableCode = maskScriptStrings(code);
+    expect(
+      !executableCode.includes('/'),
+      'UNSUPPORTED_SCRIPT_SLASH',
+      `${relativePath} nao pode conter regex ou divisao; barras sao aceitas somente em strings e comentarios.`,
+    );
+    expect(
+      !code.includes('\\'),
+      'UNSUPPORTED_SCRIPT_ESCAPE',
+      `${relativePath} nao pode conter escape fora de comentario; o subconjunto do host nao aceita escapes em codigo nem strings.`,
+    );
+    expect(
+      !/\bimport\s*\(/u.test(executableCode),
+      'DYNAMIC_IMPORT_FORBIDDEN',
+      `${relativePath} nao pode usar import dinamico no host inicial.`,
+    );
   }
-
-  return result;
 }
 
 function stripHtmlComments(source) {
@@ -267,6 +311,200 @@ function expectExactlyOnceActiveImport(source, pattern, rule, label) {
     countActiveImports(source, pattern) === 1,
     rule,
     `${label} deve aparecer exatamente uma vez em codigo ativo.`,
+  );
+}
+
+function findMatchingDelimiter(source, openIndex, openDelimiter, closeDelimiter) {
+  let depth = 0;
+
+  for (let index = openIndex; index < source.length; index += 1) {
+    if (source[index] === openDelimiter) {
+      depth += 1;
+    } else if (source[index] === closeDelimiter) {
+      depth -= 1;
+      if (depth === 0) {
+        return index;
+      }
+    }
+  }
+
+  return -1;
+}
+
+function findTopLevelArrayProperties(source, objectOpenIndex, objectCloseIndex, propertyName) {
+  const matches = [];
+  let curlyDepth = 0;
+  let squareDepth = 0;
+  let parenthesisDepth = 0;
+  const propertyPattern = new RegExp(`^${propertyName}\\s*:\\s*\\[`, 'u');
+
+  for (let index = objectOpenIndex + 1; index < objectCloseIndex; index += 1) {
+    const current = source[index];
+
+    if (
+      curlyDepth === 0
+      && squareDepth === 0
+      && parenthesisDepth === 0
+      && current === propertyName[0]
+      && !/[\p{ID_Continue}$]/u.test(source[index - 1] ?? '')
+    ) {
+      const propertyMatch = propertyPattern.exec(source.slice(index));
+      if (propertyMatch !== null) {
+        matches.push(index + propertyMatch[0].lastIndexOf('['));
+      }
+    }
+
+    if (current === '{') {
+      curlyDepth += 1;
+    } else if (current === '}') {
+      curlyDepth -= 1;
+    } else if (current === '[') {
+      squareDepth += 1;
+    } else if (current === ']') {
+      squareDepth -= 1;
+    } else if (current === '(') {
+      parenthesisDepth += 1;
+    } else if (current === ')') {
+      parenthesisDepth -= 1;
+    }
+  }
+
+  return matches;
+}
+
+function extractAppConfigProviders(code, executableCode) {
+  const declarationPattern = /\bexport\s+const\s+appConfig\s*:\s*ApplicationConfig\s*=\s*\{/gu;
+  const declarations = [...executableCode.matchAll(declarationPattern)];
+
+  expect(
+    declarations.length === 1,
+    'APP_CONFIG_DECLARATION',
+    'appConfig: ApplicationConfig deve ser declarado exatamente uma vez.',
+  );
+
+  const declaration = declarations[0];
+  const objectOpenIndex = declaration.index + declaration[0].lastIndexOf('{');
+  const objectCloseIndex = findMatchingDelimiter(executableCode, objectOpenIndex, '{', '}');
+
+  expect(
+    objectCloseIndex >= 0,
+    'APP_CONFIG_DECLARATION',
+    'o objeto appConfig deve possuir fechamento valido.',
+  );
+
+  const providerArrays = findTopLevelArrayProperties(
+    executableCode,
+    objectOpenIndex,
+    objectCloseIndex,
+    'providers',
+  );
+  expect(
+    providerArrays.length === 1,
+    'APP_CONFIG_PROVIDERS',
+    'appConfig deve declarar exatamente um array providers no nivel principal.',
+  );
+
+  const providersOpenIndex = providerArrays[0];
+  const providersCloseIndex = findMatchingDelimiter(
+    executableCode,
+    providersOpenIndex,
+    '[',
+    ']',
+  );
+  expect(
+    providersCloseIndex >= 0 && providersCloseIndex < objectCloseIndex,
+    'APP_CONFIG_PROVIDERS',
+    'appConfig.providers deve possuir fechamento valido dentro de appConfig.',
+  );
+
+  const objectPrefix = executableCode.slice(objectOpenIndex + 1, providersOpenIndex);
+  const objectSuffix = executableCode.slice(providersCloseIndex + 1, objectCloseIndex);
+  expect(
+    /^\s*providers\s*:\s*$/u.test(objectPrefix)
+      && /^\s*,?\s*$/u.test(objectSuffix),
+    'APP_CONFIG_SHAPE',
+    'appConfig deve conter somente a propriedade canonica providers, sem spread ou override.',
+  );
+
+  return {
+    code: code.slice(providersOpenIndex, providersCloseIndex + 1),
+    executableCode: executableCode.slice(providersOpenIndex, providersCloseIndex + 1),
+  };
+}
+
+function expectExactlyOnceInsideProviders(
+  executableCode,
+  providersExecutableCode,
+  pattern,
+  rule,
+  label,
+) {
+  expect(
+    countMatches(executableCode, pattern) === 1
+      && countMatches(providersExecutableCode, pattern) === 1,
+    rule,
+    `${label} deve aparecer exatamente uma vez e dentro de appConfig.providers.`,
+  );
+}
+
+function isDirectProviderArrayElement(source, match) {
+  let curlyDepth = 0;
+  let squareDepth = 0;
+  let parenthesisDepth = 0;
+
+  for (let index = 1; index < match.index; index += 1) {
+    const current = source[index];
+    if (current === '{') {
+      curlyDepth += 1;
+    } else if (current === '}') {
+      curlyDepth -= 1;
+    } else if (current === '[') {
+      squareDepth += 1;
+    } else if (current === ']') {
+      squareDepth -= 1;
+    } else if (current === '(') {
+      parenthesisDepth += 1;
+    } else if (current === ')') {
+      parenthesisDepth -= 1;
+    }
+  }
+
+  if (curlyDepth !== 0 || squareDepth !== 0 || parenthesisDepth !== 0) {
+    return false;
+  }
+
+  const previousIndex = previousNonWhitespaceIndex(source, match.index - 1);
+  const nextIndex = (() => {
+    let cursor = match.index + match[0].length;
+    while (cursor < source.length && /\s/u.test(source[cursor])) {
+      cursor += 1;
+    }
+    return cursor;
+  })();
+
+  return '[,'.includes(source[previousIndex])
+    && ',]'.includes(source[nextIndex]);
+}
+
+function expectExactlyOneDirectProvider(
+  executableCode,
+  providersExecutableCode,
+  pattern,
+  rule,
+  label,
+) {
+  const flags = pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`;
+  const globalMatches = [...executableCode.matchAll(new RegExp(pattern.source, flags))];
+  const providerMatches = [
+    ...providersExecutableCode.matchAll(new RegExp(pattern.source, flags)),
+  ];
+
+  expect(
+    globalMatches.length === 1
+      && providerMatches.length === 1
+      && isDirectProviderArrayElement(providersExecutableCode, providerMatches[0]),
+    rule,
+    `${label} deve aparecer exatamente uma vez como elemento direto de appConfig.providers.`,
   );
 }
 
@@ -358,6 +596,15 @@ function validateNonProductionRouteReplacements(configuration, rule, label) {
 function validateAppConfiguration(source) {
   const code = stripScriptComments(source);
   const executableCode = maskScriptStrings(code);
+  const providers = extractAppConfigProviders(code, executableCode);
+  const routerCallPattern = /\bprovideRouter\s*\(\s*APP_ROUTES\s*\)/u;
+  const xsrfCallPattern = /\bprovideHttpClient\s*\(\s*withXsrfConfiguration\s*\(\s*\{[\s\S]*?\}\s*\)\s*,?\s*\)/u;
+
+  expect(
+    countMatches(executableCode, /\bappConfig\b/u) === 1,
+    'APP_CONFIG_IMMUTABLE',
+    'appConfig nao pode ser referenciado ou alterado depois da declaracao canonica.',
+  );
 
   expectExactlyOnceActiveImport(
     code,
@@ -377,31 +624,69 @@ function validateAppConfiguration(source) {
     'APP_ROUTES_IMPORT',
     'import da seam APP_ROUTES',
   );
-  expectExactlyOnce(
+  expectExactlyOnceActiveImport(
+    code,
+    /^\s*import\s*\{(?=[^}]*\bApplicationConfig\b)(?=[^}]*\bprovideBrowserGlobalErrorListeners\b)(?=[^}]*\bprovideZonelessChangeDetection\b)[^}]*\}\s*from\s*['"]@angular\/core['"]\s*;/mu,
+    'CORE_PROVIDER_IMPORT',
+    'import canonico dos providers core',
+  );
+  expectExactlyOneDirectProvider(
     executableCode,
-    /\bprovideRouter\s*\(\s*APP_ROUTES\s*\)/u,
+    providers.executableCode,
+    routerCallPattern,
     'ROUTER_PROVIDER',
     'provideRouter(APP_ROUTES)',
   );
-  expectExactlyOnce(
+  expectExactlyOnceInsideProviders(
     executableCode,
+    providers.executableCode,
+    /\bprovideRouter\s*\(/u,
+    'ROUTER_PROVIDER',
+    'provideRouter',
+  );
+  expectExactlyOneDirectProvider(
+    executableCode,
+    providers.executableCode,
+    xsrfCallPattern,
+    'HTTP_PROVIDER',
+    'provideHttpClient(withXsrfConfiguration(...))',
+  );
+  expectExactlyOnceInsideProviders(
+    executableCode,
+    providers.executableCode,
     /\bprovideHttpClient\s*\(/u,
     'HTTP_PROVIDER',
     'provideHttpClient',
   );
-  expectExactlyOnce(
+  expectExactlyOnceInsideProviders(
     executableCode,
+    providers.executableCode,
     /\bwithXsrfConfiguration\s*\(/u,
     'XSRF_PROVIDER',
     'withXsrfConfiguration',
   );
 
-  const xsrfCallPattern = /\bprovideHttpClient\s*\(\s*withXsrfConfiguration\s*\(\s*\{[\s\S]*?\}\s*\)\s*,?\s*\)/u;
-  const xsrfCallMatch = xsrfCallPattern.exec(executableCode);
+  const xsrfCallMatch = xsrfCallPattern.exec(providers.executableCode);
   const xsrfCall = xsrfCallMatch === null
     ? undefined
-    : code.slice(xsrfCallMatch.index, xsrfCallMatch.index + xsrfCallMatch[0].length);
+    : providers.code.slice(
+      xsrfCallMatch.index,
+      xsrfCallMatch.index + xsrfCallMatch[0].length,
+    );
   const xsrfOptions = xsrfCall?.match(/\{(?<options>[\s\S]*?)\}/u)?.groups?.options;
+
+  const providersWithHttpMarker = xsrfCallMatch === null
+    ? providers.code
+    : `${providers.code.slice(0, xsrfCallMatch.index)}__HTTP_PROVIDER__${providers.code.slice(
+      xsrfCallMatch.index + xsrfCallMatch[0].length,
+    )}`;
+  expect(
+    /^\[provideBrowserGlobalErrorListeners\(\),provideZonelessChangeDetection\(\),provideRouter\(APP_ROUTES\),__HTTP_PROVIDER__,?\]$/u.test(
+      providersWithHttpMarker.replace(/\s/gu, ''),
+    ),
+    'APP_CONFIG_PROVIDER_LIST',
+    'appConfig.providers deve conter somente os quatro providers canonicos, na ordem aprovada.',
+  );
 
   expect(xsrfOptions !== undefined, 'XSRF_PROVIDER', 'configuracao XSRF deve estar dentro de provideHttpClient.');
   expectExactlyOnce(
@@ -424,6 +709,70 @@ function validateAppConfiguration(source) {
     cookieThenHeader.test(xsrfOptionsShape) || headerThenCookie.test(xsrfOptionsShape),
     'XSRF_OPTIONS_SHAPE',
     'withXsrfConfiguration deve conter somente cookieName e headerName aprovados.',
+  );
+}
+
+function validateAppConfigUsage(sources) {
+  const scriptSources = [...sources.entries()]
+    .filter(([relativePath]) => relativePath.endsWith('.ts'))
+    .map(([relativePath, source]) => {
+      const code = stripScriptComments(source);
+      return [relativePath, code, maskScriptStrings(code)];
+    });
+  const main = scriptSources.find(([relativePath]) => relativePath === PATHS.main);
+
+  expect(main !== undefined, 'APP_CONFIG_USAGE', 'main.ts deve participar da validacao do appConfig.');
+  expect(
+    /^\s*import\s*\{\s*bootstrapApplication\s*\}\s*from\s*['"]@angular\/platform-browser['"]\s*;\s*import\s*\{\s*appConfig\s*\}\s*from\s*['"]\.\/app\/app\.config['"]\s*;\s*import\s*\{\s*AppComponent\s*\}\s*from\s*['"]\.\/app\/app\.component['"]\s*;\s*bootstrapApplication\s*\(\s*AppComponent\s*,\s*appConfig\s*\)\s*\.catch\s*\(\s*\(\s*error\s*:\s*unknown\s*\)\s*=>\s*\{\s*console\.error\s*\(\s*error\s*\)\s*;\s*\}\s*\)\s*;\s*$/u.test(main[1]),
+    'MAIN_BOOTSTRAP_SHAPE',
+    'main.ts deve conter somente imports canonicos e o bootstrap top-level aprovado.',
+  );
+  expectExactlyOnceActiveImport(
+    main[1],
+    /^\s*import\s*\{\s*appConfig\s*\}\s*from\s*['"]\.\/app\/app\.config['"]\s*;/mu,
+    'APP_CONFIG_USAGE',
+    'import canonico de appConfig em main.ts',
+  );
+  expectExactlyOnce(
+    main[2],
+    /\bbootstrapApplication\s*\(\s*AppComponent\s*,\s*appConfig\s*\)/u,
+    'APP_CONFIG_USAGE',
+    'bootstrapApplication(AppComponent, appConfig)',
+  );
+
+  for (const [relativePath, source, executableSource] of scriptSources) {
+    const expectedIdentifierCount = relativePath === PATHS.config
+      ? 1
+      : (relativePath === PATHS.main ? 2 : 0);
+    const expectedModuleReferenceCount = Number(relativePath === PATHS.main);
+
+    expect(
+      countMatches(executableSource, /\bappConfig\b/u) === expectedIdentifierCount,
+      'APP_CONFIG_USAGE',
+      'appConfig so pode ser declarado no config e usado no bootstrap canonico de main.ts.',
+    );
+    expect(
+      countActiveModuleReferences(source, executableSource, 'app.config')
+        === expectedModuleReferenceCount,
+      'APP_CONFIG_USAGE',
+      'main.ts deve ser o unico consumidor direto do modulo app.config.',
+    );
+  }
+}
+
+function validateRootComponent(sources) {
+  const component = stripScriptComments(sources.get(PATHS.component));
+  const template = stripHtmlComments(sources.get(PATHS.template)).trim();
+
+  expect(
+    /^\s*import\s*\{\s*Component\s*\}\s*from\s*['"]@angular\/core['"]\s*;\s*import\s*\{\s*RouterOutlet\s*\}\s*from\s*['"]@angular\/router['"]\s*;\s*@Component\s*\(\s*\{\s*selector\s*:\s*['"]app-root['"]\s*,\s*standalone\s*:\s*true\s*,\s*imports\s*:\s*\[\s*RouterOutlet\s*\]\s*,\s*templateUrl\s*:\s*['"]\.\/app\.component\.html['"]\s*,\s*styleUrl\s*:\s*['"]\.\/app\.component\.scss['"]\s*,?\s*\}\s*\)\s*export\s+class\s+AppComponent\s*\{\s*\}\s*$/u.test(component),
+    'ROOT_COMPONENT_SHAPE',
+    'AppComponent deve permanecer standalone, sem logica e com somente RouterOutlet.',
+  );
+  expect(
+    template === '<router-outlet />',
+    'ROOT_TEMPLATE_SHAPE',
+    'app.component.html deve conter somente um router-outlet autocontido.',
   );
 }
 
@@ -540,8 +889,11 @@ export async function validateAngularRouteBoundary(projectRoot = defaultProjectR
     sources.set(relativePath, await readRequiredText(resolvedProjectRoot, relativePath));
   }
 
+  validateScriptLexicalSafety(sources);
   validateFileReplacements(angularConfiguration);
   validateAppConfiguration(sources.get(PATHS.config));
+  validateAppConfigUsage(sources);
+  validateRootComponent(sources);
   validateRouteSources(sources);
   validateForbiddenPatterns(sources);
 
