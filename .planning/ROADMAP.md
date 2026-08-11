@@ -62,7 +62,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 01-19-PLAN.md — Criar o host Angular e o roteamento build-specific.
+- [x] 01-19-PLAN.md — Criar o host Angular e o roteamento build-specific.
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
@@ -264,7 +264,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação Segura da Plataforma | 6/28 | In Progress | - |
+| 1. Fundação Segura da Plataforma | 7/28 | In Progress | - |
 | 2. Contas, Verificação e Operações Governadas | 0/TBD | Pending | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |

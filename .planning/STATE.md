@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P04 concluído e documentado; F1/P19 aguarda autorização explícita
-last_updated: "2026-08-11T13:44:40.1269493Z"
+stopped_at: F1/P19 implementado, verificado e documentado; F1/P20 aguarda revisão controlada e autorização explícita
+last_updated: "2026-08-11T19:17:26.5259233Z"
 last_activity: 2026-08-11
-last_activity_desc: Plano 01-04 implementado, validado e enviado pelos commits 32abc70, ab7923b e 9686883; fechamento documental preparado para revisão.
+last_activity_desc: Plano 01-19 implementado, endurecido e validado pelos commits 863be3e, 2571f0e, 22210de, ccb97f3 e 6ed2de4; fechamento documental preparado para revisão.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 28
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Revisar o fechamento de F1/P04 e decidir conscientemente se o Plano 01-19 deve ser iniciado
+**Current focus:** Revisar o Plano 01-20 e preparar uma proposta controlada para OpenAPI e cliente Angular gerado
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 6 of 28
-Status: In progress — F1/P04 concluído e documentado; Onda 7 ainda não autorizada
-Last activity: 2026-08-11 — commits `32abc70`, `ab7923b` e `9686883` entregaram o workspace Angular, a Matriz B e as provas de build/teste.
+Plan: 7 of 28
+Status: In progress — F1/P19 concluído e documentado; Onda 8 ainda não revisada nem autorizada
+Last activity: 2026-08-11 — commits `863be3e`, `2571f0e`, `22210de`, `ccb97f3` e `6ed2de4` entregaram e provaram o host Angular e a fronteira de rotas build-specific.
 
-GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#5` concluídas, issue `#6` aberta até a publicação deste fechamento e issue de acompanhamento `#29` aberta.
-Git: branch principal `master`; a implementação do Plano 01-04 está nos commits `32abc70`, `ab7923b` e `9686883`, sincronizados com `origin/master`; este fechamento documental aguarda stage e commit separados.
+GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#6` concluídas e issue de acompanhamento `#29` aberta.
+Git: branch principal `master`; a implementação do Plano 01-19 está nos commits `863be3e`, `2571f0e`, `22210de`, `ccb97f3` e `6ed2de4`, sincronizados com `origin/master`; este fechamento documental aguarda stage e commit separados.
 
-Progress: [██░░░░░░░░] 21%
+Progress: [███░░░░░░░] 25%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 6
+- Total de planos concluídos: 7
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [██░░░░░░░░] 21%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 6 | não mensurado | não mensurada |
+| 1 | 7 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-02, 01-17, 01-18, 01-03, 01-04
+- Últimos 5 planos: 01-17, 01-18, 01-03, 01-04, 01-19
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
@@ -71,12 +71,15 @@ Progress: [██░░░░░░░░] 21%
 - Keycloak mantém somente o papel técnico `TECHNICAL`; o tema `betufu` estende `keycloak.v2` apenas por footer/CSS e usa fontes locais aprovadas por hash.
 - O workspace frontend usa a Matriz B com 14 pins diretos exatos, npm 10.9.8 e lockfile v3 governado pelo SHA-256 `FB8FE8A18EA4F72927AF5E3B506E2112F968C3BF98267DA0902EBC5BC40EA841`.
 - O bootstrap Angular é standalone, zoneless, strict e sem routing/SSR; development, homolog e production compilam com as configurações e budgets aprovados.
+- O host Angular usa uma seam de rotas build-specific: development/homolog importam a lista development e production a substitui por módulo próprio vazio.
+- O frontend usa HttpClient same-origin com XSRF e não armazena, constrói ou injeta bearer token; o BFF Spring continuará responsável por tokens e sessão.
+- A fronteira Angular é protegida por validador Node fail-closed com 69 regressões negativas e por um AppComponent com router-outlet único.
 - A allowlist de cinco pacotes `hasInstallScript` reconhece o grafo, mas não autoriza scripts; `npm ci --ignore-scripts` foi preservado e o risco moderado `GHSA-frvp-7c67-39w9` foi aceito temporariamente.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
 
-- Revisar o fechamento documental do Plano 01-04; após commit/push, atualizar a issue `#6`/checklist `#29` e decidir se a execução do Plano 01-19 deve ser autorizada.
+- Revisar integralmente o Plano 01-20 antes de qualquer execução; `autonomous: true` não concede autorização e deve ser reconciliado com a governança interativa.
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
 - O provedor e a topologia S3 de homologação/produção continuam sem escolha; SeaweedFS não deve ser promovido silenciosamente além do ambiente local.
 - Homologação e produção ainda precisarão fornecer origens e uma lista não vazia de proxies durante os planos de infraestrutura e implantação.
@@ -97,6 +100,6 @@ Progress: [██░░░░░░░░] 21%
 
 ## Session Continuity
 
-Last session: 2026-08-11T13:44:40.1269493Z
-Stopped at: F1/P04 concluído e documentado; F1/P19 aguarda autorização explícita
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-19-PLAN.md
+Last session: 2026-08-11T19:17:26.5259233Z
+Stopped at: F1/P19 implementado, verificado e documentado; F1/P20 aguarda revisão controlada e autorização explícita
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-20-PLAN.md
