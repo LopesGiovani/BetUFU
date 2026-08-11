@@ -7,7 +7,7 @@
 
 ## Pré-condições bloqueantes
 
-01-01 confirma JDK 25, Node.js >=22.22.3, daemon Docker e legitimidade dos seis pacotes npm `SUS`. Falha interrompe a fase sem downgrade, substituição ou instalação. O checkpoint é humano e não autoaprovável.
+01-01 confirma JDK 25, Node.js >=22.22.3 <23.0.0, daemon Docker e legitimidade dos seis pacotes npm originalmente classificados como `SUS`. Para 01-04, `01-04-GATE.md` registra a Matriz A exata de 14 dependências diretas; essa matriz está aprovada, mas o Gate global permanece `pending` até a criação e auditoria humana do grafo transitivo em `package-lock.json`. Falha interrompe a fase sem downgrade, substituição ou instalação. Os checkpoints são humanos e não autoaprováveis.
 
 ## Infraestrutura de testes a criar
 
@@ -28,7 +28,7 @@
 | 01-17 | 3 | scaffold Spring BFF e verify Modulith mínimo | `BetufuApplicationSmokeTest` |
 | 01-18 | 4 | profiles dev/homolog/prod | `EnvironmentConfigurationTest` |
 | 01-03 | 5 | Compose mínimo, realm e tema Keycloak | Compose healthy + smoke do tema |
-| 01-04 | 6 | workspace Angular 22 | `npm ci` + build |
+| 01-04 | 6 | workspace Angular 22 reproduzível | auditoria do lockfile + `npm ci --ignore-scripts` + assinaturas + três builds + Vitest |
 | 01-19 | 7 | host e rotas build-specific | app component test + builds |
 | 01-20 | 8 | OpenAPI inicial e cliente gerado | generate + check read-only + build |
 | 01-05 | 9 | vínculo backend `(iss, sub)` | `LocalIdentityTracerIT` |
@@ -54,7 +54,7 @@
 
 ## Provas obrigatórias preservadas
 
-1. **Granularidade:** 28 planos, 1–2 tarefas, <=10 arquivos por plano e <=5 por tarefa; `frontend/src/app/api/generated/` segue como saída atômica machine-owned.
+1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção explícita: o scaffold basal convencional do Plano 01-04 possui 15 arquivos, distribuídos em três tarefas materiais de cinco arquivos; seu fluxo acrescenta um checkpoint bloqueante do lockfile e uma tarefa final de prova, ambos com zero arquivos. A exceção foi aprovada e está registrada em `01-04-GATE.md`; `frontend/src/app/api/generated/` segue como saída atômica machine-owned do Plano 01-20.
 2. **OpenAPI:** 01-20 gera inicialmente; 01-26 audita mappings/regenera; 01-16 só executa check read-only.
 3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-08 prova cookie, CSRF e PUT relativo.
 4. **D-13:** `scripts/maven.mjs` seleciona Wrapper por SO e o gate registra Windows e Linux/WSL2.
