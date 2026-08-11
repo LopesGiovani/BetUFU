@@ -7,7 +7,7 @@
 
 ## Pré-condições bloqueantes
 
-01-01 confirma JDK 25, Node.js >=22.22.3 <23.0.0, daemon Docker e legitimidade dos seis pacotes npm originalmente classificados como `SUS`. Para 01-04, `01-04-GATE.md` registra a Matriz A exata de 14 dependências diretas; essa matriz está aprovada, mas o Gate global permanece `pending` até a criação e auditoria humana do grafo transitivo em `package-lock.json`. Falha interrompe a fase sem downgrade, substituição ou instalação. Os checkpoints são humanos e não autoaprováveis.
+01-01 confirma JDK 25, Node.js >=22.22.3 <23.0.0, daemon Docker e legitimidade dos seis pacotes npm originalmente classificados como `SUS`. Para 01-04, `01-04-GATE.md` registra a Matriz B exata de 14 dependências diretas, o lockfile v3 aprovado pelo SHA-256 integral, a allowlist exata de cinco pacotes com `hasInstallScript` e o risco moderado temporariamente aceito. O Gate global está `approved`, e a Task 5 comprovou instalação com scripts desabilitados, assinaturas, três builds e Vitest. Qualquer divergência futura interrompe a fase sem downgrade, substituição ou instalação silenciosa. Os checkpoints são humanos e não autoaprováveis.
 
 ## Infraestrutura de testes a criar
 
