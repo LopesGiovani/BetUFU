@@ -14,7 +14,7 @@
 | Camada | Ferramentas e autoridade | Planos criadores |
 |---|---|---|
 | Backend | JUnit 5, Spring Boot Test, Testcontainers, Modulith Test e ArchUnit via Maven Wrapper | 01-02, 01-17, 01-05, 01-23, 01-10 |
-| Frontend | Angular TestBed/test runner e build fixados no lockfile | 01-04, 01-19 |
+| Frontend | Angular TestBed/test runner, três builds fixados no lockfile e validadores Node sem dependências | 01-04, 01-19 |
 | E2E | Playwright contra navegador, Keycloak, BFF, PostgreSQL e dependências reais | 01-21, 01-08, 01-28 |
 | Infra | Docker Compose com healthchecks e profiles daily/full | 01-03, 01-11 |
 | Gate agregado | backend verify, Angular, drift OpenAPI, Playwright, diagnóstico e ausência production | 01-16 |
@@ -29,7 +29,7 @@
 | 01-18 | 4 | profiles dev/homolog/prod | `EnvironmentConfigurationTest` |
 | 01-03 | 5 | Compose mínimo, realm e tema Keycloak | Compose healthy + smoke do tema |
 | 01-04 | 6 | workspace Angular 22 reproduzível | auditoria do lockfile + `npm ci --ignore-scripts` + assinaturas + três builds + Vitest |
-| 01-19 | 7 | host e rotas build-specific | app component test + builds |
+| 01-19 | 7 | host e seam de rotas build-specific | `validate-angular-route-boundary.mjs` + regressões negativas + builds development/homolog/production + app component test |
 | 01-20 | 8 | OpenAPI inicial e cliente gerado | generate + check read-only + build |
 | 01-05 | 9 | vínculo backend `(iss, sub)` | `LocalIdentityTracerIT` |
 | 01-21 | 10 | tracer browser não-prod, D-15 e ausência production | `validate-tracer.mjs` |
@@ -61,7 +61,7 @@
 5. **D-15:** tema Keycloak preserva templates nativos; 01-21 prova campo, valor não sensível e foco.
 6. **Revogação:** 01-07 envia refresh token + hint e exige `invalid_grant`, sem prometer access JWT imediato.
 7. **Sessão/UI:** 01-27 prova checking/authenticated/expired, limpeza, POST único, zero polling/storage/bearer.
-8. **D-01/D-02:** 01-21 e 01-28 exigem ausência de rota, link, URL, import e lazy chunk de tracer/diagnóstico em production.
+8. **D-01/D-02:** 01-19 prova estaticamente o replacement development→production, a seam única, Router/HttpClient/XSRF e as proibições de URL absoluta, bearer e storage; seus três builds provam compilação, não a ausência de capacidades que ainda não existem. 01-21 acrescenta o controle positivo dev/homolog e a primeira prova de ausência production; 01-28 sela ausência de rota, link, URL, import e lazy chunk de tracer/diagnóstico no artefato production e no navegador.
 
 **UserInfo — OPT-OUT:** 01-07 lê somente claims allowlisted do ID token/OidcUser e prova zero chamadas.
 
