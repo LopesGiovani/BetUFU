@@ -1,0 +1,798 @@
+import { createHash } from 'node:crypto';
+import { readdir, readFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const LOGIN_THEME_ROOT = join(
+  PROJECT_ROOT,
+  'infra',
+  'keycloak',
+  'themes',
+  'betufu',
+  'login',
+);
+const REALM_PATH = join(PROJECT_ROOT, 'infra', 'keycloak', 'realm-betufu.json');
+const CSS_PATH = join(LOGIN_THEME_ROOT, 'resources', 'css', 'login.css');
+
+const ISSUER = 'http://localhost:8081/realms/betufu-local';
+const KEYCLOAK_ORIGIN = 'http://localhost:8081';
+const CLIENT_ID = 'betufu-bff';
+const REDIRECT_URI = 'http://localhost:4200/login/oauth2/code/keycloak';
+const MAX_REDIRECTS = 3;
+const REQUEST_TIMEOUT_MS = 10_000;
+const EXPECTED_LOGIN_CSS_SHA256 =
+  '69ae832b7e6e0dc12062af1df672f48f7cc173a74074ad98a2e320db1ddc3d0e';
+
+const NOTICE =
+  'A BETUFU é uma plataforma independente e não possui vínculo oficial com a UFU.';
+
+const EXPECTED_THEME_PROPERTIES = new Map([
+  ['parent', 'keycloak.v2'],
+  ['import', 'common/keycloak'],
+  ['styles', 'css/styles.css css/login.css'],
+  ['darkMode', 'false'],
+]);
+
+const EXPECTED_ASSETS = new Map([
+  [
+    'resources/fonts/inter-regular.woff2',
+    {
+      bytes: 111_268,
+      sha256: 'e06f6b1bc553aaea4e4668023ed0ab0a147129c3107f511bc7d03d361b0ae085',
+      signature: 'wOF2',
+    },
+  ],
+  [
+    'resources/fonts/inter-semibold.woff2',
+    {
+      bytes: 114_812,
+      sha256: '5cb7103e4e605989afebc03d989c79201e54b21b5183db33981f70db9178a301',
+      signature: 'wOF2',
+    },
+  ],
+  [
+    'resources/fonts/barlow-condensed-semibold.woff2',
+    {
+      bytes: 62_764,
+      sha256: '21a97c42410e968fbb5bd5d413ad1da01c21d1efce0eb51f03cdcbc899c51459',
+      signature: 'wOF2',
+    },
+  ],
+  [
+    'resources/fonts/inter-ofl.txt',
+    {
+      bytes: 4_380,
+      sha256: '262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a',
+      copyright: 'Copyright (c) 2016 The Inter Project Authors',
+    },
+  ],
+  [
+    'resources/fonts/barlow-condensed-ofl.txt',
+    {
+      bytes: 4_377,
+      sha256: '186d750eb496a4c17a76385f82be6aea2ac1cf2de074a811d63786cf374ea73f',
+      copyright: 'Copyright 2017 The Barlow Project Authors',
+    },
+  ],
+]);
+
+const EXPECTED_THEME_FILES = new Set([
+  'footer.ftl',
+  'theme.properties',
+  'resources/css/login.css',
+  ...EXPECTED_ASSETS.keys(),
+]);
+
+const EXPECTED_THEME_DIRECTORIES = new Set([
+  'resources',
+  'resources/css',
+  'resources/fonts',
+]);
+
+const EXPECTED_FONTS = [
+  {
+    family: 'Inter',
+    weight: '400',
+    url: '../fonts/inter-regular.woff2',
+  },
+  {
+    family: 'Inter',
+    weight: '600',
+    url: '../fonts/inter-semibold.woff2',
+  },
+  {
+    family: 'Barlow Condensed',
+    weight: '600',
+    url: '../fonts/barlow-condensed-semibold.woff2',
+  },
+];
+
+const EXPECTED_COLOR_TOKENS = new Map([
+  ['--betufu-canvas', '#0b1220'],
+  ['--betufu-surface', '#142033'],
+  ['--betufu-surface-raised', '#1c2c42'],
+  ['--betufu-accent', '#ff8a3d'],
+  ['--betufu-on-accent', '#0b1220'],
+  ['--betufu-text', '#f8fafc'],
+  ['--betufu-text-muted', '#c5d1e0'],
+  ['--betufu-border', '#52657d'],
+  ['--betufu-focus', '#ffc08a'],
+  ['--betufu-error', '#ff6b6b'],
+]);
+
+function invariant(condition, message) {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
+
+function normalizeRelativePath(path) {
+  return path.split(sep).join('/');
+}
+
+function normalizeText(text) {
+  return text.replace(/\r\n/g, '\n');
+}
+
+function sha256(bytes) {
+  return createHash('sha256').update(bytes).digest('hex');
+}
+
+function exactlyOnce(haystack, needle) {
+  return haystack.split(needle).length - 1 === 1;
+}
+
+async function inventoryDirectory(root) {
+  const files = [];
+  const directories = [];
+
+  async function visit(directory) {
+    const entries = await readdir(directory, { withFileTypes: true });
+    entries.sort((left, right) => left.name.localeCompare(right.name, 'en'));
+
+    for (const entry of entries) {
+      const absolutePath = join(directory, entry.name);
+      const relativePath = normalizeRelativePath(relative(root, absolutePath));
+
+      invariant(!entry.isSymbolicLink(), `Link simbólico não permitido no tema: ${relativePath}`);
+
+      if (entry.isDirectory()) {
+        directories.push(relativePath);
+        await visit(absolutePath);
+      } else {
+        invariant(entry.isFile(), `Entrada não regular no tema: ${relativePath}`);
+        files.push(relativePath);
+      }
+    }
+  }
+
+  await visit(root);
+  return { files, directories };
+}
+
+function assertExactSet(actualValues, expectedValues, label) {
+  const actual = new Set(actualValues);
+  const missing = [...expectedValues].filter((value) => !actual.has(value));
+  const unexpected = [...actual].filter((value) => !expectedValues.has(value));
+
+  invariant(
+    missing.length === 0 && unexpected.length === 0,
+    `${label} divergente; ausentes=[${missing.join(', ')}], inesperados=[${unexpected.join(', ')}]`,
+  );
+}
+
+function parseThemeProperties(text) {
+  const properties = new Map();
+
+  for (const [index, rawLine] of normalizeText(text).split('\n').entries()) {
+    const line = rawLine.trim();
+    if (line === '' || line.startsWith('#') || line.startsWith('!')) {
+      continue;
+    }
+
+    const separatorIndex = line.indexOf('=');
+    invariant(separatorIndex > 0, `Linha inválida em theme.properties: ${index + 1}`);
+
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim();
+    invariant(!properties.has(key), `Propriedade duplicada em theme.properties: ${key}`);
+    properties.set(key, value);
+  }
+
+  return properties;
+}
+
+function assertThemeProperties(text) {
+  const actual = parseThemeProperties(text);
+  assertExactSet(actual.keys(), new Set(EXPECTED_THEME_PROPERTIES.keys()), 'Propriedades do tema');
+
+  for (const [key, expectedValue] of EXPECTED_THEME_PROPERTIES) {
+    invariant(
+      actual.get(key) === expectedValue,
+      `Valor inválido para ${key}; esperado=${expectedValue}`,
+    );
+  }
+}
+
+function assertFooter(text) {
+  const expected = [
+    '<#macro content>',
+    `  <p class="betufu-independence-notice">${NOTICE}</p>`,
+    '</#macro>',
+    '',
+  ].join('\n');
+  const normalized = normalizeText(text);
+
+  invariant(normalized === expected, 'footer.ftl diverge do macro mínimo aprovado');
+  invariant(exactlyOnce(normalized, NOTICE), 'O aviso institucional deve aparecer exatamente uma vez');
+  invariant(!/<a\b/i.test(normalized), 'O aviso institucional não pode ser um link');
+}
+
+function parseCssDeclarations(block) {
+  const declarations = new Map();
+  const declarationPattern = /([a-z-]+)\s*:\s*([^;]+);/gi;
+
+  for (const match of block.matchAll(declarationPattern)) {
+    const property = match[1].toLowerCase();
+    invariant(!declarations.has(property), `Declaração CSS duplicada no @font-face: ${property}`);
+    declarations.set(property, match[2].trim());
+  }
+
+  return declarations;
+}
+
+function unquote(value) {
+  const trimmed = value.trim();
+  if (
+    trimmed.length >= 2 &&
+    ((trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+      (trimmed.startsWith('"') && trimmed.endsWith('"')))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function extractCssUrls(css) {
+  return [...css.matchAll(/url\(\s*(['"]?)(.*?)\1\s*\)/gi)].map((match) => match[2].trim());
+}
+
+function stripCssComments(css) {
+  const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  invariant(
+    !withoutComments.includes('/*') && !withoutComments.includes('*/'),
+    'Comentário CSS malformado',
+  );
+  return withoutComments;
+}
+
+function parseAllCssDeclarations(css) {
+  return [...css.matchAll(/(?:^|[;{])\s*([-\w]+)\s*:\s*([^;{}]+);/gm)].map((match) => ({
+    property: match[1].toLowerCase(),
+    value: match[2].trim(),
+  }));
+}
+
+function assertCssColors(css) {
+  const declarations = parseAllCssDeclarations(css);
+  const customProperties = new Map();
+
+  for (const { property, value } of declarations.filter(({ property }) => property.startsWith('--'))) {
+    invariant(!customProperties.has(property), `Token CSS duplicado: ${property}`);
+    customProperties.set(property, value.toLowerCase());
+  }
+
+  assertExactSet(customProperties.keys(), new Set(EXPECTED_COLOR_TOKENS.keys()), 'Tokens de cor');
+  for (const [property, expectedValue] of EXPECTED_COLOR_TOKENS) {
+    invariant(customProperties.get(property) === expectedValue, `Valor inválido para o token ${property}`);
+  }
+
+  const actualHexColors = [...css.matchAll(/#[0-9a-f]{3,8}\b/gi)]
+    .map((match) => match[0].toLowerCase())
+    .sort();
+  const expectedHexColors = [...EXPECTED_COLOR_TOKENS.values()].sort();
+  invariant(
+    JSON.stringify(actualHexColors) === JSON.stringify(expectedHexColors),
+    'Cores hexadecimais devem existir somente nos tokens aprovados',
+  );
+
+  const approvedShadowPattern = /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*\.24\s*\)/gi;
+  const shadowMatches = css.match(approvedShadowPattern) ?? [];
+  invariant(shadowMatches.length === 1, 'A sombra aprovada deve aparecer exatamente uma vez');
+  const withoutApprovedShadow = css.replace(approvedShadowPattern, '');
+  invariant(
+    !/\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\s*\(/i.test(withoutApprovedShadow),
+    'Função de cor fora do contrato aprovado',
+  );
+
+  const colorLikeProperty = /^(?:color|background(?:-color|-image)?|border(?:-(?:top|right|bottom|left))?(?:-color)?|outline|box-shadow|text-shadow|fill|stroke|caret-color|accent-color|text-decoration-color|filter)$/;
+  for (const { property, value } of declarations.filter(({ property }) => colorLikeProperty.test(property))) {
+    const remainder = value
+      .replace(approvedShadowPattern, '')
+      .replace(/var\(--betufu-[a-z-]+\)/gi, '')
+      .replace(/-?(?:\d*\.)?\d+(?:px|%|rem|em)?/gi, '')
+      .replace(/\b(?:none|solid)\b/gi, '')
+      .replace(/[\s,./()-]/g, '');
+    invariant(remainder === '', `Valor de cor não aprovado em ${property}`);
+  }
+}
+
+function assertCss(css) {
+  const normalized = normalizeText(css);
+
+  invariant(
+    sha256(Buffer.from(normalized, 'utf8')) === EXPECTED_LOGIN_CSS_SHA256,
+    'login.css diverge dos bytes normalizados aprovados',
+  );
+  invariant(stripCssComments(normalized) === normalized, 'Comentários não são permitidos em login.css');
+  invariant(!/!important\b/i.test(normalized), 'login.css não pode usar !important');
+
+  invariant(!/@import\b/i.test(normalized), 'login.css não pode importar outra folha');
+  invariant(!/@media\b/i.test(normalized), 'login.css não pode conter variante por media query');
+  invariant(
+    !/prefers-color-scheme/i.test(normalized),
+    'login.css não pode variar conforme preferência de cor do sistema',
+  );
+  invariant(
+    !/(?:https?:|data:|javascript:|\/\/)/i.test(normalized),
+    'login.css contém uma origem ou esquema remoto/proibido',
+  );
+
+  const fontFaceBlocks = [...normalized.matchAll(/@font-face\s*\{([\s\S]*?)\}/gi)];
+  invariant(fontFaceBlocks.length === EXPECTED_FONTS.length, 'login.css deve conter três @font-face');
+
+  const actualFonts = fontFaceBlocks.map((match) => {
+    const declarations = parseCssDeclarations(match[1]);
+    const source = declarations.get('src') ?? '';
+    const sourceMatch = source.match(/^url\(\s*(['"]?)(.*?)\1\s*\)\s+format\(\s*(['"]?)woff2\3\s*\)$/i);
+    invariant(sourceMatch, 'Cada @font-face deve referenciar exatamente um arquivo WOFF2 local');
+
+    return {
+      family: unquote(declarations.get('font-family') ?? ''),
+      weight: declarations.get('font-weight'),
+      style: declarations.get('font-style'),
+      display: declarations.get('font-display'),
+      url: sourceMatch[2],
+      propertyCount: declarations.size,
+    };
+  });
+
+  for (const [index, expectedFont] of EXPECTED_FONTS.entries()) {
+    const actualFont = actualFonts[index];
+    invariant(actualFont.family === expectedFont.family, `Família inválida no @font-face ${index + 1}`);
+    invariant(actualFont.weight === expectedFont.weight, `Peso inválido no @font-face ${index + 1}`);
+    invariant(actualFont.style === 'normal', `Estilo inválido no @font-face ${index + 1}`);
+    invariant(actualFont.display === 'swap', `font-display inválido no @font-face ${index + 1}`);
+    invariant(actualFont.url === expectedFont.url, `URL inválida no @font-face ${index + 1}`);
+    invariant(actualFont.propertyCount === 5, `@font-face ${index + 1} possui declaração extra ou ausente`);
+  }
+
+  const cssUrls = extractCssUrls(normalized);
+  invariant(
+    JSON.stringify(cssUrls) === JSON.stringify(EXPECTED_FONTS.map((font) => font.url)),
+    'login.css deve conter somente as três URLs de fontes aprovadas, na ordem aprovada',
+  );
+
+  const fontSizes = [...normalized.matchAll(/font-size\s*:\s*([^;]+);/gi)].map((match) => match[1].trim());
+  const approvedFontSizes = new Set(['14px', '16px', '24px', '32px']);
+  invariant(fontSizes.length > 0, 'login.css não declara tamanhos tipográficos');
+  invariant(fontSizes.every((value) => approvedFontSizes.has(value)), 'login.css contém tamanho não aprovado');
+  assertExactSet(fontSizes, approvedFontSizes, 'Tamanhos tipográficos');
+
+  const fontWeights = [...normalized.matchAll(/font-weight\s*:\s*([^;]+);/gi)].map((match) => match[1].trim());
+  const approvedFontWeights = new Set(['400', '600']);
+  invariant(fontWeights.length > 0, 'login.css não declara pesos tipográficos');
+  invariant(fontWeights.every((value) => approvedFontWeights.has(value)), 'login.css contém peso não aprovado');
+  assertExactSet(fontWeights, approvedFontWeights, 'Pesos tipográficos');
+
+  assertCssColors(normalized);
+
+  invariant(/color-scheme\s*:\s*dark\s*;/i.test(normalized), 'Tema sempre escuro não declarado');
+  invariant(
+    /\.pf-v5-c-button\.pf-m-primary\s*\{[\s\S]*?background-color\s*:\s*var\(--betufu-accent\)\s*;[\s\S]*?color\s*:\s*var\(--betufu-on-accent\)\s*;[\s\S]*?\}/i.test(normalized),
+    'CTA primário não usa o contrato laranja/on-accent',
+  );
+  invariant(
+    /:focus-visible\s*\{[\s\S]*?outline\s*:\s*3px\s+solid\s+var\(--betufu-focus\)\s*;[\s\S]*?outline-offset\s*:\s*3px\s*;[\s\S]*?\}/i.test(normalized),
+    'Foco visível não corresponde ao contrato aprovado',
+  );
+  invariant(/\.betufu-independence-notice\s*\{/i.test(normalized), 'Classe do footer ausente no CSS');
+}
+
+async function assertAssets() {
+  for (const [relativePath, expected] of EXPECTED_ASSETS) {
+    const bytes = await readFile(join(LOGIN_THEME_ROOT, ...relativePath.split('/')));
+    invariant(bytes.length === expected.bytes, `Tamanho inválido para ${relativePath}`);
+    invariant(sha256(bytes) === expected.sha256, `SHA-256 inválido para ${relativePath}`);
+
+    if (expected.signature) {
+      invariant(bytes.subarray(0, 4).toString('ascii') === expected.signature, `Assinatura WOFF2 inválida: ${relativePath}`);
+    }
+
+    if (expected.copyright) {
+      invariant(bytes.toString('utf8').includes(expected.copyright), `Copyright obrigatório ausente: ${relativePath}`);
+    }
+  }
+}
+
+async function validateLocalTheme() {
+  const inventory = await inventoryDirectory(LOGIN_THEME_ROOT);
+  assertExactSet(inventory.files, EXPECTED_THEME_FILES, 'Allowlist de arquivos do tema');
+  assertExactSet(inventory.directories, EXPECTED_THEME_DIRECTORIES, 'Estrutura de diretórios do tema');
+
+  const ftlFiles = inventory.files.filter((path) => path.endsWith('.ftl'));
+  assertExactSet(ftlFiles, new Set(['footer.ftl']), 'Allowlist de templates FTL');
+
+  const [themeProperties, footer, css, realmText] = await Promise.all([
+    readFile(join(LOGIN_THEME_ROOT, 'theme.properties'), 'utf8'),
+    readFile(join(LOGIN_THEME_ROOT, 'footer.ftl'), 'utf8'),
+    readFile(CSS_PATH, 'utf8'),
+    readFile(REALM_PATH, 'utf8'),
+  ]);
+
+  assertThemeProperties(themeProperties);
+  assertFooter(footer);
+  assertCss(css);
+  await assertAssets();
+
+  const realm = JSON.parse(realmText);
+  invariant(realm.loginTheme === 'betufu', 'O realm betufu-local não está associado ao tema betufu');
+}
+
+function assertSameOriginResource(value, baseUrl, label) {
+  invariant(typeof value === 'string' && value.trim() !== '', `${label} contém URL vazia`);
+  const trimmed = value.trim();
+
+  if (trimmed.startsWith('#') || /^(?:data|blob):/i.test(trimmed)) {
+    return null;
+  }
+
+  invariant(!/^javascript:/i.test(trimmed), `${label} usa esquema javascript proibido`);
+  const url = new URL(trimmed, baseUrl);
+  invariant(url.origin === KEYCLOAK_ORIGIN, `${label} aponta para outra origem: ${url.origin}`);
+  invariant(!url.username && !url.password, `${label} não pode conter credenciais`);
+  return url;
+}
+
+function assertSafeKeycloakRedirect(location, currentUrl) {
+  const target = new URL(location, currentUrl);
+  invariant(target.origin === KEYCLOAK_ORIGIN, `Redirect recusado para outra origem: ${target.origin}`);
+  invariant(!target.username && !target.password, 'Redirect com credenciais embutidas recusado');
+  invariant(!/(?:^|\/)broker(?:\/|$)/i.test(target.pathname), 'Redirect para provedor de identidade recusado');
+  invariant(target.origin !== new URL(REDIRECT_URI).origin, 'Redirect para o cliente recusado');
+  return target;
+}
+
+async function fetchWithSafeRedirects(input, init = {}) {
+  invariant(!init.method || init.method === 'GET', 'O smoke aceita somente requests GET');
+  let currentUrl = new URL(input);
+  invariant(currentUrl.origin === KEYCLOAK_ORIGIN, `Request inicial fora do Keycloak: ${currentUrl.origin}`);
+
+  for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    const response = await fetch(currentUrl, {
+      ...init,
+      method: 'GET',
+      redirect: 'manual',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (![301, 302, 303, 307, 308].includes(response.status)) {
+      return { response, finalUrl: currentUrl };
+    }
+
+    invariant(redirectCount < MAX_REDIRECTS, `Limite de ${MAX_REDIRECTS} redirects excedido`);
+    const location = response.headers.get('location');
+    invariant(location, `Redirect ${response.status} sem cabeçalho Location`);
+    currentUrl = assertSafeKeycloakRedirect(location, currentUrl);
+  }
+
+  throw new Error('Fluxo de redirects inválido');
+}
+
+function parseAttributes(source) {
+  const attributes = new Map();
+  const pattern = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+
+  for (const match of source.matchAll(pattern)) {
+    attributes.set(match[1].toLowerCase(), match[2] ?? match[3] ?? match[4] ?? '');
+  }
+
+  return attributes;
+}
+
+function stripHtmlComments(html) {
+  const withoutComments = html.replace(/<!--[\s\S]*?-->/g, '');
+  invariant(
+    !withoutComments.includes('<!--') && !withoutComments.includes('-->'),
+    'Comentário HTML malformado',
+  );
+  return withoutComments;
+}
+
+function removeNonRenderedContainers(html) {
+  return html.replace(
+    /<(script|style|template|noscript)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,
+    '',
+  );
+}
+
+function assertRenderedNotice(html) {
+  const visibleHtml = removeNonRenderedContainers(stripHtmlComments(html));
+  const paragraphs = [...visibleHtml.matchAll(/<p\b([^>]*)>([\s\S]*?)<\/p\s*>/gi)]
+    .map((match) => ({ attributes: parseAttributes(match[1]), content: match[2].trim() }))
+    .filter(({ attributes }) =>
+      (attributes.get('class') ?? '').split(/\s+/).includes('betufu-independence-notice'),
+    );
+
+  invariant(paragraphs.length === 1, 'O footer renderizado deve conter um único parágrafo BETUFU');
+  const paragraph = paragraphs[0];
+  invariant(
+    paragraph.attributes.size === 1 &&
+      paragraph.attributes.get('class') === 'betufu-independence-notice',
+    'O parágrafo institucional renderizado contém atributo não aprovado',
+  );
+  invariant(paragraph.content === NOTICE, 'O aviso institucional renderizado diverge do texto aprovado');
+  invariant(!/[<>]/.test(paragraph.content), 'O aviso institucional renderizado deve ser texto comum');
+  invariant(exactlyOnce(visibleHtml, NOTICE), 'O aviso institucional visível deve aparecer exatamente uma vez');
+
+  return visibleHtml;
+}
+
+function extractHtmlResources(html, documentUrl) {
+  const resources = [];
+  const stylesheets = [];
+  const withoutComments = stripHtmlComments(html);
+  const withoutInactiveContainers = withoutComments.replace(
+    /<(style|template|noscript)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,
+    '',
+  );
+  const resourceHtml = withoutInactiveContainers.replace(
+    /(<script\b[^>]*>)[\s\S]*?<\/script\s*>/gi,
+    '$1</script>',
+  );
+
+  const baseTags = [...resourceHtml.matchAll(/<base\b([^>]*)>/gi)];
+  invariant(baseTags.length <= 1, 'HTML contém mais de um elemento base');
+  let effectiveBaseUrl = new URL(documentUrl);
+  if (baseTags.length === 1) {
+    const baseAttributes = parseAttributes(baseTags[0][1]);
+    invariant(baseAttributes.has('href'), 'Elemento base sem href');
+    const approvedBaseUrl = assertSameOriginResource(
+      baseAttributes.get('href'),
+      documentUrl,
+      'Elemento base',
+    );
+    invariant(approvedBaseUrl, 'Elemento base usa esquema não navegável');
+    effectiveBaseUrl = approvedBaseUrl;
+  }
+
+  const tagPattern = /<(link|script|img|source)\b([^>]*)>/gi;
+
+  for (const match of resourceHtml.matchAll(tagPattern)) {
+    const tag = match[1].toLowerCase();
+    const attributes = parseAttributes(match[2]);
+    const candidates = [];
+
+    if (attributes.has('href')) {
+      candidates.push(attributes.get('href'));
+    }
+    if (attributes.has('src')) {
+      candidates.push(attributes.get('src'));
+    }
+    if (attributes.has('srcset')) {
+      candidates.push(
+        ...attributes
+          .get('srcset')
+          .split(',')
+          .map((entry) => entry.trim().split(/\s+/, 1)[0])
+          .filter(Boolean),
+      );
+    }
+
+    for (const candidate of candidates) {
+      const url = assertSameOriginResource(candidate, effectiveBaseUrl, `Recurso HTML <${tag}>`);
+      if (url) {
+        resources.push(url);
+        if (tag === 'link' && /(?:^|\s)stylesheet(?:\s|$)/i.test(attributes.get('rel') ?? '')) {
+          invariant(!attributes.has('disabled'), 'Stylesheet desabilitado não comprova CSS aplicado');
+          const media = (attributes.get('media') ?? '').trim().toLowerCase();
+          invariant(
+            media === '' || media === 'all' || media === 'screen',
+            `Stylesheet usa mídia não comprovadamente aplicável: ${media}`,
+          );
+          stylesheets.push(url);
+        }
+      }
+    }
+  }
+
+  const importMapPattern = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  for (const match of withoutInactiveContainers.matchAll(importMapPattern)) {
+    const attributes = parseAttributes(match[1]);
+    if ((attributes.get('type') ?? '').toLowerCase() !== 'importmap') {
+      continue;
+    }
+
+    const importMap = JSON.parse(match[2]);
+    const values = [
+      ...Object.values(importMap.imports ?? {}),
+      ...Object.values(importMap.scopes ?? {}).flatMap((scope) => Object.values(scope ?? {})),
+    ];
+    for (const value of values) {
+      const url = assertSameOriginResource(value, effectiveBaseUrl, 'Entrada do import-map');
+      if (url) {
+        resources.push(url);
+      }
+    }
+  }
+
+  return { resources, stylesheets };
+}
+
+function extractCssReferences(css, stylesheetUrl) {
+  const activeCss = stripCssComments(css);
+  const importValues = [];
+  const importPattern = /@import\s+(?:url\(\s*(?:(['"])(.*?)\1|([^\s'")]+))\s*\)|(['"])(.*?)\4)/gi;
+  for (const match of activeCss.matchAll(importPattern)) {
+    importValues.push(match[2] ?? match[3] ?? match[5]);
+  }
+  invariant(
+    importValues.length === (activeCss.match(/@import\b/gi) ?? []).length,
+    'Diretiva @import CSS não pôde ser validada',
+  );
+
+  const imports = importValues.map((value) => {
+    const url = assertSameOriginResource(value, stylesheetUrl, 'Import CSS');
+    invariant(url, 'Import CSS deve usar URL HTTP same-origin');
+    return url;
+  });
+  const importHrefs = new Set(imports.map((url) => url.href));
+  const resources = extractCssUrls(activeCss)
+    .map((value) => assertSameOriginResource(value, stylesheetUrl, 'Recurso CSS'))
+    .filter((url) => url && !importHrefs.has(url.href));
+
+  return { imports, resources };
+}
+
+async function fetchRequiredBytes(url, label) {
+  const { response, finalUrl } = await fetchWithSafeRedirects(url, {
+    headers: { Accept: '*/*' },
+  });
+  invariant(response.status === 200, `${label} respondeu HTTP ${response.status}`);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  invariant(bytes.length > 0, `${label} retornou corpo vazio`);
+  return { bytes, finalUrl, contentType: response.headers.get('content-type') ?? '' };
+}
+
+async function validateHttpTheme() {
+  const discoveryUrl = `${ISSUER}/.well-known/openid-configuration`;
+  const discoveryResult = await fetchRequiredBytes(discoveryUrl, 'Discovery OIDC');
+  invariant(
+    /(?:application\/json|\+json)/i.test(discoveryResult.contentType),
+    'Discovery OIDC não retornou JSON',
+  );
+  const discovery = JSON.parse(discoveryResult.bytes.toString('utf8'));
+  invariant(discovery.issuer === ISSUER, 'Issuer publicado diverge do contrato aprovado');
+  invariant(
+    discovery.authorization_endpoint === `${ISSUER}/protocol/openid-connect/auth`,
+    'authorization_endpoint publicado diverge do contrato aprovado',
+  );
+  assertSameOriginResource(discovery.authorization_endpoint, discoveryUrl, 'authorization_endpoint');
+
+  const verifier = 'betufu-theme-validation-code-verifier-000000000000000000000000';
+  const challenge = createHash('sha256').update(verifier).digest('base64url');
+  const authorizationUrl = new URL(discovery.authorization_endpoint);
+  authorizationUrl.search = new URLSearchParams({
+    response_type: 'code',
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    scope: 'openid',
+    state: 'betufu-theme-validation-state',
+    nonce: 'betufu-theme-validation-nonce',
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+  }).toString();
+
+  const { response, finalUrl } = await fetchWithSafeRedirects(authorizationUrl, {
+    headers: { Accept: 'text/html' },
+  });
+  invariant(response.status === 200, `Página de login respondeu HTTP ${response.status}`);
+  invariant(/text\/html/i.test(response.headers.get('content-type') ?? ''), 'Página de login não retornou HTML');
+  const html = await response.text();
+  invariant(html.trim().length > 0, 'Página de login retornou HTML vazio');
+  const visibleHtml = assertRenderedNotice(html);
+  invariant(
+    /id=["']kc-page-title["']/i.test(visibleHtml),
+    'Resposta não contém o marcador visível do login Keycloak',
+  );
+
+  const { resources, stylesheets } = extractHtmlResources(html, finalUrl);
+  const uniqueStylesheets = [...new Map(stylesheets.map((url) => [url.href, url])).values()];
+  invariant(uniqueStylesheets.length > 0, 'Página de login não referencia folhas de estilo');
+  invariant(
+    uniqueStylesheets.some((url) => url.pathname.endsWith('/login/betufu/css/login.css')),
+    'A página real não referencia diretamente css/login.css do tema betufu',
+  );
+
+  const localCssBytes = await readFile(CSS_PATH);
+  let customCssFound = false;
+  let customCssUrl;
+  const cssResourceUrls = [];
+  const stylesheetQueue = [...uniqueStylesheets];
+  const inspectedStylesheets = new Set();
+
+  while (stylesheetQueue.length > 0) {
+    invariant(inspectedStylesheets.size < 64, 'Limite de folhas CSS same-origin excedido');
+    const stylesheetUrl = stylesheetQueue.shift();
+    if (inspectedStylesheets.has(stylesheetUrl.href)) {
+      continue;
+    }
+    inspectedStylesheets.add(stylesheetUrl.href);
+
+    const result = await fetchRequiredBytes(stylesheetUrl, `Stylesheet ${stylesheetUrl.pathname}`);
+    const css = result.bytes.toString('utf8');
+    const references = extractCssReferences(css, result.finalUrl);
+    stylesheetQueue.push(
+      ...references.imports.filter((url) => !inspectedStylesheets.has(url.href)),
+    );
+    cssResourceUrls.push(...references.resources);
+
+    if (result.finalUrl.pathname.endsWith('/login/betufu/css/login.css')) {
+      customCssFound = true;
+      customCssUrl = result.finalUrl;
+      invariant(result.bytes.equals(localCssBytes), 'login.css servido diverge dos bytes locais aprovados');
+    }
+  }
+
+  invariant(customCssFound, 'A página real não carregou o css/login.css do tema betufu');
+
+  const directResources = [...resources, ...cssResourceUrls].filter(
+    (url) => !inspectedStylesheets.has(url.href),
+  );
+  const uniqueResources = [...new Map(directResources.map((url) => [url.href, url])).values()];
+  invariant(uniqueResources.length <= 256, 'Limite de recursos same-origin excedido');
+  for (const resourceUrl of uniqueResources) {
+    await fetchRequiredBytes(resourceUrl, `Recurso same-origin ${resourceUrl.pathname}`);
+  }
+
+  for (const font of EXPECTED_FONTS) {
+    const fontUrl = new URL(font.url, customCssUrl);
+    const result = await fetchRequiredBytes(fontUrl, `Fonte ${font.url}`);
+    const asset = EXPECTED_ASSETS.get(`resources/fonts/${font.url.split('/').at(-1)}`);
+    invariant(asset, `Fonte sem contrato local: ${font.url}`);
+    invariant(result.bytes.length === asset.bytes, `Tamanho HTTP inválido para ${font.url}`);
+    invariant(sha256(result.bytes) === asset.sha256, `SHA-256 HTTP inválido para ${font.url}`);
+  }
+}
+
+function sanitizeError(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/[\r\n\t]+/g, ' ').slice(0, 500);
+}
+
+async function main() {
+  const argumentsList = process.argv.slice(2);
+  invariant(
+    argumentsList.length === 0 ||
+      (argumentsList.length === 1 && argumentsList[0] === '--local-only'),
+    'Uso: node scripts/validate-keycloak-theme.mjs [--local-only]',
+  );
+
+  await validateLocalTheme();
+
+  if (argumentsList[0] === '--local-only') {
+    console.log('Tema Keycloak validado localmente: contrato, arquivos e hashes aprovados.');
+    return;
+  }
+
+  await validateHttpTheme();
+  console.log('Tema Keycloak validado localmente e por HTTP same-origin.');
+}
+
+main().catch((error) => {
+  console.error(`Falha na validação do tema Keycloak: ${sanitizeError(error)}`);
+  process.exitCode = 1;
+});

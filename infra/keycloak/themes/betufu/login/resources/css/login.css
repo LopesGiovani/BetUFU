@@ -1,0 +1,163 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/inter-regular.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('../fonts/inter-semibold.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  src: url('../fonts/barlow-condensed-semibold.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --betufu-canvas: #0B1220;
+  --betufu-surface: #142033;
+  --betufu-surface-raised: #1C2C42;
+  --betufu-accent: #FF8A3D;
+  --betufu-on-accent: #0B1220;
+  --betufu-text: #F8FAFC;
+  --betufu-text-muted: #C5D1E0;
+  --betufu-border: #52657D;
+  --betufu-focus: #FFC08A;
+  --betufu-error: #FF6B6B;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--betufu-canvas) none;
+  color: var(--betufu-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+body#keycloak-bg,
+.pf-v5-c-login {
+  background: var(--betufu-canvas) none;
+  color: var(--betufu-text);
+}
+
+.pf-v5-c-login__container {
+  padding: 24px;
+}
+
+.pf-v5-c-login__main {
+  background: var(--betufu-surface);
+  border: 1px solid var(--betufu-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .24);
+  color: var(--betufu-text);
+}
+
+#kc-header-wrapper {
+  color: var(--betufu-accent);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+#kc-page-title {
+  color: var(--betufu-text);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+label,
+.pf-v5-c-form__label,
+.pf-v5-c-button {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+input,
+select,
+textarea,
+.pf-v5-c-form-control,
+.pf-v5-c-alert,
+.betufu-independence-notice {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+input,
+select,
+textarea,
+.pf-v5-c-form-control {
+  background: var(--betufu-surface-raised);
+  border-color: var(--betufu-border);
+  border-radius: 8px;
+  color: var(--betufu-text);
+}
+
+input::placeholder,
+textarea::placeholder,
+.pf-v5-c-helper-text__item-text {
+  color: var(--betufu-text-muted);
+}
+
+.pf-v5-c-button {
+  border-radius: 8px;
+}
+
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--betufu-accent);
+  border-color: var(--betufu-accent);
+  color: var(--betufu-on-accent);
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus-visible {
+  background-color: var(--betufu-accent);
+  border-color: var(--betufu-focus);
+  color: var(--betufu-on-accent);
+}
+
+a {
+  color: var(--betufu-text);
+  text-decoration: underline;
+}
+
+a:hover,
+a:focus-visible {
+  color: var(--betufu-accent);
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--betufu-focus);
+  outline-offset: 3px;
+}
+
+.pf-m-error,
+.kc-feedback-text,
+.pf-v5-c-helper-text__item.pf-m-error {
+  color: var(--betufu-error);
+}
+
+.betufu-independence-notice {
+  color: var(--betufu-text-muted);
+  margin: 16px 24px 0;
+  text-align: center;
+}

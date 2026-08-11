@@ -1,1 +1,3 @@
 infra/postgres/*.sh text eol=lf
+infra/keycloak/themes/betufu/login/resources/fonts/*.woff2 binary
+infra/keycloak/themes/betufu/login/resources/fonts/*-ofl.txt text eol=lf
