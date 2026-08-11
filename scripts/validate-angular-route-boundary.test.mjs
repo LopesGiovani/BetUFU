@@ -479,6 +479,19 @@ provideHttpClient(
     mutate: (source) => `${source}\nconst hiddenMutation = \`\${BUILD_SPECIFIC_ROUTES.push({ path: 'technical', redirectTo: '' })}\`;\n`,
   },
   {
+    name: 'mutacao da lista build-specific dentro da seam',
+    path: 'frontend/src/app/app.routes.ts',
+    rule: 'BUILD_SPECIFIC_ROUTES_USAGE',
+    mutate: (source) => source.replace(
+      'export const APP_ROUTES: Routes = [...BUILD_SPECIFIC_ROUTES];',
+      [
+        "BUILD_SPECIFIC_ROUTES.push({ path: 'technical', redirectTo: '' });",
+        '',
+        'export const APP_ROUTES: Routes = [...BUILD_SPECIFIC_ROUTES];',
+      ].join('\n'),
+    ),
+  },
+  {
     name: 'mutacao posterior da lista final APP_ROUTES',
     path: 'frontend/src/app/app.routes.ts',
     rule: 'APP_ROUTES_USAGE',

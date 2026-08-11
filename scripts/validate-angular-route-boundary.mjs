@@ -853,6 +853,21 @@ function validateRouteSources(sources) {
   }
 
   for (const [relativePath, , executableSource] of scriptSources) {
+    const expectedBuildSpecificRoutesCount = relativePath === PATHS.seam
+      ? 2
+      : Number(
+        relativePath === PATHS.development
+          || relativePath === PATHS.production,
+      );
+    expect(
+      countMatches(executableSource, /\bBUILD_SPECIFIC_ROUTES\b/u)
+        === expectedBuildSpecificRoutesCount,
+      'BUILD_SPECIFIC_ROUTES_USAGE',
+      'BUILD_SPECIFIC_ROUTES deve aparecer somente nas declaracoes de ambiente, no import e no spread da seam.',
+    );
+  }
+
+  for (const [relativePath, , executableSource] of scriptSources) {
     const expectedAppRoutesCount = relativePath === PATHS.config
       ? 2
       : Number(relativePath === PATHS.seam);
