@@ -55,6 +55,12 @@
           },
           "configurations": {
             "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/app.routes.development.ts",
+                  "with": "src/app/app.routes.production.ts"
+                }
+              ],
               "optimization": true,
               "sourceMap": false,
               "outputHashing": "all",
