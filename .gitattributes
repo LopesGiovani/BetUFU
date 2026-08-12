@@ -3,6 +3,7 @@ infra/keycloak/themes/betufu/login/resources/fonts/*.woff2 binary
 infra/keycloak/themes/betufu/login/resources/fonts/*-ofl.txt text eol=lf
 frontend/package-lock.json text eol=lf
 backend/openapi/betufu.yaml text eol=lf
+backend/src/main/resources/db/migration/*.sql text eol=lf
 frontend/openapitools.json text eol=lf
 frontend/scripts/*.mjs text eol=lf
 frontend/src/app/api/generated/** text eol=lf whitespace=-blank-at-eol
