@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P20 implementado, verificado e documentado; revisão controlada do 01-05 é o próximo foco
+stopped_at: F1/P05 implementado, verificado e sincronizado; planejamento dos pré-requisitos do 01-21 é o próximo foco
 last_updated: "2026-08-12"
 last_activity: 2026-08-12
-last_activity_desc: Plano 01-20 implementado, endurecido, validado e documentado; a implementação está nos commits 2d474b8 e 168fd8e, sincronizados com origin/master.
+last_activity_desc: Plano 01-05 implementado e validado; os commits b696142, 9e95d17 e 4a4dcf7 estão sincronizados com origin/master, e este conjunto documental prepara seu fechamento.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 28
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Revisão controlada do Plano 01-05 para persistir o vínculo backend `(iss, sub)` com PostgreSQL real
+**Current focus:** Planejamento controlado dos pré-requisitos do Plano 01-21: datasource PostgreSQL do runtime local e bootstrap HTTP XSRF same-origin
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 8 of 28
-Status: In progress — F1/P20 concluído e documentado; o próximo passo é a revisão controlada do 01-05
-Last activity: 2026-08-12 — os commits `2d474b8` e `168fd8e`, sincronizados com `origin/master`, registram a implementação; este conjunto documental registra o fechamento do Plano 01-20.
+Plan: 9 of 28
+Status: In progress — F1/P05 implementado e verificado; o próximo passo é planejar e aprovar os pré-requisitos que bloqueiam o 01-21
+Last activity: 2026-08-12 — `b696142`, `9e95d17` e `4a4dcf7`, sincronizados com `origin/master`, registram tooling, persistência e endpoint; este conjunto documental registra o fechamento do Plano 01-05.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#6` concluídas e issue de acompanhamento `#29` aberta.
-Git: branch principal `master`; os commits de implementação `2d474b8` e `168fd8e` estão sincronizados com `origin/master`; o fechamento do Plano 01-20 é registrado pelos seus documentos de planejamento.
+Git: branch principal `master`; os commits de implementação `b696142`, `9e95d17` e `4a4dcf7` estão sincronizados com `origin/master`; o fechamento documental do Plano 01-05 aguarda revisão e operações Git separadas.
 
-Progress: [███░░░░░░░] 29%
+Progress: [███░░░░░░░] 32%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 8
+- Total de planos concluídos: 9
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [███░░░░░░░] 29%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 8 | não mensurado | não mensurada |
+| 1 | 9 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-18, 01-03, 01-04, 01-19, 01-20
+- Últimos 5 planos: 01-03, 01-04, 01-19, 01-20, 01-05
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
@@ -79,6 +79,10 @@ Progress: [███░░░░░░░] 29%
 - O lockfile do 01-20 é governado pelo SHA-256 `99A856C8C635EB4FB9845DEE6F1F2E7A2A4E8576BF80654B9695B5E6D6C4F035`; sua allowlist de seis entradas `hasInstallScript` apenas reconhece metadados e não autoriza lifecycle.
 - A árvore TypeScript gerada é machine-owned, exige exatamente 13 paths e o digest canônico `78E92BB17EBC45E25F86CA3D23C66958BDCD1786983DEFDC2DD1050BE8D13D5F`; o digest histórico `701CCD...` é não reproduzível e não pode ser reutilizado.
 - O risco de o runner resolver Java pelo `PATH` local permanece aceito temporariamente somente com as propriedades aprovadas de Java 25/Eclipse Adoptium; a identidade binária imutável deve ser decidida para CI.
+- A identidade local usa o par OIDC exato `(issuer, subject)` como chave natural case-sensitive e um UUID aleatório como identificador público; e-mail e claims opcionais não participam da correlação.
+- A migration Flyway V1 e o JPA validam `public.local_identity` no PostgreSQL 18.4; repetição e concorrência usam `ON CONFLICT DO NOTHING` seguido de `SELECT` em `READ_COMMITTED`, sem no-op update.
+- O endpoint `PUT /api/v1/tracer/identity/current` existe em todos os profiles de runtime, inclusive production, usa somente o ID token OIDC e responde por DTO allowlist com quatro campos.
+- O lifecycle Maven mantém `*Test` no Surefire e executa `*IT` no Failsafe; a prova agregada do 01-05 terminou com Surefire 8/8 e Failsafe 17/17.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
@@ -86,6 +90,7 @@ Progress: [███░░░░░░░] 29%
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
 - O provedor e a topologia S3 de homologação/produção continuam sem escolha; SeaweedFS não deve ser promovido silenciosamente além do ambiente local.
 - Homologação e produção ainda precisarão fornecer origens e uma lista não vazia de proxies durante os planos de infraestrutura e implantação.
+- Antes de executar o 01-21, definir, aprovar, implementar e provar o datasource PostgreSQL do runtime local e o bootstrap HTTP XSRF same-origin; `@ServiceConnection` e `csrf()` são apenas fixtures do IT.
 
 ### Bloqueios e pontos de atenção
 
@@ -94,6 +99,7 @@ Progress: [███░░░░░░░] 29%
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam ser decididas quando os requisitos correspondentes exigirem.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
+- A Wave 10/Plano 01-21 permanece bloqueada até o planejamento e a prova dos pré-requisitos de datasource runtime e XSRF browser; não contornar o bloqueio desabilitando CSRF ou montando token manual no Angular.
 
 ## Itens adiados
 
@@ -104,5 +110,5 @@ Progress: [███░░░░░░░] 29%
 ## Session Continuity
 
 Last session: 2026-08-12
-Stopped at: F1/P20 implementado, verificado e documentado; revisão controlada do 01-05 é o próximo foco
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-05-PLAN.md
+Stopped at: F1/P05 implementado, verificado e sincronizado; planejamento dos pré-requisitos do 01-21 é o próximo foco
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-21-PLAN.md
