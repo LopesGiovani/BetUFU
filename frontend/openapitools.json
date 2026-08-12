@@ -1,0 +1,28 @@
+{
+  "engine": {
+    "version": "7.24.0",
+    "path": "tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar",
+    "size": 31904922,
+    "sha256": "4B83CCC6FD43056C8C631CD0195E5100BD0550912502527BAB09AC76152DAB0C"
+  },
+  "generator": {
+    "name": "typescript-angular",
+    "inputSpec": "../backend/openapi/betufu.yaml",
+    "target": "src/app/api/generated",
+    "additionalProperties": {
+      "ngVersion": "22.1.0",
+      "tsVersion": ">=6.0.0 <6.1.0",
+      "rxjsVersion": "7.8.2",
+      "ngPackagrVersion": "22.1.0",
+      "zonejsVersion": "0.15.0",
+      "supportsES6": true,
+      "ngVersion21": true,
+      "providedIn": "root",
+      "useSingleRequestParameter": true,
+      "fileNaming": "kebab-case",
+      "modelPropertyNaming": "original",
+      "disallowAdditionalPropertiesIfNotPresent": false,
+      "hideGenerationTimestamp": true
+    }
+  }
+}

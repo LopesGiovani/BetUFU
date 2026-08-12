@@ -1,0 +1,53 @@
+openapi: 3.1.0
+
+info:
+  title: BETUFU API
+  version: 0.1.0
+
+servers:
+  - url: /
+
+paths:
+  /api/v1/tracer/identity/current:
+    put:
+      tags:
+        - Identity
+      operationId: putCurrentIdentity
+      summary: Persistir e reler a identidade local atual
+      description: >-
+        Usa a sessão BFF autenticada do navegador. O cliente usa uma URL
+        same-origin e não envia bearer token, cookie manual ou credenciais
+        configuradas.
+      responses:
+        "200":
+          description: Identidade local persistida e relida com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentIdentityResponse"
+
+components:
+  schemas:
+    CurrentIdentityResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - identityId
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        identityId:
+          type: string
+          format: uuid
+          description: Identificador opaco da identidade BETUFU.
+        status:
+          type: string
+          enum:
+            - PERSISTED
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
