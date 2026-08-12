@@ -15,7 +15,7 @@ O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`.
 
 | Camada | Ferramentas e autoridade | Planos criadores |
 |---|---|---|
-| Backend | JUnit 5, Spring Boot Test, Testcontainers, Modulith Test e ArchUnit via Maven Wrapper | 01-02, 01-17, 01-05, 01-23, 01-10 |
+| Backend | JUnit 5, Spring Boot Test, Spring Security Test, Testcontainers, Maven Surefire/Failsafe, Modulith Test e ArchUnit via Maven Wrapper | 01-02, 01-17, 01-05, 01-23, 01-10 |
 | Frontend | Angular TestBed/test runner, três builds fixados no lockfile e validadores Node sem dependências | 01-04, 01-19 |
 | E2E | Playwright contra navegador, Keycloak, BFF, PostgreSQL e dependências reais | 01-21, 01-08, 01-28 |
 | Infra | Docker Compose com healthchecks e profiles daily/full | 01-03, 01-11 |
@@ -33,8 +33,8 @@ O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`.
 | 01-04 | 6 | workspace Angular 22 reproduzível | auditoria do lockfile + `npm ci --ignore-scripts` + assinaturas + três builds + Vitest |
 | 01-19 | 7 | host e seam de rotas build-specific | `validate-angular-route-boundary.mjs` + regressões negativas + builds development/homolog/production + app component test |
 | 01-20 | 8 | OpenAPI inicial e cliente gerado com supply chain e recovery | Gate separado + fake runner + generate/check read-only + runtime PUT relativo/XSRF + builds development/homolog/production |
-| 01-05 | 9 | vínculo backend `(iss, sub)` | `LocalIdentityTracerIT` |
-| 01-21 | 10 | tracer browser não-prod, D-15 e ausência production | `validate-tracer.mjs` |
+| 01-05 | 9 | vínculo backend `(iss, sub)` idempotente/concorrente | lifecycle `verify -Dit.test=LocalIdentityTracerIT`: suíte Surefire + IT Failsafe selecionado contra PostgreSQL 18.4 com digest aprovado; depois `verify` agregado |
+| 01-21 | 10 | tracer browser não-prod, D-15 e ausência production | **bloqueado antes de código/E2E:** datasource runtime local e bootstrap HTTP XSRF devem ter plano, aprovação, implementação e prova próprios; só então `validate-tracer.mjs` |
 | 01-06 | 11 | política PT8H e Redis session | SessionPolicy/RedisSession ITs |
 | 01-07 | 12 | UserInfo opt-out e revogação | UserInfo + revocation contract/Keycloak ITs |
 | 01-22 | 13 | GET session e logout do dispositivo | SessionController/CurrentDeviceLogout ITs |
@@ -56,14 +56,17 @@ O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`.
 
 ## Provas obrigatórias preservadas
 
-1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção histórica: o scaffold basal do 01-04 possui 15 arquivos em três tarefas de cinco, com checkpoint e prova sem arquivos, conforme `01-04-GATE.md`. Exceção histórica aprovada do 01-20: exatamente 12 paths em três tarefas versionáveis de 5/2/5 — contrato/pipeline, package/lock e geração/integração — mais instalação/aquisição e prova agregada como blocos materiais de zero arquivos, cada qual com checkpoint próprio. Ela permanece registrada para auditabilidade; o Gate 01-20 está `approved`.
+1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção histórica: o scaffold basal do 01-04 possui 15 arquivos em três tarefas de cinco, com checkpoint e prova sem arquivos, conforme `01-04-GATE.md`. Exceção histórica aprovada do 01-20: exatamente 12 paths em três tarefas versionáveis de 5/2/5 — contrato/pipeline, package/lock e geração/integração — mais instalação/aquisição e prova agregada como blocos materiais de zero arquivos, cada qual com checkpoint próprio. Ela permanece registrada para auditabilidade; o Gate 01-20 está `approved`. O 01-05 possui nove paths em tarefas de 2/5/3, com resolução Maven, execução focal PostgreSQL e regressão agregada como blocos materiais de zero arquivos e checkpoints humanos separados.
 2. **OpenAPI:** 01-20 gera inicialmente com motor 7.24.0 hash-locked e publica a árvore de modo transacional/recuperável; 01-26 audita mappings/regenera; 01-16 só executa check read-only. Nenhum documento promete substituição de diretório atomicamente indivisível no Windows.
-3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-20 prova PUT relativo, XSRF nativo e ausência de Authorization/Bearer/`withCredentials` manual; 01-08 ativa e prova cookie/CSRF na fronteira backend.
+3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-20 prova que o cliente Angular emite PUT relativo e usa o mecanismo XSRF nativo, mas não prova que o backend materializa o cookie. O 01-05 mantém CSRF ativo e usa `csrf()` somente como fixture MockMvc; isso não equivale ao bootstrap browser `XSRF-TOKEN`/`X-XSRF-TOKEN`. O 01-21 permanece bloqueado até datasource runtime local e bootstrap HTTP XSRF serem planejados, aprovados, implementados e provados. É proibido avançar desabilitando CSRF ou montando token/header manual no Angular; a parte HTTP hoje atribuída ao 01-08 requer correção de sequência própria.
 4. **D-13:** `scripts/maven.mjs` seleciona Wrapper por SO e o gate registra Windows e Linux/WSL2.
 5. **D-15:** tema Keycloak preserva templates nativos; 01-21 prova campo, valor não sensível e foco.
 6. **Revogação:** 01-07 envia refresh token + hint e exige `invalid_grant`, sem prometer access JWT imediato.
 7. **Sessão/UI:** 01-27 prova checking/authenticated/expired, limpeza, POST único, zero polling/storage/bearer.
 8. **D-01/D-02:** 01-19 prova estaticamente o replacement development→production, a seam única, Router/HttpClient/XSRF e as proibições de URL absoluta, bearer e storage; seus três builds provam compilação, não a ausência de capacidades que ainda não existem. 01-21 acrescenta o controle positivo dev/homolog e a primeira prova de ausência production; 01-28 sela ausência de rota, link, URL, import e lazy chunk de tracer/diagnóstico no artefato production e no navegador.
+9. **Identidade local/concorrência:** 01-05 usa `(issuer, subject)` exato como unique natural e UUID opaco como chave pública. O service executa `INSERT ... ON CONFLICT DO NOTHING` seguido de `SELECT` em nova instrução `READ_COMMITTED`; o IT dispara chamadas simultâneas e exige uma linha, mesmo UUID e timestamps estáveis. `find` seguido de `save`, no-op update e recuperação após unique violation na mesma transação não satisfazem a prova.
+10. **Ciclo de IT Maven:** `*Test` permanece sob Surefire e `*IT` passa a ser executado pelo Maven Failsafe 3.5.6 nas fases `integration-test`/`verify`. A prova focal usa `verify -Dit.test=LocalIdentityTracerIT`: por atravessar o lifecycle, ela executa a suíte Surefire e seleciona esse IT no Failsafe, não é um comando de teste único. A prova agregada usa `verify` sem filtro e inspeciona relatórios de ambos; um build verde que não executou o IT é falha de cobertura.
+11. **Fixture PostgreSQL:** o IT 01-05 aceita somente `docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636`. Preflight ausente encerra sem pull; pull e criação de container/rede exigem autorizações materiais próprias.
 
 ## Matriz obrigatória do Plano 01-20
 
