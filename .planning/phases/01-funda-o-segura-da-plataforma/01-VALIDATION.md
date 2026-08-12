@@ -1,6 +1,6 @@
 # Estratégia de validação — Fase 1
 
-**Status:** planejada, revisada e ainda não executada
+**Status:** planejada, revisada e parcialmente executada; a Fase 1 permanece em andamento
 **Nyquist:** cada comportamento obrigatório possui prova automatizada nomeada antes do gate humano final.
 **TDD:** desabilitado; todos os planos ainda exigem testes explícitos e executáveis.
 **Build canônico:** Maven Wrapper com `backend/pom.xml`; não há trilha Gradle.
@@ -9,7 +9,7 @@
 
 01-01 confirma JDK 25, Node.js >=22.22.3 <23.0.0, daemon Docker e legitimidade dos seis pacotes npm originalmente classificados como `SUS`. Para 01-04, `01-04-GATE.md` registra a Matriz B exata de 14 dependências diretas, o lockfile v3 aprovado pelo SHA-256 integral, a allowlist exata de cinco pacotes com `hasInstallScript` e o risco moderado temporariamente aceito. Esse Gate histórico está `approved`, e a Task 5 comprovou instalação com scripts desabilitados, assinaturas, três builds e Vitest.
 
-O Plano 01-20 abre um **novo** Gate supply-chain em `01-20-GATE.md`, atualmente `pending`. O SHA-256 histórico `FB8FE8A18EA4F72927AF5E3B506E2112F968C3BF98267DA0902EBC5BC40EA841` continua válido somente como baseline do grafo do 01-04 e nunca aprova o lockfile que incluirá o wrapper OpenAPI. Wrapper npm 2.40.1, motor Java 7.24.0, exceção Angular 22, novo hash, allowlist, risco npm, assinaturas, JAR e identidade humana possuem estados separados. Qualquer divergência interrompe a fase sem downgrade, substituição, `npm audit fix`, `--force`, lifecycle ou instalação silenciosa. Os checkpoints são humanos e não autoaprováveis.
+O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`. O SHA-256 histórico `FB8FE8A18EA4F72927AF5E3B506E2112F968C3BF98267DA0902EBC5BC40EA841` continua válido somente como baseline do grafo do 01-04 e nunca aprova o lockfile que incluiu o wrapper OpenAPI. Wrapper npm 2.40.1, motor Java 7.24.0, exceção Angular 22, novo hash, allowlist, risco npm, assinaturas, JAR e identidade humana mantêm estados separados e aprovados conforme o Gate. A evidência observada no fechamento registrou fake runner `67/67`, fronteira de rotas `110/110`, runtime same-origin `2/2`, digest canônico `78E92BB17EBC45E25F86CA3D23C66958BDCD1786983DEFDC2DD1050BE8D13D5F` e builds `development`, `homolog` e `production` com êxito. Qualquer divergência interrompe a execução correspondente sem downgrade, substituição, `npm audit fix`, `--force`, lifecycle ou instalação silenciosa; os checkpoints continuam humanos e não autoaprováveis.
 
 ## Infraestrutura de testes a criar
 
@@ -56,7 +56,7 @@ O Plano 01-20 abre um **novo** Gate supply-chain em `01-20-GATE.md`, atualmente 
 
 ## Provas obrigatórias preservadas
 
-1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção histórica: o scaffold basal do 01-04 possui 15 arquivos em três tarefas de cinco, com checkpoint e prova sem arquivos, conforme `01-04-GATE.md`. Exceção proposta do 01-20: exatamente 12 paths em três tarefas versionáveis de 5/2/5 — contrato/pipeline, package/lock e geração/integração — mais instalação/aquisição e prova agregada como blocos materiais de zero arquivos, cada qual com checkpoint próprio. Essa exceção é registrada aqui para auditabilidade, mas o Gate 01-20 permanece pending.
+1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção histórica: o scaffold basal do 01-04 possui 15 arquivos em três tarefas de cinco, com checkpoint e prova sem arquivos, conforme `01-04-GATE.md`. Exceção histórica aprovada do 01-20: exatamente 12 paths em três tarefas versionáveis de 5/2/5 — contrato/pipeline, package/lock e geração/integração — mais instalação/aquisição e prova agregada como blocos materiais de zero arquivos, cada qual com checkpoint próprio. Ela permanece registrada para auditabilidade; o Gate 01-20 está `approved`.
 2. **OpenAPI:** 01-20 gera inicialmente com motor 7.24.0 hash-locked e publica a árvore de modo transacional/recuperável; 01-26 audita mappings/regenera; 01-16 só executa check read-only. Nenhum documento promete substituição de diretório atomicamente indivisível no Windows.
 3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-20 prova PUT relativo, XSRF nativo e ausência de Authorization/Bearer/`withCredentials` manual; 01-08 ativa e prova cookie/CSRF na fronteira backend.
 4. **D-13:** `scripts/maven.mjs` seleciona Wrapper por SO e o gate registra Windows e Linux/WSL2.
