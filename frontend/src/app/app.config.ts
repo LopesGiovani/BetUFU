@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
+import { provideApi } from './api/generated';
 import { APP_ROUTES } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -22,5 +23,6 @@ export const appConfig: ApplicationConfig = {
         headerName: 'X-XSRF-TOKEN',
       }),
     ),
+    provideApi(''),
   ],
 };

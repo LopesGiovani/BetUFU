@@ -16,11 +16,16 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
+  APPROVED_GENERATED_DIGEST,
+  APPROVED_GENERATED_FILES,
   GenerateApiContractError,
+  assertApprovedGeneratedManifest,
   executeGenerateApi,
+  hardenGeneratedTypeScript,
   normalizeGeneratedText,
   readTreeManifest,
   sanitizeError,
+  validateGeneratedTypeScript,
 } from './generate-api.mjs';
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
@@ -28,6 +33,7 @@ const projectRoot = resolve(scriptsDirectory, '..', '..');
 const runnerPath = join(scriptsDirectory, 'generate-api.mjs');
 const FIXED_NOW = '2026-08-11T20:00:00.000Z';
 const FIXED_NONCE = '0123456789abcdef0123456789abcdef';
+const RAW_BASE_SERVICE = "export class BaseService {\r\n    protected basePath = 'http://localhost';\r\n}\r\n";
 
 function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex').toUpperCase();
@@ -71,6 +77,10 @@ function configuration(contract) {
 async function writeText(path, contents) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, contents, 'utf8');
+}
+
+async function writeGeneratedBaseService(outputDirectory, contents = RAW_BASE_SERVICE) {
+  await writeText(join(outputDirectory, 'api.base.service.ts'), contents);
 }
 
 async function writeLock(workspace, owner) {
@@ -119,6 +129,7 @@ async function withFixture(label, callback, options) {
 function adapters(overrides = {}) {
   return {
     generate: async ({ outputDirectory }) => {
+      await writeGeneratedBaseService(outputDirectory);
       await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\r\n');
       await writeText(join(outputDirectory, 'model', 'current-identity-response.ts'), 'export interface CurrentIdentityResponse {}');
       await writeText(join(outputDirectory, 'README.md'), 'raw auxiliary output\n');
@@ -138,6 +149,7 @@ async function execute(fixture, options = {}) {
     projectRoot: fixture.root,
     contract: fixture.contract,
     adapters: adapters(options.adapters),
+    generatedManifestContract: options.generatedManifestContract ?? null,
     mode: options.mode ?? 'generate',
   });
 }
@@ -162,20 +174,230 @@ test('normaliza texto gerado para LF e uma newline final', () => {
   );
 });
 
+test('endurece somente o fallback conhecido do BaseService para same-origin', () => {
+  assert.equal(
+    hardenGeneratedTypeScript(
+      'api.base.service.ts',
+      "export class BaseService {\r\n    protected basePath = 'http://localhost';\r\n}\r\n",
+    ),
+    "export class BaseService {\n    protected basePath = '';\n}\n",
+  );
+  assert.throws(
+    () => hardenGeneratedTypeScript(
+      'api.base.service.ts',
+      "export class BaseService {\n    protected basePath = '';\n}\n",
+    ),
+    (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_BASE_PATH',
+  );
+  assert.throws(
+    () => validateGeneratedTypeScript(
+      'api/identity.service.ts',
+      "const endpoint = 'http://localhost';\n",
+    ),
+    (error) => error instanceof GenerateApiContractError
+      && error.rule === 'GENERATED_ABSOLUTE_URL',
+  );
+});
+
+for (const [label, source] of [
+  ['ausente', 'export class BaseService {}\n'],
+  ['divergente', "export class BaseService { protected basePath = 'https://api.example.invalid'; }\n"],
+  ['duplicado', "protected basePath = 'http://localhost';\nprotected basePath = 'http://localhost';\n"],
+  ['comentado', "/*\n    protected basePath = 'http://localhost';\n*/\nexport class BaseService { protected basePath = '/api'; }\n"],
+  ['outra-classe', "export class Decoy {\n    protected basePath = 'http://localhost';\n}\nexport class BaseService {}\n"],
+]) {
+  test(`recusa fallback ${label} no BaseService gerado`, () => {
+    assert.throws(
+      () => hardenGeneratedTypeScript('api.base.service.ts', source),
+      (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_BASE_PATH',
+    );
+  });
+}
+
+test('recusa fallback presente somente em template string', () => {
+  const source = [
+    'const decoy = ' + String.fromCodePoint(96),
+    "    protected basePath = 'http://localhost';",
+    String.fromCodePoint(96) + ';',
+    "export class BaseService { protected basePath = '/api'; }",
+    '',
+  ].join('\n');
+  assert.throws(
+    () => hardenGeneratedTypeScript('api.base.service.ts', source),
+    (error) => error instanceof GenerateApiContractError
+      && error.rule === 'GENERATED_BASE_PATH',
+  );
+});
+
+for (const [label, relativePath, source] of [
+  ['network-path', 'model/example.ts', "const endpoint = '//api.example.invalid';\n"],
+  ['escaped-scheme', 'model/example.ts', "const endpoint = 'h\\x74tps://api.example.invalid';\n"],
+  ['escaped-solidus', 'model/example.ts', "const endpoint = 'https:\\/\\/api.example.invalid';\n"],
+  [
+    'diagnostic-fora-do-bloco',
+    'api.module.ts',
+    "const diagnostic = 'See also https://github.com/angular/angular/issues/20575';\n",
+  ],
+]) {
+  test(`recusa URL absoluta ${label} antes da publicacao`, () => {
+    assert.throws(
+      () => validateGeneratedTypeScript(relativePath, source),
+      (error) => error instanceof GenerateApiContractError
+        && error.rule === 'GENERATED_ABSOLUTE_URL',
+    );
+  });
+}
+
+test('manifesto recusa bytes com URL absoluta escondida depois de regex literal', () => {
+  const maliciousSource = "const matcher = /https?:\\/\\//; const endpoint = 'https://evil.invalid';\n";
+  assert.throws(
+    () => assertApprovedGeneratedManifest({
+      files: APPROVED_GENERATED_FILES,
+      digest: sha256(Buffer.from(maliciousSource, 'utf8')),
+    }),
+    (error) => error instanceof GenerateApiContractError
+      && error.rule === 'GENERATED_MANIFEST',
+  );
+});
+
+test('manifesto aprovado identifica exatamente a arvore TypeScript versionada', async () => {
+  const generatedRoot = join(projectRoot, 'frontend', 'src', 'app', 'api', 'generated');
+  const manifest = await readTreeManifest(generatedRoot);
+
+  assert.deepEqual(manifest.files, APPROVED_GENERATED_FILES);
+  assert.equal(manifest.digest, APPROVED_GENERATED_DIGEST);
+  assert.equal(assertApprovedGeneratedManifest(manifest), true);
+});
+
+test('manifesto aprovado recusa arquivo, servico e bytes extras', async () => {
+  const generatedRoot = join(projectRoot, 'frontend', 'src', 'app', 'api', 'generated');
+  const manifest = await readTreeManifest(generatedRoot);
+  const mutations = [
+    {
+      ...manifest,
+      files: [...manifest.files, 'extra.ts'],
+    },
+    {
+      ...manifest,
+      files: [...manifest.files, 'api/extra.service.ts'],
+    },
+    {
+      ...manifest,
+      digest: '0'.repeat(64),
+    },
+  ];
+
+  for (const mutation of mutations) {
+    assert.throws(
+      () => assertApprovedGeneratedManifest(mutation),
+      (error) => error instanceof GenerateApiContractError
+        && error.rule === 'GENERATED_MANIFEST',
+    );
+  }
+});
+
+test('manifesto divergente bloqueia publicacao e preserva a arvore valida', async () => {
+  await withFixture('generated-manifest', async (fixture) => {
+    await execute(fixture);
+    const before = await readTreeManifest(fixture.target);
+
+    await assert.rejects(
+      execute(fixture, {
+        generatedManifestContract: {
+          files: before.files,
+          digest: before.digest,
+        },
+        adapters: {
+          generate: async ({ outputDirectory }) => {
+            await writeGeneratedBaseService(outputDirectory);
+            await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\n');
+            await writeText(join(outputDirectory, 'model', 'current-identity-response.ts'), 'export interface CurrentIdentityResponse {}\n');
+            await writeText(
+              join(outputDirectory, 'api', 'extra.service.ts'),
+              "export const extraService = true;\n",
+            );
+          },
+        },
+      }),
+      (error) => error instanceof GenerateApiContractError
+        && error.rule === 'GENERATED_MANIFEST',
+    );
+
+    const after = await readTreeManifest(fixture.target);
+    assert.equal(after.digest, before.digest);
+    assert.deepEqual(after.files, before.files);
+  });
+});
+
 test('gera somente TypeScript, substitui a arvore e remove obsoletos', async () => {
   await withFixture('generate', async (fixture) => {
     const result = await execute(fixture);
 
     assert.equal(result.mode, 'generate');
     assert.deepEqual(result.files, [
+      'api.base.service.ts',
       'api/identity.service.ts',
       'model/current-identity-response.ts',
     ]);
+    assert.equal(
+      await readFile(join(fixture.target, 'api.base.service.ts'), 'utf8'),
+      "export class BaseService {\n    protected basePath = '';\n}\n",
+    );
     assert.equal(await readFile(join(fixture.target, 'api', 'identity.service.ts'), 'utf8'), 'export const line = 1;\n');
     assert.equal(await readFile(join(fixture.target, 'model', 'current-identity-response.ts'), 'utf8'), 'export interface CurrentIdentityResponse {}\n');
     await assert.rejects(stat(join(fixture.target, 'legacy.ts')), { code: 'ENOENT' });
     await assert.rejects(stat(join(fixture.target, 'README.md')), { code: 'ENOENT' });
     await assert.rejects(stat(join(fixture.target, 'package.json')), { code: 'ENOENT' });
+  });
+});
+
+test('fallback ausente ou divergente nunca substitui a arvore valida', async (t) => {
+  for (const scenario of [
+    { label: 'missing', source: null },
+    { label: 'unexpected', source: "export class BaseService { protected basePath = 'https://api.example.invalid'; }\n" },
+    { label: 'duplicate', source: "protected basePath = 'http://localhost';\nprotected basePath = 'http://localhost';\n" },
+  ]) {
+    await t.test(scenario.label, async () => {
+      await withFixture(`base-path-${scenario.label}`, async (fixture) => {
+        const before = await snapshotTree(fixture.target);
+        await assert.rejects(
+          execute(fixture, {
+            adapters: {
+              generate: async ({ outputDirectory }) => {
+                if (scenario.source !== null) {
+                  await writeText(join(outputDirectory, 'api.base.service.ts'), scenario.source);
+                }
+                await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\n');
+              },
+            },
+          }),
+          (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_BASE_PATH',
+        );
+        assert.equal(await snapshotTree(fixture.target), before);
+      });
+    });
+  }
+});
+
+test('URL absoluta na candidata nunca substitui a arvore valida', async () => {
+  await withFixture('absolute-url-before-publish', async (fixture) => {
+    const before = await snapshotTree(fixture.target);
+    await assert.rejects(
+      execute(fixture, {
+        adapters: {
+          generate: async ({ outputDirectory }) => {
+            await writeGeneratedBaseService(outputDirectory);
+            await writeText(
+              join(outputDirectory, 'model', 'current-identity-response.ts'),
+              "export const endpoint = 'https://api.example.invalid';\n",
+            );
+          },
+        },
+      }),
+      (error) => error instanceof GenerateApiContractError
+        && error.rule === 'GENERATED_ABSOLUTE_URL',
+    );
+    assert.equal(await snapshotTree(fixture.target), before);
   });
 });
 
@@ -216,6 +438,7 @@ for (const drift of ['add', 'delete', 'change']) {
       await execute(fixture);
       const before = await snapshotTree(fixture.target);
       const customGenerate = async ({ outputDirectory }) => {
+        await writeGeneratedBaseService(outputDirectory);
         await writeText(join(outputDirectory, 'api', 'identity.service.ts'), drift === 'change' ? 'export const line = 2;\n' : 'export const line = 1;\n');
         if (drift !== 'delete') {
           await writeText(join(outputDirectory, 'model', 'current-identity-response.ts'), 'export interface CurrentIdentityResponse {}\n');
@@ -375,6 +598,7 @@ test('duas execucoes concorrentes nao geram nem publicam em paralelo', async () 
     const first = executeGenerateApi({
       projectRoot: fixture.root,
       contract: fixture.contract,
+      generatedManifestContract: null,
       mode: 'generate',
       adapters: adapters({
         nonce: () => firstNonce,
@@ -382,6 +606,7 @@ test('duas execucoes concorrentes nao geram nem publicam em paralelo', async () 
         generate: async ({ outputDirectory }) => {
           signalEntered();
           await release;
+          await writeGeneratedBaseService(outputDirectory);
           await writeText(join(outputDirectory, 'api.ts'), 'export const api = true;\n');
         },
       }),
@@ -393,6 +618,7 @@ test('duas execucoes concorrentes nao geram nem publicam em paralelo', async () 
       executeGenerateApi({
         projectRoot: fixture.root,
         contract: fixture.contract,
+        generatedManifestContract: null,
         mode: 'generate',
         adapters: adapters({
           nonce: () => secondNonce,
@@ -409,7 +635,7 @@ test('duas execucoes concorrentes nao geram nem publicam em paralelo', async () 
     signalRelease();
     const result = await first;
     assert.equal(result.mode, 'generate');
-    assert.deepEqual(result.files, ['api.ts']);
+    assert.deepEqual(result.files, ['api.base.service.ts', 'api.ts']);
   });
 });
 
@@ -587,6 +813,32 @@ test('falha no segundo rename restaura a arvore anterior e preserva diagnostico'
     assert.equal(await snapshotTree(fixture.target), before);
     const diagnostics = await import('node:fs/promises').then(({ readdir }) => readdir(join(fixture.workspace, 'diagnostics')));
     assert.equal(diagnostics.length, 1);
+  });
+});
+
+test('mutacao do candidato na janela de publicacao falha e restaura a arvore anterior', async () => {
+  await withFixture('publish-manifest-race', async (fixture) => {
+    await execute(fixture);
+    const before = await readTreeManifest(fixture.target);
+
+    await assert.rejects(
+      execute(fixture, {
+        adapters: {
+          beforeRename: async ({ role, from }) => {
+            if (role === 'install-candidate') {
+              await writeText(join(from, 'tampered.ts'), 'export const tampered = true;\n');
+            }
+          },
+        },
+      }),
+      (error) => error instanceof GenerateApiContractError
+        && error.rule === 'PUBLISH_FAILED',
+    );
+
+    const after = await readTreeManifest(fixture.target);
+    assert.equal(after.digest, before.digest);
+    assert.deepEqual(after.files, before.files);
+    assert.equal(after.files.includes('tampered.ts'), false);
   });
 });
 

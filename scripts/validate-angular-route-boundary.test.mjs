@@ -5,10 +5,15 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { APPROVED_GENERATED_FILES } from '../frontend/scripts/generate-api.mjs';
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptsDirectory, '..');
 const validatorPath = join(scriptsDirectory, 'validate-angular-route-boundary.mjs');
+
+const generatedFixturePaths = APPROVED_GENERATED_FILES.map(
+  (relativePath) => `frontend/src/app/api/generated/${relativePath}`,
+);
 
 const FIXTURE_PATHS = Object.freeze([
   'frontend/angular.json',
@@ -19,6 +24,7 @@ const FIXTURE_PATHS = Object.freeze([
   'frontend/src/app/app.routes.production.ts',
   'frontend/src/app/app.component.ts',
   'frontend/src/app/app.component.html',
+  ...generatedFixturePaths,
 ]);
 
 const canonicalFiles = new Map(
@@ -250,6 +256,7 @@ const HTTP_PROVIDER_ENTRY = `    provideHttpClient(
       }),
     ),
 `;
+const API_PROVIDER_ENTRY = "    provideApi(''),\n";
 
 function replaceExactlyOnceLiteral(source, searchValue, replacement, label) {
   const firstIndex = source.indexOf(searchValue);
@@ -263,7 +270,99 @@ function replaceExactlyOnceLiteral(source, searchValue, replacement, label) {
   return `${source.slice(0, firstIndex)}${replacement}${source.slice(firstIndex + searchValue.length)}`;
 }
 
+test("aceita provideApi('') como quinto provider direto", async () => {
+  await withFixture('api-provider', async (fixtureRoot) => {
+    const result = runValidator(fixtureRoot);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+  });
+});
+
 const sourceMutations = [
+  {
+    name: 'import de provideApi divergente',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_IMPORT',
+    mutate: (source) => source.replace("from './api/generated'", "from './api/other'"),
+  },
+  {
+    name: 'provideApi ausente',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_PROVIDER',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      API_PROVIDER_ENTRY,
+      '',
+      'provider API',
+    ),
+  },
+  {
+    name: 'provideApi fora de appConfig.providers',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_PROVIDER',
+    mutate: (source) => `${replaceExactlyOnceLiteral(
+      source,
+      API_PROVIDER_ENTRY,
+      '',
+      'provider API',
+    )}\nprovideApi('');\n`,
+  },
+  {
+    name: 'provideApi aninhado em factory de provider',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_PROVIDER',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      API_PROVIDER_ENTRY,
+      "    { provide: 'api-decoy', useFactory: () => provideApi('') },\n",
+      'provider API',
+    ),
+  },
+  {
+    name: 'provideApi com base nao vazia',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_PROVIDER',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      API_PROVIDER_ENTRY,
+      "    provideApi('/api'),\n",
+      'provider API',
+    ),
+  },
+  {
+    name: 'provideApi com base em branco',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_PROVIDER',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      API_PROVIDER_ENTRY,
+      "    provideApi(' '),\n",
+      'provider API',
+    ),
+  },
+  {
+    name: 'provideApi duplicado',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_PROVIDER',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      API_PROVIDER_ENTRY,
+      `${API_PROVIDER_ENTRY}${API_PROVIDER_ENTRY}`,
+      'provider API',
+    ),
+  },
+  {
+    name: 'provideApi antes do provider HTTP',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'APP_CONFIG_PROVIDER_LIST',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      replaceExactlyOnceLiteral(source, API_PROVIDER_ENTRY, '', 'provider API'),
+      HTTP_PROVIDER_ENTRY,
+      `${API_PROVIDER_ENTRY}${HTTP_PROVIDER_ENTRY}`,
+      'provider HTTP',
+    ),
+  },
   {
     name: 'import direto de production',
     path: 'frontend/src/app/app.routes.ts',
@@ -432,6 +531,24 @@ provideHttpClient(
     path: 'frontend/src/app/app.config.ts',
     rule: 'HTTP_INTERCEPTOR',
     mutate: (source) => `${source}\nwithInterceptorsFromDi();\n`,
+  },
+  {
+    name: 'withCredentials no host',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'WITH_CREDENTIALS',
+    mutate: (source) => `${source}\nconst credentialsMode = { withCredentials: true };\n`,
+  },
+  {
+    name: 'Cookie manual no host',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'MANUAL_COOKIE',
+    mutate: (source) => `${source}\nconst manualHeader = 'Cookie';\n`,
+  },
+  {
+    name: 'accessToken no host',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'ACCESS_TOKEN',
+    mutate: (source) => `${source}\nconst accessToken = 'manual';\n`,
   },
   {
     name: 'import dinamico de production',
@@ -736,6 +853,231 @@ bootstrapApplication(AppComponent, { providers: [] }).catch((error: unknown) => 
   },
 ];
 
+const generatedSourceMutations = [
+  {
+    name: 'fallback localhost no BaseService gerado',
+    path: 'frontend/src/app/api/generated/api.base.service.ts',
+    rule: 'GENERATED_BASE_PATH',
+    mutate: (source) => source.replace(
+      /protected basePath\s*=\s*(?:''|'http:\/\/localhost')\s*;/u,
+      "protected basePath = 'http://localhost';",
+    ),
+  },
+  {
+    name: 'fallback vazio somente em comentario no BaseService gerado',
+    path: 'frontend/src/app/api/generated/api.base.service.ts',
+    rule: 'GENERATED_BASE_PATH',
+    mutate: (source) => source.replace(
+      "    protected basePath = '';",
+      "    /* protected basePath = ''; */\n    protected fallbackPath = '';",
+    ),
+  },
+  {
+    name: 'fallback vazio somente em template string no BaseService gerado',
+    path: 'frontend/src/app/api/generated/api.base.service.ts',
+    rule: 'GENERATED_BASE_PATH',
+    mutate: (source) => source.replace(
+      "    protected basePath = '';",
+      '    protected fallbackPath = ' + String.fromCodePoint(96)
+        + "protected basePath = '';" + String.fromCodePoint(96) + ';',
+    ),
+  },
+  {
+    name: 'fallback relativo nao vazio no BaseService gerado',
+    path: 'frontend/src/app/api/generated/api.base.service.ts',
+    rule: 'GENERATED_BASE_PATH',
+    mutate: (source) => source.replace(
+      "    protected basePath = '';",
+      "    protected basePath = '/api';",
+    ),
+  },
+  {
+    name: 'fallback vazio em outra classe gerada',
+    path: 'frontend/src/app/api/generated/api.base.service.ts',
+    rule: 'GENERATED_BASE_PATH',
+    mutate: (source) => source.replace(
+      "export class BaseService {\n    protected basePath = '';",
+      "export class Decoy {\n    protected basePath = '';\n}\nexport class BaseService {",
+    ),
+  },
+  {
+    name: 'origem absoluta fora de um servico gerado',
+    path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => source + "\nconst absoluteEndpoint = 'https://api.example.invalid';\n",
+  },
+  {
+    name: 'network-path fora de um servico gerado',
+    path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => source + "\nconst absoluteEndpoint = '//api.example.invalid';\n",
+  },
+  {
+    name: 'origem absoluta com escape hexadecimal',
+    path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => source + "\nconst absoluteEndpoint = 'h\\x74tps://api.example.invalid';\n",
+  },
+  {
+    name: 'origem absoluta com solidus escapado',
+    path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => source + "\nconst absoluteEndpoint = 'https:\\/\\/api.example.invalid';\n",
+  },
+  {
+    name: 'origem absoluta construida por concatenacao',
+    path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
+    rule: 'GENERATED_MANIFEST_DIGEST',
+    mutate: (source) => source + "\nconst absoluteEndpoint = 'https:' + '//api.example.invalid';\n",
+  },
+  {
+    name: 'origem absoluta depois de regex com barras escapadas',
+    path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
+    rule: 'GENERATED_MANIFEST_DIGEST',
+    mutate: (source) => source
+      + '\n'
+      + String.raw`const urlPattern = /https?:\/\//; const absoluteEndpoint = 'https://api.example.invalid';`
+      + '\n',
+  },
+  {
+    name: 'diagnostico ApiModule movido para fora do bloco canonico',
+    path: 'frontend/src/app/api/generated/api.module.ts',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => source.replace(
+      "            'See also https://github.com/angular/angular/issues/20575');",
+      "            'See documentation');\nconst moved = 'See also https://github.com/angular/angular/issues/20575';",
+    ),
+  },
+  {
+    name: 'request gerado sem composicao canonica de basePath',
+    path: 'frontend/src/app/api/generated/api/identity.service.ts',
+    rule: 'GENERATED_REQUEST_URL',
+    mutate: (source) => source.replace(
+      String.fromCodePoint(96) + '${basePath}${localVarPath}' + String.fromCodePoint(96),
+      'localVarPath',
+    ),
+  },
+  {
+    name: 'segunda chamada HTTP no IdentityService gerado',
+    path: 'frontend/src/app/api/generated/api/identity.service.ts',
+    rule: 'GENERATED_REQUEST_URL',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      "        return this.httpClient.request<CurrentIdentityResponse>('put',",
+      "        this.httpClient.request<CurrentIdentityResponse>('put', '/decoy', {});\n        return this.httpClient.request<CurrentIdentityResponse>('put',",
+      'chamada HTTP canonica',
+    ),
+  },
+  {
+    name: 'reatribuicao de localVarPath no IdentityService gerado',
+    path: 'frontend/src/app/api/generated/api/identity.service.ts',
+    rule: 'GENERATED_REQUEST_URL',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      '        let localVarPath = `/api/v1/tracer/identity/current`;',
+      "        let localVarPath = `/api/v1/tracer/identity/current`;\n        localVarPath = '/other';",
+      'declaracao localVarPath',
+    ),
+  },
+  {
+    name: 'origem absoluta no IdentityService gerado',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => `${source}\nconst absoluteEndpoint = 'https://api.example.invalid';\n`,
+  },
+  {
+    name: 'Authorization ativo no servico gerado',
+    rule: 'GENERATED_AUTHORIZATION',
+    mutate: (source) => `${source}\nconst activeHeader = 'Authorization';\n`,
+  },
+  {
+    name: 'Bearer ativo no servico gerado',
+    rule: 'GENERATED_BEARER',
+    mutate: (source) => `${source}\nconst activeScheme = 'Bearer';\n`,
+  },
+  {
+    name: 'credencial ativa no servico gerado',
+    rule: 'GENERATED_AUTH_CONFIGURATION',
+    mutate: (source) => `${source}\nconst accessToken = 'manual';\n`,
+  },
+  {
+    name: 'Cookie manual no servico gerado',
+    rule: 'GENERATED_MANUAL_COOKIE',
+    mutate: (source) => `${source}\nconst manualHeader = 'Cookie';\n`,
+  },
+  {
+    name: 'withCredentials efetivo no servico gerado',
+    rule: 'GENERATED_WITH_CREDENTIALS',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      '...(withCredentials ? { withCredentials } : {}),',
+      'withCredentials: true,',
+      'encadeamento withCredentials',
+    ),
+  },
+  {
+    name: 'withCredentials ativo por padrao em configuration.ts',
+    path: 'frontend/src/app/api/generated/configuration.ts',
+    rule: 'GENERATED_CONFIGURATION_AUTH',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      'this.withCredentials = withCredentials;',
+      'this.withCredentials = true;',
+      'atribuicao withCredentials',
+    ),
+  },
+  {
+    name: 'withCredentials ativo por initializer em configuration.ts',
+    path: 'frontend/src/app/api/generated/configuration.ts',
+    rule: 'GENERATED_CONFIGURATION_AUTH',
+    mutate: (source) => source.replace(
+      /(export class Configuration[\s\S]*?)withCredentials\?: boolean;/u,
+      '$1withCredentials: boolean = true;',
+    ),
+  },
+  {
+    name: 'basePath absoluto por initializer em configuration.ts',
+    path: 'frontend/src/app/api/generated/configuration.ts',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => source.replace(
+      /(export class Configuration[\s\S]*?)basePath\?: string;/u,
+      "$1basePath: string = 'https://api.example.invalid';",
+    ),
+  },
+  {
+    name: 'basePath absoluto por atribuicao no construtor',
+    path: 'frontend/src/app/api/generated/configuration.ts',
+    rule: 'GENERATED_ABSOLUTE_URL',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      'this.basePath = basePath;',
+      "this.basePath = 'https://api.example.invalid';",
+      'atribuicao basePath',
+    ),
+  },
+  {
+    name: 'credencial ativa por padrao em configuration.ts',
+    path: 'frontend/src/app/api/generated/configuration.ts',
+    rule: 'GENERATED_CONFIGURATION_AUTH',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      'this.credentials = credentials ?? {};',
+      "this.credentials = credentials ?? { bearerAuth: 'manual' };",
+      'fallback credentials',
+    ),
+  },
+  {
+    name: 'withCredentials ativo por provideApi',
+    path: 'frontend/src/app/api/generated/provide-api.ts',
+    rule: 'GENERATED_PROVIDER_AUTH',
+    mutate: (source) => replaceExactlyOnceLiteral(
+      source,
+      '? { provide: BASE_PATH, useValue: configOrBasePath }',
+      '? { provide: Configuration, useValue: new Configuration({ withCredentials: true }) }',
+      'branch string de provideApi',
+    ),
+  },
+];
+
 for (const sourceMutation of sourceMutations) {
   test(`recusa ${sourceMutation.name}`, async () => {
     await withFixture(sourceMutation.name, async (fixtureRoot) => {
@@ -751,6 +1093,51 @@ for (const sourceMutation of sourceMutations) {
     });
   });
 }
+
+for (const generatedSourceMutation of generatedSourceMutations) {
+  test(`recusa ${generatedSourceMutation.name}`, async () => {
+    await withFixture(generatedSourceMutation.name, async (fixtureRoot) => {
+      await mutateText(
+        fixtureRoot,
+        generatedSourceMutation.path
+          ?? 'frontend/src/app/api/generated/api/identity.service.ts',
+        generatedSourceMutation.mutate,
+      );
+
+      const result = runValidator(fixtureRoot);
+
+      expectValidationFailure(result, 'GENERATED_MANIFEST_DIGEST');
+    });
+  });
+}
+
+test('recusa arquivo TypeScript extra na arvore gerada', async () => {
+  await withFixture('generated-extra-file', async (fixtureRoot) => {
+    const extraPath = join(
+      fixtureRoot,
+      'frontend/src/app/api/generated/unapproved.ts',
+    );
+    await writeFile(extraPath, 'export const unapproved = true;\n', 'utf8');
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'GENERATED_MANIFEST_PATHS');
+  });
+});
+
+test('recusa segundo servico na arvore gerada', async () => {
+  await withFixture('generated-second-service', async (fixtureRoot) => {
+    const extraServicePath = join(
+      fixtureRoot,
+      'frontend/src/app/api/generated/api/admin.service.ts',
+    );
+    await writeFile(extraServicePath, 'export class AdminService {}\n', 'utf8');
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'GENERATED_MANIFEST_PATHS');
+  });
+});
 
 test('ignora marcadores proibidos presentes somente em comentarios', async () => {
   await withFixture('comments-ignored', async (fixtureRoot) => {

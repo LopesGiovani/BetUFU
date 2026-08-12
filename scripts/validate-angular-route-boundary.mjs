@@ -4,6 +4,11 @@ import { readFile } from 'node:fs/promises';
 import { dirname, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
+import {
+  APPROVED_GENERATED_DIGEST,
+  APPROVED_GENERATED_FILES,
+  readTreeManifest,
+} from '../frontend/scripts/generate-api.mjs';
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const defaultProjectRoot = resolve(scriptsDirectory, '..');
@@ -17,6 +22,12 @@ const PATHS = Object.freeze({
   production: 'frontend/src/app/app.routes.production.ts',
   component: 'frontend/src/app/app.component.ts',
   template: 'frontend/src/app/app.component.html',
+  generatedRoot: 'frontend/src/app/api/generated',
+  generatedBaseService: 'frontend/src/app/api/generated/api.base.service.ts',
+  generatedApiModule: 'frontend/src/app/api/generated/api.module.ts',
+  generatedConfiguration: 'frontend/src/app/api/generated/configuration.ts',
+  generatedIdentityService: 'frontend/src/app/api/generated/api/identity.service.ts',
+  generatedProvider: 'frontend/src/app/api/generated/provide-api.ts',
 });
 
 const EXPECTED_REPLACEMENT = Object.freeze({
@@ -79,6 +90,44 @@ const FORBIDDEN_PATTERNS = Object.freeze([
     rule: 'XSRF_DISABLED',
     label: 'withNoXsrfProtection',
     pattern: /\bwithNoXsrfProtection\b/u,
+  },
+  {
+    rule: 'WITH_CREDENTIALS',
+    label: 'withCredentials',
+    pattern: /\bwithCredentials\b/u,
+  },
+  {
+    rule: 'MANUAL_COOKIE',
+    label: 'Cookie manual',
+    pattern: /\bCookie\b/iu,
+  },
+  {
+    rule: 'ACCESS_TOKEN',
+    label: 'accessToken',
+    pattern: /\baccessToken\b/u,
+  },
+]);
+
+const GENERATED_ACTIVE_AUTH_PATTERNS = Object.freeze([
+  {
+    rule: 'GENERATED_AUTHORIZATION',
+    label: 'Authorization',
+    pattern: /\bAuthorization\b/iu,
+  },
+  {
+    rule: 'GENERATED_BEARER',
+    label: 'Bearer',
+    pattern: /\bBearer\b/iu,
+  },
+  {
+    rule: 'GENERATED_MANUAL_COOKIE',
+    label: 'Cookie manual',
+    pattern: /\bCookie\b/iu,
+  },
+  {
+    rule: 'GENERATED_AUTH_CONFIGURATION',
+    label: 'configuracao ativa de autenticacao',
+    pattern: /\b(?:accessToken|apiKeys|credentials|username|password)\b/u,
   },
 ]);
 
@@ -232,6 +281,29 @@ function stripScriptComments(source) {
 
 function maskScriptStrings(source) {
   return transformScriptSource(source, { maskLiterals: true });
+}
+
+function decodeUrlEscapes(source) {
+  return source
+    .replace(
+      /\\x([0-9a-f]{2})/giu,
+      function decodeHexByte(_, hex) {
+        return String.fromCodePoint(Number.parseInt(hex, 16));
+      },
+    )
+    .replace(
+      /\\u\{([0-9a-f]{1,6})\}/giu,
+      function decodeUnicodeCodePoint(_, hex) {
+        return String.fromCodePoint(Number.parseInt(hex, 16));
+      },
+    )
+    .replace(
+      /\\u([0-9a-f]{4})/giu,
+      function decodeUnicodeUnit(_, hex) {
+        return String.fromCodePoint(Number.parseInt(hex, 16));
+      },
+    )
+    .replace(/\\\//gu, '/');
 }
 
 function validateScriptLexicalSafety(sources) {
@@ -526,6 +598,36 @@ async function readAngularConfiguration(projectRoot) {
   }
 }
 
+async function readGeneratedTypeScriptSources(projectRoot) {
+  const generatedRoot = resolve(projectRoot, PATHS.generatedRoot);
+  let manifest;
+
+  try {
+    manifest = await readTreeManifest(generatedRoot);
+  } catch {
+    contractError(
+      'GENERATED_MANIFEST_READ',
+      `nao foi possivel ler com seguranca ${PATHS.generatedRoot}.`,
+    );
+  }
+
+  expect(
+    isDeepStrictEqual(manifest.files, APPROVED_GENERATED_FILES),
+    'GENERATED_MANIFEST_PATHS',
+    'a arvore gerada deve conter exatamente os 13 caminhos aprovados, na ordem canonica.',
+  );
+  expect(
+    manifest.digest === APPROVED_GENERATED_DIGEST,
+    'GENERATED_MANIFEST_DIGEST',
+    `a arvore gerada deve possuir o digest canonico ${APPROVED_GENERATED_DIGEST}.`,
+  );
+
+  return new Map(manifest.entries.map(({ path, bytes }) => [
+    `${PATHS.generatedRoot}/${path}`,
+    normalizeText(bytes.toString('utf8')),
+  ]));
+}
+
 function validateFileReplacements(angularConfiguration) {
   const configurations = angularConfiguration
     ?.projects
@@ -599,6 +701,7 @@ function validateAppConfiguration(source) {
   const providers = extractAppConfigProviders(code, executableCode);
   const routerCallPattern = /\bprovideRouter\s*\(\s*APP_ROUTES\s*\)/u;
   const xsrfCallPattern = /\bprovideHttpClient\s*\(\s*withXsrfConfiguration\s*\(\s*\{[\s\S]*?\}\s*\)\s*,?\s*\)/u;
+  const apiCallPattern = /\bprovideApi\s*\(\s*(['"])\1\s*\)/u;
 
   expect(
     countMatches(executableCode, /\bappConfig\b/u) === 1,
@@ -623,6 +726,12 @@ function validateAppConfiguration(source) {
     /^\s*import\s*\{\s*APP_ROUTES\s*\}\s*from\s*['"]\.\/app\.routes['"]\s*;/mu,
     'APP_ROUTES_IMPORT',
     'import da seam APP_ROUTES',
+  );
+  expectExactlyOnceActiveImport(
+    code,
+    /^\s*import\s*\{\s*provideApi\s*\}\s*from\s*['"]\.\/api\/generated['"]\s*;/mu,
+    'API_IMPORT',
+    'import de provideApi da arvore gerada',
   );
   expectExactlyOnceActiveImport(
     code,
@@ -665,6 +774,20 @@ function validateAppConfiguration(source) {
     'XSRF_PROVIDER',
     'withXsrfConfiguration',
   );
+  expectExactlyOneDirectProvider(
+    executableCode,
+    providers.executableCode,
+    apiCallPattern,
+    'API_PROVIDER',
+    "provideApi('')",
+  );
+  expectExactlyOnceInsideProviders(
+    executableCode,
+    providers.executableCode,
+    /\bprovideApi\s*\(/u,
+    'API_PROVIDER',
+    'provideApi',
+  );
 
   const xsrfCallMatch = xsrfCallPattern.exec(providers.executableCode);
   const xsrfCall = xsrfCallMatch === null
@@ -680,12 +803,16 @@ function validateAppConfiguration(source) {
     : `${providers.code.slice(0, xsrfCallMatch.index)}__HTTP_PROVIDER__${providers.code.slice(
       xsrfCallMatch.index + xsrfCallMatch[0].length,
     )}`;
+  const providersWithApiMarker = providersWithHttpMarker.replace(
+    apiCallPattern,
+    '__API_PROVIDER__',
+  );
   expect(
-    /^\[provideBrowserGlobalErrorListeners\(\),provideZonelessChangeDetection\(\),provideRouter\(APP_ROUTES\),__HTTP_PROVIDER__,?\]$/u.test(
-      providersWithHttpMarker.replace(/\s/gu, ''),
+    /^\[provideBrowserGlobalErrorListeners\(\),provideZonelessChangeDetection\(\),provideRouter\(APP_ROUTES\),__HTTP_PROVIDER__,__API_PROVIDER__,?\]$/u.test(
+      providersWithApiMarker.replace(/\s/gu, ''),
     ),
     'APP_CONFIG_PROVIDER_LIST',
-    'appConfig.providers deve conter somente os quatro providers canonicos, na ordem aprovada.',
+    'appConfig.providers deve preservar os quatro providers canonicos e terminar com provideApi(\'\').',
   );
 
   expect(xsrfOptions !== undefined, 'XSRF_PROVIDER', 'configuracao XSRF deve estar dentro de provideHttpClient.');
@@ -710,6 +837,221 @@ function validateAppConfiguration(source) {
     'XSRF_OPTIONS_SHAPE',
     'withXsrfConfiguration deve conter somente cookieName e headerName aprovados.',
   );
+}
+
+function validateGeneratedClient(generatedSources) {
+  const baseServiceSource = stripScriptComments(
+    generatedSources.get(PATHS.generatedBaseService),
+  );
+  const baseServiceExecutableCode = maskScriptStrings(baseServiceSource);
+  expect(
+    countMatches(
+      baseServiceExecutableCode,
+      /\bprotected[ \t]+basePath[ \t]*=/gu,
+    ) === 1
+      && countMatches(
+        baseServiceExecutableCode,
+        /^export class BaseService \{\n    protected basePath = '[ \t]*';[ \t]*$/gmu,
+      ) === 1
+      && countMatches(
+        baseServiceSource,
+        /^export class BaseService \{\n    protected basePath = '';[ \t]*$/gmu,
+      ) === 1,
+    'GENERATED_BASE_PATH',
+    'BaseService gerado deve declarar exatamente um fallback basePath vazio e canonico.',
+  );
+
+  for (const [relativePath, source] of generatedSources) {
+    let activeSource = stripScriptComments(source);
+    if (relativePath === PATHS.generatedApiModule) {
+      const diagnosticBlock = [
+        '        if (!http) {',
+        "            throw new Error('You need to import the HttpClientModule in your AppModule! \\n' +",
+        "            'See also https://github.com/angular/angular/issues/20575');",
+        '        }',
+      ].join('\n');
+      const occurrences = activeSource.split(diagnosticBlock).length - 1;
+      expect(
+        occurrences === 1,
+        'GENERATED_ABSOLUTE_URL',
+        'ApiModule deve manter somente a URL diagnostica conhecida do gerador.',
+      );
+      activeSource = activeSource.replace(diagnosticBlock, '');
+    }
+    const comparableSource = decodeUrlEscapes(activeSource);
+    expect(
+      !/(?::\/\/|['"\x60]\/\/)/iu.test(comparableSource),
+      'GENERATED_ABSOLUTE_URL',
+      'URL HTTP(S) absoluta capaz de escapar da origem e proibida (' + relativePath + ').',
+    );
+  }
+
+  const configurationSource = stripScriptComments(
+    generatedSources.get(PATHS.generatedConfiguration),
+  );
+  const configurationExecutableCode = maskScriptStrings(configurationSource);
+  const conditionalFields = [
+    'username',
+    'password',
+    'accessToken',
+    'basePath',
+    'withCredentials',
+  ];
+  const guardedOptionalFields = [...conditionalFields, 'apiKeys', 'credentials'];
+
+  expect(
+    /constructor\s*\(\s*\{\s*accessToken\s*,\s*apiKeys\s*,\s*basePath\s*,\s*credentials\s*,\s*encodeParam\s*,\s*encoder\s*,\s*password\s*,\s*username\s*,\s*withCredentials\s*\}\s*:\s*ConfigurationParameters\s*=\s*\{\s*\}\s*\)/u.test(
+      configurationExecutableCode,
+    ),
+    'GENERATED_CONFIGURATION_AUTH',
+    'o construtor de Configuration deve manter parametros opcionais sem defaults ativos.',
+  );
+  const optionalPropertyDeclarations = [
+    [/\bapiKeys\?\s*:\s*\{\s*\[\s*key\s*:\s*string\s*\]\s*:\s*string\s*\}\s*;/gu, 2, 'apiKeys'],
+    [/\busername\?\s*:\s*string\s*;/gu, 2, 'username'],
+    [/\bpassword\?\s*:\s*string\s*;/gu, 2, 'password'],
+    [/\baccessToken\?\s*:\s*string\s*\|\s*\(\s*\(\s*\)\s*=>\s*string\s*\)\s*;/gu, 2, 'accessToken'],
+    [/\bbasePath\?\s*:\s*string\s*;/gu, 2, 'basePath'],
+    [/\bwithCredentials\?\s*:\s*boolean\s*;/gu, 2, 'withCredentials'],
+  ];
+  for (const [pattern, expectedCount, field] of optionalPropertyDeclarations) {
+    expect(
+      countMatches(configurationExecutableCode, pattern) === expectedCount,
+      'GENERATED_CONFIGURATION_AUTH',
+      `${field} deve permanecer opcional e sem initializer na interface e na classe.`,
+    );
+  }
+  expect(
+    countMatches(
+      configurationExecutableCode,
+      /\bcredentials\?\s*:\s*\{\s*\[\s*key\s*:\s*string\s*\]\s*:\s*string\s*\|\s*\(\s*\(\s*\)\s*=>\s*string\s*\|\s*undefined\s*\)\s*\}\s*;/gu,
+    ) === 1
+      && countMatches(
+        configurationExecutableCode,
+        /\bcredentials\s*:\s*\{\s*\[\s*key\s*:\s*string\s*\]\s*:\s*string\s*\|\s*\(\s*\(\s*\)\s*=>\s*string\s*\|\s*undefined\s*\)\s*\}\s*;/gu,
+      ) === 1,
+    'GENERATED_CONFIGURATION_AUTH',
+    'credentials deve permanecer sem initializer e opcional somente na interface.',
+  );
+
+  for (const field of conditionalFields) {
+    const conditionalAssignment = new RegExp(
+      `if\\s*\\(\\s*${field}\\s*!==\\s*undefined\\s*\\)\\s*\\{\\s*this\\.${field}\\s*=\\s*${field}\\s*;\\s*\\}`,
+      'u',
+    );
+    const propertyAssignment = new RegExp(`\\bthis\\.${field}\\s*=`, 'gu');
+    expect(
+      conditionalAssignment.test(configurationExecutableCode)
+        && countMatches(configurationExecutableCode, propertyAssignment) === 1,
+      'GENERATED_CONFIGURATION_AUTH',
+      `${field} deve permanecer uma opcao dormente atribuida somente quando fornecida.`,
+    );
+  }
+  for (const field of guardedOptionalFields) {
+    expect(
+      countMatches(
+        configurationExecutableCode,
+        new RegExp(`\\b${field}\\b`, 'gu'),
+      ) === 6,
+      'GENERATED_CONFIGURATION_AUTH',
+      `${field} nao pode ganhar uso adicional fora do suporte generico aprovado.`,
+    );
+  }
+
+  expect(
+    /if\s*\(\s*apiKeys\s*\)\s*\{\s*this\.apiKeys\s*=\s*apiKeys\s*;\s*\}/u.test(
+      configurationExecutableCode,
+    )
+      && countMatches(configurationExecutableCode, /\bthis\.apiKeys\s*=/gu) === 1,
+    'GENERATED_CONFIGURATION_AUTH',
+    'apiKeys deve permanecer dormente e sem valor padrao.',
+  );
+  expect(
+    /\bthis\.credentials\s*=\s*credentials\s*\?\?\s*\{\s*\}\s*;/u.test(
+      configurationExecutableCode,
+    )
+      && countMatches(configurationExecutableCode, /\bthis\.credentials\s*=/gu) === 1,
+    'GENERATED_CONFIGURATION_AUTH',
+    'credentials deve usar somente o mapa vazio quando nenhuma credencial for fornecida.',
+  );
+  for (const forbiddenPattern of GENERATED_ACTIVE_AUTH_PATTERNS.slice(0, 3)) {
+    expect(
+      !forbiddenPattern.pattern.test(configurationSource),
+      'GENERATED_CONFIGURATION_AUTH',
+      `${forbiddenPattern.label} nao pode ser ativado por Configuration.`,
+    );
+  }
+
+  const providerSource = stripScriptComments(generatedSources.get(PATHS.generatedProvider));
+  for (const forbiddenPattern of GENERATED_ACTIVE_AUTH_PATTERNS) {
+    expect(
+      !forbiddenPattern.pattern.test(providerSource),
+      'GENERATED_PROVIDER_AUTH',
+      `${forbiddenPattern.label} nao pode ser ativado por provideApi.`,
+    );
+  }
+  expect(
+    !/\bwithCredentials\b/u.test(providerSource)
+      && /typeof\s+configOrBasePath\s*===\s*(['"])string\1\s*\?\s*\{\s*provide\s*:\s*BASE_PATH\s*,\s*useValue\s*:\s*configOrBasePath\s*\}\s*:\s*\{\s*provide\s*:\s*Configuration\s*,\s*useValue\s*:\s*new\s+Configuration\s*\(\s*\{\s*\.\.\.configOrBasePath\s*\}\s*\)\s*,?\s*\}/u.test(
+        providerSource,
+      ),
+    'GENERATED_PROVIDER_AUTH',
+    'provideApi deve mapear string somente para BASE_PATH e nao ativar credenciais.',
+  );
+
+  const identityServiceSource = stripScriptComments(
+    generatedSources.get(PATHS.generatedIdentityService),
+  );
+  const identityServiceExecutableCode = maskScriptStrings(identityServiceSource);
+  expect(
+    countMatches(
+      identityServiceSource,
+      /let\s+localVarPath\s*=\s*\x60\/api\/v1\/tracer\/identity\/current\x60\s*;/gu,
+    ) === 1
+      && countMatches(
+      identityServiceSource,
+      /this\.httpClient\.request<CurrentIdentityResponse>\s*\(\s*(['"])put\1\s*,\s*\x60\$\{basePath\}\$\{localVarPath\}\x60\s*,/gu,
+      ) === 1
+      && countMatches(
+        identityServiceExecutableCode,
+        /\bthis\.httpClient\.request\b/gu,
+      ) === 1
+      && countMatches(identityServiceExecutableCode, /\blocalVarPath\b/gu) === 2
+      && countMatches(identityServiceExecutableCode, /\bbasePath\b/gu) === 4
+      && countMatches(
+        identityServiceExecutableCode,
+        /const\s*\{\s*basePath\s*,\s*withCredentials\s*\}\s*=\s*this\.configuration\s*;/gu,
+      ) === 1,
+    'GENERATED_REQUEST_URL',
+    'IdentityService deve montar o PUT somente por basePath + path relativo canonico.',
+  );
+
+  for (const [relativePath, source] of generatedSources) {
+    if (!relativePath.endsWith('.service.ts')) {
+      continue;
+    }
+
+    const activeSource = stripScriptComments(source);
+    for (const forbiddenPattern of GENERATED_ACTIVE_AUTH_PATTERNS) {
+      expect(
+        !forbiddenPattern.pattern.test(activeSource),
+        forbiddenPattern.rule,
+        `${forbiddenPattern.label} nao pode ficar ativa no cliente gerado (${relativePath}).`,
+      );
+    }
+
+    if (/\bwithCredentials\b/u.test(activeSource)) {
+      expect(
+        relativePath === PATHS.generatedIdentityService
+          && countMatches(activeSource, /\bwithCredentials\b/u) === 3
+          && /const\s*\{\s*basePath\s*,\s*withCredentials\s*\}\s*=\s*this\.configuration\s*;/u.test(activeSource)
+          && /\.\.\.\(withCredentials\s*\?\s*\{\s*withCredentials\s*\}\s*:\s*\{\s*\}\s*\)/u.test(activeSource)
+          && !/withCredentials\s*:\s*true\b/u.test(activeSource),
+        'GENERATED_WITH_CREDENTIALS',
+        'withCredentials gerado deve permanecer apenas no encadeamento dormente aprovado.',
+      );
+    }
+  }
 }
 
 function validateAppConfigUsage(sources) {
@@ -899,6 +1241,7 @@ export async function validateAngularRouteBoundary(projectRoot = defaultProjectR
   const resolvedProjectRoot = resolve(projectRoot);
   const angularConfiguration = await readAngularConfiguration(resolvedProjectRoot);
   const sources = new Map();
+  const generatedSources = await readGeneratedTypeScriptSources(resolvedProjectRoot);
 
   for (const relativePath of HOST_SOURCE_PATHS) {
     sources.set(relativePath, await readRequiredText(resolvedProjectRoot, relativePath));
@@ -911,6 +1254,7 @@ export async function validateAngularRouteBoundary(projectRoot = defaultProjectR
   validateRootComponent(sources);
   validateRouteSources(sources);
   validateForbiddenPatterns(sources);
+  validateGeneratedClient(generatedSources);
 
   return true;
 }

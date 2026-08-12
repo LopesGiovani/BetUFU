@@ -70,6 +70,37 @@ const APPROVED_GENERATOR = Object.freeze({
     hideGenerationTimestamp: true,
   }),
 });
+const GENERATED_BASE_SERVICE_PATH = 'api.base.service.ts';
+const GENERATED_API_MODULE_PATH = 'api.module.ts';
+const GENERATED_BASE_PATH_SOURCE = "    protected basePath = 'http://localhost';";
+const GENERATED_BASE_PATH_HARDENED = "    protected basePath = '';";
+const GENERATED_API_MODULE_DIAGNOSTIC = [
+  '        if (!http) {',
+  "            throw new Error('You need to import the HttpClientModule in your AppModule! \\n' +",
+  "            'See also https://github.com/angular/angular/issues/20575');",
+  '        }',
+].join('\n');
+
+export const APPROVED_GENERATED_FILES = Object.freeze([
+  'api.base.service.ts',
+  'api.module.ts',
+  'api/api.ts',
+  'api/identity.service.ts',
+  'configuration.ts',
+  'encoder.ts',
+  'index.ts',
+  'model/current-identity-response.ts',
+  'model/models.ts',
+  'param.ts',
+  'provide-api.ts',
+  'query.params.ts',
+  'variables.ts',
+]);
+export const APPROVED_GENERATED_DIGEST = '78E92BB17EBC45E25F86CA3D23C66958BDCD1786983DEFDC2DD1050BE8D13D5F';
+const APPROVED_GENERATED_MANIFEST = Object.freeze({
+  files: APPROVED_GENERATED_FILES,
+  digest: APPROVED_GENERATED_DIGEST,
+});
 
 export class GenerateApiContractError extends Error {
   constructor(rule, message) {
@@ -298,6 +329,217 @@ export function normalizeGeneratedText(contents) {
   return `${normalized}\n`;
 }
 
+function maskCommentsAndLiterals(source) {
+  let masked = '';
+  let state = 'code';
+  let quote = null;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const current = source[index];
+    const next = source[index + 1];
+
+    if (state === 'line-comment') {
+      if (current === '\n') {
+        masked += '\n';
+        state = 'code';
+      } else {
+        masked += ' ';
+      }
+      continue;
+    }
+    if (state === 'block-comment') {
+      if (current === '*' && next === '/') {
+        masked += '  ';
+        index += 1;
+        state = 'code';
+      } else {
+        masked += current === '\n' ? '\n' : ' ';
+      }
+      continue;
+    }
+    if (state === 'literal') {
+      if (current === '\\' && next !== undefined) {
+        masked += '  ';
+        index += 1;
+      } else if (current === quote) {
+        masked += current;
+        state = 'code';
+        quote = null;
+      } else {
+        masked += current === '\n' ? '\n' : ' ';
+      }
+      continue;
+    }
+    if (current === '/' && next === '/') {
+      masked += '  ';
+      index += 1;
+      state = 'line-comment';
+      continue;
+    }
+    if (current === '/' && next === '*') {
+      masked += '  ';
+      index += 1;
+      state = 'block-comment';
+      continue;
+    }
+    if (current === "'" || current === '"' || current.codePointAt(0) === 96) {
+      masked += current;
+      state = 'literal';
+      quote = current;
+      continue;
+    }
+    masked += current;
+  }
+
+  return masked;
+}
+
+function stripComments(source) {
+  let stripped = '';
+  let state = 'code';
+  let quote = null;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const current = source[index];
+    const next = source[index + 1];
+
+    if (state === 'line-comment') {
+      if (current === '\n') {
+        stripped += '\n';
+        state = 'code';
+      } else {
+        stripped += ' ';
+      }
+      continue;
+    }
+    if (state === 'block-comment') {
+      if (current === '*' && next === '/') {
+        stripped += '  ';
+        index += 1;
+        state = 'code';
+      } else {
+        stripped += current === '\n' ? '\n' : ' ';
+      }
+      continue;
+    }
+    if (state === 'literal') {
+      stripped += current;
+      if (current === '\\' && next !== undefined) {
+        stripped += next;
+        index += 1;
+      } else if (current === quote) {
+        state = 'code';
+        quote = null;
+      }
+      continue;
+    }
+    if (current === '/' && next === '/') {
+      stripped += '  ';
+      index += 1;
+      state = 'line-comment';
+      continue;
+    }
+    if (current === '/' && next === '*') {
+      stripped += '  ';
+      index += 1;
+      state = 'block-comment';
+      continue;
+    }
+    if (current === "'" || current === '"' || current.codePointAt(0) === 96) {
+      stripped += current;
+      state = 'literal';
+      quote = current;
+      continue;
+    }
+    stripped += current;
+  }
+
+  return stripped;
+}
+
+function decodeUrlEscapes(source) {
+  return source
+    .replace(
+      /\\x([0-9a-f]{2})/giu,
+      function decodeHexByte(_, hex) {
+        return String.fromCodePoint(Number.parseInt(hex, 16));
+      },
+    )
+    .replace(
+      /\\u\{([0-9a-f]{1,6})\}/giu,
+      function decodeUnicodeCodePoint(_, hex) {
+        return String.fromCodePoint(Number.parseInt(hex, 16));
+      },
+    )
+    .replace(
+      /\\u([0-9a-f]{4})/giu,
+      function decodeUnicodeUnit(_, hex) {
+        return String.fromCodePoint(Number.parseInt(hex, 16));
+      },
+    )
+    .replace(/\\\//gu, '/');
+}
+
+export function validateGeneratedTypeScript(relativePath, contents) {
+  let activeSource = stripComments(normalizeGeneratedText(contents));
+  if (relativePath === GENERATED_API_MODULE_PATH) {
+    const occurrences = activeSource.split(GENERATED_API_MODULE_DIAGNOSTIC).length - 1;
+    if (occurrences !== 1) {
+      fail(
+        'GENERATED_ABSOLUTE_URL',
+        'ApiModule deve manter somente a URL diagnostica canonica do gerador.',
+      );
+    }
+    activeSource = activeSource.replace(GENERATED_API_MODULE_DIAGNOSTIC, '');
+  }
+
+  const comparableSource = decodeUrlEscapes(activeSource);
+  if (/(?::\/\/|['"\x60]\/\/)/iu.test(comparableSource)) {
+    fail(
+      'GENERATED_ABSOLUTE_URL',
+      'saida gerada contem URL HTTP(S) ou network-path fora da excecao diagnostica.',
+    );
+  }
+  return normalizeGeneratedText(contents);
+}
+
+export function hardenGeneratedTypeScript(relativePath, contents) {
+  const normalized = normalizeGeneratedText(contents);
+  if (relativePath !== GENERATED_BASE_SERVICE_PATH) {
+    return normalized;
+  }
+
+  const executable = maskCommentsAndLiterals(normalized);
+  const declarations = executable.match(/\bprotected[ \t]+basePath[ \t]*=/gu) ?? [];
+  const baseServiceDeclarations = executable.match(/\bclass[ \t]+BaseService\b/gu) ?? [];
+  const sourceOccurrences = [
+    ...executable.matchAll(
+      /^export class BaseService \{\n    protected basePath = '[ \t]*';$/gmu,
+    ),
+  ].filter((match) => (
+    normalized.slice(
+      match.index + 'export class BaseService {\n'.length,
+      match.index + match[0].length,
+    ) === GENERATED_BASE_PATH_SOURCE
+  ));
+
+  if (
+    declarations.length !== 1
+    || baseServiceDeclarations.length !== 1
+    || sourceOccurrences.length !== 1
+  ) {
+    fail(
+      'GENERATED_BASE_PATH',
+      'BaseService gerado deve conter exatamente um fallback basePath canonico conhecido.',
+    );
+  }
+
+  const sourceIndex = sourceOccurrences[0].index + 'export class BaseService {\n'.length;
+  return normalized.slice(0, sourceIndex)
+    + GENERATED_BASE_PATH_HARDENED
+    + normalized.slice(sourceIndex + GENERATED_BASE_PATH_SOURCE.length);
+}
+
 async function collectFiles(root, current, entries) {
   const children = await readdir(current, { withFileTypes: true });
   children.sort((left, right) => left.name.localeCompare(right.name, 'en'));
@@ -350,6 +592,22 @@ export async function readTreeManifest(root) {
     entries,
     files: entries.map((entry) => entry.path),
   };
+}
+
+export function assertApprovedGeneratedManifest(
+  manifest,
+  contract = APPROVED_GENERATED_MANIFEST,
+) {
+  if (
+    !isDeepStrictEqual(manifest?.files, contract?.files)
+    || manifest?.digest !== contract?.digest
+  ) {
+    fail(
+      'GENERATED_MANIFEST',
+      'arvore TypeScript gerada diverge da allowlist ou do digest aprovado.',
+    );
+  }
+  return true;
 }
 
 function defaultProcessStatus(pid) {
@@ -875,6 +1133,7 @@ async function materializeTypeScript(rawDirectory, candidate) {
   await mkdir(candidate, { recursive: false });
   const decoder = new TextDecoder('utf-8', { fatal: true });
   let count = 0;
+  let baseServiceCount = 0;
 
   async function visit(current) {
     const children = await readdir(current, { withFileTypes: true });
@@ -897,6 +1156,7 @@ async function materializeTypeScript(rawDirectory, candidate) {
       }
 
       const relativePath = relative(rawDirectory, source);
+      const portableRelativePath = toPosixPath(relativePath);
       const destination = resolve(candidate, relativePath);
       if (!isContained(candidate, destination)) {
         fail('UNSAFE_PATH', 'arquivo gerado escapou da arvore candidata.');
@@ -908,7 +1168,12 @@ async function materializeTypeScript(rawDirectory, candidate) {
         fail('GENERATED_ENCODING', 'arquivo gerado nao e UTF-8 valido.');
       }
       await mkdir(dirname(destination), { recursive: true });
-      await writeFile(destination, normalizeGeneratedText(text), 'utf8');
+      const hardenedText = hardenGeneratedTypeScript(portableRelativePath, text);
+      const validatedText = validateGeneratedTypeScript(portableRelativePath, hardenedText);
+      await writeFile(destination, validatedText, 'utf8');
+      if (portableRelativePath === GENERATED_BASE_SERVICE_PATH) {
+        baseServiceCount += 1;
+      }
       count += 1;
     }
   }
@@ -916,6 +1181,12 @@ async function materializeTypeScript(rawDirectory, candidate) {
   await visit(rawDirectory);
   if (count === 0) {
     fail('GENERATED_EMPTY', 'gerador nao produziu arquivos TypeScript.');
+  }
+  if (baseServiceCount !== 1) {
+    fail(
+      'GENERATED_BASE_PATH',
+      'saida gerada deve conter exatamente um api.base.service.ts canonico.',
+    );
   }
 }
 
@@ -963,7 +1234,24 @@ async function preservePublishDiagnostic(workspace, nonce, now) {
   }
 }
 
-async function publishCandidate(context, operation) {
+function assertPublishManifest(actual, expected, contract) {
+  if (!manifestsEqual(expected, actual)) {
+    fail(
+      'GENERATED_MANIFEST_RACE',
+      'candidato gerado mudou entre validacao e publicacao.',
+    );
+  }
+  if (contract !== null) {
+    assertApprovedGeneratedManifest(actual, contract);
+  }
+}
+
+async function publishCandidate(
+  context,
+  operation,
+  expectedManifest,
+  generatedManifestContract,
+) {
   const {
     adapters,
     configuration,
@@ -1000,8 +1288,20 @@ async function publishCandidate(context, operation) {
     }
 
     await adapters.beforeRename({ role: 'install-candidate', from: operation.candidate, to: target });
+    const installManifest = await readTreeManifest(operation.candidate);
+    assertPublishManifest(
+      installManifest,
+      expectedManifest,
+      generatedManifestContract,
+    );
     await mkdir(dirname(target), { recursive: true });
     await rename(operation.candidate, target);
+    const installedManifest = await readTreeManifest(target);
+    assertPublishManifest(
+      installedManifest,
+      expectedManifest,
+      generatedManifestContract,
+    );
     journal.state = 'new-installed';
     await writeJsonAtomically(journalPath, journal, operation.nonce);
   } catch {
@@ -1072,6 +1372,7 @@ export async function executeGenerateApi({
   projectRoot = defaultProjectRoot,
   mode = 'generate',
   contract = APPROVED_ENGINE,
+  generatedManifestContract = APPROVED_GENERATED_MANIFEST,
   adapters: adapterOverrides = {},
 } = {}) {
   if (!['generate', 'check'].includes(mode)) {
@@ -1157,6 +1458,9 @@ export async function executeGenerateApi({
 
     await materializeTypeScript(operation.raw, operation.candidate);
     const candidateManifest = await readTreeManifest(operation.candidate);
+    if (generatedManifestContract !== null) {
+      assertApprovedGeneratedManifest(candidateManifest, generatedManifestContract);
+    }
     if (mode === 'check') {
       await compareWithTarget(candidateManifest, context.target);
       return {
@@ -1167,7 +1471,12 @@ export async function executeGenerateApi({
       };
     }
 
-    await publishCandidate(context, operation);
+    await publishCandidate(
+      context,
+      operation,
+      candidateManifest,
+      generatedManifestContract,
+    );
     return {
       mode,
       digest: candidateManifest.digest,
