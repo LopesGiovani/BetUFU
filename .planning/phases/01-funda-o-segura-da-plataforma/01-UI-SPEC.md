@@ -202,7 +202,7 @@ Considerações aplicáveis resolvidas: 8 cobertas, 0 backstop, 0 não resolvida
 |---|---|---|
 | Eventos que renovam as 8 horas de inatividade | Resolvido no 01-06: request autenticado/intencional ou navegação protegida renovam; health, assets, consulta de sessão, polling, preflight e heartbeat não renovam. | `SessionPolicyTest`, `RedisSessionIT` e a prova STOMP do 01-08. |
 | Código estável e forma final de `Problem Details` | A interface usa somente mensagem pública, código estável e `{correlationId}` allowlisted; nenhuma taxonomia adicional é inventada no cliente. | 01-12 fecha schema/handler e 01-26 regenera o cliente final antes da UI. |
-| Gerador OpenAPI compatível com Angular 22 | Fixado em `@openapitools/openapi-generator-cli@2.40.1` + `typescript-angular`; falha não autoriza troca silenciosa. | Smoke inicial 01-20, regeneração final 01-26 e check read-only 01-16. |
+| Cliente OpenAPI compatível com Angular 22 | O wrapper npm proposto é `@openapitools/openapi-generator-cli@2.40.1`; o motor Java separado é OpenAPI Generator `7.24.0` com `typescript-angular`. O 7.24.0 publica suporte somente até Angular 21; a tupla Angular 22.1.0/TypeScript 6.0.3 passou no spike, mas a exceção exata continua pendente de aceite humano em `01-20-GATE.md` e falha não autoriza troca silenciosa. | Gate supply-chain/compatibilidade, smoke inicial e três builds no 01-20; regeneração final 01-26; check read-only 01-16. |
 
 ---
 

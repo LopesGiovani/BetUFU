@@ -330,19 +330,21 @@ As respostas pertencem a `01-03-GATE.md`, exigem aprovação humana e não podem
 5. Qual parent/template e estratégia de ativos/fontes permitem um tema compatível e um smoke HTTP real?
 6. Quais comandos exatos provam isolamento PostgreSQL, SMTP local, S3 autenticado/anônimo/persistente e tema renderizado?
 
+## Open Question — Plano 01-20 (BLOCKING)
+
+1. **[PENDING — exceção exata requer aceite humano] Qual cadeia produz o cliente Angular 22?**
+   - Proposta: wrapper npm `@openapitools/openapi-generator-cli@2.40.1` separado do motor Java OpenAPI Generator `7.24.0`, com `typescript-angular`, Angular 22.1.0 e TypeScript 6.0.3.
+   - Limite: o motor 7.24.0 declara Angular 9–21; a compatibilidade Angular 22 observada no spike não equivale a suporte oficial geral.
+   - Gate: `01-20-GATE.md` precisa registrar aceite explícito da exceção, da matriz compensatória, do novo lockfile e do JAR antes de instalação/geração. Não há autorização para trocar wrapper, motor, versão ou stack silenciosamente.
+
 ## Open Questions resolvidas
 
-1. **[RESOLVED — decisão fixada; evidência de execução pendente] Qual versão/ferramenta produz o cliente Angular 22?**
-   - Decisão: `@openapitools/openapi-generator-cli@2.40.1` com `typescript-angular`, Angular 22.1.x e TypeScript 6.0.x, conforme 01-01/01-20.
-   - Prova: 01-20 gera e compila a saída inicial; 01-26 regenera a saída final; 01-16 executa apenas o check read-only de drift.
-   - Gate: se o smoke falhar, a execução para e retorna ao usuário. Não há autorização para trocar gerador, versão ou stack silenciosamente. [CITED: https://openapi-generator.tech/docs/generators/typescript-angular/]
-
-2. **[RESOLVED — stack aprovada; validação bloqueante em 01-02] Boot 4.1.0 + Spring Modulith 2.1.0.**
+1. **[RESOLVED — stack aprovada; validação bloqueante em 01-02] Boot 4.1.0 + Spring Modulith 2.1.0.**
    - Decisão: manter exatamente as versões canônicas já aprovadas.
    - Prova: 01-02 resolve o BOM e compila em Java 25; 01-17 faz `BetufuApplicationSmokeTest` executar um `ApplicationModules.of(...).verify()` mínimo; 01-09/01-23 declaram e verificam os dez módulos completos.
    - Gate: qualquer incompatibilidade interrompe a execução e exige decisão explícita, sem downgrade. [CITED: https://docs.spring.io/spring-boot/system-requirements.html] [CITED: https://docs.spring.io/spring-modulith/reference/appendix.html]
 
-3. **[RESOLVED — política definida em 01-06] Quais eventos renovam a inatividade de 8h?**
+2. **[RESOLVED — política definida em 01-06] Quais eventos renovam a inatividade de 8h?**
    - Renovam: request autenticado/intencional em `/api/v1/**` ou navegação protegida iniciada pelo usuário.
    - Não renovam: Actuator, assets, `GET /api/v1/session`, polling, preflight, heartbeat e STOMP heartbeat.
    - Prova: `SessionPolicyTest`, `RedisSessionIT` e a exclusão de heartbeat em 01-08; o TTL permanece PT8H e sem limite absoluto.
@@ -423,6 +425,26 @@ O ASVS 5.0.0 é a referência estável atual; os rótulos abaixo preservam os fo
 | Session fixation | Spoofing | regenerar sessão em autenticação/reautenticação e testar token anterior inválido. [CITED: https://cornucopia.owasp.org/taxonomy/asvs-5.0/07-session-management/02-fundamental-session-management-security] |
 | Vazar segredo por operação/diagnóstico | Information Disclosure | DTO allowlist, redaction e Actuator protegido; não expor `env`/`configprops`. [CITED: https://docs.spring.io/spring-boot/reference/actuator/endpoints.html] |
 | Alterar schema/histórico | Tampering | Flyway checksum, migrations novas e PostgreSQL com usuário específico. [CITED: https://documentation.red-gate.com/flyway/flyway-concepts/migrations/versioned-migrations] |
+
+## Adendo de pesquisa — 2026-08-11: OpenAPI Generator e Angular 22
+
+### Distinção de artefatos e cadeia de confiança
+
+- **Wrapper npm:** `@openapitools/openapi-generator-cli@2.40.1`, Apache-2.0, Node `>=22`, integridade `sha512-cZsMY3DhFduUlTL9a0L0h4MKNGBvIutxuZSTGTyeUgKbmYeAdrfyRYdGaPtdO3lCcuu3pDs6v9stuZFGkYbe9w==`, `hasInstallScript: true` e lifecycle publicado `postinstall: opencollective || exit 0`. A instalação proposta sempre usa `--ignore-scripts`; o lifecycle não é necessário para a BETUFU e não será executado.
+- **Motor Java:** `openapi-generator-cli-7.24.0.jar`, 31.904.922 bytes, URL `https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/7.24.0/openapi-generator-cli-7.24.0.jar` e SHA-256 `4B83CCC6FD43056C8C631CD0195E5100BD0550912502527BAB09AC76152DAB0C`.
+- O wrapper não valida o hash do JAR. O Plano 01-20 deve impedir download implícito, adquirir o motor em bloco separado como arquivo parcial, validar tamanho/hash antes do rename e revalidar antes/depois de geração/check. Ausência ou divergência bloqueia.
+
+### Suporte publicado versus compatibilidade empírica
+
+O gerador `typescript-angular` do release 7.24.0 declara Angular 9–21. O commit upstream `600f2f5` adicionou Angular 22 depois desse release e ainda não estava lançado em 2026-08-11. Portanto, Angular 22 não possui garantia publicada nessa versão.
+
+O spike executado em 2026-08-11 passou com Eclipse Temurin Java 25.0.4, Angular 22.1.0, TypeScript 6.0.3, RxJS 7.8.2 e tslib 2.8.1. Duas gerações produziram 23 arquivos byte-equivalentes, digest agregado SHA-256 `CDE9266F8C89DC8F243F42A8C1DB61315CC20115A1D63E40AE9A79976734C464`; `ng-packagr` e o runtime mock relativo passaram. Essa é evidência empírica da tupla, não aprovação nem suporte oficial geral.
+
+Matriz compensatória que precisa ser aceita exatamente no Gate: `ngVersion=22.1.0`; `tsVersion=>=6.0.0 <6.1.0`; `rxjsVersion=7.8.2`; `ngPackagrVersion=22.1.0`; `zonejsVersion=0.15.0`; `supportsES6=true`; `ngVersion21=true`; `providedIn=root`; `useSingleRequestParameter=true`; `fileNaming=kebab-case`; `modelPropertyNaming=original`; `disallowAdditionalPropertiesIfNotPresent=false`; `hideGenerationTimestamp=true`.
+
+### Consequência de planejamento
+
+`01-20-GATE.md` permanece `pending` e separa identidade do wrapper, exceção de compatibilidade, novo lockfile/hash, allowlist `hasInstallScript`, risco do audit, assinaturas npm, JAR e aprovador/instante. O SHA-256 do lockfile aprovado no 01-04 é apenas baseline histórico e não pode aprovar o grafo ampliado. O runner deve publicar a árvore de forma transacional/recuperável com lock, journal, rollback e recovery; não deve afirmar que dois renames formam substituição atomicamente indivisível no Windows.
 
 ## Sources
 

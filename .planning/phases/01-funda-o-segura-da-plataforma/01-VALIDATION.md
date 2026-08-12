@@ -7,7 +7,9 @@
 
 ## Pré-condições bloqueantes
 
-01-01 confirma JDK 25, Node.js >=22.22.3 <23.0.0, daemon Docker e legitimidade dos seis pacotes npm originalmente classificados como `SUS`. Para 01-04, `01-04-GATE.md` registra a Matriz B exata de 14 dependências diretas, o lockfile v3 aprovado pelo SHA-256 integral, a allowlist exata de cinco pacotes com `hasInstallScript` e o risco moderado temporariamente aceito. O Gate global está `approved`, e a Task 5 comprovou instalação com scripts desabilitados, assinaturas, três builds e Vitest. Qualquer divergência futura interrompe a fase sem downgrade, substituição ou instalação silenciosa. Os checkpoints são humanos e não autoaprováveis.
+01-01 confirma JDK 25, Node.js >=22.22.3 <23.0.0, daemon Docker e legitimidade dos seis pacotes npm originalmente classificados como `SUS`. Para 01-04, `01-04-GATE.md` registra a Matriz B exata de 14 dependências diretas, o lockfile v3 aprovado pelo SHA-256 integral, a allowlist exata de cinco pacotes com `hasInstallScript` e o risco moderado temporariamente aceito. Esse Gate histórico está `approved`, e a Task 5 comprovou instalação com scripts desabilitados, assinaturas, três builds e Vitest.
+
+O Plano 01-20 abre um **novo** Gate supply-chain em `01-20-GATE.md`, atualmente `pending`. O SHA-256 histórico `FB8FE8A18EA4F72927AF5E3B506E2112F968C3BF98267DA0902EBC5BC40EA841` continua válido somente como baseline do grafo do 01-04 e nunca aprova o lockfile que incluirá o wrapper OpenAPI. Wrapper npm 2.40.1, motor Java 7.24.0, exceção Angular 22, novo hash, allowlist, risco npm, assinaturas, JAR e identidade humana possuem estados separados. Qualquer divergência interrompe a fase sem downgrade, substituição, `npm audit fix`, `--force`, lifecycle ou instalação silenciosa. Os checkpoints são humanos e não autoaprováveis.
 
 ## Infraestrutura de testes a criar
 
@@ -30,7 +32,7 @@
 | 01-03 | 5 | Compose mínimo, realm e tema Keycloak | Compose healthy + smoke do tema |
 | 01-04 | 6 | workspace Angular 22 reproduzível | auditoria do lockfile + `npm ci --ignore-scripts` + assinaturas + três builds + Vitest |
 | 01-19 | 7 | host e seam de rotas build-specific | `validate-angular-route-boundary.mjs` + regressões negativas + builds development/homolog/production + app component test |
-| 01-20 | 8 | OpenAPI inicial e cliente gerado | generate + check read-only + build |
+| 01-20 | 8 | OpenAPI inicial e cliente gerado com supply chain e recovery | Gate separado + fake runner + generate/check read-only + runtime PUT relativo/XSRF + builds development/homolog/production |
 | 01-05 | 9 | vínculo backend `(iss, sub)` | `LocalIdentityTracerIT` |
 | 01-21 | 10 | tracer browser não-prod, D-15 e ausência production | `validate-tracer.mjs` |
 | 01-06 | 11 | política PT8H e Redis session | SessionPolicy/RedisSession ITs |
@@ -54,14 +56,31 @@
 
 ## Provas obrigatórias preservadas
 
-1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção explícita: o scaffold basal convencional do Plano 01-04 possui 15 arquivos, distribuídos em três tarefas materiais de cinco arquivos; seu fluxo acrescenta um checkpoint bloqueante do lockfile e uma tarefa final de prova, ambos com zero arquivos. A exceção foi aprovada e está registrada em `01-04-GATE.md`; `frontend/src/app/api/generated/` segue como saída atômica machine-owned do Plano 01-20.
-2. **OpenAPI:** 01-20 gera inicialmente; 01-26 audita mappings/regenera; 01-16 só executa check read-only.
-3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-08 prova cookie, CSRF e PUT relativo.
+1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção histórica: o scaffold basal do 01-04 possui 15 arquivos em três tarefas de cinco, com checkpoint e prova sem arquivos, conforme `01-04-GATE.md`. Exceção proposta do 01-20: exatamente 12 paths em três tarefas versionáveis de 5/2/5 — contrato/pipeline, package/lock e geração/integração — mais instalação/aquisição e prova agregada como blocos materiais de zero arquivos, cada qual com checkpoint próprio. Essa exceção é registrada aqui para auditabilidade, mas o Gate 01-20 permanece pending.
+2. **OpenAPI:** 01-20 gera inicialmente com motor 7.24.0 hash-locked e publica a árvore de modo transacional/recuperável; 01-26 audita mappings/regenera; 01-16 só executa check read-only. Nenhum documento promete substituição de diretório atomicamente indivisível no Windows.
+3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-20 prova PUT relativo, XSRF nativo e ausência de Authorization/Bearer/`withCredentials` manual; 01-08 ativa e prova cookie/CSRF na fronteira backend.
 4. **D-13:** `scripts/maven.mjs` seleciona Wrapper por SO e o gate registra Windows e Linux/WSL2.
 5. **D-15:** tema Keycloak preserva templates nativos; 01-21 prova campo, valor não sensível e foco.
 6. **Revogação:** 01-07 envia refresh token + hint e exige `invalid_grant`, sem prometer access JWT imediato.
 7. **Sessão/UI:** 01-27 prova checking/authenticated/expired, limpeza, POST único, zero polling/storage/bearer.
 8. **D-01/D-02:** 01-19 prova estaticamente o replacement development→production, a seam única, Router/HttpClient/XSRF e as proibições de URL absoluta, bearer e storage; seus três builds provam compilação, não a ausência de capacidades que ainda não existem. 01-21 acrescenta o controle positivo dev/homolog e a primeira prova de ausência production; 01-28 sela ausência de rota, link, URL, import e lazy chunk de tracer/diagnóstico no artefato production e no navegador.
+
+## Matriz obrigatória do Plano 01-20
+
+| Dimensão | Prova bloqueante |
+|---|---|
+| Wrapper npm | nome/versão/licença/Node/integridade/lifecycle exatos; `hasInstallScript: true`; toda resolução/instalação com `--ignore-scripts` |
+| Motor Java | URL, 31.904.922 bytes e SHA-256 `4B83CCC6FD43056C8C631CD0195E5100BD0550912502527BAB09AC76152DAB0C`; hash antes/depois; ausência/divergência falha sem download implícito |
+| Novo grafo npm | lock v3, origens `registry.npmjs.org`, SHA-512, `npm ls --all --package-lock-only`, audit high/critical e novo SHA-256 humano; baseline do 01-04 não é aprovação |
+| Lifecycle/allowlist | lista real coincide exatamente com os seis candidatos ou volta à decisão; nenhum lifecycle executado |
+| Assinaturas | `npm audit signatures` somente após Gate aprovado para instalação, `npm ci --ignore-scripts` e autorização material própria |
+| Compatibilidade | aceite humano da exceção exata; matriz compensatória completa; spike de 23 arquivos/digest registrado; `ng-packagr`, runtime relativo e três builds passam |
+| Fake runner | falha preserva árvore; obsoleto removido; check add/delete/change read-only; concorrência; live/dead/ambiguous lock; nonce; segundo rename/rollback; journal recovery; cleanup; traversal/symlink; LF/NUL/newline; duas gerações mesmo digest |
+| Recovery | lock PID+nonce+instante, tombstone de lock morto provado, journal `prepared`/`old-moved`/`new-installed`, staging/backup no mesmo volume e recovery no startup |
+| Árvore gerada | somente TypeScript necessário; sem package/lifecycle, README, `git_push.sh`, tsconfig, ng-package ou `.openapi-generator`; machine-owned |
+| Integração Angular | `provideApi('')` exatamente uma vez como quinto provider direto; quatro providers anteriores preservados; regressões do validador passam |
+| Runtime | PUT relativo `/api/v1/tracer/identity/current`, sem body, XSRF nativo, sem auth ativa/credencial manual; campos dormentes genéricos de `configuration.ts` não falham isoladamente |
+| Reprodutibilidade | generate seguido de check sem drift, duas gerações com mesmo digest, builds development/homolog/production verdes |
 
 **UserInfo — OPT-OUT:** 01-07 lê somente claims allowlisted do ID token/OidcUser e prova zero chamadas.
 
@@ -80,6 +99,7 @@
 ## Política de falhas e aprovação
 
 - Executar a prova focal de cada tarefa e a verificação agregada do plano; nenhuma prova manual substitui teste automatizado.
+- No 01-20, cada `scope_guard` exige index vazio, inventaria staged/unstaged/untracked e rejeita qualquer path fora do baseline e da allowlist cumulativa da tarefa.
 - Não aprovar 01-16 diante de stage ausente, `skip`, mock onde se exige dependência real, drift, ameaça high/critical aberta ou artefato técnico production.
 - Após provas verdes, a pessoa valida diagnóstico saudável/degradado, os oito estados UI, responsividade, foco, contraste, português, ausência de segredo e production sem diagnóstico nem tracer.
 
