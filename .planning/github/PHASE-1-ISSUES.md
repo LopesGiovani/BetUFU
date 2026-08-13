@@ -1,6 +1,6 @@
 # Registro de issues GitHub — Fase 1
 
-> Estrutura aprovada e publicada no GitHub em 2026-08-06. As correções documentais que originaram as issues estão versionadas na branch principal.
+> Estrutura original aprovada e publicada no GitHub em 2026-08-06. O novo F1/P29 existe somente no planejamento local e ainda não possui número nem publicação remota; qualquer alteração no GitHub exige autorização separada.
 
 ## Resultado remoto
 
@@ -9,6 +9,8 @@
 - **Issues executáveis:** `#1` a `#28`, na ordem das waves
 - **Labels próprias:** 16
 - **Auditoria remota:** 29/29 issues no milestone, 28/28 itens no checklist, 0 divergências de corpo, labels ou dependências
+
+O resultado acima descreve o estado remoto publicado com 28 planos executáveis e a issue `#29` como tracking. O planejamento local agora contém 29 planos; F1/P29 é um predecessor documental sem issue remota atribuída e não altera silenciosamente essa contagem histórica.
 
 ## Decisão estrutural aplicada
 
@@ -20,10 +22,12 @@
 
 Manter uma issue por plano preserva a relação direta entre issue, plano, wave, prova focal, summary e futuro commit. Foram avaliados agrupamentos como `01-01 + 01-02`, `01-06 + 01-07` e `01-17 + 01-18`, mas cada plano possui gate ou verificação própria; uni-los criaria issues grandes e parcialmente concluídas.
 
+**Adição local posterior:** F1/P29 separa datasource runtime e bootstrap XSRF dos planos de sessão e browser. Ele permanece apenas como tracking local até uma ação externa específica atualizar a estrutura publicada.
+
 ## Estado remoto atual
 
 - Repositório privado.
-- 28 issues executáveis abertas.
+- 28 issues executáveis publicadas; `#1` a `#6` concluídas e as demais permanecem abertas.
 - Issue de acompanhamento `#29` aberta.
 - Milestone `Fase 1 — Fundação Segura da Plataforma` aberto.
 - 16 labels próprias, além das labels padrão do GitHub.
@@ -76,7 +80,7 @@ As labels padrão existentes foram preservadas. Labels de status, prioridade e r
 - O navegador usa API versionada e cliente gerado, mantendo tokens OIDC exclusivamente no BFF.
 - Sessões, logout e STOMP CONNECT aplicam as políticas aprovadas de OIDC, cookies, origem e CSRF.
 
-**Checklist planejado:**
+**Checklist local planejado:**
 
 - [ ] F1/P01 — validar cadeia de suprimentos e runtimes
 - [ ] F1/P02 — fixar build Maven canônico
@@ -87,11 +91,12 @@ As labels padrão existentes foram preservadas. Labels de status, prioridade e r
 - [ ] F1/P19 — criar host Angular e rotas por build
 - [ ] F1/P20 — gerar cliente OpenAPI
 - [ ] F1/P05 — persistir vínculo estável de identidade
-- [ ] F1/P21 — validar walking skeleton pelo navegador
+- [ ] F1/P29 — conectar datasource runtime e materializar XSRF SPA *(tracking local; sem issue remota atribuída)*
 - [ ] F1/P06 — implementar política e persistência de sessão
 - [ ] F1/P07 — implementar UserInfo opt-out e revogação
+- [ ] F1/P21 — validar walking skeleton pelo navegador *(mesma Wave 12 de F1/P07)*
 - [ ] F1/P22 — expor estado de sessão e logout atual
-- [ ] F1/P08 — proteger HTTP e STOMP com CSRF
+- [ ] F1/P08 — endurecer HTTP/origem/logout e STOMP sobre o XSRF existente
 - [ ] F1/P09 — declarar limites Spring Modulith
 - [ ] F1/P23 — bloquear violações modulares
 - [ ] F1/P10 — tornar Flyway e PostgreSQL autoritativos
@@ -107,7 +112,7 @@ As labels padrão existentes foram preservadas. Labels de status, prioridade e r
 - [ ] F1/P28 — selar rotas técnicas em produção
 - [ ] F1/P16 — executar gate integral da fase
 
-A issue de acompanhamento `#29` contém os links reais; este checklist local preserva a mesma ordem de execução.
+A issue de acompanhamento `#29` contém os links reais dos 28 planos publicados originalmente. Este checklist local registra a nova ordem de 29 planos sem atribuir número remoto a F1/P29; sincronizar o GitHub será uma ação externa separada.
 
 ## Issues executáveis
 
@@ -219,24 +224,25 @@ A issue de acompanhamento `#29` contém os links reais; este checklist local pre
 - **Aceite:** repetição retorna o mesmo UUID sem duplicata; e-mail não define identidade; issuer ou subject diferente cria outra identidade; concorrência converge; resposta expõe somente dados allowlisted.
 - **Verificação:** `LocalIdentityTracerIT` com PostgreSQL Testcontainers e Flyway.
 
-### Wave 10 — F1/P21
+### Wave 10 — F1/P29 *(tracking local; sem issue remota atribuída)*
 
-**Título:** `[F1/P21] Validar o walking skeleton Angular–BFF–PostgreSQL`
+**Título proposto:** `[F1/P29] Configurar datasource runtime local e bootstrap XSRF SPA`
 
-- **Plano:** [01-21-PLAN.md](../phases/01-funda-o-segura-da-plataforma/01-21-PLAN.md)
+- **Plano:** [01-29-PLAN.md](../phases/01-funda-o-segura-da-plataforma/01-29-PLAN.md)
+- **Estado remoto:** nenhuma issue criada ou numerada; a publicação exige autorização externa separada
 - **Depende de:** F1/P05
-- **Requisitos:** `IDEN-03`, `API-02`, `OPS-01`, `TEST-01`
-- **Labels:** `fase:1`, `area:frontend`, `area:identidade`, `area:testes`, `area:seguranca`
-- **Descrição:** provar a jornada browser real somente em development/homolog/harness e sua ausência material em produção.
-- **Aceite:** componente usa o cliente gerado; UUID persiste após reload; tokens não aparecem no navegador; login Keycloak preserva apenas dado não sensível; tracer não existe no build production.
-- **Verificação:** `node scripts/validate-tracer.mjs` e Playwright.
+- **Requisitos:** `IDEN-03`, `IDEN-04`, `DATA-01`, `DATA-02`, `OPS-01`, `TEST-01`
+- **Labels propostas:** `fase:1`, `tipo:gate`, `revisao:humana`, `area:backend`, `area:seguranca`, `area:dados`, `area:testes`
+- **Descrição:** ligar o backend executado no host ao PostgreSQL Compose por configuração externa, manter a sessão `dev` deliberadamente em memória até F1/P06 e materializar o contrato XSRF SPA oficial usado pelo Angular.
+- **Aceite:** datasource não contém segredo ou fallback silencioso; `integrated` continua sob Testcontainers; cookie/header XSRF real funciona sem endpoint `/csrf`, filtro bespoke, bearer ou montagem manual; Gate humano permanece bloqueante.
+- **Verificação:** `EnvironmentConfigurationTest`, `CsrfSpaIT`, `validate-runtime-prerequisites.mjs` e prova runtime agregada com PostgreSQL/Keycloak.
 
 ### Wave 11 — F1/P06
 
 **Título:** `[F1/P06] Implementar sessões BFF com expiração ociosa de oito horas`
 
 - **Plano:** [01-06-PLAN.md](../phases/01-funda-o-segura-da-plataforma/01-06-PLAN.md)
-- **Depende de:** F1/P21
+- **Depende de:** F1/P29
 - **Requisitos:** `IDEN-03`, `IDEN-04`
 - **Labels:** `fase:1`, `area:backend`, `area:identidade`, `area:seguranca`, `area:testes`
 - **Descrição:** implementar política `PT8H`, sem limite absoluto, com atividade allowlisted e sessões independentes no Redis.
@@ -255,6 +261,18 @@ A issue de acompanhamento `#29` contém os links reais; este checklist local pre
 - **Aceite:** zero chamadas UserInfo; `iss` e `sub` obrigatórios; endpoint de revogação vem do discovery; invalidação local é terminal; repetição e concorrência convergem; Keycloak retorna `invalid_grant` no refresh posterior.
 - **Verificação:** `UserInfoOptOutIT`, `OidcRevocationContractTest` e `OidcRevocationKeycloakIT`.
 
+### Wave 12 — F1/P21
+
+**Título:** `[F1/P21] Validar o walking skeleton Angular–BFF–PostgreSQL`
+
+- **Plano:** [01-21-PLAN.md](../phases/01-funda-o-segura-da-plataforma/01-21-PLAN.md)
+- **Depende de:** F1/P29 e F1/P06
+- **Requisitos:** `IDEN-03`, `API-02`, `OPS-01`
+- **Labels:** `fase:1`, `area:frontend`, `area:identidade`, `area:testes`, `area:seguranca`
+- **Descrição:** provar a jornada browser real somente em development/homolog/harness e sua ausência material em produção, reutilizando datasource, XSRF e store de sessão já provados.
+- **Aceite:** componente usa o cliente gerado; UUID persiste após reload; tokens não aparecem no navegador; login Keycloak preserva apenas dado não sensível; tracer não existe no build production; versão, lockfile, instalação e navegador Playwright passam por checkpoint humano próprio.
+- **Verificação:** `node scripts/validate-tracer.mjs`, builds e Playwright governado pelo checkpoint do plano. Essa evidência é antecipada e não fecha `TEST-03`, que permanece na Phase 7.
+
 ### Wave 13 — F1/P22
 
 **Título:** `[F1/P22] Expor estado seguro da sessão e logout do dispositivo atual`
@@ -272,12 +290,12 @@ A issue de acompanhamento `#29` contém os links reais; este checklist local pre
 **Título:** `[F1/P08] Proteger mutações HTTP e STOMP CONNECT com CSRF`
 
 - **Plano:** [01-08-PLAN.md](../phases/01-funda-o-segura-da-plataforma/01-08-PLAN.md)
-- **Depende de:** F1/P22
+- **Depende de:** F1/P21 e F1/P22
 - **Requisitos:** `IDEN-03`, `IDEN-04`
 - **Labels:** `fase:1`, `area:backend`, `area:api`, `area:seguranca`, `area:testes`
-- **Descrição:** exigir sessão, origem exata e CSRF correspondente em mutações HTTP e tentativas STOMP CONNECT.
-- **Aceite:** tentativas ausentes, cruzadas ou de origem divergente recebem 403; bearer STOMP não concede acesso; heartbeat não renova sessão; nenhum teste desabilita CSRF globalmente.
-- **Verificação:** `node scripts/validate-tracer.mjs --security`.
+- **Descrição:** reutilizar o XSRF oficial estabelecido em F1/P29 e endurecer mutações HTTP, origem, logout e tentativas STOMP CONNECT sobre a sessão Redis e o walking skeleton existentes.
+- **Aceite:** nenhum `CsrfTokenController`, `CsrfCookieFilter` ou `GET /csrf` é reintroduzido; tentativas ausentes, cruzadas ou de origem divergente recebem 403; bearer STOMP não concede acesso; heartbeat não renova sessão; nenhum teste desabilita CSRF globalmente.
+- **Verificação:** ITs HTTP/origem/logout e STOMP CONNECT + `node scripts/validate-tracer.mjs --security`.
 
 ### Wave 15 — F1/P09
 
@@ -454,6 +472,13 @@ Estes pontos encontrados durante a auditoria foram alinhados e versionados antes
 1. **Referência D-15 em F1/P03:** a prova browser completa agora aponta para o plano `01-21`, em conformidade com `01-VALIDATION.md` e a ordem executável.
 2. **Cobertura de sincronização em F1/P07:** o `UserInfoOptOutIT` agora deve provar explicitamente repetição e concorrência para o mesmo `(iss, sub)`, convergência em uma identidade e ausência de papel de domínio inferido do Keycloak.
 3. **Prova focal em F1/P09:** a verificação agora combina compilação com enumeração estrutural exata dos dez módulos; os limites e o grafo continuam sob o gate bloqueante do plano `01-23`.
+
+## Ajuste local posterior ainda não publicado
+
+- F1/P29 foi inserido como predecessor local da Wave 10, sem número de issue remota.
+- F1/P06 passa a depender de F1/P29; F1/P07 e F1/P21 compartilham a Wave 12, e F1/P21 depende de F1/P29 e F1/P06.
+- F1/P08 depende de F1/P21 e F1/P22, reutiliza o XSRF oficial de F1/P29 e conserva para si o hardening de HTTP/origem/logout e STOMP CONNECT.
+- O GitHub continua refletindo a publicação histórica de 28 issues executáveis mais a tracking `#29`; criar a issue de F1/P29 ou atualizar a tracking não faz parte deste bloco documental.
 
 ## Procedimento de publicação executado
 
