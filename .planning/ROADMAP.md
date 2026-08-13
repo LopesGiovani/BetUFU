@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 9/28 plans executed
+**Plans**: 10/29 plans executed
 Plans:
 **Wave 1**
 
@@ -72,17 +72,18 @@ Plans:
 
 - [x] 01-05-PLAN.md — Persistir o vínculo estável `(iss, sub)` no backend com PostgreSQL real.
 
-**Wave 10** *(Wave 9 completa; execução bloqueada até planejamento específico, aprovação, implementação e prova do datasource runtime local e do bootstrap HTTP XSRF)*
+**Wave 10** *(concluída; Gate 01-29 aprovado)*
 
-- [ ] 01-21-PLAN.md — Provar o tracer Angular somente em dev/homolog/harness e sua ausência production.
+- [x] 01-29-PLAN.md — Conectar o runtime local ao PostgreSQL e materializar o bootstrap XSRF SPA.
 
-**Wave 11** *(blocked on Wave 10 completion)*
+**Wave 11** *(Wave 10 concluída; próxima wave executável, sujeita aos checkpoints do 01-06)*
 
 - [ ] 01-06-PLAN.md — Implementar a sessão ociosa PT8H apoiada pelo Redis e a atividade válida.
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
 - [ ] 01-07-PLAN.md — Revogar refresh token por OIDC e manter UserInfo opt-out.
+- [ ] 01-21-PLAN.md — Provar o tracer Angular somente em dev/homolog/harness e sua ausência production, após 01-29 e 01-06, com checkpoint humano próprio para Playwright.
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
@@ -264,7 +265,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação Segura da Plataforma | 9/28 | In Progress | - |
+| 1. Fundação Segura da Plataforma | 10/29 | In Progress | - |
 | 2. Contas, Verificação e Operações Governadas | 0/TBD | Pending | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |

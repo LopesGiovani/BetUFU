@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P05 implementado, verificado e sincronizado; planejamento dos pré-requisitos do 01-21 é o próximo foco
-last_updated: "2026-08-12"
-last_activity: 2026-08-12
-last_activity_desc: Plano 01-05 implementado e validado; os commits b696142, 9e95d17 e 4a4dcf7 estão sincronizados com origin/master, e este conjunto documental prepara seu fechamento.
+stopped_at: F1/P29 encerrado documentalmente; revisão do Checkpoint A do Plano 01-06 é o próximo foco
+last_updated: "2026-08-13"
+last_activity: 2026-08-13
+last_activity_desc: Os commits locais 5dbd275, 016390b e 3cab79e registram a implementação e o Gate aprovado do 01-29; este fechamento de acompanhamento ainda não teve stage, commit ou push.
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 28
-  completed_plans: 9
+  total_plans: 29
+  completed_plans: 10
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Planejamento controlado dos pré-requisitos do Plano 01-21: datasource PostgreSQL do runtime local e bootstrap HTTP XSRF same-origin
+**Current focus:** Revisar o Checkpoint A e preparar a execução controlada do Plano 01-06 — sessão Redis PT8H e atividade válida
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 9 of 28
-Status: In progress — F1/P05 implementado e verificado; o próximo passo é planejar e aprovar os pré-requisitos que bloqueiam o 01-21
-Last activity: 2026-08-12 — `b696142`, `9e95d17` e `4a4dcf7`, sincronizados com `origin/master`, registram tooling, persistência e endpoint; este conjunto documental registra o fechamento do Plano 01-05.
+Plan: 10 of 29
+Status: In progress — F1/P29 concluído; o próximo passo é revisar e aprovar especificamente a Task 1 do 01-06
+Last activity: 2026-08-13 — `5dbd275`, `016390b` e `3cab79e` registram datasource/sessão dev, XSRF/prova runtime e Gate aprovado do Plano 01-29.
 
-GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#6` concluídas e issue de acompanhamento `#29` aberta.
-Git: branch principal `master`; os commits de implementação `b696142`, `9e95d17` e `4a4dcf7` estão sincronizados com `origin/master`; o fechamento documental do Plano 01-05 aguarda revisão e operações Git separadas.
+GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#6` concluídas e issue de acompanhamento `#29` aberta. O plano local F1/P29 ainda não possui issue remota atribuída.
+Git: `master` contém os três commits locais do 01-29 e está três commits à frente de `origin/master`; `01-29-SUMMARY.md` e os trackers deste fechamento ainda não tiveram stage, commit ou push.
 
-Progress: [███░░░░░░░] 32%
+Progress: [███░░░░░░░] 34%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 9
+- Total de planos concluídos: 10
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [███░░░░░░░] 32%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 9 | não mensurado | não mensurada |
+| 1 | 10 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-03, 01-04, 01-19, 01-20, 01-05
+- Últimos 5 planos: 01-04, 01-19, 01-20, 01-05, 01-29
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
@@ -83,6 +83,9 @@ Progress: [███░░░░░░░] 32%
 - A migration Flyway V1 e o JPA validam `public.local_identity` no PostgreSQL 18.4; repetição e concorrência usam `ON CONFLICT DO NOTHING` seguido de `SELECT` em `READ_COMMITTED`, sem no-op update.
 - O endpoint `PUT /api/v1/tracer/identity/current` existe em todos os profiles de runtime, inclusive production, usa somente o ID token OIDC e responde por DTO allowlist com quatro campos.
 - O lifecycle Maven mantém `*Test` no Surefire e executa `*IT` no Failsafe; a prova agregada do 01-05 terminou com Surefire 8/8 e Failsafe 17/17.
+- O Plano 01-29 entregou e comprovou o predecessor explícito do runtime browser: datasource PostgreSQL externo, sessão `dev` deliberadamente em memória até o 01-06 e suporte XSRF SPA oficial do Spring Security 7.1 sem endpoint ou header manual no Angular.
+- A prova agregada do 01-29 passou com Maven `36/36`, Node `191/191`, runtime `status: ok`, matriz `403/403/403/200/200`, SQL `BETUFU_RUNTIME_SQL_OK`, JAR imutável, zero conexões Redis e cleanup restaurado.
+- O Plano 01-21 depende de 01-29 e 01-06 e compartilha a Wave 12 com 01-07; o 01-08 reutiliza o XSRF já provado e o endurece para origem, logout e STOMP CONNECT.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
@@ -90,7 +93,8 @@ Progress: [███░░░░░░░] 32%
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
 - O provedor e a topologia S3 de homologação/produção continuam sem escolha; SeaweedFS não deve ser promovido silenciosamente além do ambiente local.
 - Homologação e produção ainda precisarão fornecer origens e uma lista não vazia de proxies durante os planos de infraestrutura e implantação.
-- Antes de executar o 01-21, definir, aprovar, implementar e provar o datasource PostgreSQL do runtime local e o bootstrap HTTP XSRF same-origin; `@ServiceConnection` e `csrf()` são apenas fixtures do IT.
+- O 01-06 deve remover a exceção dev de sessão em memória e configurar Spring Session Redis com política PT8H; o Gate aprovado do 01-29 não autoriza essa alteração automaticamente.
+- O 01-21 agora depende da conclusão da sessão Redis do 01-06; sua adoção do Playwright mantém checkpoint humano próprio para versão, lockfile, instalação e navegador.
 
 ### Bloqueios e pontos de atenção
 
@@ -99,7 +103,7 @@ Progress: [███░░░░░░░] 32%
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam ser decididas quando os requisitos correspondentes exigirem.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
-- A Wave 10/Plano 01-21 permanece bloqueada até o planejamento e a prova dos pré-requisitos de datasource runtime e XSRF browser; não contornar o bloqueio desabilitando CSRF ou montando token manual no Angular.
+- A Wave 11/Plano 01-06 aguarda revisão do Checkpoint A e autorização específica da Task 1; não antecipar Redis ou alterar a política de sessão usando o fechamento do 01-29 como autorização implícita.
 
 ## Itens adiados
 
@@ -109,6 +113,6 @@ Progress: [███░░░░░░░] 32%
 
 ## Session Continuity
 
-Last session: 2026-08-12
-Stopped at: F1/P05 implementado, verificado e sincronizado; planejamento dos pré-requisitos do 01-21 é o próximo foco
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-21-PLAN.md
+Last session: 2026-08-13
+Stopped at: F1/P29 concluído e documentado; revisão do Checkpoint A do Plano 01-06 é o próximo passo
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-06-PLAN.md

@@ -11,13 +11,15 @@
 
 O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`. O SHA-256 histórico `FB8FE8A18EA4F72927AF5E3B506E2112F968C3BF98267DA0902EBC5BC40EA841` continua válido somente como baseline do grafo do 01-04 e nunca aprova o lockfile que incluiu o wrapper OpenAPI. Wrapper npm 2.40.1, motor Java 7.24.0, exceção Angular 22, novo hash, allowlist, risco npm, assinaturas, JAR e identidade humana mantêm estados separados e aprovados conforme o Gate. A evidência observada no fechamento registrou fake runner `67/67`, fronteira de rotas `110/110`, runtime same-origin `2/2`, digest canônico `78E92BB17EBC45E25F86CA3D23C66958BDCD1786983DEFDC2DD1050BE8D13D5F` e builds `development`, `homolog` e `production` com êxito. Qualquer divergência interrompe a execução correspondente sem downgrade, substituição, `npm audit fix`, `--force`, lifecycle ou instalação silenciosa; os checkpoints continuam humanos e não autoaprováveis.
 
+O Plano 01-29 fechou seu Gate como **`approved`** em `2026-08-13T19:00:20.4878257Z`. A prova agregada registrou Maven offline `36/36`, Node `191/191`, runtime `status: ok`, login `authorization-code-hosted`, matriz XSRF `403/403/403/200/200`, SQL `BETUFU_RUNTIME_SQL_OK`, JAR exato antes/depois e cleanup/scope guard aprovados. O 01-06 agora deve substituir a sessão `dev` provisória em memória pelo store Redis; o 01-21 só pode iniciar depois disso e mantém checkpoint humano próprio para versão, lockfile, instalação e navegador Playwright antes de qualquer download ou execução E2E.
+
 ## Infraestrutura de testes a criar
 
 | Camada | Ferramentas e autoridade | Planos criadores |
 |---|---|---|
-| Backend | JUnit 5, Spring Boot Test, Spring Security Test, Testcontainers, Maven Surefire/Failsafe, Modulith Test e ArchUnit via Maven Wrapper | 01-02, 01-17, 01-05, 01-23, 01-10 |
+| Backend | JUnit 5, Spring Boot Test, Spring Security Test, Testcontainers, Maven Surefire/Failsafe, Modulith Test e ArchUnit via Maven Wrapper | 01-02, 01-17, 01-05, 01-29, 01-23, 01-10 |
 | Frontend | Angular TestBed/test runner, três builds fixados no lockfile e validadores Node sem dependências | 01-04, 01-19 |
-| E2E | Playwright contra navegador, Keycloak, BFF, PostgreSQL e dependências reais | 01-21, 01-08, 01-28 |
+| E2E | Playwright governado por checkpoint próprio contra navegador, Keycloak, BFF, PostgreSQL e dependências reais | 01-21, 01-08, 01-28 |
 | Infra | Docker Compose com healthchecks e profiles daily/full | 01-03, 01-11 |
 | Gate agregado | backend verify, Angular, drift OpenAPI, Playwright, diagnóstico e ausência production | 01-16 |
 
@@ -34,11 +36,12 @@ O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`.
 | 01-19 | 7 | host e seam de rotas build-specific | `validate-angular-route-boundary.mjs` + regressões negativas + builds development/homolog/production + app component test |
 | 01-20 | 8 | OpenAPI inicial e cliente gerado com supply chain e recovery | Gate separado + fake runner + generate/check read-only + runtime PUT relativo/XSRF + builds development/homolog/production |
 | 01-05 | 9 | vínculo backend `(iss, sub)` idempotente/concorrente | lifecycle `verify -Dit.test=LocalIdentityTracerIT`: suíte Surefire + IT Failsafe selecionado contra PostgreSQL 18.4 com digest aprovado; depois `verify` agregado |
-| 01-21 | 10 | tracer browser não-prod, D-15 e ausência production | **bloqueado antes de código/E2E:** datasource runtime local e bootstrap HTTP XSRF devem ter plano, aprovação, implementação e prova próprios; só então `validate-tracer.mjs` |
+| 01-29 | 10 | datasource runtime local, sessão `dev` provisória e bootstrap XSRF SPA | Gate próprio + `EnvironmentConfigurationTest` + `CsrfSpaIT` + `validate-runtime-prerequisites.mjs` e regressões + prova runtime PostgreSQL/Keycloak |
 | 01-06 | 11 | política PT8H e Redis session | SessionPolicy/RedisSession ITs |
 | 01-07 | 12 | UserInfo opt-out e revogação | UserInfo + revocation contract/Keycloak ITs |
+| 01-21 | 12 | tracer browser não-prod, D-15 e ausência production | **somente após 01-29 e 01-06:** `validate-tracer.mjs` + checkpoint Playwright próprio + E2E browser e builds não-prod/production |
 | 01-22 | 13 | GET session e logout do dispositivo | SessionController/CurrentDeviceLogout ITs |
-| 01-08 | 14 | CSRF HTTP/STOMP e tracer protegido | `validate-tracer.mjs --security` |
+| 01-08 | 14 | hardening HTTP/origem/logout e STOMP sobre o XSRF já provado | ITs HTTP/origem/logout + STOMP CONNECT + `validate-tracer.mjs --security` |
 | 01-09 | 15 | dez módulos declarados | compile Modulith |
 | 01-23 | 16 | gates Modulith/ArchUnit | três testes arquiteturais |
 | 01-10 | 17 | Flyway e autoridade de storage | migration/checksum/authority ITs |
@@ -56,9 +59,9 @@ O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`.
 
 ## Provas obrigatórias preservadas
 
-1. **Granularidade:** 28 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção histórica: o scaffold basal do 01-04 possui 15 arquivos em três tarefas de cinco, com checkpoint e prova sem arquivos, conforme `01-04-GATE.md`. Exceção histórica aprovada do 01-20: exatamente 12 paths em três tarefas versionáveis de 5/2/5 — contrato/pipeline, package/lock e geração/integração — mais instalação/aquisição e prova agregada como blocos materiais de zero arquivos, cada qual com checkpoint próprio. Ela permanece registrada para auditabilidade; o Gate 01-20 está `approved`. O 01-05 possui nove paths em tarefas de 2/5/3, com resolução Maven, execução focal PostgreSQL e regressão agregada como blocos materiais de zero arquivos e checkpoints humanos separados.
+1. **Granularidade:** 29 planos, normalmente 1–3 tarefas materiais, <=10 arquivos por plano e <=5 por tarefa material. Exceção histórica: o scaffold basal do 01-04 possui 15 arquivos em três tarefas de cinco, com checkpoint e prova sem arquivos, conforme `01-04-GATE.md`. Exceção histórica aprovada do 01-20: exatamente 12 paths em três tarefas versionáveis de 5/2/5 — contrato/pipeline, package/lock e geração/integração — mais instalação/aquisição e prova agregada como blocos materiais de zero arquivos, cada qual com checkpoint próprio. Ela permanece registrada para auditabilidade; o Gate 01-20 está `approved`. O 01-05 possui nove paths em tarefas de 2/5/3, com resolução Maven, execução focal PostgreSQL e regressão agregada como blocos materiais de zero arquivos e checkpoints humanos separados. O 01-29 terminou com oito paths nas duas tarefas de quatro mais o nono path de implementação `infra/keycloak/realm-betufu.json`, acrescentado pela correção autorizada do perfil técnico; as provas materiais não adicionaram outros paths versionáveis, e seu Gate está `approved`.
 2. **OpenAPI:** 01-20 gera inicialmente com motor 7.24.0 hash-locked e publica a árvore de modo transacional/recuperável; 01-26 audita mappings/regenera; 01-16 só executa check read-only. Nenhum documento promete substituição de diretório atomicamente indivisível no Windows.
-3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-20 prova que o cliente Angular emite PUT relativo e usa o mecanismo XSRF nativo, mas não prova que o backend materializa o cookie. O 01-05 mantém CSRF ativo e usa `csrf()` somente como fixture MockMvc; isso não equivale ao bootstrap browser `XSRF-TOKEN`/`X-XSRF-TOKEN`. O 01-21 permanece bloqueado até datasource runtime local e bootstrap HTTP XSRF serem planejados, aprovados, implementados e provados. É proibido avançar desabilitando CSRF ou montando token/header manual no Angular; a parte HTTP hoje atribuída ao 01-08 requer correção de sequência própria.
+3. **Same-origin:** daily/full publicam `http://localhost:4200`; 01-20 prova que o cliente Angular emite PUT relativo e usa o mecanismo XSRF nativo, mas não que o backend materializa o cookie. O 01-29 configura o datasource externo, mantém a sessão `dev` explicitamente em memória até 01-06 e materializa `XSRF-TOKEN`/`X-XSRF-TOKEN` com o suporte SPA oficial do Spring Security 7.1, sem endpoint `/csrf`, filtro bespoke, bearer ou header manual. O 01-06 promove o store de sessão ao Redis. Só então o 01-21 executa o browser real; o 01-08 reutiliza esse contrato e o endurece para origem, logout e STOMP CONNECT.
 4. **D-13:** `scripts/maven.mjs` seleciona Wrapper por SO e o gate registra Windows e Linux/WSL2.
 5. **D-15:** tema Keycloak preserva templates nativos; 01-21 prova campo, valor não sensível e foco.
 6. **Revogação:** 01-07 envia refresh token + hint e exige `invalid_grant`, sem prometer access JWT imediato.
@@ -67,6 +70,7 @@ O Plano 01-20 fechou como **`approved`** o Gate supply-chain em `01-20-GATE.md`.
 9. **Identidade local/concorrência:** 01-05 usa `(issuer, subject)` exato como unique natural e UUID opaco como chave pública. O service executa `INSERT ... ON CONFLICT DO NOTHING` seguido de `SELECT` em nova instrução `READ_COMMITTED`; o IT dispara chamadas simultâneas e exige uma linha, mesmo UUID e timestamps estáveis. `find` seguido de `save`, no-op update e recuperação após unique violation na mesma transação não satisfazem a prova.
 10. **Ciclo de IT Maven:** `*Test` permanece sob Surefire e `*IT` passa a ser executado pelo Maven Failsafe 3.5.6 nas fases `integration-test`/`verify`. A prova focal usa `verify -Dit.test=LocalIdentityTracerIT`: por atravessar o lifecycle, ela executa a suíte Surefire e seleciona esse IT no Failsafe, não é um comando de teste único. A prova agregada usa `verify` sem filtro e inspeciona relatórios de ambos; um build verde que não executou o IT é falha de cobertura.
 11. **Fixture PostgreSQL:** o IT 01-05 aceita somente `docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636`. Preflight ausente encerra sem pull; pull e criação de container/rede exigem autorizações materiais próprias.
+12. **Playwright e TEST-03:** o E2E do 01-21 produz evidência antecipada do walking skeleton, mas não fecha nem realoca `TEST-03`. Esse requisito continua pertencendo à Phase 7; na Fase 1, versão, lockfile, instalação e navegador Playwright exigem checkpoint humano próprio e a prova permanece complementar aos gates posteriores.
 
 ## Matriz obrigatória do Plano 01-20
 
