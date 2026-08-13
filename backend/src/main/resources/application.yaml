@@ -33,6 +33,10 @@ spring:
   config:
     activate:
       on-profile: "runtime | integrated"
+  datasource:
+    url: "${BETUFU_DB_JDBC_URL}"
+    username: "${BETUFU_DB_USER}"
+    password: "${BETUFU_DB_PASSWORD}"
   jpa:
     hibernate:
       ddl-auto: validate

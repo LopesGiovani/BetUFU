@@ -2,6 +2,9 @@ spring:
   config:
     activate:
       on-profile: dev
+  # Temporário: o Plano 01-06 remove esta exceção ao configurar Spring Session Data Redis.
+  autoconfigure:
+    exclude: "org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration"
 
 betufu:
   web:
