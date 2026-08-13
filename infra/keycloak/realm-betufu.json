@@ -93,6 +93,8 @@
     {
       "id": "00000000-0000-0000-0000-000000000101",
       "username": "technical",
+      "firstName": "BETUFU",
+      "lastName": "Technical",
       "email": "technical@betufu.local",
       "enabled": true,
       "emailVerified": false,
