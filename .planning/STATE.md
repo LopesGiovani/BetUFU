@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P29 encerrado documentalmente; revisão do Checkpoint A do Plano 01-06 é o próximo foco
-last_updated: "2026-08-13"
-last_activity: 2026-08-13
-last_activity_desc: Os commits locais 5dbd275, 016390b e 3cab79e registram a implementação e o Gate aprovado do 01-29; este fechamento de acompanhamento ainda não teve stage, commit ou push.
+stopped_at: F1/P06 encerrado; Wave 12 pronta para execução controlada dos Planos 01-07 e 01-21
+last_updated: "2026-08-14"
+last_activity: 2026-08-14
+last_activity_desc: Os commits locais d8b3f61, 26dac30, 292de8e, ad0155c e 5870d0c registram a implementação e o plano alinhado do 01-06; este fechamento documental ainda não teve stage, commit ou push.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Revisar o Checkpoint A e preparar a execução controlada do Plano 01-06 — sessão Redis PT8H e atividade válida
+**Current focus:** Preparar a execução controlada da Wave 12 — 01-07 e 01-21 estão dependency-ready, cada qual sujeito aos próprios checkpoints
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 10 of 29
-Status: In progress — F1/P29 concluído; o próximo passo é revisar e aprovar especificamente a Task 1 do 01-06
-Last activity: 2026-08-13 — `5dbd275`, `016390b` e `3cab79e` registram datasource/sessão dev, XSRF/prova runtime e Gate aprovado do Plano 01-29.
+Plan: 11 of 29
+Status: In progress — F1/P06 concluído; a Wave 12 está liberada para execução controlada dos Planos 01-07 e 01-21
+Last activity: 2026-08-14 — `d8b3f61`, `26dac30`, `292de8e`, `ad0155c` e `5870d0c` registram política, configuração Redis, lifecycle seletivo, validação runtime e alinhamento do Plano 01-06.
 
-GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#6` concluídas e issue de acompanhamento `#29` aberta. O plano local F1/P29 ainda não possui issue remota atribuída.
-Git: `master` contém os três commits locais do 01-29 e está três commits à frente de `origin/master`; `01-29-SUMMARY.md` e os trackers deste fechamento ainda não tiveram stage, commit ou push.
+GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas. Este fechamento não alterou o estado remoto.
+Git: `master` contém os cinco commits locais do 01-06 e está cinco commits à frente de `origin/master`; o SUMMARY e os trackers deste fechamento ainda não tiveram stage, commit ou push.
 
-Progress: [███░░░░░░░] 34%
+Progress: [████░░░░░░] 38%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 10
+- Total de planos concluídos: 11
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [███░░░░░░░] 34%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 10 | não mensurado | não mensurada |
+| 1 | 11 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-04, 01-19, 01-20, 01-05, 01-29
+- Últimos 5 planos: 01-19, 01-20, 01-05, 01-29, 01-06
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
@@ -86,6 +86,11 @@ Progress: [███░░░░░░░] 34%
 - O Plano 01-29 entregou e comprovou o predecessor explícito do runtime browser: datasource PostgreSQL externo, sessão `dev` deliberadamente em memória até o 01-06 e suporte XSRF SPA oficial do Spring Security 7.1 sem endpoint ou header manual no Angular.
 - A prova agregada do 01-29 passou com Maven `36/36`, Node `191/191`, runtime `status: ok`, matriz `403/403/403/200/200`, SQL `BETUFU_RUNTIME_SQL_OK`, JAR imutável, zero conexões Redis e cleanup restaurado.
 - O Plano 01-21 depende de 01-29 e 01-06 e compartilha a Wave 12 com 01-07; o 01-08 reutiliza o XSRF já provado e o endurece para origem, logout e STOMP CONNECT.
+- O Plano 01-06 fixa timeout ocioso `PT8H`, sem prazo absoluto adicional, e usa Spring Session Redis no profile `dev`.
+- A allowlist inicial de atividade válida reconhece somente `PUT /api/v1/tracer/identity/current` autenticado e concluído com resposta `2xx`; tráfego técnico ou malsucedido não renova a sessão.
+- A persistência seletiva conserva o instante original em operações sem atividade válida, avança o tempo de forma monotônica quando há atividade aprovada e trata session fixation sem reintroduzir uma sessão encerrada.
+- A prova agregada do 01-06 passou com Node `263/263` e Maven `56/56` — Surefire `27/27` e Failsafe `29/29`, incluindo `RedisSessionIT` `7/7` — e restaurou containers e redes ao baseline aprovado, sem resíduos do Testcontainers.
+- A revisão externa do snapshot final do 01-06 terminou em `PASS`, sem achados P0–P2; os três P3 foram preservados como acompanhamento, sem reabrir a implementação validada.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
@@ -93,8 +98,12 @@ Progress: [███░░░░░░░] 34%
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
 - O provedor e a topologia S3 de homologação/produção continuam sem escolha; SeaweedFS não deve ser promovido silenciosamente além do ambiente local.
 - Homologação e produção ainda precisarão fornecer origens e uma lista não vazia de proxies durante os planos de infraestrutura e implantação.
-- O 01-06 deve remover a exceção dev de sessão em memória e configurar Spring Session Redis com política PT8H; o Gate aprovado do 01-29 não autoriza essa alteração automaticamente.
-- O 01-21 agora depende da conclusão da sessão Redis do 01-06; sua adoção do Playwright mantém checkpoint humano próprio para versão, lockfile, instalação e navegador.
+- A coleção `pendingOriginalIds` pode reter uma entrada após falha terminal de save; acompanhar o P3 de possível crescimento lento no caminho de erro antes de ampliar o lifecycle.
+- Os beans opcionais de filtro e lifecycle podem degradar silenciosamente quando ausentes; a opcionalidade necessária aos contextos focais de teste deve ser reavaliada antes de novas integrações de segurança.
+- `hasApprovedActivity` está efetivamente inativo porque os nomes de atributo ocultam o marcador; decidir se o método deve ser conectado ao contrato ou removido em manutenção futura.
+- Os avisos de Mockito/Byte Buddy sobre agente dinâmico futuro, reconnect do Lettuce durante o teardown e conversão Git LF→CRLF permanecem não bloqueantes e não invalidaram as provas.
+- O 01-07 está dependency-ready na Wave 12, sujeito aos seus checkpoints próprios.
+- O 01-21 também está dependency-ready, mas a adoção do Playwright mantém checkpoint humano próprio para versão, lockfile, instalação e navegador.
 
 ### Bloqueios e pontos de atenção
 
@@ -103,7 +112,7 @@ Progress: [███░░░░░░░] 34%
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam ser decididas quando os requisitos correspondentes exigirem.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
-- A Wave 11/Plano 01-06 aguarda revisão do Checkpoint A e autorização específica da Task 1; não antecipar Redis ou alterar a política de sessão usando o fechamento do 01-29 como autorização implícita.
+- A Wave 12 contém 01-07 e 01-21; ambos estão dependency-ready, mas a ordem ou execução paralela não deve ser escolhida silenciosamente e cada plano continua sujeito aos próprios checkpoints.
 
 ## Itens adiados
 
@@ -113,6 +122,6 @@ Progress: [███░░░░░░░] 34%
 
 ## Session Continuity
 
-Last session: 2026-08-13
-Stopped at: F1/P29 concluído e documentado; revisão do Checkpoint A do Plano 01-06 é o próximo passo
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-06-PLAN.md
+Last session: 2026-08-14
+Stopped at: F1/P06 concluído e documentado; Wave 12 pronta para execução controlada
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-07-PLAN.md — o 01-21-PLAN.md também está dependency-ready na mesma Wave 12
