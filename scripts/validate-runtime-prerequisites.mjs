@@ -22,7 +22,7 @@ const PATHS = Object.freeze({
   csrfTest: 'backend/src/test/java/br/com/betufu/platform/security/CsrfSpaIT.java',
   angularConfig: 'frontend/src/app/app.config.ts',
   backendSources: 'backend/src/main/java',
-  frontendSources: 'frontend/src/app',
+  frontendSources: 'frontend/src',
   backendTarget: 'backend/target',
 });
 
@@ -399,16 +399,6 @@ function assertSecurityContract(securitySource) {
   ]) {
     expect(!pattern.test(active), 'CSRF_COOKIE', label + ' nao pode ser customizado.');
   }
-  const forbidden = [
-    [/\bcsrf\s*\.\s*disable\s*\(/u, 'csrf.disable'],
-    [/ignoringRequestMatchers\s*\(/u, 'ignoringRequestMatchers'],
-    [/requireCsrfProtectionMatcher\s*\(/u, 'matcher CSRF customizado'],
-    [/\bCsrfFilter\b/u, 'CsrfFilter customizado'],
-    [/\bCsrfTokenRequestHandler\b/u, 'handler CSRF customizado'],
-  ];
-  for (const [pattern, label] of forbidden) {
-    expect(!pattern.test(active), 'CSRF_BYPASS', label + ' nao e permitido.');
-  }
   expect(
     /\.csrf\s*\(\s*csrf\s*->\s*csrf\s*\.spa\s*\(\s*\)\s*\.csrfTokenRepository\s*\(\s*csrfTokenRepository\s*\)\s*\)/su
       .test(active),
@@ -431,6 +421,31 @@ function assertSecurityContract(securitySource) {
     'OIDC_BOUNDARY',
     'oauth2Login Authorization Code deve ser preservado.',
   );
+}
+
+function assertNoCsrfBypass(backendSources) {
+  const forbidden = [
+    [/\bcsrf\s*\.\s*disable\s*\(/u, 'csrf.disable'],
+    [/\bAbstractHttpConfigurer\s*::\s*disable\b/u, 'AbstractHttpConfigurer::disable'],
+    [
+      /\.csrf\s*\(\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)?\s*->[\s\S]{0,512}?\1\s*\.\s*disable\s*\(/u,
+      'lambda CSRF disable',
+    ],
+    [/ignoringRequestMatchers\s*\(/u, 'ignoringRequestMatchers'],
+    [/requireCsrfProtectionMatcher\s*\(/u, 'matcher CSRF customizado'],
+    [/\bCsrfFilter\b/u, 'CsrfFilter customizado'],
+    [/\bCsrfTokenRequestHandler\b/u, 'handler CSRF customizado'],
+  ];
+  for (const [relativePath, source] of backendSources) {
+    const active = stripComments(source);
+    for (const [pattern, label] of forbidden) {
+      expect(
+        !pattern.test(active),
+        'CSRF_BYPASS',
+        label + ' nao e permitido em ' + relativePath + '.',
+      );
+    }
+  }
 }
 
 function assertNoCsrfEndpoint(backendSources) {
@@ -596,6 +611,7 @@ export async function validateStaticContract(projectRoot = defaultProjectRoot) {
 
   assertDatasourceContract(application, development, environment, pom);
   assertKeycloakTechnicalUserContract(keycloakRealm);
+  assertNoCsrfBypass(backendSources);
   assertSecurityContract(security);
   assertNoCsrfEndpoint(backendSources);
   assertAngularContract(angularConfig, frontendSources);

@@ -46,7 +46,7 @@ const COPY_PATHS = Object.freeze([
   'backend/src/main/resources/application.yaml',
   'backend/src/main/resources/application-dev.yaml',
   'backend/src/test/java/br/com/betufu/platform/security/CsrfSpaIT.java',
-  'frontend/src/app',
+  'frontend/src',
   'infra/.env.example',
   'infra/keycloak/realm-betufu.json',
 ]);
@@ -454,7 +454,7 @@ test('rejeita segundo customizer que sobrescreveria os atributos aprovados', asy
   await expectRule(root, 'CSRF_COOKIE');
 });
 
-test('rejeita bypass CSRF', async () => {
+test('rejeita bypass CSRF na SecurityConfiguration canonica', async () => {
   const root = await createFixture();
   await mutate(
     root,
@@ -467,6 +467,45 @@ test('rejeita bypass CSRF', async () => {
   );
   await expectRule(root, 'CSRF_BYPASS');
 });
+
+for (const [label, source] of [
+  ['csrf.disable', 'class UnsafeCsrfConfiguration { void configure() { csrf.disable(); } }\n'],
+  [
+    'AbstractHttpConfigurer::disable',
+    'class UnsafeCsrfConfiguration { void configure() { '
+      + 'http.csrf(AbstractHttpConfigurer::disable); } }\n',
+  ],
+  [
+    'lambda CSRF disable com receiver alternativo',
+    'class UnsafeCsrfConfiguration { void configure() { '
+      + 'http.csrf(configurer -> configurer.disable()); } }\n',
+  ],
+  [
+    'ignoringRequestMatchers',
+    'class UnsafeCsrfConfiguration { void configure() { '
+      + 'csrf.ignoringRequestMatchers("/api/v1/**"); } }\n',
+  ],
+  [
+    'requireCsrfProtectionMatcher',
+    'class UnsafeCsrfConfiguration { void configure() { '
+      + 'csrf.requireCsrfProtectionMatcher(null); } }\n',
+  ],
+  ['CsrfFilter', 'class UnsafeCsrfConfiguration { CsrfFilter filter; }\n'],
+  [
+    'CsrfTokenRequestHandler',
+    'class UnsafeCsrfConfiguration { CsrfTokenRequestHandler handler; }\n',
+  ],
+]) {
+  test('rejeita bypass CSRF em outro arquivo Java: ' + label, async () => {
+    const root = await createFixture();
+    const path = join(
+      root,
+      'backend/src/main/java/br/com/betufu/platform/security/UnsafeCsrfConfiguration.java',
+    );
+    await writeFile(path, source, 'utf8');
+    await expectRule(root, 'CSRF_BYPASS');
+  });
+}
 
 test('rejeita endpoint CSRF no codigo de producao', async () => {
   const root = await createFixture();
@@ -482,11 +521,24 @@ test('rejeita endpoint CSRF no codigo de producao', async () => {
   await expectRule(root, 'CSRF_ENDPOINT');
 });
 
-test('rejeita leitura manual de cookie no Angular de producao', async () => {
+test('rejeita leitura manual de cookie em frontend/src/main.ts', async () => {
   const root = await createFixture();
-  const path = join(root, 'frontend/src/app/unsafe-xsrf.ts');
-  await writeFile(path, 'export const unsafe = document.cookie;\n', 'utf8');
+  await mutate(
+    root,
+    'frontend/src/main.ts',
+    (source) => source + '\nconst unsafeXsrfCookie = document.cookie;\n',
+  );
   await expectRule(root, 'ANGULAR_MANUAL_XSRF');
+});
+
+test('rejeita withNoXsrfProtection em frontend/src/main.ts', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'frontend/src/main.ts',
+    (source) => source + '\nwithNoXsrfProtection();\n',
+  );
+  await expectRule(root, 'ANGULAR_XSRF_DISABLED');
 });
 
 test('rejeita header XSRF manual fora da configuracao Angular', async () => {

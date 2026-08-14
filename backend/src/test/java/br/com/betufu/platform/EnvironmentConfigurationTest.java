@@ -13,8 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
+import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.JdbcConnectionDetails;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
@@ -34,6 +40,10 @@ class EnvironmentConfigurationTest {
     private static final String JDBC_URL = "jdbc:postgresql://db.invalid:5432/betufu_test";
     private static final String DATABASE_USER = "betufu_test";
     private static final String DATABASE_PASSWORD = "test-only-password";
+    private static final String SERVICE_CONNECTION_JDBC_URL =
+            "jdbc:postgresql://service-connection.invalid:5432/integrated";
+    private static final String SERVICE_CONNECTION_DATABASE_USER = "service_connection_user";
+    private static final String SERVICE_CONNECTION_DATABASE_PASSWORD = "service-connection-password";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withInitializer(new ConfigDataApplicationContextInitializer())
@@ -118,21 +128,34 @@ class EnvironmentConfigurationTest {
     }
 
     @Test
-    void letsHigherPrecedenceIntegratedDatasourcePropertiesWin() {
+    void letsServiceConnectionJdbcConnectionDetailsTakePrecedenceOverIntegratedDatasourceProperties() {
         contextRunner
-                .withPropertyValues(
-                        "spring.profiles.active=integrated",
-                        "spring.datasource.url=jdbc:postgresql://service-connection.invalid:5432/integrated",
-                        "spring.datasource.username=service_connection_user",
-                        "spring.datasource.password=service-connection-password")
+                .withConfiguration(AutoConfigurations.of(DataSourceAutoConfiguration.class))
+                .withBean(JdbcConnectionDetails.class, EnvironmentConfigurationTest::serviceConnectionJdbcDetails)
+                .withPropertyValues("spring.profiles.active=integrated")
                 .run(context -> {
                     assertThat(context.getStartupFailure()).isNull();
-                    assertThat(context.getEnvironment().getProperty("spring.datasource.url"))
-                            .isEqualTo("jdbc:postgresql://service-connection.invalid:5432/integrated");
-                    assertThat(context.getEnvironment().getProperty("spring.datasource.username"))
-                            .isEqualTo("service_connection_user");
-                    assertThat(context.getEnvironment().getProperty("spring.datasource.password"))
-                            .isEqualTo("service-connection-password");
+
+                    ConfigurableEnvironment environment = context.getEnvironment();
+                    assertThat(environment.getActiveProfiles()).contains("integrated");
+                    assertThat(environment.getProperty("spring.datasource.url")).isEqualTo(JDBC_URL);
+                    assertThat(environment.getProperty("spring.datasource.username")).isEqualTo(DATABASE_USER);
+                    assertThat(environment.getProperty("spring.datasource.password")).isEqualTo(DATABASE_PASSWORD);
+
+                    assertThat(context).hasSingleBean(DataSource.class);
+                    DataSource dataSource = context.getBean(DataSource.class);
+                    assertThat(dataSource).isInstanceOf(HikariDataSource.class);
+
+                    HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
+                    assertThat(hikariDataSource.getJdbcUrl())
+                            .isEqualTo(SERVICE_CONNECTION_JDBC_URL)
+                            .isNotEqualTo(environment.getProperty("spring.datasource.url"));
+                    assertThat(hikariDataSource.getUsername())
+                            .isEqualTo(SERVICE_CONNECTION_DATABASE_USER)
+                            .isNotEqualTo(environment.getProperty("spring.datasource.username"));
+                    assertThat(hikariDataSource.getPassword())
+                            .isEqualTo(SERVICE_CONNECTION_DATABASE_PASSWORD)
+                            .isNotEqualTo(environment.getProperty("spring.datasource.password"));
                 });
     }
 
@@ -274,6 +297,30 @@ class EnvironmentConfigurationTest {
                 .filter(entry -> !entry.getKey().equals(missingVariable))
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .toArray(String[]::new);
+    }
+
+    private static JdbcConnectionDetails serviceConnectionJdbcDetails() {
+        return new JdbcConnectionDetails() {
+            @Override
+            public String getUsername() {
+                return SERVICE_CONNECTION_DATABASE_USER;
+            }
+
+            @Override
+            public String getPassword() {
+                return SERVICE_CONNECTION_DATABASE_PASSWORD;
+            }
+
+            @Override
+            public String getJdbcUrl() {
+                return SERVICE_CONNECTION_JDBC_URL;
+            }
+
+            @Override
+            public String getDriverClassName() {
+                return "org.postgresql.Driver";
+            }
+        };
     }
 
     private static WebApplicationContextRunner redisSessionContextRunner() {
