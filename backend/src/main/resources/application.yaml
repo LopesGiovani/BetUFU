@@ -42,6 +42,19 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  session:
+    timeout: 8h
+    data:
+      redis:
+        namespace: betufu:session
+        repository-type: default
+        flush-mode: on-save
+        save-mode: on-set-attribute
+  data:
+    redis:
+      host: "${BETUFU_REDIS_HOST}"
+      port: "${BETUFU_REDIS_PORT}"
+      password: "${BETUFU_REDIS_PASSWORD}"
   security:
     oauth2:
       client:

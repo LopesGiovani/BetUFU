@@ -3,6 +3,7 @@ package br.com.betufu.platform;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -35,11 +36,13 @@ import org.springframework.session.data.redis.RedisSessionRepository;
 class EnvironmentConfigurationTest {
 
     private static final List<String> ENVIRONMENT_PROFILES = List.of("dev", "homolog", "prod");
-    private static final String REDIS_SESSION_AUTO_CONFIGURATION =
-            "org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration";
     private static final String JDBC_URL = "jdbc:postgresql://db.invalid:5432/betufu_test";
     private static final String DATABASE_USER = "betufu_test";
     private static final String DATABASE_PASSWORD = "test-only-password";
+    private static final String REDIS_HOST = "redis.invalid";
+    private static final int REDIS_PORT = 6380;
+    private static final String REDIS_PASSWORD = "test-only-redis-password";
+    private static final String REDIS_NAMESPACE = "betufu:session";
     private static final String SERVICE_CONNECTION_JDBC_URL =
             "jdbc:postgresql://service-connection.invalid:5432/integrated";
     private static final String SERVICE_CONNECTION_DATABASE_USER = "service_connection_user";
@@ -53,7 +56,10 @@ class EnvironmentConfigurationTest {
                     "BETUFU_OIDC_CLIENT_SECRET=unused",
                     "BETUFU_DB_JDBC_URL=" + JDBC_URL,
                     "BETUFU_DB_USER=" + DATABASE_USER,
-                    "BETUFU_DB_PASSWORD=" + DATABASE_PASSWORD);
+                    "BETUFU_DB_PASSWORD=" + DATABASE_PASSWORD,
+                    "BETUFU_REDIS_HOST=" + REDIS_HOST,
+                    "BETUFU_REDIS_PORT=" + REDIS_PORT,
+                    "BETUFU_REDIS_PASSWORD=" + REDIS_PASSWORD);
 
     @Test
     void loadsDevWithOnlyLoopbackProxies() {
@@ -69,8 +75,7 @@ class EnvironmentConfigurationTest {
                             .isEqualTo("http://127.0.0.1:8080");
                     assertThat(environment.getProperty("server.tomcat.remoteip.internal-proxies"))
                             .isEqualTo("127.0.0.1/32,::1/128");
-                    assertThat(environment.getProperty("spring.autoconfigure.exclude"))
-                            .isEqualTo(REDIS_SESSION_AUTO_CONFIGURATION);
+                    assertThat(environment.getProperty("spring.autoconfigure.exclude")).isNull();
                 });
     }
 
@@ -128,6 +133,24 @@ class EnvironmentConfigurationTest {
     }
 
     @Test
+    void requiresExactlyThreeRedisPlaceholdersWithoutDefaultsOrLegacyStoreType() throws IOException {
+        String content = new ClassPathResource("application.yaml")
+                .getContentAsString(StandardCharsets.UTF_8)
+                .replace("\r\n", "\n");
+
+        assertThat(countOccurrences(content, "${BETUFU_REDIS_HOST}")).isEqualTo(1);
+        assertThat(countOccurrences(content, "${BETUFU_REDIS_PORT}")).isEqualTo(1);
+        assertThat(countOccurrences(content, "${BETUFU_REDIS_PASSWORD}")).isEqualTo(1);
+        assertThat(countOccurrences(content, "${BETUFU_REDIS_")).isEqualTo(3);
+        assertThat(content)
+                .doesNotContain("${BETUFU_REDIS_HOST:")
+                .doesNotContain("${BETUFU_REDIS_PORT:")
+                .doesNotContain("${BETUFU_REDIS_PASSWORD:")
+                .doesNotContain("betufu-local-redis")
+                .doesNotContain("spring.session.store-type");
+    }
+
+    @Test
     void letsServiceConnectionJdbcConnectionDetailsTakePrecedenceOverIntegratedDatasourceProperties() {
         contextRunner
                 .withConfiguration(AutoConfigurations.of(DataSourceAutoConfiguration.class))
@@ -167,7 +190,7 @@ class EnvironmentConfigurationTest {
                         "BETUFU_DB_PASSWORD", "spring.datasource.password")
                 .forEach((missingVariable, propertyName) -> new ApplicationContextRunner()
                         .withInitializer(new ConfigDataApplicationContextInitializer())
-                        .withPropertyValues(requiredConfigurationExcept(missingVariable))
+                        .withPropertyValues(requiredRuntimeConfigurationExcept(missingVariable))
                         .run(context -> {
                             assertThat(context.getStartupFailure()).isNull();
                             assertThatThrownBy(() -> context.getEnvironment().getRequiredProperty(propertyName))
@@ -178,7 +201,25 @@ class EnvironmentConfigurationTest {
     }
 
     @Test
-    void keepsLocalDatasourceContractInDiscardableEnvExample()
+    void rejectsEachMissingRedisVariableWithoutFallback() {
+        Map.of(
+                        "BETUFU_REDIS_HOST", "spring.data.redis.host",
+                        "BETUFU_REDIS_PORT", "spring.data.redis.port",
+                        "BETUFU_REDIS_PASSWORD", "spring.data.redis.password")
+                .forEach((missingVariable, propertyName) -> new ApplicationContextRunner()
+                        .withInitializer(new ConfigDataApplicationContextInitializer())
+                        .withPropertyValues(requiredRuntimeConfigurationExcept(missingVariable))
+                        .run(context -> {
+                            assertThat(context.getStartupFailure()).isNull();
+                            assertThatThrownBy(() -> context.getEnvironment().getRequiredProperty(propertyName))
+                                    .as("variável obrigatória ausente: %s", missingVariable)
+                                    .hasMessageContaining(missingVariable)
+                                    .hasMessageNotContaining(REDIS_PASSWORD);
+                        }));
+    }
+
+    @Test
+    void keepsLocalDatasourceAndRedisContractInDiscardableEnvExample()
             throws IOException, URISyntaxException {
         List<String> lines = Files.readAllLines(resolveEnvExample(), StandardCharsets.UTF_8);
 
@@ -189,29 +230,25 @@ class EnvironmentConfigurationTest {
         assertThat(lines.stream().filter("BETUFU_DB_USER=betufu_app"::equals).count()).isEqualTo(1);
         assertThat(lines.stream().filter("POSTGRES_USER=postgres"::equals).count()).isEqualTo(1);
         assertThat(lines.stream().anyMatch(line -> line.startsWith("SPRING_DATASOURCE_"))).isFalse();
+        assertThat(lines.stream().filter("BETUFU_REDIS_HOST=127.0.0.1"::equals).count()).isEqualTo(1);
+        assertThat(lines.stream().filter("BETUFU_REDIS_PORT=6379"::equals).count()).isEqualTo(1);
+        assertThat(lines.stream().filter("BETUFU_REDIS_PASSWORD=betufu-local-redis"::equals).count())
+                .isEqualTo(1);
+        assertThat(lines.stream().anyMatch(line -> line.startsWith("SPRING_DATA_REDIS_"))).isFalse();
     }
 
     @Test
-    void devExcludesRedisSessionRepository() {
+    void devCreatesRedisSessionRepositoryWithoutOpeningAConnection() {
         redisSessionContextRunner()
                 .withPropertyValues("spring.profiles.active=dev")
-                .run(context -> {
-                    assertThat(context.getStartupFailure()).isNull();
-                    assertThat(context).doesNotHaveBean(SessionRepository.class);
-                });
-    }
-
-    @Test
-    void sameContextWouldCreateRedisSessionRepositoryWithoutDevExclusion() {
-        redisSessionContextRunner()
-                .withPropertyValues(
-                        "spring.profiles.active=dev",
-                        "spring.autoconfigure.exclude=")
                 .run(context -> {
                     assertThat(context.getStartupFailure()).isNull();
                     assertThat(context).hasSingleBean(SessionRepository.class);
                     assertThat(context.getBean(SessionRepository.class))
                             .isInstanceOf(RedisSessionRepository.class);
+                    assertThat(context.getEnvironment().getProperty("spring.autoconfigure.exclude")).isNull();
+                    assertRedisSessionContract(context.getEnvironment());
+                    verifyNoInteractions(context.getBean(RedisConnectionFactory.class));
                 });
     }
 
@@ -276,6 +313,7 @@ class EnvironmentConfigurationTest {
         assertThat(environment.getProperty("spring.datasource.password")).isEqualTo(DATABASE_PASSWORD);
         assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
         assertThat(environment.getProperty("spring.flyway.enabled", Boolean.class)).isTrue();
+        assertRedisSessionContract(environment);
         assertThat(environment.getProperty("management.endpoints.web.exposure.include"))
                 .isEqualTo("health");
         assertThat(environment.getProperty("server.forward-headers-strategy"))
@@ -283,7 +321,23 @@ class EnvironmentConfigurationTest {
         assertThat(environment.containsProperty("betufu.diagnostic.enabled")).isFalse();
     }
 
-    private static String[] requiredConfigurationExcept(String missingVariable) {
+    private static void assertRedisSessionContract(ConfigurableEnvironment environment) {
+        assertThat(environment.getProperty("spring.session.timeout")).isEqualTo("8h");
+        assertThat(environment.getProperty("spring.session.data.redis.namespace"))
+                .isEqualTo(REDIS_NAMESPACE);
+        assertThat(environment.getProperty("spring.session.data.redis.repository-type"))
+                .isEqualTo("default");
+        assertThat(environment.getProperty("spring.session.data.redis.flush-mode"))
+                .isEqualTo("on-save");
+        assertThat(environment.getProperty("spring.session.data.redis.save-mode"))
+                .isEqualTo("on-set-attribute");
+        assertThat(environment.getProperty("spring.data.redis.host")).isEqualTo(REDIS_HOST);
+        assertThat(environment.getProperty("spring.data.redis.port", Integer.class))
+                .isEqualTo(REDIS_PORT);
+        assertThat(environment.getProperty("spring.data.redis.password")).isEqualTo(REDIS_PASSWORD);
+    }
+
+    private static String[] requiredRuntimeConfigurationExcept(String missingVariable) {
         return StreamSupport.stream(Map.of(
                                 "BETUFU_OIDC_ISSUER_URI", "https://idp.invalid/realms/betufu",
                                 "BETUFU_OIDC_CLIENT_ID", "betufu-test",
@@ -291,7 +345,10 @@ class EnvironmentConfigurationTest {
                                 "spring.profiles.active", "runtime",
                                 "BETUFU_DB_JDBC_URL", JDBC_URL,
                                 "BETUFU_DB_USER", DATABASE_USER,
-                                "BETUFU_DB_PASSWORD", DATABASE_PASSWORD)
+                                "BETUFU_DB_PASSWORD", DATABASE_PASSWORD,
+                                "BETUFU_REDIS_HOST", REDIS_HOST,
+                                "BETUFU_REDIS_PORT", Integer.toString(REDIS_PORT),
+                                "BETUFU_REDIS_PASSWORD", REDIS_PASSWORD)
                         .entrySet()
                         .spliterator(), false)
                 .filter(entry -> !entry.getKey().equals(missingVariable))
@@ -334,6 +391,9 @@ class EnvironmentConfigurationTest {
                         "BETUFU_DB_JDBC_URL=" + JDBC_URL,
                         "BETUFU_DB_USER=" + DATABASE_USER,
                         "BETUFU_DB_PASSWORD=" + DATABASE_PASSWORD,
+                        "BETUFU_REDIS_HOST=" + REDIS_HOST,
+                        "BETUFU_REDIS_PORT=" + REDIS_PORT,
+                        "BETUFU_REDIS_PASSWORD=" + REDIS_PASSWORD,
                         "spring.docker.compose.enabled=false",
                         "spring.session.data.redis.configure-action=none");
     }
