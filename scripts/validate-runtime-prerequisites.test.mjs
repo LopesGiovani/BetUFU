@@ -23,6 +23,7 @@ import {
   assertNoBrowserTokenExposure,
   assertRedirectPolicy,
   assertRuntimeEvidence,
+  buildBackendEnvironment,
   buildProxyRequestHeaders,
   childHasExited,
   handleProxyRequest,
@@ -43,8 +44,7 @@ const temporaryRoots = [];
 const COPY_PATHS = Object.freeze([
   'backend/pom.xml',
   'backend/src/main/java',
-  'backend/src/main/resources/application.yaml',
-  'backend/src/main/resources/application-dev.yaml',
+  'backend/src/main/resources',
   'backend/src/test/java/br/com/betufu/platform/security/CsrfSpaIT.java',
   'frontend/src',
   'infra/.env.example',
@@ -58,6 +58,8 @@ const VALID_NONCE = 'c2d4a9b8-0f41-4dca-87f5-e307cbbcdaf8';
 const VALID_PROXY_NONCE = '413c1f95-01ef-4ac6-a521-a3a08b2a20c6';
 const VALID_SENTINEL_NONCE = 'f73bdf56-93df-4cff-9d93-e342e2eacb34';
 const VALID_STARTED_AT = '2026-08-13T03:45:00.000Z';
+const REDIS_SESSION_AUTO_CONFIGURATION =
+  'org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration';
 
 const APPROVED_ARTIFACT = Object.freeze({
   sha256: APPROVED_JAR_SHA256,
@@ -351,13 +353,632 @@ async function withTestDeadline(promise, timeoutMilliseconds = 500) {
   }
 }
 
-test('aceita o contrato canonico da Task 2', async () => {
+test('aceita o contrato canonico da Task 4', async () => {
   await validateStaticContract(projectRoot);
 });
 
 test('aceita uma fixture isolada equivalente ao checkout', async () => {
   const root = await createFixture();
   await validateStaticContract(root);
+});
+
+for (const relativePath of [
+  'backend/src/main/resources/application-dev.yaml',
+  'backend/src/main/resources/application-prod.yaml',
+]) {
+  test('rejeita exclusao Redis reintroduzida em ' + relativePath, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      relativePath,
+      (source) => source + '\nspring:\n  autoconfigure:\n    exclude:\n'
+        + '      - ' + REDIS_SESSION_AUTO_CONFIGURATION + '\n',
+    );
+    await expectRule(root, 'DEV_SESSION');
+  });
+}
+
+test('rejeita exclusao ampla de SessionAutoConfiguration', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-homolog.yaml',
+    (source) => source + '\nspring:\n  autoconfigure:\n    exclude:\n'
+      + '      - org.springframework.boot.session.autoconfigure.SessionAutoConfiguration\n',
+  );
+  await expectRule(root, 'DEV_SESSION');
+});
+
+test('rejeita spring.session.store-type em YAML aninhado', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  session:\n    store-type: redis\n',
+  );
+  await expectRule(root, 'DEV_SESSION');
+});
+
+test('rejeita spring.session.store-type em flow mapping', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  session: { store-type: none }\n',
+  );
+  await expectRule(root, 'APPLICATION_YAML_FLOW');
+});
+
+test('rejeita override Redis em flow mapping', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-prod.yaml',
+    (source) => source + '\nspring:\n  data: { redis: { host: unsafe } }\n',
+  );
+  await expectRule(root, 'APPLICATION_YAML_FLOW');
+});
+
+for (const [profile, relativePath, override] of [
+  [
+    'dev',
+    'backend/src/main/resources/application-dev.yaml',
+    'spring:\n  session:\n    timeout: 7h',
+  ],
+  [
+    'homolog',
+    'backend/src/main/resources/application-homolog.yaml',
+    'spring:\n  session:\n    data:\n      redis:\n        namespace: unsafe:session',
+  ],
+  [
+    'prod',
+    'backend/src/main/resources/application-prod.yaml',
+    'spring:\n  data:\n    redis:\n      host: redis.internal',
+  ],
+]) {
+  test('rejeita override do contrato Redis no profile ' + profile, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      relativePath,
+      (source) => source + '\n' + override + '\n',
+    );
+    await expectRule(root, 'REDIS_SESSION_SETTING');
+  });
+}
+
+for (const [label, relativePath, indirectYaml] of [
+  [
+    'merge de spring.data.redis.host',
+    'backend/src/main/resources/application-prod.yaml',
+    'redisOverride: &redisOverride\n  host: redis.internal\n'
+      + 'spring:\n  data:\n    redis:\n      <<: *redisOverride',
+  ],
+  [
+    'merge de spring.session.store-type',
+    'backend/src/main/resources/application-dev.yaml',
+    'sessionOverride: &sessionOverride\n  store-type: none\n'
+      + 'spring:\n  session:\n    <<: *sessionOverride',
+  ],
+]) {
+  test('rejeita YAML indireto com ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      relativePath,
+      (source) => source + '\n' + indirectYaml + '\n',
+    );
+    await expectRule(root, 'APPLICATION_YAML_INDIRECT');
+  });
+}
+
+test('rejeita tag YAML em parent spring', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-prod.yaml',
+    (source) => source + '\nspring: !!map\n  data:\n    redis:\n      host: unsafe\n',
+  );
+  await expectRule(root, 'APPLICATION_YAML_INDIRECT');
+});
+
+test('ignora tokens YAML avancados dentro de string e comentario', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nbetufu:\n'
+      + '  yaml-literal: "&anchor *alias <<: !!map ? complex-key"\n'
+      + '# &comment *comment <<: !!str ? comment-key \\u0061\n',
+  );
+  await validateStaticContract(root);
+});
+
+for (const [label, yaml] of [
+  [
+    'classe de exclusao escapada',
+    'spring:\n  autoconfigure:\n    exclude:\n'
+      + '      - "org.springframework.boot.session.data.redis.autoconfigure.'
+      + 'SessionDataRedisAutoConfigurati\\u006fn"',
+  ],
+  [
+    'chave storeType escapada',
+    'spring:\n  session:\n    "store\\u0054ype": none',
+  ],
+]) {
+  test('rejeita escape YAML em ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application-dev.yaml',
+      (source) => source + '\n' + yaml + '\n',
+    );
+    await expectRule(root, 'APPLICATION_YAML_ESCAPE');
+  });
+}
+
+test('rejeita alias relaxed binding camelCase de store-type', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  session:\n    storeType: none\n',
+  );
+  await expectRule(root, 'DEV_SESSION');
+});
+
+test('rejeita alias relaxed binding camelCase de flush-mode', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-homolog.yaml',
+    (source) => source + '\nspring:\n  session:\n    data:\n      redis:\n'
+      + '        flushMode: immediate\n',
+  );
+  await expectRule(root, 'REDIS_SESSION_SETTING');
+});
+
+test('rejeita mapping estrutural em leaf Redis protegido', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-prod.yaml',
+    (source) => source + '\nspring:\n  data:\n    redis:\n      host:\n'
+      + '        nested: unsafe\n',
+  );
+  await expectRule(root, 'APPLICATION_SENSITIVE_SUBTREE');
+});
+
+test('rejeita block sequence em leaf session protegido', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  session:\n    timeout:\n      - 7h\n',
+  );
+  await expectRule(root, 'APPLICATION_YAML_STRUCTURE');
+});
+
+for (const [label, relativePath, yaml] of [
+  [
+    'spring.data.redis.url',
+    'backend/src/main/resources/application-prod.yaml',
+    'spring:\n  data:\n    redis:\n      url: redis://unsafe',
+  ],
+  [
+    'spring.datasource.jndi-name',
+    'backend/src/main/resources/application-dev.yaml',
+    'spring:\n  datasource:\n    jndi-name: java:comp/env/unsafe',
+  ],
+  [
+    'OIDC token-uri',
+    'backend/src/main/resources/application-homolog.yaml',
+    'spring:\n  security:\n    oauth2:\n      client:\n        provider:\n'
+      + '          keycloak:\n            token-uri: https://issuer.invalid/token',
+  ],
+  [
+    'OIDC provider extra',
+    'backend/src/main/resources/application-prod.yaml',
+    'spring:\n  security:\n    oauth2:\n      client:\n        provider:\n'
+      + '          unsafe:\n            issuer-uri: https://issuer.invalid',
+  ],
+  [
+    'cookie domain',
+    'backend/src/main/resources/application-dev.yaml',
+    'server:\n  servlet:\n    session:\n      cookie:\n        domain: unsafe.invalid',
+  ],
+  [
+    'session tracking-modes',
+    'backend/src/main/resources/application-prod.yaml',
+    'server:\n  servlet:\n    session:\n      tracking-modes: cookie',
+  ],
+]) {
+  test('rejeita propriedade lateral sensivel: ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      relativePath,
+      (source) => source + '\n' + yaml + '\n',
+    );
+    await expectRule(root, 'APPLICATION_SENSITIVE_SUBTREE');
+  });
+}
+
+for (const [label, relativePath, contents] of [
+  [
+    'classpath config YAML',
+    'backend/src/main/resources/config/application-prod.yaml',
+    'spring:\n  data:\n    redis:\n      host: unsafe\n',
+  ],
+  [
+    'file config wildcard properties',
+    'backend/config/unsafe/application.properties',
+    'spring.data.redis.host=unsafe\n',
+  ],
+]) {
+  test('rejeita fonte ConfigData alternativa: ' + label, async () => {
+    const root = await createFixture();
+    const path = join(root, relativePath);
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(path, contents, 'utf8');
+    await expectRule(root, 'APPLICATION_CONFIG_SOURCE');
+  });
+}
+
+for (const [relativePath, expectedRule] of [
+  ['backend/Application.yaml', 'APPLICATION_CONFIG_SOURCE'],
+  ['backend/config/application.YAML', 'APPLICATION_CONFIG_SOURCE'],
+  [
+    'backend/src/main/resources/Application-prod.YAML',
+    'REDIS_SESSION_SETTING',
+  ],
+]) {
+  test('rejeita ConfigData com casing alternativo no Windows: ' + relativePath, async () => {
+    const root = await createFixture();
+    const path = join(root, relativePath);
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(
+      path,
+      'spring:\n  data:\n    redis:\n      host: unsafe\n',
+      'utf8',
+    );
+    await expectRule(root, expectedRule);
+  });
+}
+
+test('rejeita spring.config.import', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  config:\n'
+      + '    import: optional:file:./unsafe.yaml\n',
+  );
+  await expectRule(root, 'APPLICATION_CONFIG_IMPORT');
+});
+
+test('rejeita chave quoted indexada que relaxa para spring.config.import', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  config:\n'
+      + '    "import[0]": classpath:unsafe.yaml\n',
+  );
+  await writeFile(
+    join(root, 'backend/src/main/resources/unsafe.yaml'),
+    'spring:\n  data:\n    redis:\n      host: unsafe\n',
+    'utf8',
+  );
+  await expectRule(root, 'APPLICATION_YAML_KEY');
+});
+
+test('rejeita document marker inline com import e override', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source
+      + '\n--- "spring.config.import": classpath:unsafe.yaml\n',
+  );
+  await writeFile(
+    join(root, 'backend/src/main/resources/unsafe.yaml'),
+    'spring:\n  datasource:\n    username: unsafe\n',
+    'utf8',
+  );
+  await expectRule(root, 'APPLICATION_YAML_DOCUMENT');
+});
+
+test('rejeita terminador antes do datasource Redis runtime', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application.yaml',
+    (source) => source.replace(
+      '      on-profile: "runtime | integrated"',
+      '      on-profile: "runtime | integrated"\n...',
+    ),
+  );
+  await expectRule(root, 'APPLICATION_YAML_DOCUMENT_END');
+});
+
+test('rejeita condicao adicional no documento runtime integrated', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application.yaml',
+    (source) => source.replace(
+      '      on-profile: "runtime | integrated"',
+      '      on-profile: "runtime | integrated"\n'
+        + '      on-cloud-platform: kubernetes',
+    ),
+  );
+  await expectRule(root, 'APPLICATION_PROFILE_ACTIVATION');
+});
+
+for (const [profile, approved, drift] of [
+  ['dev', '      dev:\n        - runtime\n', ''],
+  [
+    'homolog',
+    '      homolog:\n        - runtime',
+    '      homolog:\n        - runtime\n        - unsafe',
+  ],
+  [
+    'prod',
+    '      prod:\n        - runtime',
+    '      prod:\n        - unsafe',
+  ],
+]) {
+  test('rejeita drift do grupo de profile ' + profile, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(approved, drift),
+    );
+    await expectRule(root, 'APPLICATION_PROFILE_GROUP');
+  });
+}
+
+test('rejeita placeholder datasource apenas em comentario com valor literal', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application.yaml',
+    (source) => source.replace(
+      'url: "${BETUFU_DB_JDBC_URL}"',
+      'url: "jdbc:postgresql://db.invalid/betufu" # ${BETUFU_DB_JDBC_URL}',
+    ),
+  );
+  await expectRule(root, 'DATASOURCE_SETTING');
+});
+
+test('rejeita override datasource em profile dev', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  datasource:\n    username: unsafe\n',
+  );
+  await expectRule(root, 'DATASOURCE_SETTING');
+});
+
+for (const [label, approved, drift] of [
+  [
+    'issuer literal',
+    '${BETUFU_OIDC_ISSUER_URI}',
+    'https://issuer.invalid/realms/unsafe',
+  ],
+  [
+    'client secret com fallback',
+    '${BETUFU_OIDC_CLIENT_SECRET}',
+    '${BETUFU_OIDC_CLIENT_SECRET:SENSITIVE_OIDC_CANARY}',
+  ],
+  [
+    'metodo de autenticacao divergente',
+    'client-authentication-method: client_secret_basic',
+    'client-authentication-method: client_secret_post',
+  ],
+  ['scope divergente', '- openid', '- profile'],
+]) {
+  test('rejeita drift OIDC: ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(approved, drift),
+    );
+    await expectRule(root, 'OIDC_SETTING');
+  });
+}
+
+test('rejeita override OIDC no profile dev', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  security:\n    oauth2:\n      client:\n'
+      + '        registration:\n          keycloak:\n            client-id: unsafe\n',
+  );
+  await expectRule(root, 'OIDC_SETTING');
+});
+
+for (const [label, approved, drift] of [
+  [
+    'SameSite literal',
+    'same-site: "${BETUFU_SESSION_COOKIE_SAME_SITE:lax}"',
+    'same-site: "strict"',
+  ],
+  [
+    'SameSite fallback divergente',
+    '${BETUFU_SESSION_COOKIE_SAME_SITE:lax}',
+    '${BETUFU_SESSION_COOKIE_SAME_SITE:strict}',
+  ],
+  ['HttpOnly divergente', 'http-only: true', 'http-only: false'],
+]) {
+  test('rejeita drift do cookie de sessao: ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(approved, drift),
+    );
+    await expectRule(root, 'SESSION_COOKIE');
+  });
+}
+
+test('rejeita override Secure do cookie em profile dev', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nserver:\n  servlet:\n    session:\n      cookie:\n'
+      + '        secure: false\n',
+  );
+  await expectRule(root, 'SESSION_COOKIE');
+});
+
+for (const [label, approved, drift] of [
+  ['timeout', 'timeout: 8h', 'timeout: 7h'],
+  ['namespace', 'namespace: betufu:session', 'namespace: unsafe:session'],
+  ['repository-type', 'repository-type: default', 'repository-type: indexed'],
+  ['flush-mode', 'flush-mode: on-save', 'flush-mode: immediate'],
+  ['save-mode', 'save-mode: on-set-attribute', 'save-mode: always'],
+]) {
+  test('rejeita drift Redis session em ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(approved, drift),
+    );
+    await expectRule(root, 'REDIS_SESSION_SETTING');
+  });
+}
+
+for (const [label, approved, drift] of [
+  [
+    'placeholder de host incorreto',
+    '${BETUFU_REDIS_HOST}',
+    '${BETUFU_REDIS_NODE}',
+  ],
+  [
+    'fallback de porta',
+    '${BETUFU_REDIS_PORT}',
+    '${BETUFU_REDIS_PORT:6379}',
+  ],
+  [
+    'senha literal',
+    '${BETUFU_REDIS_PASSWORD}',
+    'SENSITIVE_REDIS_PASSWORD_CANARY',
+  ],
+]) {
+  test('rejeita conexao Redis com ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(approved, drift),
+    );
+    await expectRule(root, 'REDIS_SESSION_SETTING');
+  });
+}
+
+for (const [label, mutation] of [
+  [
+    'host divergente',
+    (source) => source.replace('BETUFU_REDIS_HOST=127.0.0.1', 'BETUFU_REDIS_HOST=redis'),
+  ],
+  [
+    'porta divergente',
+    (source) => source.replace('BETUFU_REDIS_PORT=6379', 'BETUFU_REDIS_PORT=6380'),
+  ],
+  [
+    'senha divergente',
+    (source) => source.replace(
+      'BETUFU_REDIS_PASSWORD=betufu-local-redis',
+      'BETUFU_REDIS_PASSWORD=SENSITIVE_REDIS_PASSWORD_CANARY',
+    ),
+  ],
+  [
+    'alias Spring',
+    (source) => source + '\nSPRING_DATA_REDIS_HOST=127.0.0.1\n',
+  ],
+]) {
+  test('rejeita .env.example Redis com ' + label, async () => {
+    const root = await createFixture();
+    await mutate(root, 'infra/.env.example', mutation);
+    await expectRule(root, 'REDIS_LOCAL_ENV');
+  });
+}
+
+test('erro Redis nao expoe senha literal da fixture', async () => {
+  const root = await createFixture();
+  const canary = 'SENSITIVE_REDIS_PASSWORD_CANARY';
+  await mutate(
+    root,
+    'infra/.env.example',
+    (source) => source.replace('betufu-local-redis', canary),
+  );
+  let failure;
+  try {
+    await validateStaticContract(root);
+  } catch (error) {
+    failure = error;
+  }
+  assert.equal(failure?.rule, 'REDIS_LOCAL_ENV');
+  assert.doesNotMatch(sanitizeError(failure), new RegExp(canary, 'u'));
+});
+
+test('rejeita remocao do starter Spring Session Data Redis', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/pom.xml',
+    (source) => source.replace(
+      'spring-boot-starter-session-data-redis',
+      'removed-session-data-redis',
+    ),
+  );
+  await expectRule(root, 'REDIS_STARTER');
+});
+
+test('ambiente Java filho recebe Redis e exclusao sem mutar o ambiente pai', () => {
+  const parentEnvironment = {
+    Path: 'C:\\runtime\\bin',
+    SPRING_AUTOCONFIGURE_EXCLUDE: 'parent-value',
+    UNRELATED_CANARY: 'must-not-cross',
+  };
+  const parentSnapshot = structuredClone(parentEnvironment);
+  const processExclusionBefore = process.env.SPRING_AUTOCONFIGURE_EXCLUDE;
+  const values = {
+    BETUFU_DB_JDBC_URL: 'jdbc:postgresql://db/betufu',
+    BETUFU_DB_USER: 'app',
+    BETUFU_DB_PASSWORD: 'db-secret',
+    BETUFU_REDIS_HOST: 'redis.internal',
+    BETUFU_REDIS_PORT: '6380',
+    BETUFU_REDIS_PASSWORD: 'redis-secret',
+    BETUFU_OIDC_CLIENT_ID: 'client',
+    BETUFU_OIDC_CLIENT_SECRET: 'oidc-secret',
+    BETUFU_OIDC_ISSUER_URI: 'https://issuer.invalid/realms/betufu',
+  };
+
+  const childEnvironment = buildBackendEnvironment(
+    values,
+    VALID_NONCE,
+    parentEnvironment,
+  );
+
+  assert.deepEqual(parentEnvironment, parentSnapshot);
+  assert.equal(process.env.SPRING_AUTOCONFIGURE_EXCLUDE, processExclusionBefore);
+  assert.equal(childEnvironment.BETUFU_REDIS_HOST, values.BETUFU_REDIS_HOST);
+  assert.equal(childEnvironment.BETUFU_REDIS_PORT, values.BETUFU_REDIS_PORT);
+  assert.equal(childEnvironment.BETUFU_REDIS_PASSWORD, values.BETUFU_REDIS_PASSWORD);
+  assert.equal(
+    childEnvironment.SPRING_AUTOCONFIGURE_EXCLUDE,
+    REDIS_SESSION_AUTO_CONFIGURATION,
+  );
+  assert.equal(childEnvironment.UNRELATED_CANARY, undefined);
 });
 
 for (const [label, mutateRealm] of [

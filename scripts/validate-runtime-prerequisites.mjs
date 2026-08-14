@@ -15,6 +15,11 @@ const defaultProjectRoot = resolve(scriptsDirectory, '..');
 const PATHS = Object.freeze({
   application: 'backend/src/main/resources/application.yaml',
   development: 'backend/src/main/resources/application-dev.yaml',
+  homolog: 'backend/src/main/resources/application-homolog.yaml',
+  production: 'backend/src/main/resources/application-prod.yaml',
+  resources: 'backend/src/main/resources',
+  backend: 'backend',
+  backendConfig: 'backend/config',
   environment: 'infra/.env.example',
   keycloakRealm: 'infra/keycloak/realm-betufu.json',
   pom: 'backend/pom.xml',
@@ -29,6 +34,9 @@ const PATHS = Object.freeze({
 const REDIS_SESSION_AUTO_CONFIGURATION =
   'org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration';
 const LOCAL_JDBC_URL = 'jdbc:postgresql://127.0.0.1:5432/betufu_local';
+const LOCAL_REDIS_HOST = '127.0.0.1';
+const LOCAL_REDIS_PORT = '6379';
+const LOCAL_REDIS_PASSWORD = 'betufu-local-redis';
 const XSRF_COOKIE = 'XSRF-TOKEN';
 const XSRF_HEADER = 'X-XSRF-TOKEN';
 const CLIENT_ORIGIN = 'http://localhost:4200';
@@ -57,6 +65,9 @@ const REQUIRED_RUNTIME_ENV = Object.freeze([
   'BETUFU_DB_JDBC_URL',
   'BETUFU_DB_USER',
   'BETUFU_DB_PASSWORD',
+  'BETUFU_REDIS_HOST',
+  'BETUFU_REDIS_PORT',
+  'BETUFU_REDIS_PASSWORD',
   'BETUFU_OIDC_CLIENT_ID',
   'BETUFU_OIDC_CLIENT_SECRET',
   'BETUFU_OIDC_ISSUER_URI',
@@ -229,7 +240,10 @@ async function readSourceTree(root, relativeRoot, extension, excluded = () => fa
       expect(!entry.isSymbolicLink(), 'SOURCE_LINK', relativePath + ' nao pode ser link.');
       if (entry.isDirectory()) {
         await visit(absolutePath);
-      } else if (entry.isFile() && relativePath.endsWith(extension)) {
+      } else if (
+        entry.isFile()
+          && relativePath.toLowerCase().endsWith(extension.toLowerCase())
+      ) {
         sources.set(relativePath, await readRequiredText(root, relativePath));
       }
     }
@@ -237,6 +251,71 @@ async function readSourceTree(root, relativeRoot, extension, excluded = () => fa
 
   await visit(treeRoot);
   return sources;
+}
+
+function applicationConfigurationSources(sources, extension) {
+  const pattern = new RegExp(
+    '/application(?:-[^/]+)?\\.' + extension + '$',
+    'iu',
+  );
+  return new Map(
+    Array.from(sources).filter(([relativePath]) => pattern.test(relativePath)),
+  );
+}
+
+const SPRING_CONFIGURATION_FILE_PATTERN =
+  /^application(?:-[^/]+)?\.(?:yaml|yml|properties)$/iu;
+
+async function listExternalSpringConfigurationPaths(root) {
+  const paths = [];
+
+  async function inspectDirectory(relativeDirectory, childDepth, required) {
+    const absoluteDirectory = resolveContained(root, relativeDirectory);
+    let metadata;
+    try {
+      metadata = await lstat(absoluteDirectory);
+    } catch (error) {
+      if (!required && error?.code === 'ENOENT') {
+        return;
+      }
+      fail(
+        'APPLICATION_CONFIG_SOURCE',
+        relativeDirectory + ' nao pode ser inspecionado para ConfigData.',
+      );
+    }
+    expect(
+      metadata.isDirectory() && !metadata.isSymbolicLink(),
+      'APPLICATION_CONFIG_SOURCE',
+      relativeDirectory + ' deve ser diretorio regular sem link.',
+    );
+
+    const entries = await readdir(absoluteDirectory, { withFileTypes: true });
+    entries.sort((left, right) => left.name.localeCompare(right.name, 'en'));
+    for (const entry of entries) {
+      const relativePath = relativeDirectory + '/' + entry.name;
+      if (SPRING_CONFIGURATION_FILE_PATTERN.test(entry.name)) {
+        expect(
+          entry.isFile() && !entry.isSymbolicLink(),
+          'APPLICATION_CONFIG_SOURCE',
+          relativePath + ' deve ser arquivo regular sem link.',
+        );
+        paths.push(relativePath);
+        continue;
+      }
+      if (childDepth > 0 && (entry.isDirectory() || entry.isSymbolicLink())) {
+        expect(
+          entry.isDirectory() && !entry.isSymbolicLink(),
+          'APPLICATION_CONFIG_SOURCE',
+          relativePath + ' nao pode ser link em config/*/.',
+        );
+        await inspectDirectory(relativePath, childDepth - 1, true);
+      }
+    }
+  }
+
+  await inspectDirectory(PATHS.backend, 0, true);
+  await inspectDirectory(PATHS.backendConfig, 1, false);
+  return paths;
 }
 
 function stripComments(source) {
@@ -295,7 +374,371 @@ function stripComments(source) {
   return output;
 }
 
-function assertDatasourceContract(application, development, environment, pom) {
+function yamlScalar(value) {
+  const trimmed = value.trim();
+  if (
+    trimmed.length >= 2
+      && ((trimmed.startsWith('"') && trimmed.endsWith('"'))
+        || (trimmed.startsWith("'") && trimmed.endsWith("'")))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function yamlContentWithoutComment(source) {
+  let quote = null;
+  for (let index = 0; index < source.length; index += 1) {
+    const current = source[index];
+    if (quote !== null) {
+      if (current === quote && source[index - 1] !== '\\') {
+        quote = null;
+      }
+      continue;
+    }
+    if (current === '"' || current === "'") {
+      quote = current;
+      continue;
+    }
+    if (current === '#' && (index === 0 || /\s/u.test(source[index - 1]))) {
+      return source.slice(0, index).trimEnd();
+    }
+  }
+  return source.trimEnd();
+}
+
+function yamlMappingSeparator(source) {
+  let quote = null;
+  for (let index = 0; index < source.length; index += 1) {
+    const current = source[index];
+    if (quote !== null) {
+      if (current === quote && source[index - 1] !== '\\') {
+        quote = null;
+      }
+      continue;
+    }
+    if (current === '"' || current === "'") {
+      quote = current;
+    } else if (current === ':') {
+      return index;
+    }
+  }
+  return -1;
+}
+
+function hasYamlFlowCollection(source) {
+  let quote = null;
+  for (let index = 0; index < source.length; index += 1) {
+    const current = source[index];
+    if (quote !== null) {
+      if (current === quote && source[index - 1] !== '\\') {
+        quote = null;
+      }
+      continue;
+    }
+    if (current === '"' || current === "'") {
+      quote = current;
+    } else if (current === '[' || (current === '{' && source[index - 1] !== '$')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function yamlSyntaxOutsideQuotes(source) {
+  let output = '';
+  let quote = null;
+  for (let index = 0; index < source.length; index += 1) {
+    const current = source[index];
+    if (quote === "'") {
+      output += ' ';
+      if (current === "'" && source[index + 1] === "'") {
+        output += ' ';
+        index += 1;
+      } else if (current === "'") {
+        quote = null;
+      }
+      continue;
+    }
+    if (quote === '"') {
+      output += ' ';
+      if (current === '\\' && index + 1 < source.length) {
+        output += ' ';
+        index += 1;
+      } else if (current === '"') {
+        quote = null;
+      }
+      continue;
+    }
+    if (current === "'" || current === '"') {
+      quote = current;
+      output += ' ';
+    } else {
+      output += current;
+    }
+  }
+  return output;
+}
+
+function hasYamlIndirectSyntax(source) {
+  const active = yamlSyntaxOutsideQuotes(source);
+  return /^\s*<<\s*:/u.test(active)
+    || /^\s*%/u.test(active)
+    || /^\s*\?(?:\s|$)/u.test(active)
+    || /(?:^|[\s:[{,])(?:&|\*)(?=\S)/u.test(active)
+    || /(?:^|[\s:[{,])!/u.test(active);
+}
+
+const PROTECTED_APPLICATION_YAML_PATHS = Object.freeze([
+  'spring.autoconfigure.exclude',
+  'spring.datasource.url',
+  'spring.datasource.username',
+  'spring.datasource.password',
+  'spring.security.oauth2.client.provider.keycloak.issuer-uri',
+  'spring.security.oauth2.client.registration.keycloak.provider',
+  'spring.security.oauth2.client.registration.keycloak.client-id',
+  'spring.security.oauth2.client.registration.keycloak.client-secret',
+  'spring.security.oauth2.client.registration.keycloak.client-authentication-method',
+  'spring.security.oauth2.client.registration.keycloak.authorization-grant-type',
+  'spring.security.oauth2.client.registration.keycloak.redirect-uri',
+  'spring.security.oauth2.client.registration.keycloak.scope',
+  'spring.session.timeout',
+  'spring.session.data.redis.namespace',
+  'spring.session.data.redis.repository-type',
+  'spring.session.data.redis.flush-mode',
+  'spring.session.data.redis.save-mode',
+  'spring.session.store-type',
+  'spring.data.redis.host',
+  'spring.data.redis.port',
+  'spring.data.redis.password',
+  'server.servlet.session.cookie.http-only',
+  'server.servlet.session.cookie.secure',
+  'server.servlet.session.cookie.same-site',
+]);
+
+const APPROVED_BLOCK_SEQUENCE_PATHS = Object.freeze([
+  'spring.security.oauth2.client.registration.keycloak.scope',
+]);
+
+function normalizeYamlPath(path) {
+  return path
+    .split('.')
+    .map((segment) => segment.toLowerCase().replace(/[-_]/gu, ''))
+    .join('.');
+}
+
+function isProtectedYamlBranch(path) {
+  const normalizedPath = normalizeYamlPath(path);
+  return PROTECTED_APPLICATION_YAML_PATHS.some(
+    (protectedPath) => {
+      const normalizedProtectedPath = normalizeYamlPath(protectedPath);
+      return normalizedProtectedPath === normalizedPath
+        || normalizedProtectedPath.startsWith(normalizedPath + '.');
+    },
+  );
+}
+
+function isApprovedBlockSequencePath(path) {
+  const normalizedPath = normalizeYamlPath(path);
+  return APPROVED_BLOCK_SEQUENCE_PATHS.some(
+    (approvedPath) => normalizeYamlPath(approvedPath) === normalizedPath,
+  );
+}
+
+function parseApplicationYamlDocuments(source) {
+  const documents = [{ entries: new Map() }];
+  let document = documents[0];
+  let stack = [];
+
+  for (const rawLine of source.split('\n')) {
+    if (/^\s*(?:#.*)?$/u.test(rawLine)) {
+      continue;
+    }
+    expect(
+      !/^\s*\.\.\.(?=\s|$)/u.test(rawLine),
+      'APPLICATION_YAML_DOCUMENT_END',
+      'terminador de documento YAML nao e permitido em application*.yaml.',
+    );
+    expect(
+      !/^\s*---(?=\s|$)/u.test(rawLine)
+        || /^\s*---\s*(?:#.*)?$/u.test(rawLine),
+      'APPLICATION_YAML_DOCUMENT',
+      'marcador de documento YAML deve aparecer sozinho, salvo comentario.',
+    );
+    if (/^\s*---\s*(?:#.*)?$/u.test(rawLine)) {
+      document = { entries: new Map() };
+      documents.push(document);
+      stack = [];
+      continue;
+    }
+    const indentation = rawLine.match(/^ */u)[0].length;
+    const content = yamlContentWithoutComment(rawLine.slice(indentation));
+    if (content === '') {
+      continue;
+    }
+    expect(
+      !content.includes('\\'),
+      'APPLICATION_YAML_ESCAPE',
+      'escapes YAML nao sao permitidos em application*.yaml.',
+    );
+    expect(
+      !hasYamlFlowCollection(content),
+      'APPLICATION_YAML_FLOW',
+      'colecoes YAML em flow style nao sao permitidas em application*.yaml.',
+    );
+    expect(
+      !hasYamlIndirectSyntax(content),
+      'APPLICATION_YAML_INDIRECT',
+      'anchors, aliases, merge keys, tags e chaves indiretas nao sao permitidos.',
+    );
+    if (content.startsWith('-')) {
+      const parentPath = stack.length === 0 ? '' : stack.at(-1).segments.join('.');
+      expect(
+        normalizeYamlPath(parentPath)
+          !== normalizeYamlPath('spring.autoconfigure.exclude'),
+        'DEV_SESSION',
+        'spring.autoconfigure.exclude nao e permitido em application*.yaml.',
+      );
+      expect(
+        parentPath !== ''
+          && (!isProtectedYamlBranch(parentPath)
+            || isApprovedBlockSequencePath(parentPath)),
+        'APPLICATION_YAML_STRUCTURE',
+        'block sequence nao pode redefinir ramo de configuracao protegido.',
+      );
+      const item = content.slice(1).trim();
+      if (item !== '' && yamlMappingSeparator(item) < 0) {
+        const normalizedParentPath = normalizeYamlPath(parentPath);
+        const values = document.entries.get(normalizedParentPath) ?? [];
+        values.push(yamlScalar(item));
+        document.entries.set(normalizedParentPath, values);
+      }
+      continue;
+    }
+    const separator = yamlMappingSeparator(content);
+    if (separator <= 0) {
+      continue;
+    }
+
+    const key = yamlScalar(content.slice(0, separator));
+    expect(
+      /^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9][A-Za-z0-9_-]*)*$/u
+        .test(key),
+      'APPLICATION_YAML_KEY',
+      'chave YAML fora do subset canonico seguro em application*.yaml.',
+    );
+    const rawValue = content.slice(separator + 1).trim();
+    while (stack.length > 0 && stack.at(-1).indentation >= indentation) {
+      stack.pop();
+    }
+    const parentSegments = stack.length === 0 ? [] : stack.at(-1).segments;
+    const keySegments = key.split('.').map((segment) => segment.trim());
+    const segments = [...parentSegments, ...keySegments];
+    const path = normalizeYamlPath(segments.join('.'));
+    expect(
+      !(path === 'spring' || path.startsWith('spring.'))
+        || !hasYamlFlowCollection(rawValue),
+      'APPLICATION_YAML_FLOW',
+      'colecoes YAML em flow style nao sao permitidas sob spring.',
+    );
+    if (rawValue === '') {
+      const values = document.entries.get(path) ?? [];
+      values.push(null);
+      document.entries.set(path, values);
+      stack.push({ indentation, segments });
+      continue;
+    }
+
+    const values = document.entries.get(path) ?? [];
+    values.push(yamlScalar(rawValue));
+    document.entries.set(path, values);
+  }
+
+  return documents;
+}
+
+function yamlValues(document, path) {
+  return document.entries.get(normalizeYamlPath(path)) ?? [];
+}
+
+function assertSingleYamlValue(
+  document,
+  path,
+  expected,
+  rule = 'REDIS_SESSION_SETTING',
+) {
+  const values = yamlValues(document, path);
+  expect(
+    values.length === 1 && values[0] === expected,
+    rule,
+    path + ' deve aparecer exatamente uma vez com o valor aprovado.',
+  );
+}
+
+function assertUniqueApprovedYamlValue(
+  documents,
+  approvedDocument,
+  path,
+  expected,
+  rule = 'REDIS_SESSION_SETTING',
+) {
+  assertSingleYamlValue(approvedDocument, path, expected, rule);
+  const occurrences = documents.reduce(
+    (total, document) => total + yamlValues(document, path).length,
+    0,
+  );
+  expect(
+    occurrences === 1,
+    rule,
+    path + ' deve existir somente no documento runtime | integrated aprovado.',
+  );
+}
+
+function assertUniqueApprovedYamlSequence(
+  documents,
+  approvedDocument,
+  path,
+  expectedItems,
+  rule,
+) {
+  const approvedValues = yamlValues(approvedDocument, path);
+  expect(
+    approvedValues.length === expectedItems.length + 1
+      && approvedValues[0] === null
+      && expectedItems.every(
+        (expected, index) => approvedValues[index + 1] === expected,
+      ),
+    rule,
+    path + ' deve conter somente a sequencia aprovada.',
+  );
+  const occurrences = documents.reduce(
+    (total, document) => total + yamlValues(document, path).length,
+    0,
+  );
+  expect(
+    occurrences === approvedValues.length,
+    rule,
+    path + ' nao pode ser redefinido em outro documento ou profile.',
+  );
+}
+
+function assertYamlSubtreeAllowlist(documents, root, allowedPaths) {
+  const normalizedRoot = normalizeYamlPath(root);
+  const allowed = new Set(allowedPaths.map(normalizeYamlPath));
+  for (const document of documents) {
+    for (const path of document.entries.keys()) {
+      if (path === normalizedRoot || path.startsWith(normalizedRoot + '.')) {
+        expect(
+          allowed.has(path),
+          'APPLICATION_SENSITIVE_SUBTREE',
+          root + ' contem propriedade fora da allowlist canonica.',
+        );
+      }
+    }
+  }
+}
+
+function assertDatasourceContract(application, environment) {
   const placeholderPrefix = '$' + '{';
   const placeholders = [
     'BETUFU_DB_JDBC_URL',
@@ -326,12 +769,6 @@ function assertDatasourceContract(application, development, environment, pom) {
     'URL local deve ficar fora de application.yaml.',
   );
   expect(
-    /session:\s*\n\s+cookie:\s*\n\s+http-only:\s*true\s*\n\s+secure:\s*true\s*\n\s+same-site:\s*"\$\{BETUFU_SESSION_COOKIE_SAME_SITE:lax\}"/su
-      .test(application),
-    'SESSION_COOKIE',
-    'cookie de sessao deve permanecer HttpOnly, Secure e SameSite parametrizado.',
-  );
-  expect(
     environment.split('BETUFU_DB_JDBC_URL=' + LOCAL_JDBC_URL).length - 1 === 1,
     'LOCAL_ENV',
     'URL JDBC local exata deve aparecer uma vez no .env.example.',
@@ -346,23 +783,324 @@ function assertDatasourceContract(application, development, environment, pom) {
     'LOCAL_ENV',
     'nomes SPRING_DATASOURCE duplicados nao sao permitidos.',
   );
+}
+
+function assertRedisSessionContract(applicationConfigurations, environment, pom) {
   expect(
-    development.split(REDIS_SESSION_AUTO_CONFIGURATION).length - 1 === 1,
-    'DEV_SESSION',
-    'dev deve excluir exatamente SessionDataRedisAutoConfiguration.',
+    [
+      PATHS.application,
+      PATHS.development,
+      PATHS.homolog,
+      PATHS.production,
+    ].every((path) => applicationConfigurations.has(path)),
+    'REQUIRED_FILE',
+    'os quatro application*.yaml canonicos devem permanecer cobertos.',
   );
+
   const forbiddenSessionClass =
     'org.springframework.boot.session.autoconfigure.SessionAutoConfiguration';
-  expect(
-    !development.includes(forbiddenSessionClass),
-    'DEV_SESSION',
-    'SessionAutoConfiguration nao pode ser excluida.',
+  const documentsByPath = new Map();
+  for (const [relativePath, source] of applicationConfigurations) {
+    expect(
+      !source.includes(REDIS_SESSION_AUTO_CONFIGURATION),
+      'DEV_SESSION',
+      'SessionDataRedisAutoConfiguration nao pode ser excluida em application*.yaml.',
+    );
+    expect(
+      !source.includes(forbiddenSessionClass),
+      'DEV_SESSION',
+      'SessionAutoConfiguration nao pode ser excluida em application*.yaml.',
+    );
+    const documents = parseApplicationYamlDocuments(source);
+    documentsByPath.set(relativePath, documents);
+    for (const document of documents) {
+      expect(
+        yamlValues(document, 'spring.autoconfigure.exclude').length === 0,
+        'DEV_SESSION',
+        'spring.autoconfigure.exclude nao e permitido em application*.yaml.',
+      );
+      expect(
+        yamlValues(document, 'spring.session.store-type').length === 0,
+        'DEV_SESSION',
+        'spring.session.store-type nao e permitido em ' + relativePath + '.',
+      );
+      expect(
+        yamlValues(document, 'spring.config.import').length === 0,
+        'APPLICATION_CONFIG_IMPORT',
+        'spring.config.import nao e permitido em application*.yaml.',
+      );
+    }
+  }
+
+  const applicationDocuments = documentsByPath.get(PATHS.application);
+  const runtimeDocuments = applicationDocuments.filter(
+    (document) => yamlValues(document, 'spring.config.activate.on-profile')
+      .some((value) => value.replace(/\s/gu, '') === 'runtime|integrated'),
   );
   expect(
-    !/spring\.session\.store-type/iu.test(development),
-    'DEV_SESSION',
-    'spring.session.store-type nao e permitido.',
+    runtimeDocuments.length === 1
+      && yamlValues(
+        runtimeDocuments[0],
+        'spring.config.activate.on-profile',
+      ).length === 1,
+    'REDIS_SESSION_PROFILE',
+    'deve existir um unico documento runtime | integrated.',
   );
+  const runtimeDocument = runtimeDocuments[0];
+  const allApplicationDocuments = Array.from(documentsByPath.values()).flat();
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'spring.datasource',
+    [
+      'spring.datasource',
+      'spring.datasource.url',
+      'spring.datasource.username',
+      'spring.datasource.password',
+    ],
+  );
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'spring.session',
+    [
+      'spring.session',
+      'spring.session.timeout',
+      'spring.session.data',
+      'spring.session.data.redis',
+      'spring.session.data.redis.namespace',
+      'spring.session.data.redis.repository-type',
+      'spring.session.data.redis.flush-mode',
+      'spring.session.data.redis.save-mode',
+    ],
+  );
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'spring.data.redis',
+    [
+      'spring.data.redis',
+      'spring.data.redis.host',
+      'spring.data.redis.port',
+      'spring.data.redis.password',
+    ],
+  );
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'spring.security.oauth2.client',
+    [
+      'spring.security.oauth2.client',
+      'spring.security.oauth2.client.provider',
+      'spring.security.oauth2.client.provider.keycloak',
+      'spring.security.oauth2.client.provider.keycloak.issuer-uri',
+      'spring.security.oauth2.client.registration',
+      'spring.security.oauth2.client.registration.keycloak',
+      'spring.security.oauth2.client.registration.keycloak.provider',
+      'spring.security.oauth2.client.registration.keycloak.client-id',
+      'spring.security.oauth2.client.registration.keycloak.client-secret',
+      'spring.security.oauth2.client.registration.keycloak.client-authentication-method',
+      'spring.security.oauth2.client.registration.keycloak.authorization-grant-type',
+      'spring.security.oauth2.client.registration.keycloak.redirect-uri',
+      'spring.security.oauth2.client.registration.keycloak.scope',
+    ],
+  );
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'server.servlet.session',
+    [
+      'server.servlet.session',
+      'server.servlet.session.cookie',
+      'server.servlet.session.cookie.http-only',
+      'server.servlet.session.cookie.secure',
+      'server.servlet.session.cookie.same-site',
+    ],
+  );
+  const activationPrefix = normalizeYamlPath('spring.config.activate') + '.';
+  const approvedActivationPath = normalizeYamlPath(
+    'spring.config.activate.on-profile',
+  );
+  const runtimeActivationPaths = Array.from(runtimeDocument.entries.keys())
+    .filter((path) => path.startsWith(activationPrefix));
+  expect(
+    runtimeActivationPaths.length === 1
+      && runtimeActivationPaths[0] === approvedActivationPath
+      && yamlValues(runtimeDocument, 'spring.config.activate').length === 1
+      && yamlValues(runtimeDocument, 'spring.config.activate')[0] === null,
+    'APPLICATION_PROFILE_ACTIVATION',
+    'runtime | integrated nao pode possuir condicao adicional de ativacao.',
+  );
+
+  const baseDocument = applicationDocuments[0];
+  expect(
+    yamlValues(baseDocument, 'spring.config.activate').length === 0
+      && Array.from(baseDocument.entries.keys())
+        .every((path) => !path.startsWith(activationPrefix)),
+    'APPLICATION_PROFILE_ACTIVATION',
+    'documento base dos grupos de profile deve ser incondicional.',
+  );
+  for (const profile of ['dev', 'homolog', 'prod']) {
+    assertUniqueApprovedYamlSequence(
+      allApplicationDocuments,
+      baseDocument,
+      'spring.profiles.group.' + profile,
+      ['runtime'],
+      'APPLICATION_PROFILE_GROUP',
+    );
+  }
+
+  const allApplicationYaml = Array.from(applicationConfigurations.values()).join('\n');
+  for (const [path, variable] of [
+    ['spring.datasource.url', 'BETUFU_DB_JDBC_URL'],
+    ['spring.datasource.username', 'BETUFU_DB_USER'],
+    ['spring.datasource.password', 'BETUFU_DB_PASSWORD'],
+  ]) {
+    const placeholder = '${' + variable + '}';
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      runtimeDocument,
+      path,
+      placeholder,
+      'DATASOURCE_SETTING',
+    );
+    expect(
+      allApplicationYaml.split(placeholder).length - 1 === 1
+        && !allApplicationYaml.includes('${' + variable + ':'),
+      'DATASOURCE_PLACEHOLDER',
+      variable + ' deve ser unico em ConfigData e nao possuir fallback.',
+    );
+  }
+
+  for (const [path, expected] of [
+    ['spring.session.timeout', '8h'],
+    ['spring.session.data.redis.namespace', 'betufu:session'],
+    ['spring.session.data.redis.repository-type', 'default'],
+    ['spring.session.data.redis.flush-mode', 'on-save'],
+    ['spring.session.data.redis.save-mode', 'on-set-attribute'],
+  ]) {
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      runtimeDocument,
+      path,
+      expected,
+    );
+  }
+
+  for (const [path, variable] of [
+    ['spring.data.redis.host', 'BETUFU_REDIS_HOST'],
+    ['spring.data.redis.port', 'BETUFU_REDIS_PORT'],
+    ['spring.data.redis.password', 'BETUFU_REDIS_PASSWORD'],
+  ]) {
+    const placeholder = '${' + variable + '}';
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      runtimeDocument,
+      path,
+      placeholder,
+    );
+    expect(
+      allApplicationYaml.split(placeholder).length - 1 === 1
+        && !allApplicationYaml.includes('${' + variable + ':'),
+      'REDIS_PLACEHOLDER',
+      variable + ' deve aparecer exatamente uma vez e sem fallback.',
+    );
+  }
+
+  for (const [path, expected] of [
+    [
+      'spring.security.oauth2.client.provider.keycloak.issuer-uri',
+      '${BETUFU_OIDC_ISSUER_URI}',
+    ],
+    [
+      'spring.security.oauth2.client.registration.keycloak.provider',
+      'keycloak',
+    ],
+    [
+      'spring.security.oauth2.client.registration.keycloak.client-id',
+      '${BETUFU_OIDC_CLIENT_ID}',
+    ],
+    [
+      'spring.security.oauth2.client.registration.keycloak.client-secret',
+      '${BETUFU_OIDC_CLIENT_SECRET}',
+    ],
+    [
+      'spring.security.oauth2.client.registration.keycloak.client-authentication-method',
+      'client_secret_basic',
+    ],
+    [
+      'spring.security.oauth2.client.registration.keycloak.authorization-grant-type',
+      'authorization_code',
+    ],
+    [
+      'spring.security.oauth2.client.registration.keycloak.redirect-uri',
+      '{baseUrl}/login/oauth2/code/{registrationId}',
+    ],
+  ]) {
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      runtimeDocument,
+      path,
+      expected,
+      'OIDC_SETTING',
+    );
+  }
+  for (const variable of [
+    'BETUFU_OIDC_ISSUER_URI',
+    'BETUFU_OIDC_CLIENT_ID',
+    'BETUFU_OIDC_CLIENT_SECRET',
+  ]) {
+    const placeholder = '${' + variable + '}';
+    expect(
+      allApplicationYaml.split(placeholder).length - 1 === 1
+        && !allApplicationYaml.includes('${' + variable + ':'),
+      'OIDC_PLACEHOLDER',
+      variable + ' deve ser unico em ConfigData e nao possuir fallback.',
+    );
+  }
+  assertUniqueApprovedYamlSequence(
+    allApplicationDocuments,
+    runtimeDocument,
+    'spring.security.oauth2.client.registration.keycloak.scope',
+    ['openid'],
+    'OIDC_SETTING',
+  );
+
+  for (const [path, expected] of [
+    ['server.servlet.session.cookie.http-only', 'true'],
+    ['server.servlet.session.cookie.secure', 'true'],
+    [
+      'server.servlet.session.cookie.same-site',
+      '${BETUFU_SESSION_COOKIE_SAME_SITE:lax}',
+    ],
+  ]) {
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      baseDocument,
+      path,
+      expected,
+      'SESSION_COOKIE',
+    );
+  }
+
+  for (const [name, expected] of [
+    ['BETUFU_REDIS_HOST', LOCAL_REDIS_HOST],
+    ['BETUFU_REDIS_PORT', LOCAL_REDIS_PORT],
+    ['BETUFU_REDIS_PASSWORD', LOCAL_REDIS_PASSWORD],
+  ]) {
+    const assignment = new RegExp('^' + name + '=', 'gmu');
+    const approved = new RegExp(
+      '^' + name + '=' + expected.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&') + '$',
+      'gmu',
+    );
+    expect(
+      countMatches(environment, assignment) === 1
+        && countMatches(environment, approved) === 1,
+      'REDIS_LOCAL_ENV',
+      name + ' deve possuir exatamente o valor local aprovado.',
+    );
+  }
+  expect(
+    !environment.includes('SPRING_DATA_REDIS_'),
+    'REDIS_LOCAL_ENV',
+    'aliases SPRING_DATA_REDIS_* nao sao permitidos no .env.example.',
+  );
+
   expect(
     countMatches(pom, /<artifactId>spring-boot-starter-session-data-redis<\/artifactId>/gu) === 1,
     'REDIS_STARTER',
@@ -582,7 +1320,10 @@ export async function validateStaticContract(projectRoot = defaultProjectRoot) {
   const resolvedRoot = await realpath(resolve(projectRoot));
   const [
     application,
-    development,
+    yamlResources,
+    ymlResources,
+    propertiesResources,
+    externalSpringConfigurationPaths,
     environment,
     keycloakRealm,
     pom,
@@ -593,7 +1334,10 @@ export async function validateStaticContract(projectRoot = defaultProjectRoot) {
     frontendSources,
   ] = await Promise.all([
     readRequiredText(resolvedRoot, PATHS.application),
-    readRequiredText(resolvedRoot, PATHS.development),
+    readSourceTree(resolvedRoot, PATHS.resources, '.yaml'),
+    readSourceTree(resolvedRoot, PATHS.resources, '.yml'),
+    readSourceTree(resolvedRoot, PATHS.resources, '.properties'),
+    listExternalSpringConfigurationPaths(resolvedRoot),
     readRequiredText(resolvedRoot, PATHS.environment),
     readRequiredText(resolvedRoot, PATHS.keycloakRealm),
     readRequiredText(resolvedRoot, PATHS.pom),
@@ -609,7 +1353,36 @@ export async function validateStaticContract(projectRoot = defaultProjectRoot) {
     ),
   ]);
 
-  assertDatasourceContract(application, development, environment, pom);
+  const applicationConfigurations = applicationConfigurationSources(
+    yamlResources,
+    'yaml',
+  );
+  const alternativeResourceConfigurations = [
+    ...applicationConfigurationSources(ymlResources, 'yml').keys(),
+    ...applicationConfigurationSources(propertiesResources, 'properties').keys(),
+  ];
+  const discoveredConfigurationPaths = [
+    ...applicationConfigurations.keys(),
+    ...alternativeResourceConfigurations,
+    ...externalSpringConfigurationPaths,
+  ];
+  const approvedConfigurationPaths = new Set([
+    PATHS.application,
+    PATHS.development,
+    PATHS.homolog,
+    PATHS.production,
+  ]);
+  expect(
+    discoveredConfigurationPaths.length === approvedConfigurationPaths.size
+      && discoveredConfigurationPaths.every(
+        (path) => approvedConfigurationPaths.has(path),
+      ),
+    'APPLICATION_CONFIG_SOURCE',
+    'somente os quatro application*.yaml canonicos podem participar do ConfigData.',
+  );
+
+  assertDatasourceContract(application, environment);
+  assertRedisSessionContract(applicationConfigurations, environment, pom);
   assertKeycloakTechnicalUserContract(keycloakRealm);
   assertNoCsrfBypass(backendSources);
   assertSecurityContract(security);
@@ -1169,7 +1942,7 @@ async function findBackendJar(root) {
   return canonicalJar;
 }
 
-function inheritedEnvironmentAllowlist() {
+function inheritedEnvironmentAllowlist(sourceEnvironment = process.env) {
   const allowedNames = [
     'SystemRoot',
     'WINDIR',
@@ -1181,21 +1954,24 @@ function inheritedEnvironmentAllowlist() {
   ];
   const result = Object.create(null);
   for (const allowedName of allowedNames) {
-    const actualName = Object.keys(process.env)
+    const actualName = Object.keys(sourceEnvironment)
       .find((name) => name.toLowerCase() === allowedName.toLowerCase());
-    if (actualName !== undefined && process.env[actualName] !== undefined) {
-      result[actualName] = process.env[actualName];
+    if (actualName !== undefined && sourceEnvironment[actualName] !== undefined) {
+      result[actualName] = sourceEnvironment[actualName];
     }
   }
   return result;
 }
 
-function backendEnvironment(values, nonce) {
-  const environment = inheritedEnvironmentAllowlist();
+export function buildBackendEnvironment(values, nonce, parentEnvironment = {}) {
+  const environment = inheritedEnvironmentAllowlist(parentEnvironment);
   for (const name of [
     'BETUFU_DB_JDBC_URL',
     'BETUFU_DB_USER',
     'BETUFU_DB_PASSWORD',
+    'BETUFU_REDIS_HOST',
+    'BETUFU_REDIS_PORT',
+    'BETUFU_REDIS_PASSWORD',
     'BETUFU_OIDC_CLIENT_ID',
     'BETUFU_OIDC_CLIENT_SECRET',
     'BETUFU_OIDC_ISSUER_URI',
@@ -1208,6 +1984,7 @@ function backendEnvironment(values, nonce) {
   environment.BETUFU_SESSION_COOKIE_SAME_SITE = 'lax';
   environment.SERVER_SERVLET_SESSION_COOKIE_SECURE = 'false';
   environment.BETUFU_RUNTIME_PROOF_NONCE = nonce;
+  environment.SPRING_AUTOCONFIGURE_EXCLUDE = REDIS_SESSION_AUTO_CONFIGURATION;
   return environment;
 }
 
@@ -3036,7 +3813,11 @@ export function createLocalRuntimeAdapter(projectRoot = defaultProjectRoot) {
     async startBackend(prepared, _redisSentinel, signal) {
       throwIfAborted(signal);
       const nonce = randomUUID();
-      const environment = backendEnvironment(prepared.values, nonce);
+      const environment = buildBackendEnvironment(
+        prepared.values,
+        nonce,
+        prepared.javaEnvironment,
+      );
       const startedAt = new Date().toISOString();
       const child = spawn('java', ['-jar', prepared.jarPath], {
         cwd: resolveContained(prepared.root, 'backend'),
