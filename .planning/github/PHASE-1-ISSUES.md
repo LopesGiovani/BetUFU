@@ -1,33 +1,33 @@
 # Registro de issues GitHub — Fase 1
 
-> Estrutura original aprovada e publicada no GitHub em 2026-08-06. O novo F1/P29 existe somente no planejamento local e ainda não possui número nem publicação remota; qualquer alteração no GitHub exige autorização separada.
+> Estrutura original aprovada e publicada no GitHub em 2026-08-06. A sincronização autorizada de 2026-08-13 criou a issue executável `#30` para F1/P29, atualizou a tracking `#29` e alinhou as dependências remotas afetadas.
 
 ## Resultado remoto
 
 - **Milestone:** `Fase 1 — Fundação Segura da Plataforma`
 - **Issue de acompanhamento:** `#29 — Fundação Segura da Plataforma`
-- **Issues executáveis:** `#1` a `#28`, na ordem das waves
+- **Issues executáveis:** `#1` a `#28` e `#30`, distribuídas em 28 waves
 - **Labels próprias:** 16
-- **Auditoria remota:** 29/29 issues no milestone, 28/28 itens no checklist, 0 divergências de corpo, labels ou dependências
+- **Auditoria de sincronização:** 30 issues no milestone; 10 fechadas como `completed`, 20 abertas e os oito alvos alterados (`#7`, `#8`, `#9`, `#10`, `#11`, `#14`, `#29`, `#30`) reconsultados sem divergência
 
-O resultado acima descreve o estado remoto publicado com 28 planos executáveis e a issue `#29` como tracking. O planejamento local agora contém 29 planos; F1/P29 é um predecessor documental sem issue remota atribuída e não altera silenciosamente essa contagem histórica.
+Historicamente, a publicação inicial continha 28 planos executáveis e a issue `#29` como tracking. A sincronização posterior preservou essa numeração, adicionou F1/P29 como `#30` e manteve a tracking em `#29`; nenhuma issue existente foi renumerada.
 
 ## Decisão estrutural aplicada
 
 - **1 milestone:** `Fase 1 — Fundação Segura da Plataforma`
 - **1 issue de acompanhamento:** objetivo, critérios globais e checklist ordenado
-- **28 issues executáveis:** uma para cada plano GSD
+- **29 issues executáveis:** uma para cada plano GSD, organizadas em 28 waves porque F1/P07 e F1/P21 compartilham a Wave 12
 - **Sem prazo:** nenhuma data foi aprovada
 - **Sem responsáveis:** nenhuma atribuição foi aprovada
 
 Manter uma issue por plano preserva a relação direta entre issue, plano, wave, prova focal, summary e futuro commit. Foram avaliados agrupamentos como `01-01 + 01-02`, `01-06 + 01-07` e `01-17 + 01-18`, mas cada plano possui gate ou verificação própria; uni-los criaria issues grandes e parcialmente concluídas.
 
-**Adição local posterior:** F1/P29 separa datasource runtime e bootstrap XSRF dos planos de sessão e browser. Ele permanece apenas como tracking local até uma ação externa específica atualizar a estrutura publicada.
+**Adição posterior sincronizada:** F1/P29 separa datasource runtime e bootstrap XSRF dos planos de sessão e browser. Ele foi publicado como issue `#30` e encerrado como `completed` após o fechamento aprovado do plano.
 
 ## Estado remoto atual
 
 - Repositório privado.
-- 28 issues executáveis publicadas; `#1` a `#6` concluídas e as demais permanecem abertas.
+- 29 issues executáveis publicadas; `#1` a `#9` e `#30` concluídas como `completed`, com as outras 19 executáveis abertas.
 - Issue de acompanhamento `#29` aberta.
 - Milestone `Fase 1 — Fundação Segura da Plataforma` aberto.
 - 16 labels próprias, além das labels padrão do GitHub.
@@ -71,7 +71,7 @@ As labels padrão existentes foram preservadas. Labels de status, prioridade e r
 
 **Descrição:**
 
-> Acompanhar a entrega dos 28 planos da Fase 1 na ordem das waves aprovadas. Esta issue não substitui os planos nem adiciona escopo; ela consolida progresso, dependências e os quatro critérios globais da fase.
+> Acompanhar a entrega dos 29 planos executáveis da Fase 1 nas 28 waves aprovadas. Esta issue não substitui os planos nem adiciona escopo; ela consolida progresso, dependências e os quatro critérios globais da fase.
 
 **Critérios de aceite globais:**
 
@@ -80,39 +80,39 @@ As labels padrão existentes foram preservadas. Labels de status, prioridade e r
 - O navegador usa API versionada e cliente gerado, mantendo tokens OIDC exclusivamente no BFF.
 - Sessões, logout e STOMP CONNECT aplicam as políticas aprovadas de OIDC, cookies, origem e CSRF.
 
-**Checklist local planejado:**
+**Checklist remoto sincronizado:**
 
-- [ ] F1/P01 — validar cadeia de suprimentos e runtimes
-- [ ] F1/P02 — fixar build Maven canônico
-- [ ] F1/P17 — criar scaffold Spring e BFF OIDC
-- [ ] F1/P18 — isolar configurações por ambiente
-- [ ] F1/P03 — provisionar infraestrutura e Keycloak
-- [ ] F1/P04 — criar workspace Angular
-- [ ] F1/P19 — criar host Angular e rotas por build
-- [ ] F1/P20 — gerar cliente OpenAPI
-- [ ] F1/P05 — persistir vínculo estável de identidade
-- [ ] F1/P29 — conectar datasource runtime e materializar XSRF SPA *(tracking local; sem issue remota atribuída)*
-- [ ] F1/P06 — implementar política e persistência de sessão
-- [ ] F1/P07 — implementar UserInfo opt-out e revogação
-- [ ] F1/P21 — validar walking skeleton pelo navegador *(mesma Wave 12 de F1/P07)*
-- [ ] F1/P22 — expor estado de sessão e logout atual
-- [ ] F1/P08 — endurecer HTTP/origem/logout e STOMP sobre o XSRF existente
-- [ ] F1/P09 — declarar limites Spring Modulith
-- [ ] F1/P23 — bloquear violações modulares
-- [ ] F1/P10 — tornar Flyway e PostgreSQL autoritativos
-- [ ] F1/P11 — entregar ambientes daily/full
-- [ ] F1/P24 — implementar reset local seguro
-- [ ] F1/P12 — padronizar erros, correlação e logs
-- [ ] F1/P25 — expor health e métricas seguras
-- [ ] F1/P13 — implementar diagnóstico backend
-- [ ] F1/P26 — restringir diagnóstico e fechar OpenAPI
-- [ ] F1/P14 — implementar sistema visual
-- [ ] F1/P27 — construir layout autenticado
-- [ ] F1/P15 — implementar página diagnóstica
-- [ ] F1/P28 — selar rotas técnicas em produção
-- [ ] F1/P16 — executar gate integral da fase
+- [x] `#1` — F1/P01 — validar cadeia de suprimentos e runtimes
+- [x] `#2` — F1/P02 — fixar build Maven canônico
+- [x] `#3` — F1/P17 — criar scaffold Spring e BFF OIDC
+- [x] `#4` — F1/P18 — isolar configurações por ambiente
+- [x] `#5` — F1/P03 — provisionar infraestrutura e Keycloak
+- [x] `#6` — F1/P04 — criar workspace Angular
+- [x] `#7` — F1/P19 — criar host Angular e rotas por build
+- [x] `#8` — F1/P20 — gerar cliente OpenAPI
+- [x] `#9` — F1/P05 — persistir vínculo estável de identidade
+- [x] `#30` — F1/P29 — conectar datasource runtime e materializar XSRF SPA
+- [ ] `#11` — F1/P06 — implementar política e persistência de sessão
+- [ ] `#12` — F1/P07 — implementar UserInfo opt-out e revogação
+- [ ] `#10` — F1/P21 — validar walking skeleton pelo navegador *(mesma Wave 12 de F1/P07)*
+- [ ] `#13` — F1/P22 — expor estado de sessão e logout atual
+- [ ] `#14` — F1/P08 — endurecer HTTP/origem/logout e STOMP sobre o XSRF existente
+- [ ] `#15` — F1/P09 — declarar limites Spring Modulith
+- [ ] `#16` — F1/P23 — bloquear violações modulares
+- [ ] `#17` — F1/P10 — tornar Flyway e PostgreSQL autoritativos
+- [ ] `#18` — F1/P11 — entregar ambientes daily/full
+- [ ] `#19` — F1/P24 — implementar reset local seguro
+- [ ] `#20` — F1/P12 — padronizar erros, correlação e logs
+- [ ] `#21` — F1/P25 — expor health e métricas seguras
+- [ ] `#22` — F1/P13 — implementar diagnóstico backend
+- [ ] `#23` — F1/P26 — restringir diagnóstico e fechar OpenAPI
+- [ ] `#24` — F1/P14 — implementar sistema visual
+- [ ] `#25` — F1/P27 — construir layout autenticado
+- [ ] `#26` — F1/P15 — implementar página diagnóstica
+- [ ] `#27` — F1/P28 — selar rotas técnicas em produção
+- [ ] `#28` — F1/P16 — executar gate integral da fase
 
-A issue de acompanhamento `#29` contém os links reais dos 28 planos publicados originalmente. Este checklist local registra a nova ordem de 29 planos sem atribuir número remoto a F1/P29; sincronizar o GitHub será uma ação externa separada.
+A issue de acompanhamento `#29` contém os links das 29 issues executáveis, registra 10 planos concluídos e mantém o milestone aberto até o Gate integral F1/P16.
 
 ## Issues executáveis
 
@@ -224,15 +224,16 @@ A issue de acompanhamento `#29` contém os links reais dos 28 planos publicados 
 - **Aceite:** repetição retorna o mesmo UUID sem duplicata; e-mail não define identidade; issuer ou subject diferente cria outra identidade; concorrência converge; resposta expõe somente dados allowlisted.
 - **Verificação:** `LocalIdentityTracerIT` com PostgreSQL Testcontainers e Flyway.
 
-### Wave 10 — F1/P29 *(tracking local; sem issue remota atribuída)*
+### Wave 10 — F1/P29
 
-**Título proposto:** `[F1/P29] Configurar datasource runtime local e bootstrap XSRF SPA`
+**Título:** `[F1/P29] Configurar datasource runtime local e bootstrap XSRF SPA`
 
 - **Plano:** [01-29-PLAN.md](../phases/01-funda-o-segura-da-plataforma/01-29-PLAN.md)
-- **Estado remoto:** nenhuma issue criada ou numerada; a publicação exige autorização externa separada
+- **Issue remota:** [`#30`](https://github.com/LopesGiovani/BetUFU/issues/30)
+- **Estado remoto:** `closed` com motivo `completed`
 - **Depende de:** F1/P05
 - **Requisitos:** `IDEN-03`, `IDEN-04`, `DATA-01`, `DATA-02`, `OPS-01`, `TEST-01`
-- **Labels propostas:** `fase:1`, `tipo:gate`, `revisao:humana`, `area:backend`, `area:seguranca`, `area:dados`, `area:testes`
+- **Labels:** `fase:1`, `tipo:gate`, `revisao:humana`, `area:backend`, `area:seguranca`, `area:dados`, `area:testes`
 - **Descrição:** ligar o backend executado no host ao PostgreSQL Compose por configuração externa, manter a sessão `dev` deliberadamente em memória até F1/P06 e materializar o contrato XSRF SPA oficial usado pelo Angular.
 - **Aceite:** datasource não contém segredo ou fallback silencioso; `integrated` continua sob Testcontainers; cookie/header XSRF real funciona sem endpoint `/csrf`, filtro bespoke, bearer ou montagem manual; Gate humano permanece bloqueante.
 - **Verificação:** `EnvironmentConfigurationTest`, `CsrfSpaIT`, `validate-runtime-prerequisites.mjs` e prova runtime agregada com PostgreSQL/Keycloak.
@@ -473,18 +474,32 @@ Estes pontos encontrados durante a auditoria foram alinhados e versionados antes
 2. **Cobertura de sincronização em F1/P07:** o `UserInfoOptOutIT` agora deve provar explicitamente repetição e concorrência para o mesmo `(iss, sub)`, convergência em uma identidade e ausência de papel de domínio inferido do Keycloak.
 3. **Prova focal em F1/P09:** a verificação agora combina compilação com enumeração estrutural exata dos dez módulos; os limites e o grafo continuam sob o gate bloqueante do plano `01-23`.
 
-## Ajuste local posterior ainda não publicado
+## Sincronização remota posterior
 
-- F1/P29 foi inserido como predecessor local da Wave 10, sem número de issue remota.
-- F1/P06 passa a depender de F1/P29; F1/P07 e F1/P21 compartilham a Wave 12, e F1/P21 depende de F1/P29 e F1/P06.
-- F1/P08 depende de F1/P21 e F1/P22, reutiliza o XSRF oficial de F1/P29 e conserva para si o hardening de HTTP/origem/logout e STOMP CONNECT.
-- O GitHub continua refletindo a publicação histórica de 28 issues executáveis mais a tracking `#29`; criar a issue de F1/P29 ou atualizar a tracking não faz parte deste bloco documental.
+Em 2026-08-13, após autorização externa específica:
 
-## Procedimento de publicação executado
+- F1/P29 foi publicado como `#30`, associado ao milestone com as sete labels aprovadas e encerrado como `completed` com as evidências do Summary e dos quatro commits do plano.
+- As issues `#7` (F1/P19), `#8` (F1/P20) e `#9` (F1/P05) receberam comentários de evidência e foram encerradas como `completed`.
+- A issue `#11` (F1/P06) passou a depender de `#30`.
+- A issue `#10` (F1/P21) passou para a Wave 12 e depende de `#30` e `#11`, mantendo o checkpoint próprio de Playwright.
+- A issue `#14` (F1/P08) passou a depender de `#10` e `#13` e registra que reutiliza o XSRF oficial de F1/P29.
+- A tracking `#29` passou a acompanhar 29 planos em 28 waves e marca os dez planos concluídos.
+
+## Procedimento de publicação e auditoria
+
+### Publicação original — 2026-08-06
 
 1. As 16 labels próprias foram criadas sem alterar as labels padrão.
 2. O milestone foi criado sem prazo.
-3. As 28 issues executáveis foram criadas na ordem das waves.
-4. A issue de acompanhamento `#29` foi criada com links para as 28 issues.
-5. Todas as 29 issues foram associadas ao milestone.
-6. Títulos, labels, dependências, links e contagem foram auditados sem divergências.
+3. As 28 issues executáveis originais foram criadas na ordem das waves.
+4. A issue de acompanhamento `#29` foi criada com links para essas 28 issues.
+5. As 29 issues iniciais foram associadas ao milestone.
+6. Títulos, labels, dependências, links e contagem foram auditados sem divergências naquele snapshot.
+
+### Sincronização de F1/P29 e progresso — 2026-08-13
+
+1. A inexistência prévia de F1/P29 e o estado aberto dos sete alvos existentes foram confirmados antes da primeira mutação.
+2. A issue `#30` foi criada e o número retornado pelo GitHub foi usado nas dependências; nenhum número foi presumido.
+3. Os corpos de `#10`, `#11`, `#14` e `#29` foram atualizados sem alterar títulos, labels, milestone ou estado.
+4. `#7`, `#8`, `#9` e `#30` foram comentadas e fechadas com motivo `completed`.
+5. A verificação final confirmou 30 issues no milestone, 10 fechadas, 20 abertas, tracking com F1/P29 e todas as dependências-alvo esperadas.
