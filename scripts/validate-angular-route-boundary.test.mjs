@@ -10,6 +10,43 @@ import { APPROVED_GENERATED_FILES } from '../frontend/scripts/generate-api.mjs';
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptsDirectory, '..');
 const validatorPath = join(scriptsDirectory, 'validate-angular-route-boundary.mjs');
+const developmentRoutesPath = 'frontend/src/app/app.routes.development.ts';
+
+const EMPTY_DEVELOPMENT_ROUTES = [
+  "import type { Routes } from '@angular/router';",
+  '',
+  'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
+  '',
+].join('\n');
+
+const CANONICAL_TRACER_ROUTE_ENTRY = [
+  '  {',
+  "    path: 'tracer',",
+  '    loadComponent: () =>',
+  "      import('./features/tracer/tracer-page.component').then(",
+  '        ({ TracerPageComponent }) => TracerPageComponent,',
+  '      ),',
+  '  },',
+].join('\n');
+
+const CANONICAL_TRACER_ROUTES = [
+  "import type { Routes } from '@angular/router';",
+  '',
+  'export const BUILD_SPECIFIC_ROUTES: Routes = [',
+  CANONICAL_TRACER_ROUTE_ENTRY,
+  '];',
+  '',
+].join('\n');
+
+const EAGER_TRACER_ROUTES = [
+  "import type { Routes } from '@angular/router';",
+  "import { TracerPageComponent } from './features/tracer/tracer-page.component';",
+  '',
+  'export const BUILD_SPECIFIC_ROUTES: Routes = [',
+  "  { path: 'tracer', component: TracerPageComponent },",
+  '];',
+  '',
+].join('\n');
 
 const generatedFixturePaths = APPROVED_GENERATED_FILES.map(
   (relativePath) => `frontend/src/app/api/generated/${relativePath}`,
@@ -97,6 +134,10 @@ async function mutateText(fixtureRoot, relativePath, mutation) {
   await writeFile(fixturePath, mutated, 'utf8');
 }
 
+async function overwriteText(fixtureRoot, relativePath, contents) {
+  await writeFile(join(fixtureRoot, relativePath), contents, 'utf8');
+}
+
 async function mutateAngularJson(fixtureRoot, mutation) {
   const fixturePath = join(fixtureRoot, 'frontend/angular.json');
   const document = JSON.parse(await readFile(fixturePath, 'utf8'));
@@ -122,6 +163,36 @@ test('aceita a fronteira canonica do repositorio', () => {
 
 test('aceita uma fixture canonica isolada', async () => {
   await withFixture('canonical', async (fixtureRoot) => {
+    const result = runValidator(fixtureRoot);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+  });
+});
+
+test('aceita explicitamente a lista development vazia', async () => {
+  await withFixture('explicit-empty-development-routes', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      developmentRoutesPath,
+      EMPTY_DEVELOPMENT_ROUTES,
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+  });
+});
+
+test('aceita a lazy route canonica do tracer somente em development', async () => {
+  await withFixture('canonical-tracer-route', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      developmentRoutesPath,
+      CANONICAL_TRACER_ROUTES,
+    );
+
     const result = runValidator(fixtureRoot);
 
     assert.equal(result.status, 0, result.stderr);
@@ -269,6 +340,204 @@ function replaceExactlyOnceLiteral(source, searchValue, replacement, label) {
 
   return `${source.slice(0, firstIndex)}${replacement}${source.slice(firstIndex + searchValue.length)}`;
 }
+
+const tracerRouteMutations = [
+  {
+    name: 'componente tracer por import eager',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: () => EAGER_TRACER_ROUTES,
+  },
+  {
+    name: 'path divergente na rota tracer',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: (source) => source.replace("path: 'tracer'", "path: 'other'"),
+  },
+  {
+    name: 'modulo divergente na lazy route tracer',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
+    mutate: (source) => source.replace(
+      './features/tracer/tracer-page.component',
+      './features/tracer/other-page.component',
+    ),
+  },
+  {
+    name: 'export divergente na lazy route tracer',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: (source) => source.replaceAll(
+      'TracerPageComponent',
+      'OtherPageComponent',
+    ),
+  },
+  {
+    name: 'retorno divergente na lazy route tracer',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: (source) => source.replace(
+      '=> TracerPageComponent,',
+      '=> OtherPageComponent,',
+    ),
+  },
+  {
+    name: 'lazy route tracer duplicada',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
+    mutate: (source) => source.replace(
+      CANONICAL_TRACER_ROUTE_ENTRY,
+      `${CANONICAL_TRACER_ROUTE_ENTRY}\n${CANONICAL_TRACER_ROUTE_ENTRY}`,
+    ),
+  },
+  {
+    name: 'segunda rota development',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: (source) => source.replace(
+      '];',
+      "  { path: 'other', redirectTo: '' },\n];",
+    ),
+  },
+  {
+    name: 'specifier template na lazy route tracer',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
+    mutate: (source) => source.replace(
+      "import('./features/tracer/tracer-page.component')",
+      'import(`./features/tracer/tracer-page.component`)',
+    ),
+  },
+  {
+    name: 'specifier concatenado na lazy route tracer',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
+    mutate: (source) => source.replace(
+      "import('./features/tracer/tracer-page.component')",
+      "import('./features/tracer/' + 'tracer-page.component')",
+    ),
+  },
+  {
+    name: 'import direto de production dentro de development',
+    rule: 'DIRECT_PRODUCTION_IMPORT',
+    mutate: (source) => [
+      "import { BUILD_SPECIFIC_ROUTES as PRODUCTION_ROUTES } from './app.routes.production';",
+      source,
+    ].join('\n'),
+  },
+  {
+    name: 'import dinamico de production dentro de development',
+    rule: 'DYNAMIC_IMPORT_FORBIDDEN',
+    mutate: (source) => source.replace(
+      "import('./features/tracer/tracer-page.component')",
+      "import('./app.routes.production')",
+    ),
+  },
+];
+
+for (const tracerRouteMutation of tracerRouteMutations) {
+  test(`recusa ${tracerRouteMutation.name}`, async () => {
+    await withFixture(tracerRouteMutation.name, async (fixtureRoot) => {
+      await overwriteText(
+        fixtureRoot,
+        developmentRoutesPath,
+        tracerRouteMutation.mutate(CANONICAL_TRACER_ROUTES),
+      );
+
+      const result = runValidator(fixtureRoot);
+
+      expectValidationFailure(result, tracerRouteMutation.rule);
+    });
+  });
+}
+
+test('recusa import eager do tracer em production', async () => {
+  await withFixture('production-tracer-import', async (fixtureRoot) => {
+    await mutateText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      (source) => source.replace(
+        'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
+        [
+          "import { TracerPageComponent } from './features/tracer/tracer-page.component';",
+          '',
+          'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
+          '',
+          'void TracerPageComponent;',
+        ].join('\n'),
+      ),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'PRODUCTION_TRACER_FORBIDDEN');
+  });
+});
+
+test('recusa qualquer import estatico adicional em production', async () => {
+  await withFixture('production-extra-static-import', async (fixtureRoot) => {
+    await mutateText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      (source) => source.replace(
+        'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
+        [
+          "import { OtherPageComponent } from './features/other-page.component';",
+          '',
+          'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
+          '',
+          'void OtherPageComponent;',
+        ].join('\n'),
+      ),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'PRODUCTION_ROUTES_SHAPE');
+  });
+});
+
+test('recusa a lazy route canonica do tracer em production', async () => {
+  await withFixture('production-lazy-tracer-route', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      CANONICAL_TRACER_ROUTES,
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DYNAMIC_IMPORT_FORBIDDEN');
+  });
+});
+
+test('recusa import dinamico canonico do tracer fora de development', async () => {
+  await withFixture('tracer-import-outside-development', async (fixtureRoot) => {
+    await mutateText(
+      fixtureRoot,
+      'frontend/src/app/app.component.ts',
+      (source) => `${source}\nvoid import('./features/tracer/tracer-page.component');\n`,
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DYNAMIC_IMPORT_FORBIDDEN');
+  });
+});
+
+test('nao expoe specifier divergente da lazy route tracer', async () => {
+  await withFixture('tracer-specifier-sanitized', async (fixtureRoot) => {
+    const sensitiveSpecifier = 'SENSITIVE_TRACER_MODULE_CANARY';
+    await overwriteText(
+      fixtureRoot,
+      developmentRoutesPath,
+      CANONICAL_TRACER_ROUTES.replace(
+        './features/tracer/tracer-page.component',
+        `./features/tracer/${sensitiveSpecifier}`,
+      ),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DYNAMIC_IMPORT_FORBIDDEN');
+    assert.doesNotMatch(result.stderr, new RegExp(sensitiveSpecifier, 'u'));
+    assert.doesNotMatch(
+      result.stderr,
+      new RegExp(fixtureRoot.replaceAll('\\', '\\\\'), 'u'),
+    );
+  });
+});
 
 test("aceita provideApi('') como quinto provider direto", async () => {
   await withFixture('api-provider', async (fixtureRoot) => {

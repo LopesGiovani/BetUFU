@@ -35,6 +35,45 @@ const EXPECTED_REPLACEMENT = Object.freeze({
   with: 'src/app/app.routes.production.ts',
 });
 
+const CANONICAL_TRACER_MODULE_PATTERN_SOURCE =
+  String.raw`'\./features/tracer/tracer-page\.component'`;
+const CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE = [
+  String.raw`\bimport\s*\(\s*`,
+  CANONICAL_TRACER_MODULE_PATTERN_SOURCE,
+  String.raw`\s*\)`,
+].join('');
+const CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN = new RegExp(
+  CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
+  'u',
+);
+const BUILD_SPECIFIC_ROUTES_PREFIX_PATTERN_SOURCE = [
+  String.raw`\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular/router'\s*;`,
+  String.raw`\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[`,
+].join('');
+const EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN = new RegExp(
+  [
+    '^',
+    BUILD_SPECIFIC_ROUTES_PREFIX_PATTERN_SOURCE,
+    String.raw`\s*\]\s*;\s*$`,
+  ].join(''),
+  'u',
+);
+const CANONICAL_TRACER_ROUTES_PATTERN = new RegExp(
+  [
+    '^',
+    BUILD_SPECIFIC_ROUTES_PREFIX_PATTERN_SOURCE,
+    String.raw`\s*\{`,
+    String.raw`\s*path\s*:\s*'tracer'\s*,`,
+    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
+    CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
+    String.raw`\s*\.then\s*\(`,
+    String.raw`\s*\(\s*\{\s*TracerPageComponent\s*\}\s*\)`,
+    String.raw`\s*=>\s*TracerPageComponent\s*,?\s*\)\s*,?`,
+    String.raw`\s*\}\s*,?\s*\]\s*;\s*$`,
+  ].join(''),
+  'u',
+);
+
 const HOST_SOURCE_PATHS = Object.freeze([
   PATHS.main,
   PATHS.config,
@@ -324,11 +363,26 @@ function validateScriptLexicalSafety(sources) {
       'UNSUPPORTED_SCRIPT_ESCAPE',
       `${relativePath} nao pode conter escape fora de comentario; o subconjunto do host nao aceita escapes em codigo nem strings.`,
     );
-    expect(
-      !/\bimport\s*\(/u.test(executableCode),
-      'DYNAMIC_IMPORT_FORBIDDEN',
-      `${relativePath} nao pode usar import dinamico no host inicial.`,
-    );
+    const dynamicImportCount = countMatches(executableCode, /\bimport\s*\(/u);
+
+    if (relativePath === PATHS.development) {
+      const canonicalTracerImportCount = countActiveImports(
+        code,
+        CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN,
+      );
+      expect(
+        dynamicImportCount === canonicalTracerImportCount
+          && dynamicImportCount <= 1,
+        'DYNAMIC_IMPORT_FORBIDDEN',
+        `${relativePath} aceita no maximo o import dinamico literal canonico do tracer.`,
+      );
+    } else {
+      expect(
+        dynamicImportCount === 0,
+        'DYNAMIC_IMPORT_FORBIDDEN',
+        `${relativePath} nao pode usar import dinamico fora da seam development aprovada.`,
+      );
+    }
   }
 }
 
@@ -1178,6 +1232,22 @@ function validateRouteSources(sources) {
     countMatches(maskScriptStrings(production), /\bBUILD_SPECIFIC_ROUTES\b/u) === 1,
     'PRODUCTION_ROUTES_EMPTY',
     'a lista production deve permanecer vazia e nao pode ser alterada depois da declaracao.',
+  );
+  expect(
+    EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN.test(development)
+      || CANONICAL_TRACER_ROUTES_PATTERN.test(development),
+    'DEVELOPMENT_ROUTES_SHAPE',
+    'development deve conter somente a lista vazia ou a unica lazy route canonica do tracer.',
+  );
+  expect(
+    !/(?:\btracer\b|\bTracerPageComponent\b)/iu.test(production),
+    'PRODUCTION_TRACER_FORBIDDEN',
+    'production nao pode importar, mencionar nem expor o tracer.',
+  );
+  expect(
+    EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN.test(production),
+    'PRODUCTION_ROUTES_SHAPE',
+    'production deve conter somente o import type Routes e a lista vazia canonica.',
   );
 
   for (const [relativePath, source, executableSource] of scriptSources) {
