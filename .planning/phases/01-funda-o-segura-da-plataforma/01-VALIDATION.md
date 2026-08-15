@@ -38,7 +38,7 @@ O Plano 01-29 fechou seu Gate como **`approved`** em `2026-08-13T19:00:20.487825
 | 01-05 | 9 | vínculo backend `(iss, sub)` idempotente/concorrente | lifecycle `verify -Dit.test=LocalIdentityTracerIT`: suíte Surefire + IT Failsafe selecionado contra PostgreSQL 18.4 com digest aprovado; depois `verify` agregado |
 | 01-29 | 10 | datasource runtime local, sessão `dev` provisória e bootstrap XSRF SPA | Gate próprio + `EnvironmentConfigurationTest` + `CsrfSpaIT` + `validate-runtime-prerequisites.mjs` e regressões + prova runtime PostgreSQL/Keycloak |
 | 01-06 | 11 | política PT8H e sessão Redis seletiva | **executado:** `SessionPolicyTest` `12/12`, `EnvironmentConfigurationTest` `11/11`, `RedisSessionIT` `7/7`, Node `263/263` e Maven offline `56/56` (Surefire `27/27`; Failsafe `29/29`), com cleanup/scope guard restaurados e revisão externa `PASS` sem P0–P2 |
-| 01-07 | 12 | UserInfo opt-out e revogação | dependency-ready; UserInfo + revocation contract/Keycloak ITs |
+| 01-07 | 12 | UserInfo opt-out e revogação | **executado:** `UserInfoOptOutIT` `7/7`, `OidcRevocationContractTest` `12/12`, `OidcRevocationKeycloakIT` `3/3` e Maven offline agregado `78/78` (Surefire `39/39`; Failsafe `39/39`), com cleanup Docker restaurado e revisão cruzada `PASS` sem P0–P2 |
 | 01-21 | 12 | tracer browser não-prod, D-15 e ausência production | dependency-ready após 01-29 e 01-06; `validate-tracer.mjs` + checkpoint Playwright próprio obrigatório antes de download/instalação/navegador + E2E browser e builds não-prod/production |
 | 01-22 | 13 | GET session e logout do dispositivo | SessionController/CurrentDeviceLogout ITs |
 | 01-08 | 14 | hardening HTTP/origem/logout e STOMP sobre o XSRF já provado | ITs HTTP/origem/logout + STOMP CONNECT + `validate-tracer.mjs --security` |
@@ -110,4 +110,6 @@ O Plano 01-29 fechou seu Gate como **`approved`** em `2026-08-13T19:00:20.487825
 - Não aprovar 01-16 diante de stage ausente, `skip`, mock onde se exige dependência real, drift, ameaça high/critical aberta ou artefato técnico production.
 - Após provas verdes, a pessoa valida diagnóstico saudável/degradado, os oito estados UI, responsividade, foco, contraste, português, ausência de segredo e production sem diagnóstico nem tracer.
 
-**Resultado atual:** 01-06 foi executado e suas provas agregadas foram aprovadas; a Fase 1 segue parcialmente executada, com Nyquist final, execução dos demais planos e aprovação global ainda pendentes.
+**Resultado atual:** 01-06 e 01-07 foram executados e suas provas agregadas foram aprovadas; a Fase 1 segue parcialmente executada, com Nyquist final, execução dos demais planos e aprovação global ainda pendentes.
+
+**Observação de cobertura aberta pelo 01-07:** cinco regressões negativas de `validate-runtime-prerequisites.test.mjs` e `validate-keycloak-realm.test.mjs` ficam inertes em checkout Windows. `core.autocrlf=true` entrega o working copy em CRLF, enquanto as fixtures mutam com strings multi-linha em `\n`; o `replace` vira no-op e o teste acusa "fixture deve realmente mudar". Afeta `application.yaml`, `realm-betufu.json` e `SecurityConfiguration.java`. A correção pertence ao projeto — cobrir esses paths no `.gitattributes` ou normalizar as mutações com `\r?\n` — e não a um plano específico.

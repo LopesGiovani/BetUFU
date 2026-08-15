@@ -80,9 +80,9 @@ Plans:
 
 - [x] 01-06-PLAN.md — Implementar a sessão ociosa PT8H apoiada pelo Redis e a atividade válida.
 
-**Wave 12** *(Wave 11 concluída; próxima wave executável, sujeita aos checkpoints próprios do 01-07 e do 01-21)*
+**Wave 12** *(em execução; Plano 01-07 encerrado com revisão cruzada PASS, 01-21 em andamento)*
 
-- [ ] 01-07-PLAN.md — Revogar refresh token por OIDC e manter UserInfo opt-out.
+- [x] 01-07-PLAN.md — Revogar refresh token por OIDC e manter UserInfo opt-out.
 - [ ] 01-21-PLAN.md — Provar o tracer Angular somente em dev/homolog/harness e sua ausência production, após 01-29 e 01-06, com checkpoint humano próprio para Playwright.
 
 **Wave 13** *(blocked on Wave 12 completion)*
@@ -265,7 +265,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação Segura da Plataforma | 11/29 | In Progress | - |
+| 1. Fundação Segura da Plataforma | 12/29 | In Progress | - |
 | 2. Contas, Verificação e Operações Governadas | 0/TBD | Pending | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |

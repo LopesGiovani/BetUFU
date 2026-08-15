@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P06 encerrado; Wave 12 pronta para execução controlada dos Planos 01-07 e 01-21
+stopped_at: F1/P07 encerrado com revisão cruzada PASS; Wave 12 segue com o Plano 01-21 em execução paralela
 last_updated: "2026-08-14"
 last_activity: 2026-08-14
-last_activity_desc: Os commits locais d8b3f61, 26dac30, 292de8e, ad0155c e 5870d0c registram a implementação e o plano alinhado do 01-06; este fechamento documental ainda não teve stage, commit ou push.
+last_activity_desc: O Plano 01-07 foi implementado na branch feat/01-07-oidc-revocation, provado com Maven offline agregado 78/78 e aprovado em revisão cruzada; a integração em master ainda não ocorreu.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Preparar a execução controlada da Wave 12 — 01-07 e 01-21 estão dependency-ready, cada qual sujeito aos próprios checkpoints
+**Current focus:** Integrar o Plano 01-07 em `master` e acompanhar o 01-21, que segue em execução paralela na mesma Wave 12
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 11 of 29
-Status: In progress — F1/P06 concluído; a Wave 12 está liberada para execução controlada dos Planos 01-07 e 01-21
-Last activity: 2026-08-14 — `d8b3f61`, `26dac30`, `292de8e`, `ad0155c` e `5870d0c` registram política, configuração Redis, lifecycle seletivo, validação runtime e alinhamento do Plano 01-06.
+Plan: 12 of 29
+Status: In progress — F1/P07 concluído e aprovado em revisão cruzada; o 01-21 continua em execução na Wave 12
+Last activity: 2026-08-14 — o 01-07 entregou projeção allowlist de claims, opt-out de UserInfo aplicado por bean e revogação server-side do refresh token, com prova contra Keycloak real.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas. Este fechamento não alterou o estado remoto.
-Git: `master` contém os cinco commits locais do 01-06 e está cinco commits à frente de `origin/master`; o SUMMARY e os trackers deste fechamento ainda não tiveram stage, commit ou push.
+Git: o trabalho do 01-07 vive na branch `feat/01-07-oidc-revocation`, criada a partir de `7302e3c`; a integração em `master` e o push permanecem pendentes de autorização própria.
 
-Progress: [████░░░░░░] 38%
+Progress: [████░░░░░░] 41%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 11
+- Total de planos concluídos: 12
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [████░░░░░░] 38%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 11 | não mensurado | não mensurada |
+| 1 | 12 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-19, 01-20, 01-05, 01-29, 01-06
+- Últimos 5 planos: 01-20, 01-05, 01-29, 01-06, 01-07
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
@@ -91,6 +91,13 @@ Progress: [████░░░░░░] 38%
 - A persistência seletiva conserva o instante original em operações sem atividade válida, avança o tempo de forma monotônica quando há atividade aprovada e trata session fixation sem reintroduzir uma sessão encerrada.
 - A prova agregada do 01-06 passou com Node `263/263` e Maven `56/56` — Surefire `27/27` e Failsafe `29/29`, incluindo `RedisSessionIT` `7/7` — e restaurou containers e redes ao baseline aprovado, sem resíduos do Testcontainers.
 - A revisão externa do snapshot final do 01-06 terminou em `PASS`, sem achados P0–P2; os três P3 foram preservados como acompanhamento, sem reabrir a implementação validada.
+- O opt-out do `userinfo_endpoint` é aplicado por um bean `OAuth2UserService` com `setRetrieveUserInfo(false)`; depender apenas do escopo `openid` deixaria a decisão silenciosamente reversível.
+- A claim `iss` chega como `java.net.URL` após a conversão real do `OidcIdTokenDecoderFactory`; a projeção aceita `String`/`URL`/`URI` por `toString()`, byte-idêntico ao valor cru, preservando a chave natural `(issuer, subject)` do 01-05. `sub`, `preferred_username` e `acr` não são convertidos e mantêm verificação estrita.
+- O `revocation_endpoint` vem sempre da metadata de discovery e falha fechado quando ausente; a revogação envia somente refresh token e `token_type_hint`, sem qualquer fallback para access token.
+- A ordem da revogação é capturar → remover authorized client → chamar remoto; o material fica retido no estado pendente para retry dentro do TTL, e falha remota nunca revive a sessão.
+- O `PENDING_TTL` de cinco minutos limita reuso, não retenção: a purga é oportunista e o material pode permanecer em memória além da janela.
+- O Plano 01-07 tocou nove paths de código contra os oito declarados; a ampliação para `SecurityConfiguration.java` foi ratificada pelo responsável, por ser fiação de cliente OIDC.
+- Prova nova só é confiável depois de falhar contra o código antigo; o padrão de mutação foi aplicado no `iss` e no timeout de revogação.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
@@ -102,7 +109,9 @@ Progress: [████░░░░░░] 38%
 - Os beans opcionais de filtro e lifecycle podem degradar silenciosamente quando ausentes; a opcionalidade necessária aos contextos focais de teste deve ser reavaliada antes de novas integrações de segurança.
 - `hasApprovedActivity` está efetivamente inativo porque os nomes de atributo ocultam o marcador; decidir se o método deve ser conectado ao contrato ou removido em manutenção futura.
 - Os avisos de Mockito/Byte Buddy sobre agente dinâmico futuro, reconnect do Lettuce durante o teardown e conversão Git LF→CRLF permanecem não bloqueantes e não invalidaram as provas.
-- O 01-07 está dependency-ready na Wave 12, sujeito aos seus checkpoints próprios.
+- Nenhum plano da Fase 1 assumiu os gatilhos `ADMINISTRATIVE`/`SECURITY`. `01-CONTEXT.md:75` delega essas regras a agentes posteriores, mas a delegação está sem destinatário; enquanto isso durar, o `SessionInvalidationListener` do 01-07 permanece sem consumidor em produção.
+- O refresh token vive em `InMemoryOAuth2AuthorizedClientService`, que não sobrevive a restart nem é compartilhado entre réplicas, ao contrário da sessão que o 01-06 moveu para o Redis. Aceito como pendência conhecida, a resolver antes de existir qualquer disparo real de revogação; registrado com os demais P3 em `01-22-PLAN.md`.
+- Cinco regressões negativas dos validadores Node estão inertes em checkout Windows: `core.autocrlf=true` entrega CRLF enquanto as fixtures mutam com strings `\n`. Buraco de cobertura do projeto, a corrigir por `.gitattributes` ou normalização das mutações.
 - O 01-21 também está dependency-ready, mas a adoção do Playwright mantém checkpoint humano próprio para versão, lockfile, instalação e navegador.
 
 ### Bloqueios e pontos de atenção
@@ -123,5 +132,5 @@ Progress: [████░░░░░░] 38%
 ## Session Continuity
 
 Last session: 2026-08-14
-Stopped at: F1/P06 concluído e documentado; Wave 12 pronta para execução controlada
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-07-PLAN.md — o 01-21-PLAN.md também está dependency-ready na mesma Wave 12
+Stopped at: F1/P07 concluído, documentado e aprovado em revisão cruzada; falta integrar em `master`
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-22-PLAN.md — o 01-21-PLAN.md segue em execução paralela na Wave 12
