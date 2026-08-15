@@ -14,6 +14,12 @@ const LOGIN_THEME_ROOT = join(
 );
 const REALM_PATH = join(PROJECT_ROOT, 'infra', 'keycloak', 'realm-betufu.json');
 const CSS_PATH = join(LOGIN_THEME_ROOT, 'resources', 'css', 'login.css');
+const VALIDATION_SCRIPT_PATH = join(
+  LOGIN_THEME_ROOT,
+  'resources',
+  'js',
+  'required-field-validation.js',
+);
 
 const ISSUER = 'http://localhost:8081/realms/betufu-local';
 const KEYCLOAK_ORIGIN = 'http://localhost:8081';
@@ -23,6 +29,8 @@ const MAX_REDIRECTS = 3;
 const REQUEST_TIMEOUT_MS = 10_000;
 const EXPECTED_LOGIN_CSS_SHA256 =
   '69ae832b7e6e0dc12062af1df672f48f7cc173a74074ad98a2e320db1ddc3d0e';
+const EXPECTED_VALIDATION_SCRIPT_SHA256 =
+  '25f7138b8204487302b8a86f888c89080eede8326da73098df50f6775f027eae';
 
 const NOTICE =
   'A BETUFU é uma plataforma independente e não possui vínculo oficial com a UFU.';
@@ -31,6 +39,7 @@ const EXPECTED_THEME_PROPERTIES = new Map([
   ['parent', 'keycloak.v2'],
   ['import', 'common/keycloak'],
   ['styles', 'css/styles.css css/login.css'],
+  ['scripts', 'js/required-field-validation.js'],
   ['darkMode', 'false'],
 ]);
 
@@ -81,6 +90,7 @@ const EXPECTED_THEME_FILES = new Set([
   'footer.ftl',
   'theme.properties',
   'resources/css/login.css',
+  'resources/js/required-field-validation.js',
   ...EXPECTED_ASSETS.keys(),
 ]);
 
@@ -88,6 +98,7 @@ const EXPECTED_THEME_DIRECTORIES = new Set([
   'resources',
   'resources/css',
   'resources/fonts',
+  'resources/js',
 ]);
 
 const EXPECTED_FONTS = [
@@ -133,6 +144,16 @@ function normalizeRelativePath(path) {
 
 function normalizeText(text) {
   return text.replace(/\r\n/g, '\n');
+}
+
+function canonicalizeUtf8Text(bytes, label) {
+  const text = bytes.toString('utf8');
+  invariant(
+    Buffer.from(text, 'utf8').equals(bytes),
+    `${label} não contém UTF-8 válido`,
+  );
+  invariant(!/\r(?!\n)/u.test(text), `${label} contém CR isolado`);
+  return Buffer.from(normalizeText(text), 'utf8');
 }
 
 function sha256(bytes) {
@@ -227,6 +248,28 @@ function assertFooter(text) {
   invariant(normalized === expected, 'footer.ftl diverge do macro mínimo aprovado');
   invariant(exactlyOnce(normalized, NOTICE), 'O aviso institucional deve aparecer exatamente uma vez');
   invariant(!/<a\b/i.test(normalized), 'O aviso institucional não pode ser um link');
+}
+
+function assertValidationScript(bytes) {
+  const canonicalBytes = canonicalizeUtf8Text(bytes, 'Script D-15');
+  const source = canonicalBytes.toString('utf8');
+  invariant(canonicalBytes.length === 1_782, 'Tamanho inválido para o script D-15');
+  invariant(
+    sha256(canonicalBytes) === EXPECTED_VALIDATION_SCRIPT_SHA256,
+    'SHA-256 inválido para o script D-15',
+  );
+  invariant(/password\.required\s*=\s*true/u.test(source), 'Senha não foi marcada como required');
+  invariant(/form\.noValidate\s*=\s*false/u.test(source), 'Formulário não habilita validação nativa');
+  invariant(/password\.validity\.valueMissing/u.test(source), 'D-15 não usa valueMissing nativo');
+  invariant(/password\.validationMessage/u.test(source), 'D-15 não usa mensagem nativa localizada');
+  invariant(/aria-errormessage/u.test(source), 'D-15 não associa aria-errormessage');
+  invariant(/aria-describedby/u.test(source), 'D-15 não preserva aria-describedby');
+  invariant(/password\.focus\(\)/u.test(source), 'D-15 não move foco para a senha');
+  invariant(
+    !/(?:fetch|XMLHttpRequest|WebSocket|localStorage|sessionStorage|indexedDB|document\.cookie|eval|new\s+Function)\b/u.test(source),
+    'Script D-15 contém API proibida',
+  );
+  invariant(!/password\.value\b/u.test(source), 'Script D-15 não pode ler o valor da senha');
 }
 
 function parseCssDeclarations(block) {
@@ -424,16 +467,18 @@ async function validateLocalTheme() {
   const ftlFiles = inventory.files.filter((path) => path.endsWith('.ftl'));
   assertExactSet(ftlFiles, new Set(['footer.ftl']), 'Allowlist de templates FTL');
 
-  const [themeProperties, footer, css, realmText] = await Promise.all([
+  const [themeProperties, footer, css, validationScript, realmText] = await Promise.all([
     readFile(join(LOGIN_THEME_ROOT, 'theme.properties'), 'utf8'),
     readFile(join(LOGIN_THEME_ROOT, 'footer.ftl'), 'utf8'),
     readFile(CSS_PATH, 'utf8'),
+    readFile(VALIDATION_SCRIPT_PATH),
     readFile(REALM_PATH, 'utf8'),
   ]);
 
   assertThemeProperties(themeProperties);
   assertFooter(footer);
   assertCss(css);
+  assertValidationScript(validationScript);
   await assertAssets();
 
   const realm = JSON.parse(realmText);
@@ -754,9 +799,19 @@ async function validateHttpTheme() {
   );
   const uniqueResources = [...new Map(directResources.map((url) => [url.href, url])).values()];
   invariant(uniqueResources.length <= 256, 'Limite de recursos same-origin excedido');
+  const localValidationScriptBytes = await readFile(VALIDATION_SCRIPT_PATH);
+  let validationScriptFound = false;
   for (const resourceUrl of uniqueResources) {
-    await fetchRequiredBytes(resourceUrl, `Recurso same-origin ${resourceUrl.pathname}`);
+    const result = await fetchRequiredBytes(resourceUrl, `Recurso same-origin ${resourceUrl.pathname}`);
+    if (result.finalUrl.pathname.endsWith('/login/betufu/js/required-field-validation.js')) {
+      validationScriptFound = true;
+      invariant(
+        result.bytes.equals(localValidationScriptBytes),
+        'Script D-15 servido diverge dos bytes locais aprovados',
+      );
+    }
   }
+  invariant(validationScriptFound, 'A página real não carregou o script D-15 do tema betufu');
 
   for (const font of EXPECTED_FONTS) {
     const fontUrl = new URL(font.url, customCssUrl);

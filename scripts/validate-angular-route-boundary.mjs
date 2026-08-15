@@ -22,6 +22,9 @@ const PATHS = Object.freeze({
   production: 'frontend/src/app/app.routes.production.ts',
   component: 'frontend/src/app/app.component.ts',
   template: 'frontend/src/app/app.component.html',
+  tracerComponent: 'frontend/src/app/features/tracer/tracer-page.component.ts',
+  tracerTemplate: 'frontend/src/app/features/tracer/tracer-page.component.html',
+  runtimeRoot: 'frontend/src',
   generatedRoot: 'frontend/src/app/api/generated',
   generatedBaseService: 'frontend/src/app/api/generated/api.base.service.ts',
   generatedApiModule: 'frontend/src/app/api/generated/api.module.ts',
@@ -82,6 +85,49 @@ const HOST_SOURCE_PATHS = Object.freeze([
   PATHS.production,
   PATHS.component,
   PATHS.template,
+  PATHS.tracerComponent,
+  PATHS.tracerTemplate,
+]);
+
+const TRACER_FEATURE_PREFIX = 'frontend/src/app/features/tracer/';
+const TRACER_RUNTIME_EXTENSIONS = Object.freeze(['.html', '.ts']);
+const TRACER_DIRECT_CLIENT_PATTERNS = Object.freeze([
+  {
+    rule: 'TRACER_FETCH_FORBIDDEN',
+    label: 'fetch direto',
+    target: 'executable',
+    pattern: /\bfetch\b/u,
+  },
+  {
+    rule: 'TRACER_HTTP_CLIENT_FORBIDDEN',
+    label: 'HttpClient direto',
+    target: 'executable',
+    pattern: /\bHttpClient\b/u,
+  },
+  {
+    rule: 'TRACER_HTTP_CLIENT_FORBIDDEN',
+    label: 'import direto de @angular/common/http',
+    target: 'decoded',
+    pattern: /['"]@angular\/common\/http['"]/u,
+  },
+  {
+    rule: 'TRACER_RETRY_FORBIDDEN',
+    label: 'retry automatico',
+    target: 'executable',
+    pattern: /\bretry(?:When)?\b/u,
+  },
+  {
+    rule: 'TRACER_XSRF_MANUAL_FORBIDDEN',
+    label: 'XSRF/CSRF manual',
+    target: 'decoded',
+    pattern: /\b(?:XSRF|CSRF)\b/iu,
+  },
+  {
+    rule: 'TRACER_ENDPOINT_MANUAL_FORBIDDEN',
+    label: 'endpoint relativo montado manualmente',
+    target: 'decoded',
+    pattern: /(?:^|['"\x60])\s*\/{1,2}(?:api|oauth2|login)(?=\/|['"\x60]|\s|$)/imu,
+  },
 ]);
 
 const FORBIDDEN_PATTERNS = Object.freeze([
@@ -682,6 +728,32 @@ async function readGeneratedTypeScriptSources(projectRoot) {
   ]));
 }
 
+async function readFrontendRuntimeSources(projectRoot) {
+  let manifest;
+
+  try {
+    manifest = await readTreeManifest(resolve(projectRoot, PATHS.runtimeRoot));
+  } catch {
+    contractError(
+      'RUNTIME_MANIFEST_READ',
+      `nao foi possivel ler com seguranca ${PATHS.runtimeRoot}.`,
+    );
+  }
+
+  return new Map(
+    manifest.entries
+      .filter(({ path }) => (
+        TRACER_RUNTIME_EXTENSIONS.some((extension) => path.endsWith(extension))
+        && !/\.(?:spec|test)\.ts$/u.test(path)
+        && !path.startsWith('app/api/generated/')
+      ))
+      .map(({ path, bytes }) => [
+        `${PATHS.runtimeRoot}/${path}`,
+        normalizeText(bytes.toString('utf8')),
+      ]),
+  );
+}
+
 function validateFileReplacements(angularConfiguration) {
   const configurations = angularConfiguration
     ?.projects
@@ -783,9 +855,9 @@ function validateAppConfiguration(source) {
   );
   expectExactlyOnceActiveImport(
     code,
-    /^\s*import\s*\{\s*provideApi\s*\}\s*from\s*['"]\.\/api\/generated['"]\s*;/mu,
+    /^\s*import\s*\{\s*provideApi\s*\}\s*from\s*['"]\.\/api\/generated\/provide-api['"]\s*;/mu,
     'API_IMPORT',
-    'import de provideApi da arvore gerada',
+    'import direto de provideApi da arvore gerada',
   );
   expectExactlyOnceActiveImport(
     code,
@@ -1307,11 +1379,78 @@ function validateForbiddenPatterns(sources) {
   }
 }
 
+function activeRuntimeSource(relativePath, source) {
+  return relativePath.endsWith('.html')
+    ? stripHtmlComments(source)
+    : stripScriptComments(source);
+}
+
+function validateTracerRuntimeBoundary(runtimeSources) {
+  for (const [relativePath, source] of runtimeSources) {
+    if (
+      relativePath === PATHS.development
+      || relativePath.startsWith(TRACER_FEATURE_PREFIX)
+    ) {
+      continue;
+    }
+
+    const activeSource = activeRuntimeSource(relativePath, source);
+    const decodedSource = decodeUrlEscapes(activeSource);
+
+    if (relativePath.endsWith('.ts')) {
+      expect(
+        countMatches(maskScriptStrings(activeSource), /\bimport\s*\(/u) === 0,
+        'DYNAMIC_IMPORT_FORBIDDEN',
+        `${relativePath} nao pode usar import dinamico fora da lazy route development canonica.`,
+      );
+    }
+
+    expect(
+      !/tracer/iu.test(decodedSource),
+      'TRACER_EAGER_REFERENCE',
+      `${relativePath} nao pode referenciar o tracer fora da lazy route development canonica.`,
+    );
+  }
+
+  for (const [relativePath, source] of runtimeSources) {
+    if (!relativePath.startsWith(TRACER_FEATURE_PREFIX)) {
+      continue;
+    }
+
+    const activeSource = activeRuntimeSource(relativePath, source);
+    const decodedSource = decodeUrlEscapes(activeSource);
+    const executableSource = relativePath.endsWith('.ts')
+      ? maskScriptStrings(decodedSource)
+      : '';
+
+    for (const forbiddenPattern of FORBIDDEN_PATTERNS) {
+      expect(
+        !forbiddenPattern.pattern.test(decodedSource),
+        forbiddenPattern.rule,
+        `${forbiddenPattern.label} nao e permitido no componente tracer (${relativePath}).`,
+      );
+    }
+
+    for (const forbiddenPattern of TRACER_DIRECT_CLIENT_PATTERNS) {
+      const targetSource = forbiddenPattern.target === 'executable'
+        ? executableSource
+        : decodedSource;
+
+      expect(
+        !forbiddenPattern.pattern.test(targetSource),
+        forbiddenPattern.rule,
+        `${forbiddenPattern.label} nao e permitido no componente tracer (${relativePath}); use somente IdentityService gerado.`,
+      );
+    }
+  }
+}
+
 export async function validateAngularRouteBoundary(projectRoot = defaultProjectRoot) {
   const resolvedProjectRoot = resolve(projectRoot);
   const angularConfiguration = await readAngularConfiguration(resolvedProjectRoot);
   const sources = new Map();
   const generatedSources = await readGeneratedTypeScriptSources(resolvedProjectRoot);
+  const runtimeSources = await readFrontendRuntimeSources(resolvedProjectRoot);
 
   for (const relativePath of HOST_SOURCE_PATHS) {
     sources.set(relativePath, await readRequiredText(resolvedProjectRoot, relativePath));
@@ -1319,6 +1458,7 @@ export async function validateAngularRouteBoundary(projectRoot = defaultProjectR
 
   validateScriptLexicalSafety(sources);
   validateFileReplacements(angularConfiguration);
+  validateTracerRuntimeBoundary(runtimeSources);
   validateAppConfiguration(sources.get(PATHS.config));
   validateAppConfigUsage(sources);
   validateRootComponent(sources);

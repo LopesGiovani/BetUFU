@@ -1,0 +1,26 @@
+<main>
+  <h1>Verificação de integração</h1>
+  <p>Confirme o vínculo seguro entre o navegador e a BETUFU.</p>
+
+  <button
+    type="button"
+    [disabled]="isLoading()"
+    (click)="verifyIntegration()"
+  >
+    @if (isLoading()) {
+      Verificando…
+    } @else {
+      Verificar integração
+    }
+  </button>
+
+  @if (identityId(); as persistedIdentityId) {
+    <p role="status" aria-live="polite">
+      Identidade persistida: <code>{{ persistedIdentityId }}</code>
+    </p>
+  }
+
+  @if (errorMessage(); as message) {
+    <p role="alert">{{ message }}</p>
+  }
+</main>

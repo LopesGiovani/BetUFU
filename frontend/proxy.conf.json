@@ -1,0 +1,35 @@
+{
+  "^/api(?:/|$)": {
+    "target": "http://127.0.0.1:8080",
+    "changeOrigin": false,
+    "headers": {
+      "host": "localhost:4200",
+      "x-forwarded-host": "localhost:4200",
+      "x-forwarded-port": "4200",
+      "x-forwarded-proto": "http",
+      "x-forwarded-for": "127.0.0.1"
+    }
+  },
+  "^/oauth2(?:/|$)": {
+    "target": "http://127.0.0.1:8080",
+    "changeOrigin": false,
+    "headers": {
+      "host": "localhost:4200",
+      "x-forwarded-host": "localhost:4200",
+      "x-forwarded-port": "4200",
+      "x-forwarded-proto": "http",
+      "x-forwarded-for": "127.0.0.1"
+    }
+  },
+  "^/login(?:/|$)": {
+    "target": "http://127.0.0.1:8080",
+    "changeOrigin": false,
+    "headers": {
+      "host": "localhost:4200",
+      "x-forwarded-host": "localhost:4200",
+      "x-forwarded-port": "4200",
+      "x-forwarded-proto": "http",
+      "x-forwarded-for": "127.0.0.1"
+    }
+  }
+}

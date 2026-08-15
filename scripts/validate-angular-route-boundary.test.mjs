@@ -11,6 +11,7 @@ const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptsDirectory, '..');
 const validatorPath = join(scriptsDirectory, 'validate-angular-route-boundary.mjs');
 const developmentRoutesPath = 'frontend/src/app/app.routes.development.ts';
+const tracerComponentPath = 'frontend/src/app/features/tracer/tracer-page.component.ts';
 
 const EMPTY_DEVELOPMENT_ROUTES = [
   "import type { Routes } from '@angular/router';",
@@ -61,6 +62,8 @@ const FIXTURE_PATHS = Object.freeze([
   'frontend/src/app/app.routes.production.ts',
   'frontend/src/app/app.component.ts',
   'frontend/src/app/app.component.html',
+  tracerComponentPath,
+  'frontend/src/app/features/tracer/tracer-page.component.html',
   ...generatedFixturePaths,
 ]);
 
@@ -193,6 +196,15 @@ test('aceita a lazy route canonica do tracer somente em development', async () =
       CANONICAL_TRACER_ROUTES,
     );
 
+    const result = runValidator(fixtureRoot);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+  });
+});
+
+test('aceita o componente tracer usando somente IdentityService gerado', async () => {
+  await withFixture('generated-identity-service-only', async (fixtureRoot) => {
     const result = runValidator(fixtureRoot);
 
     assert.equal(result.status, 0, result.stderr);
@@ -461,7 +473,99 @@ test('recusa import eager do tracer em production', async () => {
 
     const result = runValidator(fixtureRoot);
 
-    expectValidationFailure(result, 'PRODUCTION_TRACER_FORBIDDEN');
+    expectValidationFailure(result, 'TRACER_EAGER_REFERENCE');
+  });
+});
+
+test('recusa import eager do tracer em app.config', async () => {
+  await withFixture('app-config-tracer-import', async (fixtureRoot) => {
+    await mutateText(
+      fixtureRoot,
+      'frontend/src/app/app.config.ts',
+      (source) => [
+        source,
+        "import { TracerPageComponent } from './features/tracer/tracer-page.component';",
+        'void TracerPageComponent;',
+        '',
+      ].join('\n'),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'TRACER_EAGER_REFERENCE');
+  });
+});
+
+test('recusa import eager do tracer em qualquer novo modulo runtime', async () => {
+  await withFixture('additional-runtime-tracer-import', async (fixtureRoot) => {
+    const extraRuntimePath = join(
+      fixtureRoot,
+      'frontend/src/app/eager-tracer-consumer.ts',
+    );
+    await writeFile(
+      extraRuntimePath,
+      "import { TracerPageComponent } from './features/tracer/tracer-page.component';\nvoid TracerPageComponent;\n",
+      'utf8',
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'TRACER_EAGER_REFERENCE');
+  });
+});
+
+test('recusa import eager ofuscado por escape em novo modulo runtime', async () => {
+  await withFixture('escaped-runtime-tracer-import', async (fixtureRoot) => {
+    const extraRuntimePath = join(
+      fixtureRoot,
+      'frontend/src/app/escaped-consumer.ts',
+    );
+    await writeFile(
+      extraRuntimePath,
+      String.raw`import { TracerPageComponent } from './features/tr\u0061cer/tracer-page.component';`
+        + '\nvoid TracerPageComponent;\n',
+      'utf8',
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'TRACER_EAGER_REFERENCE');
+  });
+});
+
+test('recusa import dinamico concatenado em novo modulo runtime', async () => {
+  await withFixture('concatenated-runtime-dynamic-import', async (fixtureRoot) => {
+    const extraRuntimePath = join(
+      fixtureRoot,
+      'frontend/src/app/dynamic-consumer.ts',
+    );
+    await writeFile(
+      extraRuntimePath,
+      "void import('./features/tra' + 'cer/tracer-page.component');\n",
+      'utf8',
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DYNAMIC_IMPORT_FORBIDDEN');
+  });
+});
+
+test('ignora referencia ao tracer presente somente em comentario runtime', async () => {
+  await withFixture('runtime-tracer-comment', async (fixtureRoot) => {
+    const extraRuntimePath = join(
+      fixtureRoot,
+      'frontend/src/app/runtime-comment.ts',
+    );
+    await writeFile(
+      extraRuntimePath,
+      "// import { TracerPageComponent } from './features/tracer/tracer-page.component';\n",
+      'utf8',
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    assert.equal(result.status, 0, result.stderr);
   });
 });
 
@@ -548,12 +652,124 @@ test("aceita provideApi('') como quinto provider direto", async () => {
   });
 });
 
+const tracerComponentMutations = [
+  {
+    name: 'fetch direto no componente tracer',
+    rule: 'TRACER_FETCH_FORBIDDEN',
+    mutate: (source) => `${source}\nvoid fetch('/api/v1/tracer/identity/current');\n`,
+  },
+  {
+    name: 'HttpClient direto no componente tracer',
+    rule: 'TRACER_HTTP_CLIENT_FORBIDDEN',
+    mutate: (source) => `${source}\nconst directClient = inject(HttpClient);\n`,
+  },
+  {
+    name: 'import direto de angular common http no componente tracer',
+    rule: 'TRACER_HTTP_CLIENT_FORBIDDEN',
+    mutate: (source) => `${source}\nimport { HttpClient } from '@angular/common/http';\n`,
+  },
+  {
+    name: 'Authorization manual no componente tracer',
+    rule: 'AUTHORIZATION_HEADER',
+    mutate: (source) => `${source}\nconst manualHeader = 'Authorization';\n`,
+  },
+  {
+    name: 'Bearer manual no componente tracer',
+    rule: 'BEARER_TOKEN',
+    mutate: (source) => `${source}\nconst manualScheme = 'Bearer';\n`,
+  },
+  {
+    name: 'localStorage no componente tracer',
+    rule: 'LOCAL_STORAGE',
+    mutate: (source) => `${source}\nlocalStorage.setItem('identity', 'value');\n`,
+  },
+  {
+    name: 'sessionStorage no componente tracer',
+    rule: 'SESSION_STORAGE',
+    mutate: (source) => `${source}\nsessionStorage.setItem('identity', 'value');\n`,
+  },
+  {
+    name: 'indexedDB no componente tracer',
+    rule: 'INDEXED_DB',
+    mutate: (source) => `${source}\nvoid indexedDB.open('identity');\n`,
+  },
+  {
+    name: 'withCredentials no componente tracer',
+    rule: 'WITH_CREDENTIALS',
+    mutate: (source) => `${source}\nconst requestOptions = { withCredentials: true };\n`,
+  },
+  {
+    name: 'Cookie manual no componente tracer',
+    rule: 'MANUAL_COOKIE',
+    mutate: (source) => `${source}\nconst manualCookie = document.cookie;\n`,
+  },
+  {
+    name: 'accessToken manual no componente tracer',
+    rule: 'ACCESS_TOKEN',
+    mutate: (source) => `${source}\nconst accessToken = 'manual';\n`,
+  },
+  {
+    name: 'XSRF manual no componente tracer',
+    rule: 'TRACER_XSRF_MANUAL_FORBIDDEN',
+    mutate: (source) => `${source}\nconst xsrfHeader = 'X-XSRF-TOKEN';\n`,
+  },
+  {
+    name: 'retry automatico no componente tracer',
+    rule: 'TRACER_RETRY_FORBIDDEN',
+    mutate: (source) => `${source}\nconst retryPolicy = retry(1);\n`,
+  },
+  {
+    name: 'endpoint relativo manual no componente tracer',
+    rule: 'TRACER_ENDPOINT_MANUAL_FORBIDDEN',
+    mutate: (source) => `${source}\nconst manualEndpoint = '/api/v1/tracer/identity/current';\n`,
+  },
+  {
+    name: 'endpoint absoluto manual no componente tracer',
+    rule: 'ABSOLUTE_HTTP_URL',
+    mutate: (source) => `${source}\nconst manualEndpoint = 'https://api.example.invalid';\n`,
+  },
+  {
+    name: 'endpoint manual no template tracer',
+    path: 'frontend/src/app/features/tracer/tracer-page.component.html',
+    rule: 'TRACER_ENDPOINT_MANUAL_FORBIDDEN',
+    mutate: (source) => `${source}\n<a href="/api/v1/tracer/identity/current">manual</a>\n`,
+  },
+];
+
+for (const tracerComponentMutation of tracerComponentMutations) {
+  test(`recusa ${tracerComponentMutation.name}`, async () => {
+    await withFixture(tracerComponentMutation.name, async (fixtureRoot) => {
+      await mutateText(
+        fixtureRoot,
+        tracerComponentMutation.path ?? tracerComponentPath,
+        tracerComponentMutation.mutate,
+      );
+
+      const result = runValidator(fixtureRoot);
+
+      expectValidationFailure(result, tracerComponentMutation.rule);
+    });
+  });
+}
+
 const sourceMutations = [
   {
     name: 'import de provideApi divergente',
     path: 'frontend/src/app/app.config.ts',
     rule: 'API_IMPORT',
-    mutate: (source) => source.replace("from './api/generated'", "from './api/other'"),
+    mutate: (source) => source.replace(
+      "from './api/generated/provide-api'",
+      "from './api/other'",
+    ),
+  },
+  {
+    name: 'barrel gerado retendo servico no bundle production',
+    path: 'frontend/src/app/app.config.ts',
+    rule: 'API_IMPORT',
+    mutate: (source) => source.replace(
+      "from './api/generated/provide-api'",
+      "from './api/generated'",
+    ),
   },
   {
     name: 'provideApi ausente',

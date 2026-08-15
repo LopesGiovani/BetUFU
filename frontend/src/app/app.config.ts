@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { provideApi } from './api/generated';
+import { provideApi } from './api/generated/provide-api';
 import { APP_ROUTES } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
