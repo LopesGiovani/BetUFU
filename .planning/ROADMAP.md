@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 11/29 plans executed
+**Plans**: 13/29 plans executed
 Plans:
 **Wave 1**
 
@@ -80,12 +80,12 @@ Plans:
 
 - [x] 01-06-PLAN.md — Implementar a sessão ociosa PT8H apoiada pelo Redis e a atividade válida.
 
-**Wave 12** *(em execução; Plano 01-07 encerrado com revisão cruzada PASS, 01-21 em andamento)*
+**Wave 12** *(concluída; Planos 01-07 e 01-21 integrados com provas aprovadas)*
 
 - [x] 01-07-PLAN.md — Revogar refresh token por OIDC e manter UserInfo opt-out.
-- [ ] 01-21-PLAN.md — Provar o tracer Angular somente em dev/homolog/harness e sua ausência production, após 01-29 e 01-06, com checkpoint humano próprio para Playwright.
+- [x] 01-21-PLAN.md — Provar o tracer Angular somente em dev/homolog/harness e sua ausência production, após 01-29 e 01-06, com checkpoint humano próprio para Playwright.
 
-**Wave 13** *(blocked on Wave 12 completion)*
+**Wave 13** *(próxima; liberada após a conclusão da Wave 12)*
 
 - [ ] 01-22-PLAN.md — Publicar o estado seguro da sessão e logout do dispositivo atual.
 
@@ -265,7 +265,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação Segura da Plataforma | 12/29 | In Progress | - |
+| 1. Fundação Segura da Plataforma | 13/29 | In Progress | - |
 | 2. Contas, Verificação e Operações Governadas | 0/TBD | Pending | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |

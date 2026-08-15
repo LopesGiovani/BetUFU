@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P07 encerrado com revisão cruzada PASS; Wave 12 segue com o Plano 01-21 em execução paralela
-last_updated: "2026-08-14"
-last_activity: 2026-08-14
-last_activity_desc: O Plano 01-07 foi implementado na branch feat/01-07-oidc-revocation, provado com Maven offline agregado 78/78 e aprovado em revisão cruzada; a integração em master ainda não ocorreu.
+stopped_at: F1/P21 encerrado e integrado por fast-forward; Wave 12 concluída e Plano 01-22 liberado
+last_updated: "2026-08-15"
+last_activity: 2026-08-15
+last_activity_desc: O Plano 01-21 foi integrado em master sem merge commit após gate canônico completo verde sobre a árvore combinada dos Planos 01-07 e 01-21.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Integrar o Plano 01-07 em `master` e acompanhar o 01-21, que segue em execução paralela na mesma Wave 12
+**Current focus:** Preparar o Plano 01-22, primeiro plano da Wave 13, mantendo cada novo bloco sujeito aos checkpoints próprios
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 12 of 29
-Status: In progress — F1/P07 concluído e aprovado em revisão cruzada; o 01-21 continua em execução na Wave 12
-Last activity: 2026-08-14 — o 01-07 entregou projeção allowlist de claims, opt-out de UserInfo aplicado por bean e revogação server-side do refresh token, com prova contra Keycloak real.
+Plan: 13 of 29
+Status: In progress — Wave 12 concluída com os Planos 01-07 e 01-21 integrados; o 01-22 é o próximo plano
+Last activity: 2026-08-15 — o 01-21 entregou o tracer Angular lazy somente em development/homolog, login hospedado no Keycloak, XSRF same-origin automático e ausência comprovada no build production.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas. Este fechamento não alterou o estado remoto.
-Git: o trabalho do 01-07 vive na branch `feat/01-07-oidc-revocation`, criada a partir de `7302e3c`; a integração em `master` e o push permanecem pendentes de autorização própria.
+Git: `master` recebeu 01-07 e 01-21 em histórico linear, sem merge commit; `origin/master` ainda aguarda autorização própria de push.
 
-Progress: [████░░░░░░] 41%
+Progress: [█████░░░░░] 45%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 12
+- Total de planos concluídos: 13
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [████░░░░░░] 41%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 12 | não mensurado | não mensurada |
+| 1 | 13 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-20, 01-05, 01-29, 01-06, 01-07
+- Últimos 5 planos: 01-05, 01-29, 01-06, 01-07, 01-21
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
@@ -85,7 +85,7 @@ Progress: [████░░░░░░] 41%
 - O lifecycle Maven mantém `*Test` no Surefire e executa `*IT` no Failsafe; a prova agregada do 01-05 terminou com Surefire 8/8 e Failsafe 17/17.
 - O Plano 01-29 entregou e comprovou o predecessor explícito do runtime browser: datasource PostgreSQL externo, sessão `dev` deliberadamente em memória até o 01-06 e suporte XSRF SPA oficial do Spring Security 7.1 sem endpoint ou header manual no Angular.
 - A prova agregada do 01-29 passou com Maven `36/36`, Node `191/191`, runtime `status: ok`, matriz `403/403/403/200/200`, SQL `BETUFU_RUNTIME_SQL_OK`, JAR imutável, zero conexões Redis e cleanup restaurado.
-- O Plano 01-21 depende de 01-29 e 01-06 e compartilha a Wave 12 com 01-07; o 01-08 reutiliza o XSRF já provado e o endurece para origem, logout e STOMP CONNECT.
+- O Plano 01-21 comprovou no navegador real o fluxo hospedado, a validação D-15, dois PUTs explícitos com UUID estável, o XSRF same-origin automático, a ausência de tokens no browser e a ausência do tracer em production; o 01-08 reutiliza essa base e a endurece para origem, logout e STOMP CONNECT.
 - O Plano 01-06 fixa timeout ocioso `PT8H`, sem prazo absoluto adicional, e usa Spring Session Redis no profile `dev`.
 - A allowlist inicial de atividade válida reconhece somente `PUT /api/v1/tracer/identity/current` autenticado e concluído com resposta `2xx`; tráfego técnico ou malsucedido não renova a sessão.
 - A persistência seletiva conserva o instante original em operações sem atividade válida, avança o tempo de forma monotônica quando há atividade aprovada e trata session fixation sem reintroduzir uma sessão encerrada.
@@ -112,7 +112,7 @@ Progress: [████░░░░░░] 41%
 - Nenhum plano da Fase 1 assumiu os gatilhos `ADMINISTRATIVE`/`SECURITY`. `01-CONTEXT.md:75` delega essas regras a agentes posteriores, mas a delegação está sem destinatário; enquanto isso durar, o `SessionInvalidationListener` do 01-07 permanece sem consumidor em produção.
 - O refresh token vive em `InMemoryOAuth2AuthorizedClientService`, que não sobrevive a restart nem é compartilhado entre réplicas, ao contrário da sessão que o 01-06 moveu para o Redis. Aceito como pendência conhecida, a resolver antes de existir qualquer disparo real de revogação; registrado com os demais P3 em `01-22-PLAN.md`.
 - Cinco regressões negativas dos validadores Node estão inertes em checkout Windows: `core.autocrlf=true` entrega CRLF enquanto as fixtures mutam com strings `\n`. Buraco de cobertura do projeto, a corrigir por `.gitattributes` ou normalização das mutações.
-- O 01-21 também está dependency-ready, mas a adoção do Playwright mantém checkpoint humano próprio para versão, lockfile, instalação e navegador.
+- O Playwright 1.62.1 e o Chromium 1234 do 01-21 foram fixados, inspecionados e validados; qualquer atualização, nova instalação ou aquisição de navegador continua sujeita a checkpoint próprio.
 
 ### Bloqueios e pontos de atenção
 
@@ -121,7 +121,7 @@ Progress: [████░░░░░░] 41%
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam ser decididas quando os requisitos correspondentes exigirem.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
-- A Wave 12 contém 01-07 e 01-21; ambos estão dependency-ready, mas a ordem ou execução paralela não deve ser escolhida silenciosamente e cada plano continua sujeito aos próprios checkpoints.
+- A Wave 12 foi concluída com 01-07 e 01-21 integrados; a Wave 13 está liberada e começa pelo 01-22, que continua sujeito aos próprios checkpoints.
 
 ## Itens adiados
 
@@ -131,6 +131,6 @@ Progress: [████░░░░░░] 41%
 
 ## Session Continuity
 
-Last session: 2026-08-14
-Stopped at: F1/P07 concluído, documentado e aprovado em revisão cruzada; falta integrar em `master`
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-22-PLAN.md — o 01-21-PLAN.md segue em execução paralela na Wave 12
+Last session: 2026-08-15
+Stopped at: F1/P21 concluído, documentado e integrado em `master` por fast-forward, sem merge commit; push ainda não realizado
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-22-PLAN.md — primeiro plano da Wave 13
