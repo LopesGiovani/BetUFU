@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 16/29 plans executed
+**Plans**: 17/29 plans executed
 Plans:
 **Wave 1**
 
@@ -98,11 +98,11 @@ Plans:
 
 - [x] 01-09-PLAN.md — Declarar os dez módulos Spring Modulith sem antecipar negócio futuro.
 
-**Wave 16** *(próxima; liberada após a conclusão da Wave 15)*
+**Wave 16** *(concluída; Plano 01-23 executado, revisado com PASS e integrado)*
 
-- [ ] 01-23-PLAN.md — Impor gates Modulith/ArchUnit sobre os dez módulos.
+- [x] 01-23-PLAN.md — Impor gates Modulith/ArchUnit sobre os dez módulos.
 
-**Wave 17** *(blocked on Wave 16 completion)*
+**Wave 17** *(próxima; liberada após a conclusão da Wave 16)*
 
 - [ ] 01-10-PLAN.md — Tornar Flyway, JPA e PostgreSQL autoritativos e delimitar Redis/S3.
 
@@ -266,7 +266,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação Segura da Plataforma | 13/29 | In Progress | - |
+| 1. Fundação Segura da Plataforma | 17/29 | In Progress | - |
 | 2. Contas, Verificação e Operações Governadas | 0/TBD | Pending | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
