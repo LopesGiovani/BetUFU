@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Iniciar a Wave 17 — Plano 01-10 (Flyway, JPA, PostgreSQL autoritativo e delimitação Redis/S3)
+**Current focus:** Iniciar a Wave 18 — Plano 01-11 (Perfis daily/full e orquestrador cross-platform)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 17 of 29
-Status: In progress — Wave 16 concluída com o Plano 01-23; a Wave 17 começa pelo 01-10
-Last activity: 2026-08-16 — o 01-23 impôs os gates arquiteturais Spring Modulith e ArchUnit com provas de discriminação de ciclos e pacotes internal.
+Plan: 18 of 29
+Status: In progress — Wave 17 concluída com o Plano 01-10; a Wave 18 começa pelo 01-11
+Last activity: 2026-08-16 — o 01-10 tornou Flyway, JPA e PostgreSQL autoritativos e delimitou Redis/S3.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` em histórico linear; commits `8725992` (feat) e `5cecda4` (docs) integrados e sincronizados com `origin/master` sob autorização do responsável.
+Git: `master` em histórico linear; commits `8725992` (feat) e `efe3333` (docs) integrados e sincronizados com `origin/master` sob autorização do responsável.
 
-Progress: [██████░░░░] 59%
+Progress: [██████░░░░] 62%
 
 ## Métricas de desempenho
 

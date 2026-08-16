@@ -39,7 +39,7 @@ patterns-established:
 
 # Plano 01-23 — Gates Arquiteturais Modulith e ArchUnit (ARCH-03 / TEST-02)
 
-`BASE_HEAD`: `707428a`. Integração: Implementação commitada em `8725992` (feat) e governança em `5cecda4` (docs), sincronizados com `origin/master` sob autorização do responsável.
+`BASE_HEAD`: `707428a`. Integração: Implementação commitada em `8725992` (feat) e governança em `efe3333` (docs), sincronizados com `origin/master` sob autorização do responsável.
 
 ## Task 1 — Imposição dos Gates Modulith e ArchUnit com Provas de Discriminação
 
