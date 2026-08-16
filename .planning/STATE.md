@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P21 encerrado e integrado por fast-forward; Wave 12 concluída e Plano 01-22 liberado
+stopped_at: F1/P22 executado, revisado externamente e corrigido; Wave 13 concluída; árvore não commitada aguardando reauditoria curta
 last_updated: "2026-08-15"
 last_activity: 2026-08-15
-last_activity_desc: O Plano 01-21 foi integrado em master sem merge commit após gate canônico completo verde sobre a árvore combinada dos Planos 01-07 e 01-21.
+last_activity_desc: O Plano 01-22 entregou o contrato seguro de sessão e o logout do dispositivo atual, com Surefire 42/42 e Failsafe 49/49; a revisão externa retornou CHANGES_REQUIRED com um P2 documental, e as três correções autorizadas foram aplicadas.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Preparar o Plano 01-22, primeiro plano da Wave 13, mantendo cada novo bloco sujeito aos checkpoints próprios
+**Current focus:** Fechar o Plano 01-22 — reauditoria curta dos três paths alterados após as correções, depois stage e commit
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 13 of 29
-Status: In progress — Wave 12 concluída com os Planos 01-07 e 01-21 integrados; o 01-22 é o próximo plano
-Last activity: 2026-08-15 — o 01-21 entregou o tracer Angular lazy somente em development/homolog, login hospedado no Keycloak, XSRF same-origin automático e ausência comprovada no build production.
+Plan: 14 of 29
+Status: In progress — Wave 13 concluída com o Plano 01-22; a Wave 14 começa pelo 01-08
+Last activity: 2026-08-15 — o 01-22 entregou `GET /api/v1/session` com projeção segura e não renovadora e `POST /api/v1/session/logout` encerrando somente o dispositivo atual, com coordenação RP-initiated logout por `client_id`.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas. Este fechamento não alterou o estado remoto.
-Git: `master` recebeu 01-07 e 01-21 em histórico linear, sem merge commit; `origin/master` ainda aguarda autorização própria de push.
+Git: `master` recebeu 01-07 e 01-21 em histórico linear, sem merge commit; `origin/master` ainda aguarda autorização própria de push. Os nove paths do 01-22 permanecem **não commitados** sobre `d92181a`.
 
-Progress: [█████░░░░░] 45%
+Progress: [█████░░░░░] 48%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 13
+- Total de planos concluídos: 14
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [█████░░░░░] 45%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 13 | não mensurado | não mensurada |
+| 1 | 14 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-05, 01-29, 01-06, 01-07, 01-21
+- Últimos 5 planos: 01-29, 01-06, 01-07, 01-21, 01-22
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
@@ -98,6 +98,11 @@ Progress: [█████░░░░░] 45%
 - O `PENDING_TTL` de cinco minutos limita reuso, não retenção: a purga é oportunista e o material pode permanecer em memória além da janela.
 - O Plano 01-07 tocou nove paths de código contra os oito declarados; a ampliação para `SecurityConfiguration.java` foi ratificada pelo responsável, por ser fiação de cliente OIDC.
 - Prova nova só é confiável depois de falhar contra o código antigo; o padrão de mutação foi aplicado no `iss` e no timeout de revogação.
+- O Plano 01-22 fechou a superfície HTTP de sessão: `GET /api/v1/session` é `permitAll` no par exato `(GET, /api/v1/session)` e não renova o prazo; todo o resto de `/api/v1/**` segue autenticado.
+- O logout voluntário usa `client_id` no RP-initiated logout, **sem `id_token_hint`**. O ID token é material de autenticação e vazaria por histórico, `Referer` e log de proxy. A tela de confirmação resultante é também mitigação contra logout forçado por terceiro.
+- Logout voluntário remove o authorized client mas **não revoga o grant**, coerente com `OidcSessionRevocationService`, que revoga só em `ADMINISTRATIVE` e `SECURITY`.
+- A ordem do logout é contrato de segurança: authorized client, sessão HTTP e SecurityContext caem **antes** de a coordenação com o provedor ser computada, espelhando o 01-07.
+- Uma mutação só conta como prova depois de observada vermelha. A M3a do 01-22 foi especificada, aprovada e executou verde: ela mediu que a guarda do caminho anônimo mora no short-circuit do controller, não em `currentState`.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
@@ -113,6 +118,11 @@ Progress: [█████░░░░░] 45%
 - O refresh token vive em `InMemoryOAuth2AuthorizedClientService`, que não sobrevive a restart nem é compartilhado entre réplicas, ao contrário da sessão que o 01-06 moveu para o Redis. Aceito como pendência conhecida, a resolver antes de existir qualquer disparo real de revogação; registrado com os demais P3 em `01-22-PLAN.md`.
 - Cinco regressões negativas dos validadores Node estão inertes em checkout Windows: `core.autocrlf=true` entrega CRLF enquanto as fixtures mutam com strings `\n`. Buraco de cobertura do projeto, a corrigir por `.gitattributes` ou normalização das mutações.
 - O Playwright 1.62.1 e o Chromium 1234 do 01-21 foram fixados, inspecionados e validados; qualquer atualização, nova instalação ou aquisição de navegador continua sujeita a checkpoint próprio.
+- `GET /api/v1/session` e `POST /api/v1/session/logout` existem em runtime sem constar em `backend/openapi/betufu.yaml`, e nenhum validador detecta a divergência. Bloco atribuído ao **Plano 01-26, Task 2** (Wave 23), que já declara o yaml e a árvore gerada e verifica por `scripts/validate-phase1.mjs --contract` — script ainda inexistente. Divergência conhecida, atribuída e sem detector até lá.
+- Registrar o `post_logout_redirect_uri` no realm do Keycloak. Condição da ratificação do `id_token_hint`: sem isso o redirect pós-logout não é honrado e o usuário para na página genérica do provedor.
+- `mfaAuthenticated` permanece no `SessionContractDto` sem ser publicado pela API; decidir a regra `acr`/`amr` antes de existir consumidor.
+- `END_SESSION_UNAVAILABLE` conflacia principal inesperado, registro inexistente e discovery sem `end_session_endpoint`; fail-closed e sanitizado, mas um operador não distingue os três.
+- Snapshot de sessão corrompido faz `GET /api/v1/session` responder 500 em vez de contrato não autenticado. Deliberado: uma leitura pura não deve encerrar sessão como efeito colateral.
 
 ### Bloqueios e pontos de atenção
 
@@ -121,7 +131,8 @@ Progress: [█████░░░░░] 45%
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam ser decididas quando os requisitos correspondentes exigirem.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
-- A Wave 12 foi concluída com 01-07 e 01-21 integrados; a Wave 13 está liberada e começa pelo 01-22, que continua sujeito aos próprios checkpoints.
+- A Wave 13 foi concluída com o 01-22; a Wave 14 está liberada e começa pelo 01-08, que endurece origem, logout e STOMP CONNECT sobre a base entregue pelos 01-21 e 01-22.
+- O `PASS` da revisão externa do 01-22 foi invalidado pela correção C3, que tocou código de teste. Falta reauditoria curta de três paths: `SessionLifecycleServiceTest.java`, `01-22-PLAN.md` e `01-22-SUMMARY.md`.
 
 ## Itens adiados
 
@@ -132,5 +143,5 @@ Progress: [█████░░░░░] 45%
 ## Session Continuity
 
 Last session: 2026-08-15
-Stopped at: F1/P21 concluído, documentado e integrado em `master` por fast-forward, sem merge commit; push ainda não realizado
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-22-PLAN.md — primeiro plano da Wave 13
+Stopped at: F1/P22 executado e corrigido após revisão externa; nove paths não commitados sobre `d92181a`; reauditoria curta pendente antes de stage e commit
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-22-SUMMARY.md — depois, `01-08-PLAN.md` abre a Wave 14

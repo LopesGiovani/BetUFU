@@ -85,11 +85,12 @@ Plans:
 - [x] 01-07-PLAN.md — Revogar refresh token por OIDC e manter UserInfo opt-out.
 - [x] 01-21-PLAN.md — Provar o tracer Angular somente em dev/homolog/harness e sua ausência production, após 01-29 e 01-06, com checkpoint humano próprio para Playwright.
 
-**Wave 13** *(próxima; liberada após a conclusão da Wave 12)*
+**Wave 13** *(concluída; Plano 01-22 executado, revisado externamente e corrigido)*
 
-- [ ] 01-22-PLAN.md — Publicar o estado seguro da sessão e logout do dispositivo atual.
+- [x] 01-22-PLAN.md — Publicar o estado seguro da sessão e logout do dispositivo atual. O escopo
+      OpenAPI foi retirado durante a execução e atribuído ao 01-26, Task 2.
 
-**Wave 14** *(blocked on Wave 13 completion)*
+**Wave 14** *(próxima; liberada após a conclusão da Wave 13)*
 
 - [ ] 01-08-PLAN.md — Proteger HTTP e STOMP CONNECT com CSRF, sessão e origem.
 
