@@ -3,10 +3,14 @@ package br.com.betufu.platform.security;
 import br.com.betufu.platform.session.OidcLogoutSuccessHandler;
 import br.com.betufu.platform.session.SessionLifecycleService;
 import br.com.betufu.platform.session.ValidActivityFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,10 +21,18 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.access.intercept.AuthorizationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
@@ -35,6 +47,35 @@ public class SecurityConfiguration {
                 .path("/")
                 .sameSite("Lax"));
         return repository;
+    }
+
+    /**
+     * Enforces explicit origin allowlist per environment without wildcard.
+     *
+     * <p>CORS preflight and cross-origin mutating requests must strictly match the configured
+     * public origin. In local development this defaults to {@code http://localhost:4200}.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${betufu.web.public-origin:http://localhost:4200}") String publicOrigin) {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of(publicOrigin));
+        configuration.setAllowedMethods(List.of(
+                HttpMethod.GET.name(),
+                HttpMethod.POST.name(),
+                HttpMethod.PUT.name(),
+                HttpMethod.PATCH.name(),
+                HttpMethod.DELETE.name(),
+                HttpMethod.OPTIONS.name(),
+                HttpMethod.HEAD.name()));
+        configuration.setAllowedHeaders(List.of(
+                "Content-Type", "X-XSRF-TOKEN", "X-Requested-With", "Accept", "Origin"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(Duration.ofHours(1));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     /**
@@ -97,6 +138,7 @@ public class SecurityConfiguration {
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             CookieCsrfTokenRepository csrfTokenRepository,
+            CorsConfigurationSource corsConfigurationSource,
             ObjectProvider<SessionLifecycleService> sessionLifecycleServiceProvider,
             ObjectProvider<ValidActivityFilter> validActivityFilterProvider) throws Exception {
         SessionLifecycleService sessionLifecycleService =
@@ -108,13 +150,64 @@ public class SecurityConfiguration {
                     "Session lifecycle and valid-activity filter must be configured together");
         }
 
+        AuthenticationEntryPoint problemDetailsEntryPoint = (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/problem+json");
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.getWriter().write(
+                    "{\"type\":\"about:blank\","
+                            + "\"title\":\"Unauthorized\","
+                            + "\"status\":401,"
+                            + "\"detail\":\"Authentication is required to access this resource\"}");
+        };
+
+        AccessDeniedHandler problemDetailsAccessDeniedHandler = (request, response, accessDeniedException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/problem+json");
+            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+            response.getWriter().write(
+                    "{\"type\":\"about:blank\","
+                            + "\"title\":\"Forbidden\","
+                            + "\"status\":403,"
+                            + "\"detail\":\"Access denied or invalid CSRF token\"}");
+        };
+
+        RequestMatcher apiOrProblemMatcher = request -> {
+            String accept = request.getHeader("Accept");
+            String requestedWith = request.getHeader("X-Requested-With");
+            if (accept != null && (accept.contains("application/json")
+                    || accept.contains("application/problem+json")
+                    || accept.contains("text/plain"))) {
+                return true;
+            }
+            if ("XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
+                return true;
+            }
+            String uri = request.getRequestURI();
+            String servletPath = request.getServletPath();
+            boolean isApiPath = (uri != null && uri.startsWith("/api/"))
+                    || (servletPath != null && servletPath.startsWith("/api/"));
+            return isApiPath && (accept != null && !accept.contains("text/html"));
+        };
+
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .exceptionHandling(exceptions -> exceptions
+                        .defaultAuthenticationEntryPointFor(
+                                problemDetailsEntryPoint,
+                                apiOrProblemMatcher)
+                        .defaultAuthenticationEntryPointFor(
+                                new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/keycloak"),
+                                AnyRequestMatcher.INSTANCE)
+                        .accessDeniedHandler(problemDetailsAccessDeniedHandler))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/login",
                                 "/oauth2/authorization/**",
                                 "/login/oauth2/code/**",
-                                "/actuator/health/liveness")
+                                "/actuator/health/liveness",
+                                "/ws",
+                                "/ws/**")
                         .permitAll()
                         // Exact pair only. The SPA must be able to ask whether it is signed in
                         // without being redirected to the hosted IdP, so this single GET is
