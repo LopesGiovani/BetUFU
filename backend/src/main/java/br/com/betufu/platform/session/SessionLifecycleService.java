@@ -128,6 +128,31 @@ public final class SessionLifecycleService implements AuthenticationSuccessHandl
         }
     }
 
+    /**
+     * Reads the lifecycle state of the current HTTP session without touching it.
+     *
+     * <p>Plan 01-22 publishes a session contract endpoint, which needs a read path. Exposing this
+     * reader keeps a single parser for the Redis representation: decoding the attributes again in
+     * the controller would create two readers that can drift apart, and the integrity checks in
+     * {@link #readState} — nano range and AMR completeness — would only exist in one of them.
+     *
+     * <p>Deliberately does not create a session, does not renew the idle deadline and does not
+     * invalidate on malformed state. A corrupt snapshot propagates as {@link IllegalStateException}
+     * so the caller fails closed instead of publishing a half-read contract. Unlike the mutating
+     * paths above, a pure read must not be able to terminate a session as a side effect.
+     *
+     * @return the current state, or {@code null} when there is no session or no lifecycle state
+     */
+    public SessionPolicy.SessionState currentState(HttpServletRequest request) {
+        Objects.requireNonNull(request, "request must not be null");
+
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        return readState(session);
+    }
+
     private SessionPolicy.SessionState readState(HttpSession session) {
         List<String> attributeNames = Collections.list(session.getAttributeNames());
         boolean hasTemporalState = attributeNames.contains(LAST_VALID_EPOCH_SECOND_ATTRIBUTE)

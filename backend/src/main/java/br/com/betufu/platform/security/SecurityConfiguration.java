@@ -1,5 +1,6 @@
 package br.com.betufu.platform.security;
 
+import br.com.betufu.platform.session.OidcLogoutSuccessHandler;
 import br.com.betufu.platform.session.SessionLifecycleService;
 import br.com.betufu.platform.session.ValidActivityFilter;
 import java.net.http.HttpClient;
@@ -8,6 +9,7 @@ import java.time.Duration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -81,6 +83,16 @@ public class SecurityConfiguration {
                 RestClient.builder().requestFactory(requestFactory).build());
     }
 
+    /**
+     * OIDC client wiring, like the beans above: it turns discovery metadata into the RP-initiated
+     * logout URI. Declared here rather than beside the session policy because it depends on the
+     * client registration, not on the session contract.
+     */
+    @Bean
+    OidcLogoutSuccessHandler oidcLogoutSuccessHandler() {
+        return new OidcLogoutSuccessHandler();
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
@@ -103,6 +115,12 @@ public class SecurityConfiguration {
                                 "/oauth2/authorization/**",
                                 "/login/oauth2/code/**",
                                 "/actuator/health/liveness")
+                        .permitAll()
+                        // Exact pair only. The SPA must be able to ask whether it is signed in
+                        // without being redirected to the hosted IdP, so this single GET is
+                        // anonymous while every other /api/v1/** request stays authenticated.
+                        // Order matters: a broader matcher placed first would swallow it.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/session")
                         .permitAll()
                         .requestMatchers("/api/v1/**")
                         .authenticated()
