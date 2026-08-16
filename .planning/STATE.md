@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P08 executado e revisado externamente com PASS; Wave 14 concluída; árvore pronta para commit
+stopped_at: F1/P09 executado e revisado externamente com PASS; Wave 15 concluída; árvore com 01-09
 last_updated: "2026-08-16"
 last_activity: 2026-08-16
-last_activity_desc: O Plano 01-08 entregou o hardening HTTP de CSRF, CORS e Problem Details e o gate STOMP CONNECT com double-submit XSRF e proteção de sessão, com 110 testes passando e revisão externa PASS.
+last_activity_desc: O Plano 01-09 entregou os dez limites modulares Spring Modulith para os domínios de negócio (ARCH-02), com 42 testes verdes e revisão externa PASS.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Fechar o Plano 01-08 — commit atômico dos arquivos da Wave 14 e avanço para a Wave 15
+**Current focus:** Fechar o Plano 01-09 — commit da documentação da Wave 15 e avanço para a Wave 16 (Plano 01-23)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 15 of 29
-Status: In progress — Wave 14 concluída com o Plano 01-08; a Wave 15 começa pelo 01-09
-Last activity: 2026-08-16 — o 01-08 entregou o hardening HTTP de CSRF, CORS e Problem Details e o gate STOMP CONNECT com double-submit XSRF.
+Plan: 16 of 29
+Status: In progress — Wave 15 concluída com o Plano 01-09; a Wave 16 começa pelo 01-23
+Last activity: 2026-08-16 — o 01-09 declarou os dez módulos de negócio no Spring Modulith mantendo identity/internal encapsulado e platform como suporte.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` em histórico linear; árvore com o Plano 01-08 concluído e auditado com PASS.
+Git: `master` em histórico linear; árvore com o Plano 01-09 concluído e auditado com PASS.
 
-Progress: [█████░░░░░] 52%
+Progress: [█████░░░░░] 55%
 
 ## Métricas de desempenho
 
