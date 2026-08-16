@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 13/29 plans executed
+**Plans**: 15/29 plans executed
 Plans:
 **Wave 1**
 
@@ -90,11 +90,11 @@ Plans:
 - [x] 01-22-PLAN.md — Publicar o estado seguro da sessão e logout do dispositivo atual. O escopo
       OpenAPI foi retirado durante a execução e atribuído ao 01-26, Task 2.
 
-**Wave 14** *(próxima; liberada após a conclusão da Wave 13)*
+**Wave 14** *(concluída; Plano 01-08 executado, revisado externamente com PASS e provas aprovadas)*
 
-- [ ] 01-08-PLAN.md — Proteger HTTP e STOMP CONNECT com CSRF, sessão e origem.
+- [x] 01-08-PLAN.md — Proteger HTTP e STOMP CONNECT com CSRF, sessão e origem. O escopo de rota de proxy e E2E browser foi formalmente adiado para a Phase 7 (CHAT-01/CHAT-02).
 
-**Wave 15** *(blocked on Wave 14 completion)*
+**Wave 15** *(próxima; liberada após a conclusão da Wave 14)*
 
 - [ ] 01-09-PLAN.md — Declarar os dez módulos Spring Modulith sem antecipar negócio futuro.
 

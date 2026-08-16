@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P22 executado, revisado externamente e corrigido; Wave 13 concluída; árvore não commitada aguardando reauditoria curta
-last_updated: "2026-08-15"
-last_activity: 2026-08-15
-last_activity_desc: O Plano 01-22 entregou o contrato seguro de sessão e o logout do dispositivo atual, com Surefire 42/42 e Failsafe 49/49; a revisão externa retornou CHANGES_REQUIRED com um P2 documental, e as três correções autorizadas foram aplicadas.
+stopped_at: F1/P08 executado e revisado externamente com PASS; Wave 14 concluída; árvore pronta para commit
+last_updated: "2026-08-16"
+last_activity: 2026-08-16
+last_activity_desc: O Plano 01-08 entregou o hardening HTTP de CSRF, CORS e Problem Details e o gate STOMP CONNECT com double-submit XSRF e proteção de sessão, com 110 testes passando e revisão externa PASS.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Fechar o Plano 01-22 — reauditoria curta dos três paths alterados após as correções, depois stage e commit
+**Current focus:** Fechar o Plano 01-08 — commit atômico dos arquivos da Wave 14 e avanço para a Wave 15
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 14 of 29
-Status: In progress — Wave 13 concluída com o Plano 01-22; a Wave 14 começa pelo 01-08
-Last activity: 2026-08-15 — o 01-22 entregou `GET /api/v1/session` com projeção segura e não renovadora e `POST /api/v1/session/logout` encerrando somente o dispositivo atual, com coordenação RP-initiated logout por `client_id`.
+Plan: 15 of 29
+Status: In progress — Wave 14 concluída com o Plano 01-08; a Wave 15 começa pelo 01-09
+Last activity: 2026-08-16 — o 01-08 entregou o hardening HTTP de CSRF, CORS e Problem Details e o gate STOMP CONNECT com double-submit XSRF.
 
-GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas. Este fechamento não alterou o estado remoto.
-Git: `master` recebeu 01-07 e 01-21 em histórico linear, sem merge commit; `origin/master` ainda aguarda autorização própria de push. Os nove paths do 01-22 permanecem **não commitados** sobre `d92181a`.
+GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
+Git: `master` em histórico linear; árvore com o Plano 01-08 concluído e auditado com PASS.
 
-Progress: [█████░░░░░] 48%
+Progress: [█████░░░░░] 52%
 
 ## Métricas de desempenho
 
@@ -119,6 +119,7 @@ Progress: [█████░░░░░] 48%
 - Cinco regressões negativas dos validadores Node estão inertes em checkout Windows: `core.autocrlf=true` entrega CRLF enquanto as fixtures mutam com strings `\n`. Buraco de cobertura do projeto, a corrigir por `.gitattributes` ou normalização das mutações.
 - O Playwright 1.62.1 e o Chromium 1234 do 01-21 foram fixados, inspecionados e validados; qualquer atualização, nova instalação ou aquisição de navegador continua sujeita a checkpoint próprio.
 - `GET /api/v1/session` e `POST /api/v1/session/logout` existem em runtime sem constar em `backend/openapi/betufu.yaml`, e nenhum validador detecta a divergência. Bloco atribuído ao **Plano 01-26, Task 2** (Wave 23), que já declara o yaml e a árvore gerada e verifica por `scripts/validate-phase1.mjs --contract` — script ainda inexistente. Divergência conhecida, atribuída e sem detector até lá.
+- `/ws` e o gate STOMP do 01-08 existem no backend mas não têm rota no `frontend/proxy.conf.json` — `validate-tracer.mjs:775-776` congela o proxy nos três segmentos BFF — nem cobertura E2E em navegador. Atribuído à Phase 7 (`ROADMAP.md:245-250`, `CHAT-01`/`CHAT-02`), que entrega o roteamento `/ws`, o repasse explícito de `Origin` (necessário para que o `setAllowedOrigins` não fique inerte contra CSWSH) e a conexão STOMP real. Sem detector até lá.
 - Registrar o `post_logout_redirect_uri` no realm do Keycloak. Condição da ratificação do `id_token_hint`: sem isso o redirect pós-logout não é honrado e o usuário para na página genérica do provedor.
 - `mfaAuthenticated` permanece no `SessionContractDto` sem ser publicado pela API; decidir a regra `acr`/`amr` antes de existir consumidor.
 - `END_SESSION_UNAVAILABLE` conflacia principal inesperado, registro inexistente e discovery sem `end_session_endpoint`; fail-closed e sanitizado, mas um operador não distingue os três.
