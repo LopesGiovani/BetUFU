@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P11 executado e validado integralmente (daily/full, Dockerfiles OCI, Nginx, OIDC discovery unificado em localhost:8081, suíte Maven 133/133 e gate agregado); pronto para consolidação em 2 commits canônicos e sincronização sob autorização.
+stopped_at: F1/P24 executado, revisado externamente em 4 rodadas (P1 e P2 corrigidos, PASS final) e commitado em 2 commits canônicos; Wave 19 concluída, Wave 20 liberada; push ainda não autorizado.
 last_updated: "2026-08-16"
 last_activity: 2026-08-16
-last_activity_desc: O Plano 01-11 entregou os perfis daily/full, CLI dev.mjs, compose.mjs, validate-phase1.mjs, Dockerfiles multi-stage OCI fixados, Nginx, issuer unificado e testes empíricos de concorrência e encoding.
+last_activity_desc: O Plano 01-24 entregou o reset local destrutivo com dry-run padrão, confirmação literal e seleção fail-closed ancorada no checkout; 36/36 focal, 475/477 agregado, 13 mutações efetivas e dry-run real preservando 29 de 36 containers.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Concluir consolidação e governança do Plano 01-11; iniciar a Wave 19 — Plano 01-24 (Reset local confirmado e estritamente allowlisted)
+**Current focus:** Wave 20 — Plano 01-12 (Problem Details, correlação e logs estruturados); antes disso, executar o primeiro `--apply` do reset com o responsável presente
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 18 of 29 (Plano 01-11 em auditoria/revisão pós-correções Rodada 3)
-Status: In progress — Wave 18 em encerramento; Wave 19 liberada com o 01-24
-Last activity: 2026-08-16 — Perfis daily/full, Dockerfiles OCI, Nginx, OIDC discovery unificado, suíte Maven 133/133 e orquestrador validados integralmente.
+Plan: 19 of 29 (Plano 01-24 concluído com PASS externo)
+Status: In progress — Wave 19 concluída com o 01-24; Wave 20 liberada com o 01-12
+Last activity: 2026-08-16 — Reset local destrutivo entregue com dry-run padrão, confirmação literal, seleção fail-closed e prova de que preserva 29 de 36 containers da máquina.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `HEAD` local em `c7baf19` após `git reset c7baf19` (índice limpo, 0 staged) para desfazer os commits parciais `676b208` e `63105e1` que subiram temporariamente para `origin/master`. O Plano 01-11 será consolidado em exatamente dois commits canônicos (`feat(01-11):` e `docs(01-11):`), com publicação alinhada sob autorização explícita do responsável.
+Git: `master` recebeu o Plano 01-24 em dois commits canônicos sobre `6ca340a`, sem merge commit. O primeiro é `f0b1b3b` (`feat(01-24)`, 4 paths de implementação); o segundo é o commit de documentação que carrega este arquivo, `ROADMAP.md` e o SUMMARY — seu hash não é citado aqui porque emendar um commit para inserir o próprio hash o mudaria. `origin/master` permanece em `6ca340a`: **push não autorizado**, portanto local e remoto estão dessincronizados por dois commits.
 
-Progress: [██████░░░░] 62%
+Progress: [███████░░░] 66%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 14
+- Total de planos concluídos: 19
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,17 +49,23 @@ Progress: [██████░░░░] 62%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 14 | não mensurado | não mensurada |
+| 1 | 19 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-29, 01-06, 01-07, 01-21, 01-22
+- Últimos 5 planos: 01-21, 01-22, 01-23, 01-10, 01-11, 01-24
+- Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
 
 ### Decisões
 
+- O reset local é o único comando destrutivo da fase. Dry-run é o padrão, `--apply` exige a frase literal `APAGAR DADOS LOCAIS BETUFU` em terminal interativo, e o bootstrap é opcional e desligado.
+- Um recurso Docker só é removido pela conjunção de todos os critérios: containers exigem serviço na allowlist, `project=infra`, `oneoff=False` e `config_files` apontando para este checkout; volumes exigem nome literal, `project=infra` e label de volume igual ao nome. Redes ficam fora.
+- O label `com.docker.compose.project` sozinho é insuficiente para autorizar remoção, porque `--project-name infra` é genérico e colide com qualquer composição num diretório homônimo. `config_files` é o único discriminador que amarra um recurso a um checkout — verificado presente em containers e ausente em volumes e redes no Compose 5.3.1.
+- Prune é o oposto de allowlist: `system prune`, `volume prune`, `image prune` e `down -v` são proibidos no reset, que remove item a item por identidade.
+- Um teste de escopo destrutivo não cria o recurso hostil de verdade: se a guarda falhar, o próprio teste causa a perda que deveria detectar. A prova recai sobre a função pura de seleção, com inventário em memória.
 - O build backend permanece estritamente em Java 25, Maven 3.9.16, Spring Boot 4.1.0 e Spring Modulith 2.1.0; falhas não autorizam downgrade silencioso.
 - Spring Session Redis usa o starter oficial do Boot, com Lettuce transitivo, e toda a família ArchUnit permanece alinhada em 1.4.2.
 - Spring atua como BFF OIDC: o Spring Security gerencia `state`, `nonce` e PKCE, enquanto tokens e material de autenticação permanecem no servidor.
@@ -107,6 +113,8 @@ Progress: [██████░░░░] 62%
 
 ### Pendências
 
+- **Dois validadores estão em contradição direta sobre o usuário técnico do Keycloak, e um deles falha hoje.** `validate-keycloak-realm.mjs:243-253` exige exatamente 9 chaves em `realm.users[0]` e rejeita `firstName`/`lastName`; `validate-runtime-prerequisites.mjs:1290-1297` **exige** esses dois campos como strings não vazias, com quatro regressões negativas em `validate-runtime-prerequisites.test.mjs:983-996`. Histórico: `060d5ed` (01-03) criou realm e validador coerentes em 9 chaves; `016390b` (01-29) acrescentou os dois campos ao realm para destravar o provider `VERIFY_PROFILE`, que bloqueava o login, e nunca tocou `validate-keycloak-realm.mjs` — `git log` desse arquivo tem uma única linha. **A correção é ampliar o contrato do validador para 11 chaves, não remover os campos do realm:** removê-los quebraria o outro validador e reintroduziria o bloqueio de login. Confirmado por revisão externa independente. Exige plano próprio; está fora da allowlist do 01-24.
+- **O reset local nunca executou `--apply`.** A primeira remoção real deve ocorrer com o responsável presente, lendo a lista do dry-run. O que está provado é a decisão de seleção; que `docker volume rm` apaga o volume certo e só ele permanece não provado, por escolha.
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
 - O provedor e a topologia S3 de homologação/produção continuam sem escolha; SeaweedFS não deve ser promovido silenciosamente além do ambiente local.
 - Homologação e produção ainda precisarão fornecer origens e uma lista não vazia de proxies durante os planos de infraestrutura e implantação.
@@ -132,8 +140,9 @@ Progress: [██████░░░░] 62%
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam de decisão explícita ou configuração.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
-- A Wave 13 foi concluída com o 01-22; a Wave 14 está liberada e começa pelo 01-08, que endurece origem, logout e STOMP CONNECT sobre a base entregue pelos 01-21 e 01-22.
-- O `PASS` da revisão externa do 01-22 foi invalidado pela correção C3, que tocou código de teste. Falta reauditoria curta de três paths: `SessionLifecycleServiceTest.java`, `01-22-PLAN.md` e `01-22-SUMMARY.md`.
+- A Wave 19 foi concluída com o 01-24, único plano da onda; a Wave 20 está liberada e começa pelo 01-12.
+- `scripts/validate-keycloak-realm.mjs` está vermelho contra o artefato canônico commitado. Isso bloqueia qualquer gate agregado que o inclua até a contradição entre validadores ser resolvida.
+- A allowlist do 01-24 declarava 4 paths; `STATE.md` e `ROADMAP.md` foram ratificados pelo responsável no fechamento, para que o registro do projeto não continuasse descrevendo o 01-11. Ampliação registrada aqui, e não no SUMMARY, porque o SUMMARY estava sob `PASS` externo e editá-lo o invalidaria.
 
 ## Itens adiados
 
@@ -144,5 +153,5 @@ Progress: [██████░░░░] 62%
 ## Session Continuity
 
 Last session: 2026-08-16
-Stopped at: F1/P11 executado e validado integralmente (daily/full, Dockerfiles OCI, Nginx, OIDC discovery unificado em localhost:8081, suíte Maven 133/133 e gate agregado); pronto para consolidação em 2 commits canônicos e sincronização sob autorização.
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-11-SUMMARY.md — depois, `01-24-PLAN.md` abre a Wave 19
+Stopped at: F1/P24 concluído com PASS externo após 4 rodadas e commitado em dois commits canônicos sobre `6ca340a`; push não autorizado, `origin/master` dessincronizado por dois commits.
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-24-SUMMARY.md — depois, `01-12-PLAN.md` abre a Wave 20

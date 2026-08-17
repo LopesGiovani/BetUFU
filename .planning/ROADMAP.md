@@ -110,11 +110,13 @@ Plans:
 
 - [x] 01-11-PLAN.md — Entregar os perfis daily/full e o orquestrador cross-platform.
 
-**Wave 19** *(liberada; Wave 18 concluída)*
+**Wave 19** *(concluída; Plano 01-24 executado, revisado em 4 rodadas e aprovado com PASS)*
 
-- [ ] 01-24-PLAN.md — Implementar o reset local confirmado e estritamente allowlisted.
+- [x] 01-24-PLAN.md — Implementar o reset local confirmado e estritamente allowlisted.
+      A allowlist do plano foi ampliada no fechamento para `STATE.md` e `ROADMAP.md`,
+      com ratificação do responsável.
 
-**Wave 20** *(blocked on Wave 19 completion)*
+**Wave 20** *(liberada; Wave 19 concluída)*
 
 - [ ] 01-12-PLAN.md — Padronizar Problem Details, correlação e logs estruturados.
 
