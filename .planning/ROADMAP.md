@@ -127,11 +127,11 @@ Plans:
       gate agregado do 01-16. Suíte Node passou a 481/481.
 - [x] 01-12-PLAN.md — Padronizar Problem Details, correlação e logs estruturados.
 
-**Wave 21** *(liberada; Wave 20 concluída)*
+**Wave 21** *(concluída; Plano 01-25 executado, revisado com PASS e integrado)*
 
-- [ ] 01-25-PLAN.md — Expor health e métricas operacionais mínimos e seguros.
+- [x] 01-25-PLAN.md — Expor health e métricas operacionais mínimos e seguros.
 
-**Wave 22** *(blocked on Wave 21 completion)*
+**Wave 22** *(liberada; Wave 21 concluída)*
 
 - [ ] 01-13-PLAN.md — Modelar a projeção diagnóstica e seus probes tolerantes a falha.
 

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P12 executado com PASS externo; Problem Details RFC 9457 e observabilidade com sanitização total de logs entregues. Wave 20 concluída (01-12, 01-30, 01-31).
+stopped_at: F1/P25 executado com PASS externo; Governança de health e métricas seguras na JVM entregues. Wave 21 concluída (01-25).
 last_updated: "2026-08-17"
 last_activity: 2026-08-17
-last_activity_desc: O Plano 01-12 concluiu a infraestrutura de Problem Details e observabilidade/sanitização de logs da plataforma, com PASS da revisão externa e 152 testes no agregado Java.
+last_activity_desc: O Plano 01-25 concluiu a governança de health e métricas seguras com MeterFilter e isolamento contra alta cardinalidade e segredos, com PASS externo e 158 testes agregados.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 21 — Próximos planos da Fundação Segura
+**Current focus:** Wave 22 — Modelagem da projeção diagnóstica
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 22 of 31 (Plano 01-12 concluído)
-Status: In progress — Wave 20 concluída (01-12, 01-30, 01-31)
-Last activity: 2026-08-17 — Problem Details RFC 9457 e observabilidade entregues com PASS externo.
+Plan: 23 of 31 (Plano 01-25 concluído)
+Status: In progress — Wave 21 concluída (01-25)
+Last activity: 2026-08-17 — Health e métricas seguros entregues com PASS externo.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` e `origin/master` estão **sincronizados em `3440f35`**, divergência `0/0`.
+Git: `master` e `origin/master` em avanço local.
 
-Progress: [███████░░░] 71%
+Progress: [███████░░░] 74%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 22
+- Total de planos concluídos: 23
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [███████░░░] 71%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 22 | não mensurado | não mensurada |
+| 1 | 23 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-11, 01-24, 01-30, 01-31, 01-12
+- Últimos 5 planos: 01-30, 01-31, 01-12, 01-25
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
