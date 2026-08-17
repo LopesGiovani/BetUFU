@@ -1,6 +1,7 @@
 services:
   postgres:
     image: docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636
+    profiles: [daily, full]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER obrigatório}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD obrigatória}
@@ -25,6 +26,7 @@ services:
 
   redis:
     image: docker.io/library/redis:8.10.0-trixie@sha256:344e3945a0b431c8ff1eecd58c5573538126bd756f02fc7e218ddf1fc2546366
+    profiles: [daily, full]
     command: ["redis-server", "--appendonly", "yes", "--requirepass", "${BETUFU_REDIS_PASSWORD:?BETUFU_REDIS_PASSWORD obrigatória}"]
     environment:
       REDISCLI_AUTH: ${BETUFU_REDIS_PASSWORD:?BETUFU_REDIS_PASSWORD obrigatória}
@@ -41,6 +43,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.7.1@sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6
+    profiles: [daily, full]
     command: ["start-dev", "--import-realm"]
     environment:
       KC_DB: postgres
@@ -53,6 +56,8 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?KC_BOOTSTRAP_ADMIN_PASSWORD obrigatória}
       BETUFU_OIDC_CLIENT_SECRET: ${BETUFU_OIDC_CLIENT_SECRET:?BETUFU_OIDC_CLIENT_SECRET obrigatório}
       BETUFU_TECHNICAL_PASSWORD: ${BETUFU_TECHNICAL_PASSWORD:?BETUFU_TECHNICAL_PASSWORD obrigatória}
+      KC_HOSTNAME: "http://localhost:8081"
+      KC_HOSTNAME_STRICT: "false"
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
     ports:
@@ -78,6 +83,7 @@ services:
 
   seaweedfs:
     image: docker.io/chrislusf/seaweedfs:4.41@sha256:43b768cd62b00d132439cda881b93fd1adebf1b315e996e794087743821d771d
+    profiles: [daily, full]
     command: ["mini", "-dir=/data", "-master.telemetry=false"]
     environment:
       AWS_REGION: ${BETUFU_S3_REGION:?BETUFU_S3_REGION obrigatória}
@@ -97,6 +103,7 @@ services:
 
   mailpit:
     image: docker.io/axllent/mailpit:v1.30.7@sha256:d5ecbb067db3705fa953d79e1b7f81ef84038df67aba6c52825d8c02a1ea748a
+    profiles: [daily, full]
     environment:
       MP_DATABASE: /data/mailpit.db
       MP_DISABLE_VERSION_CHECK: "true"
@@ -107,6 +114,71 @@ services:
       - betufu-local-mailpit-data:/data
     healthcheck:
       test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    image: betufu/backend:local
+    profiles: [full]
+    environment:
+      BETUFU_LOCAL_OIDC_PROXY: "true"
+      BETUFU_DB_JDBC_URL: jdbc:postgresql://postgres:5432/${BETUFU_DB_NAME:?BETUFU_DB_NAME obrigatório}
+      BETUFU_DB_USER: ${BETUFU_DB_USER:?BETUFU_DB_USER obrigatório}
+      BETUFU_DB_PASSWORD: ${BETUFU_DB_PASSWORD:?BETUFU_DB_PASSWORD obrigatória}
+      BETUFU_REDIS_HOST: redis
+      BETUFU_REDIS_PORT: "6379"
+      BETUFU_REDIS_PASSWORD: ${BETUFU_REDIS_PASSWORD:?BETUFU_REDIS_PASSWORD obrigatória}
+      BETUFU_OIDC_ISSUER_URI: http://localhost:8081/realms/betufu-local
+      BETUFU_OIDC_CLIENT_ID: betufu-bff
+      BETUFU_OIDC_CLIENT_SECRET: ${BETUFU_OIDC_CLIENT_SECRET:?BETUFU_OIDC_CLIENT_SECRET obrigatório}
+      BETUFU_TECHNICAL_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:?KC_BOOTSTRAP_ADMIN_USERNAME obrigatório}
+      BETUFU_TECHNICAL_PASSWORD: ${BETUFU_TECHNICAL_PASSWORD:?BETUFU_TECHNICAL_PASSWORD obrigatória}
+      BETUFU_PUBLIC_ORIGIN: http://localhost:4200
+      BETUFU_BACKEND_ORIGIN: http://backend:8080
+      BETUFU_TRUSTED_PROXIES: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/32"
+      SERVER_TOMCAT_REMOTEIP_INTERNAL_PROXIES: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/32"
+      BETUFU_S3_REGION: ${BETUFU_S3_REGION:?BETUFU_S3_REGION obrigatória}
+      BETUFU_S3_ACCESS_KEY_ID: ${BETUFU_S3_ACCESS_KEY_ID:?BETUFU_S3_ACCESS_KEY_ID obrigatória}
+      BETUFU_S3_SECRET_ACCESS_KEY: ${BETUFU_S3_SECRET_ACCESS_KEY:?BETUFU_S3_SECRET_ACCESS_KEY obrigatória}
+      BETUFU_S3_BUCKET: ${BETUFU_S3_BUCKET:?BETUFU_S3_BUCKET obrigatório}
+      BETUFU_S3_ENDPOINT: http://seaweedfs:8333
+      SPRING_PROFILES_ACTIVE: dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      seaweedfs:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-s", "http://127.0.0.1:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    image: betufu/frontend:local
+    profiles: [full]
+    ports:
+      - "127.0.0.1:4200:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/"]
       interval: 10s
       timeout: 5s
       retries: 30
