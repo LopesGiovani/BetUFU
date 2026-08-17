@@ -118,6 +118,10 @@ Plans:
 
 **Wave 20** *(liberada; Wave 19 concluída)*
 
+- [x] 01-30-PLAN.md — Reconciliar o contrato do validador de realm com o artefato canônico.
+      Plano criado durante a Wave 20 para corrigir drift herdado do 01-29, que deixava
+      `validate-keycloak-realm.mjs` vermelho contra um artefato commitado e bloqueava o
+      gate agregado do 01-16.
 - [ ] 01-12-PLAN.md — Padronizar Problem Details, correlação e logs estruturados.
 
 **Wave 21** *(blocked on Wave 20 completion)*

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P24 executado, revisado externamente em 4 rodadas (P1 e P2 corrigidos, PASS final) e commitado em 2 commits canônicos; Wave 19 concluída, Wave 20 liberada; push ainda não autorizado.
+stopped_at: F1/P30 executado e aprovado com PASS na primeira rodada; contrato do validador de realm reconciliado e agregado com uma única falha remanescente. O 01-24 segue commitado e sem push.
 last_updated: "2026-08-16"
 last_activity: 2026-08-16
-last_activity_desc: O Plano 01-24 entregou o reset local destrutivo com dry-run padrão, confirmação literal e seleção fail-closed ancorada no checkout; 36/36 focal, 475/477 agregado, 13 mutações efetivas e dry-run real preservando 29 de 36 containers.
+last_activity_desc: O Plano 01-30 reconciliou o contrato de realm.users[0] de 9 para 11 chaves com valores pinados, destravando o detector que bloqueava o gate agregado; 31/31 focal e 481 testes com 480 pass.
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 29
-  completed_plans: 19
+  total_plans: 30
+  completed_plans: 20
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 20 — Plano 01-12 (Problem Details, correlação e logs estruturados); antes disso, executar o primeiro `--apply` do reset com o responsável presente
+**Current focus:** Wave 20 — Plano 01-12 (Problem Details, correlação e logs estruturados); antes disso, executar o primeiro `--apply` do reset com o responsável presente e decidir o push dos commits acumulados
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 19 of 29 (Plano 01-24 concluído com PASS externo)
-Status: In progress — Wave 19 concluída com o 01-24; Wave 20 liberada com o 01-12
-Last activity: 2026-08-16 — Reset local destrutivo entregue com dry-run padrão, confirmação literal, seleção fail-closed e prova de que preserva 29 de 36 containers da máquina.
+Plan: 20 of 30 (Plano 01-30 concluído com PASS externo na primeira rodada)
+Status: In progress — Wave 19 concluída com o 01-24; Wave 20 em andamento, com o 01-30 concluído e o 01-12 pendente
+Last activity: 2026-08-16 — Contrato do validador de realm reconciliado com o artefato canônico; o realm não foi alterado, porque o defeito estava no validador.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` recebeu o Plano 01-24 em dois commits canônicos sobre `6ca340a`, sem merge commit. O primeiro é `f0b1b3b` (`feat(01-24)`, 4 paths de implementação); o segundo é o commit de documentação que carrega este arquivo, `ROADMAP.md` e o SUMMARY — seu hash não é citado aqui porque emendar um commit para inserir o próprio hash o mudaria. `origin/master` permanece em `6ca340a`: **push não autorizado**, portanto local e remoto estão dessincronizados por dois commits.
+Git: `master` recebeu os Planos 01-24 e 01-30 em quatro commits canônicos sobre `6ca340a`, sem merge commit — `f0b1b3b` (`feat(01-24)`), `76e4923` (`docs(01-24)`), `eb13093` (`feat(01-30)`) e o commit de documentação do 01-30, que carrega este arquivo, `ROADMAP.md`, o PLAN e o SUMMARY; seu hash não é citado aqui porque emendar um commit para inserir o próprio hash o mudaria. `origin/master` permanece em `6ca340a`: **push não autorizado**, portanto local e remoto estão dessincronizados por quatro commits.
 
-Progress: [███████░░░] 66%
+Progress: [███████░░░] 67%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 19
+- Total de planos concluídos: 20
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [███████░░░] 66%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 19 | não mensurado | não mensurada |
+| 1 | 20 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-21, 01-22, 01-23, 01-10, 01-11, 01-24
+- Últimos 5 planos: 01-23, 01-10, 01-11, 01-24, 01-30
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -113,7 +113,7 @@ Progress: [███████░░░] 66%
 
 ### Pendências
 
-- **Dois validadores estão em contradição direta sobre o usuário técnico do Keycloak, e um deles falha hoje.** `validate-keycloak-realm.mjs:243-253` exige exatamente 9 chaves em `realm.users[0]` e rejeita `firstName`/`lastName`; `validate-runtime-prerequisites.mjs:1290-1297` **exige** esses dois campos como strings não vazias, com quatro regressões negativas em `validate-runtime-prerequisites.test.mjs:983-996`. Histórico: `060d5ed` (01-03) criou realm e validador coerentes em 9 chaves; `016390b` (01-29) acrescentou os dois campos ao realm para destravar o provider `VERIFY_PROFILE`, que bloqueava o login, e nunca tocou `validate-keycloak-realm.mjs` — `git log` desse arquivo tem uma única linha. **A correção é ampliar o contrato do validador para 11 chaves, não remover os campos do realm:** removê-los quebraria o outro validador e reintroduziria o bloqueio de login. Confirmado por revisão externa independente. Exige plano próprio; está fora da allowlist do 01-24.
+- ~~Dois validadores em contradição sobre o usuário técnico do Keycloak.~~ **Resolvido pelo Plano 01-30.** `validate-keycloak-realm.mjs` exigia exatamente 9 chaves em `realm.users[0]` e rejeitava `firstName`/`lastName`, que `016390b` (01-29) acrescentou ao realm para destravar o provider `VERIFY_PROFILE`, e que `validate-runtime-prerequisites.mjs:1290-1297` já exigia. O contrato foi ampliado para 11 chaves com valores pinados; o realm não foi alterado, porque o defeito estava no validador. Qual lado cedia não dependeu de julgamento: `01-03-PLAN.md:203` proíbe required action na conta técnica, e `VERIFY_PROFILE` é required action de provider, então o 01-29 respeitou o contrato de origem.
 - **O reset local nunca executou `--apply`.** A primeira remoção real deve ocorrer com o responsável presente, lendo a lista do dry-run. O que está provado é a decisão de seleção; que `docker volume rm` apaga o volume certo e só ele permanece não provado, por escolha.
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
 - O provedor e a topologia S3 de homologação/produção continuam sem escolha; SeaweedFS não deve ser promovido silenciosamente além do ambiente local.
@@ -141,7 +141,7 @@ Progress: [███████░░░] 66%
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
 - A Wave 19 foi concluída com o 01-24, único plano da onda; a Wave 20 está liberada e começa pelo 01-12.
-- `scripts/validate-keycloak-realm.mjs` está vermelho contra o artefato canônico commitado. Isso bloqueia qualquer gate agregado que o inclua até a contradição entre validadores ser resolvida.
+- O gate agregado do 01-16 deixou de ser bloqueado por `validate-keycloak-realm.mjs`, verde desde o 01-30. Continua bloqueado pela pendência de `core.autocrlf=true` em `validate-runtime-prerequisites`, única falha remanescente do agregado.
 - A allowlist do 01-24 declarava 4 paths; `STATE.md` e `ROADMAP.md` foram ratificados pelo responsável no fechamento, para que o registro do projeto não continuasse descrevendo o 01-11. Ampliação registrada aqui, e não no SUMMARY, porque o SUMMARY estava sob `PASS` externo e editá-lo o invalidaria.
 
 ## Itens adiados
@@ -153,5 +153,5 @@ Progress: [███████░░░] 66%
 ## Session Continuity
 
 Last session: 2026-08-16
-Stopped at: F1/P24 concluído com PASS externo após 4 rodadas e commitado em dois commits canônicos sobre `6ca340a`; push não autorizado, `origin/master` dessincronizado por dois commits.
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-24-SUMMARY.md — depois, `01-12-PLAN.md` abre a Wave 20
+Stopped at: F1/P30 concluído com PASS externo; 01-24 e 01-30 commitados localmente, `origin/master` ainda em `6ca340a` e dessincronizado.
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-30-SUMMARY.md — depois, `01-12-PLAN.md` continua a Wave 20
