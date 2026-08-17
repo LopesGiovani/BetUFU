@@ -106,11 +106,11 @@ Plans:
 
 - [x] 01-10-PLAN.md — Tornar Flyway, JPA e PostgreSQL autoritativos e delimitar Redis/S3.
 
-**Wave 18** *(blocked on Wave 17 completion)*
+**Wave 18** *(concluída; Plano 01-11 executado e validado com perfis daily/full)*
 
-- [ ] 01-11-PLAN.md — Entregar os perfis daily/full e o orquestrador cross-platform.
+- [x] 01-11-PLAN.md — Entregar os perfis daily/full e o orquestrador cross-platform.
 
-**Wave 19** *(blocked on Wave 18 completion)*
+**Wave 19** *(liberada; Wave 18 concluída)*
 
 - [ ] 01-24-PLAN.md — Implementar o reset local confirmado e estritamente allowlisted.
 

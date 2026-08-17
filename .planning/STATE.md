@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P23 executado e revisado externamente com PASS; Wave 16 concluída; árvore pronta para a Wave 17 (Plano 01-10)
+stopped_at: F1/P11 executado e validado integralmente (daily/full, Dockerfiles OCI, Nginx, OIDC discovery unificado em localhost:8081, suíte Maven 133/133 e gate agregado); pronto para consolidação em 2 commits canônicos e sincronização sob autorização.
 last_updated: "2026-08-16"
 last_activity: 2026-08-16
-last_activity_desc: O Plano 01-23 impôs os gates arquiteturais Modulith e ArchUnit (ARCH-03, TEST-02), com provas de discriminação aprovadas com PASS.
+last_activity_desc: O Plano 01-11 entregou os perfis daily/full, CLI dev.mjs, compose.mjs, validate-phase1.mjs, Dockerfiles multi-stage OCI fixados, Nginx, issuer unificado e testes empíricos de concorrência e encoding.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 29
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Estado do Projeto
@@ -23,17 +23,17 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Iniciar a Wave 18 — Plano 01-11 (Perfis daily/full e orquestrador cross-platform)
+**Current focus:** Concluir consolidação e governança do Plano 01-11; iniciar a Wave 19 — Plano 01-24 (Reset local confirmado e estritamente allowlisted)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 18 of 29
-Status: In progress — Wave 17 concluída com o Plano 01-10; a Wave 18 começa pelo 01-11
-Last activity: 2026-08-16 — o 01-10 tornou Flyway, JPA e PostgreSQL autoritativos e delimitou Redis/S3.
+Plan: 18 of 29 (Plano 01-11 em auditoria/revisão pós-correções Rodada 3)
+Status: In progress — Wave 18 em encerramento; Wave 19 liberada com o 01-24
+Last activity: 2026-08-16 — Perfis daily/full, Dockerfiles OCI, Nginx, OIDC discovery unificado, suíte Maven 133/133 e orquestrador validados integralmente.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` em histórico linear; commits `8725992` (feat) e `efe3333` (docs) integrados e sincronizados com `origin/master` sob autorização do responsável.
+Git: `HEAD` local em `c7baf19` após `git reset c7baf19` (índice limpo, 0 staged) para desfazer os commits parciais `676b208` e `63105e1` que subiram temporariamente para `origin/master`. O Plano 01-11 será consolidado em exatamente dois commits canônicos (`feat(01-11):` e `docs(01-11):`), com publicação alinhada sob autorização explícita do responsável.
 
 Progress: [██████░░░░] 62%
 
@@ -129,7 +129,7 @@ Progress: [██████░░░░] 62%
 
 - Antes do planejamento da Phase 2: validade da verificação, ciclo de vida da matrícula/HMAC e política para matrícula reemitida precisam de decisão explícita ou configuração.
 - Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.
-- Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam ser decididas quando os requisitos correspondentes exigirem.
+- Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam de decisão explícita ou configuração.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
 - A Wave 13 foi concluída com o 01-22; a Wave 14 está liberada e começa pelo 01-08, que endurece origem, logout e STOMP CONNECT sobre a base entregue pelos 01-21 e 01-22.
@@ -143,6 +143,6 @@ Progress: [██████░░░░] 62%
 
 ## Session Continuity
 
-Last session: 2026-08-15
-Stopped at: F1/P22 executado e corrigido após revisão externa; nove paths não commitados sobre `d92181a`; reauditoria curta pendente antes de stage e commit
-Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-22-SUMMARY.md — depois, `01-08-PLAN.md` abre a Wave 14
+Last session: 2026-08-16
+Stopped at: F1/P11 executado e validado integralmente (daily/full, Dockerfiles OCI, Nginx, OIDC discovery unificado em localhost:8081, suíte Maven 133/133 e gate agregado); pronto para consolidação em 2 commits canônicos e sincronização sob autorização.
+Resume file: .planning/phases/01-funda-o-segura-da-plataforma/01-11-SUMMARY.md — depois, `01-24-PLAN.md` abre a Wave 19
