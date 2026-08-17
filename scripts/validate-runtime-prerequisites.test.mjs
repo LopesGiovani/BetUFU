@@ -146,6 +146,40 @@ async function createFixture() {
   return root;
 }
 
+/**
+ * Substituicao multilinha tolerante ao fim de linha do checkout.
+ *
+ * `core.autocrlf=true` entrega CRLF, e `.gitattributes` nao cobre
+ * `backend/src/main/java`. Um padrao com `\n` literal nunca casa nesses
+ * arquivos: a mutacao vira no-op e a guarda de `mutate` acusa "fixture deve
+ * realmente mudar" — foi essa a causa da unica regressao inerte da suite.
+ *
+ * O padrao passa a casar `\r?\n`, e o texto inserido reusa o fim de linha que o
+ * arquivo realmente tem. A fixture continua byte-compativel com producao, de
+ * modo que o teste exercita o validador contra o que existe na maquina, em vez
+ * de normalizar a fixture para LF e testar uma forma que nao ocorre.
+ *
+ * Falha alto quando o padrao nao existe. Sem isso, um trecho renomeado no
+ * futuro voltaria a produzir mutacao silenciosa.
+ */
+function replaceAcrossLines(source, search, replacement) {
+  const eol = source.includes('\r\n') ? '\r\n' : '\n';
+  const pattern = new RegExp(
+    search.split('\n').map(escapeForRegExp).join('\\r?\\n'),
+    'u',
+  );
+  assert.ok(
+    pattern.test(source),
+    `padrao multilinha nao encontrado na fixture: ${JSON.stringify(search.slice(0, 60))}`,
+  );
+  const literal = replacement.split('\n').join(eol);
+  return source.replace(pattern, () => literal);
+}
+
+function escapeForRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
 async function mutate(root, relativePath, mutation) {
   const path = join(root, relativePath);
   const original = await readFile(path, 'utf8');
@@ -1080,7 +1114,8 @@ test('rejeita bypass CSRF na SecurityConfiguration canonica', async () => {
   await mutate(
     root,
     'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
-    (source) => source.replace(
+    (source) => replaceAcrossLines(
+      source,
       '.spa()\n                        .csrfTokenRepository(csrfTokenRepository)',
       '.spa()\n                        .ignoringRequestMatchers("/api/v1/**")\n'
         + '                        .csrfTokenRepository(csrfTokenRepository)',
