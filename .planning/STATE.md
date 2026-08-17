@@ -33,7 +33,7 @@ Status: In progress — Wave 19 concluída com o 01-24; Wave 20 em andamento, co
 Last activity: 2026-08-16 — Contrato do validador de realm reconciliado com o artefato canônico; o realm não foi alterado, porque o defeito estava no validador.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` recebeu os Planos 01-24 e 01-30 em quatro commits canônicos sobre `6ca340a`, sem merge commit — `f0b1b3b` (`feat(01-24)`), `76e4923` (`docs(01-24)`), `eb13093` (`feat(01-30)`) e o commit de documentação do 01-30, que carrega este arquivo, `ROADMAP.md`, o PLAN e o SUMMARY; seu hash não é citado aqui porque emendar um commit para inserir o próprio hash o mudaria. `origin/master` permanece em `6ca340a`: **push não autorizado**, portanto local e remoto estão dessincronizados por quatro commits.
+Git: `master` e `origin/master` estão **sincronizados em `3440f35`**, divergência `0/0`. Os Planos 01-24 e 01-30 foram publicados em quatro commits canônicos sobre `6ca340a`, sem merge commit — `f0b1b3b` (`feat(01-24)`), `76e4923` (`docs(01-24)`), `eb13093` (`feat(01-30)`) e `3440f35` (`docs(01-30)`). O push foi executado pelo responsável em 2026-08-17 10:49:47 -0300, confirmado pelo reflog de `origin/master`; hooks e automação foram descartados por medição. A revisão externa reconferiu que o conteúdo publicado é byte-idêntico ao snapshot auditado nos dois planos.
 
 Progress: [███████░░░] 67%
 
