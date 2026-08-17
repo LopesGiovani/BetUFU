@@ -206,6 +206,35 @@ const unsafeMutations = [
       realm.clients.push(structuredClone(realm.clients[0]));
     },
   },
+  // Perfil incompleto na conta tecnica. Sem firstName/lastName o provider
+  // VERIFY_PROFILE do Keycloak bloqueia o login, e foi esse defeito que o
+  // Plano 01-29 corrigiu. As quatro entradas cobrem ausencia e valor em
+  // branco, porque so a ausencia seria detectada pela igualdade exata de
+  // chaves — o valor vazio passaria por ela.
+  {
+    name: 'conta tecnica sem firstName',
+    mutate: (realm) => {
+      delete realm.users[0].firstName;
+    },
+  },
+  {
+    name: 'conta tecnica sem lastName',
+    mutate: (realm) => {
+      delete realm.users[0].lastName;
+    },
+  },
+  {
+    name: 'firstName em branco na conta tecnica',
+    mutate: (realm) => {
+      realm.users[0].firstName = '   ';
+    },
+  },
+  {
+    name: 'lastName em branco na conta tecnica',
+    mutate: (realm) => {
+      realm.users[0].lastName = '';
+    },
+  },
 ];
 
 for (const [index, unsafeMutation] of unsafeMutations.entries()) {

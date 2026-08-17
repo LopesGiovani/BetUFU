@@ -12,6 +12,13 @@ const EXPECTED = Object.freeze({
   technicalUserId: '00000000-0000-0000-0000-000000000101',
   technicalUsername: 'technical',
   technicalEmail: 'technical@betufu.local',
+  // Perfil completo exigido pelo provider VERIFY_PROFILE do Keycloak, que sem
+  // isso bloqueia o login da conta tecnica. Introduzidos pelo Plano 01-29 sem
+  // violar o criterio do 01-03, porque VERIFY_PROFILE e required action de
+  // provider e nao de usuario. Pinados aqui pelo mesmo motivo dos demais
+  // campos: detectar drift, nao apenas presenca.
+  technicalFirstName: 'BETUFU',
+  technicalLastName: 'Technical',
   redirectUris: ['http://localhost:4200/login/oauth2/code/keycloak'],
   postLogoutRedirectUris: 'http://localhost:4200/',
   webOrigins: ['http://localhost:4200'],
@@ -251,12 +258,18 @@ export function validateRealmDocument(realm) {
       'realmRoles',
       'clientRoles',
       'credentials',
+      'firstName',
+      'lastName',
     ],
     'realm.users[0]',
   );
   expectExact(technicalUser.id, EXPECTED.technicalUserId, 'technical user id');
   expectExact(technicalUser.username, EXPECTED.technicalUsername, 'technical username');
   expectExact(technicalUser.email, EXPECTED.technicalEmail, 'technical email');
+  expectExact(
+    technicalUser.firstName, EXPECTED.technicalFirstName, 'technical user firstName');
+  expectExact(
+    technicalUser.lastName, EXPECTED.technicalLastName, 'technical user lastName');
   expectExact(technicalUser.enabled, true, 'technical user enabled');
   expectExact(technicalUser.emailVerified, false, 'technical user emailVerified');
   expectExact(technicalUser.requiredActions, [], 'technical user requiredActions');
