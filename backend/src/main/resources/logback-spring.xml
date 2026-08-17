@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Logback configuration for BETUFU.
+
+  - "!runtime & !integrated" profile (dev, unit tests, fallback): human-readable console with
+    SanitizingMessageConverter for %msg and SanitizingExtendedThrowableProxyConverter for %wEx.
+  - "runtime | integrated" profile (prod, integration tests): structured JSON logging via
+    SanitizingJsonEncoder, ensuring all messages, formatted strings, MDC properties, arguments,
+    key-value pairs, and throwables are sanitized before serialization.
+
+  This file replaces default logging configurations; it does NOT alter application.yaml
+  (configuration separation per 01-12 plan).
+-->
+<configuration>
+    <!-- Boot defaults: property substitution, conversion rules, default log levels. -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Redefine message conversion words with our sanitizing message converter -->
+    <conversionRule conversionWord="msg"
+                    converterClass="br.com.betufu.platform.observability.SanitizingMessageConverter"/>
+    <conversionRule conversionWord="m"
+                    converterClass="br.com.betufu.platform.observability.SanitizingMessageConverter"/>
+    <conversionRule conversionWord="message"
+                    converterClass="br.com.betufu.platform.observability.SanitizingMessageConverter"/>
+
+    <!-- Redefine exception conversion words with our sanitizing throwable converter -->
+    <conversionRule conversionWord="wEx"
+                    converterClass="br.com.betufu.platform.observability.SanitizingExtendedThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx2"
+                    converterClass="br.com.betufu.platform.observability.SanitizingExtendedThrowableProxyConverter"/>
+    <conversionRule conversionWord="ex"
+                    converterClass="br.com.betufu.platform.observability.SanitizingExtendedThrowableProxyConverter"/>
+    <conversionRule conversionWord="rEx"
+                    converterClass="br.com.betufu.platform.observability.SanitizingExtendedThrowableProxyConverter"/>
+
+    <!-- ── Dev / unit tests / fallback (all profiles except runtime | integrated) ── -->
+    <springProfile name="!runtime &amp; !integrated">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %5p [%15.15t] [%X{correlationId:-}] %-40.40logger{39} : %msg%n%wEx</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- ── Runtime / integration tests (structured JSON) ──────────────────── -->
+    <springProfile name="runtime | integrated">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="br.com.betufu.platform.observability.SanitizingJsonEncoder"/>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>
