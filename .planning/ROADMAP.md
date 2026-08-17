@@ -122,6 +122,9 @@ Plans:
       Plano criado durante a Wave 20 para corrigir drift herdado do 01-29, que deixava
       `validate-keycloak-realm.mjs` vermelho contra um artefato commitado e bloqueava o
       gate agregado do 01-16.
+- [x] 01-31-PLAN.md — Fechar a última regressão negativa inerte da suíte Node.
+      Criado durante a Wave 20 para eliminar o ruído de `core.autocrlf=true` antes do
+      gate agregado do 01-16. Suíte Node passou a 481/481.
 - [ ] 01-12-PLAN.md — Padronizar Problem Details, correlação e logs estruturados.
 
 **Wave 21** *(blocked on Wave 20 completion)*

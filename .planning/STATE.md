@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P30 executado e aprovado com PASS na primeira rodada; contrato do validador de realm reconciliado e agregado com uma única falha remanescente. O 01-24 segue commitado e sem push.
-last_updated: "2026-08-16"
-last_activity: 2026-08-16
-last_activity_desc: O Plano 01-30 reconciliou o contrato de realm.users[0] de 9 para 11 chaves com valores pinados, destravando o detector que bloqueava o gate agregado; 31/31 focal e 481 testes com 480 pass.
+stopped_at: F1/P31 executado; suíte Node integralmente verde em 481/481 e o primeiro --apply do reset provado pelo responsável. Wave 20 com 01-30 e 01-31 concluídos; 01-12 pendente.
+last_updated: "2026-08-17"
+last_activity: 2026-08-17
+last_activity_desc: O Plano 01-31 fechou a última regressão inerte da suíte Node, que passou a 481/481; e o primeiro --apply do reset removeu exatamente 11 recursos preservando as 29 stacks de terceiro.
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 30
-  completed_plans: 20
+  total_plans: 31
+  completed_plans: 21
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 20 — Plano 01-12 (Problem Details, correlação e logs estruturados); antes disso, executar o primeiro `--apply` do reset com o responsável presente e decidir o push dos commits acumulados
+**Current focus:** Wave 20 — Plano 01-12 (Problem Details, correlação e logs estruturados)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 20 of 30 (Plano 01-30 concluído com PASS externo na primeira rodada)
-Status: In progress — Wave 19 concluída com o 01-24; Wave 20 em andamento, com o 01-30 concluído e o 01-12 pendente
-Last activity: 2026-08-16 — Contrato do validador de realm reconciliado com o artefato canônico; o realm não foi alterado, porque o defeito estava no validador.
+Plan: 21 of 31 (Plano 01-31 concluído)
+Status: In progress — Wave 19 concluída; Wave 20 em andamento, com 01-30 e 01-31 concluídos e o 01-12 pendente
+Last activity: 2026-08-17 — Suíte Node integralmente verde e reset destrutivo provado em execução real.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
 Git: `master` e `origin/master` estão **sincronizados em `3440f35`**, divergência `0/0`. Os Planos 01-24 e 01-30 foram publicados em quatro commits canônicos sobre `6ca340a`, sem merge commit — `f0b1b3b` (`feat(01-24)`), `76e4923` (`docs(01-24)`), `eb13093` (`feat(01-30)`) e `3440f35` (`docs(01-30)`). O push foi executado pelo responsável em 2026-08-17 10:49:47 -0300, confirmado pelo reflog de `origin/master`; hooks e automação foram descartados por medição. A revisão externa reconferiu que o conteúdo publicado é byte-idêntico ao snapshot auditado nos dois planos.
 
-Progress: [███████░░░] 67%
+Progress: [███████░░░] 68%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 20
+- Total de planos concluídos: 21
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [███████░░░] 67%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 20 | não mensurado | não mensurada |
+| 1 | 21 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-23, 01-10, 01-11, 01-24, 01-30
+- Últimos 5 planos: 01-10, 01-11, 01-24, 01-30, 01-31
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -114,7 +114,7 @@ Progress: [███████░░░] 67%
 ### Pendências
 
 - ~~Dois validadores em contradição sobre o usuário técnico do Keycloak.~~ **Resolvido pelo Plano 01-30.** `validate-keycloak-realm.mjs` exigia exatamente 9 chaves em `realm.users[0]` e rejeitava `firstName`/`lastName`, que `016390b` (01-29) acrescentou ao realm para destravar o provider `VERIFY_PROFILE`, e que `validate-runtime-prerequisites.mjs:1290-1297` já exigia. O contrato foi ampliado para 11 chaves com valores pinados; o realm não foi alterado, porque o defeito estava no validador. Qual lado cedia não dependeu de julgamento: `01-03-PLAN.md:203` proíbe required action na conta técnica, e `VERIFY_PROFILE` é required action de provider, então o 01-29 respeitou o contrato de origem.
-- **O reset local nunca executou `--apply`.** A primeira remoção real deve ocorrer com o responsável presente, lendo a lista do dry-run. O que está provado é a decisão de seleção; que `docker volume rm` apaga o volume certo e só ele permanece não provado, por escolha.
+- ~~O reset local nunca executou `--apply`.~~ **Executado pelo responsável em 2026-08-17.** Removeu exatamente os 11 recursos da lista — 7 containers `infra-*` e 4 volumes `betufu-local-*` — com 0 falhas. Verificado depois: zero containers `infra-*` e zero volumes `betufu-local-*` restantes; total da máquina caiu de 36/23 para 29/19, exatamente os 11; `finvise-postgres` e as demais stacks de terceiro intactas; e a segunda execução converge para `(nenhum — nada a fazer)` sobre 29/29 e 19/19. O limite declarado desde o primeiro handoff está fechado: está provado que o reset remove o certo e só o certo.
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
 - O provedor e a topologia S3 de homologação/produção continuam sem escolha; SeaweedFS não deve ser promovido silenciosamente além do ambiente local.
 - Homologação e produção ainda precisarão fornecer origens e uma lista não vazia de proxies durante os planos de infraestrutura e implantação.
@@ -124,7 +124,7 @@ Progress: [███████░░░] 67%
 - Os avisos de Mockito/Byte Buddy sobre agente dinâmico futuro, reconnect do Lettuce durante o teardown e conversão Git LF→CRLF permanecem não bloqueantes e não invalidaram as provas.
 - Nenhum plano da Fase 1 assumiu os gatilhos `ADMINISTRATIVE`/`SECURITY`. `01-CONTEXT.md:75` delega essas regras a agentes posteriores, mas a delegação está sem destinatário; enquanto isso durar, o `SessionInvalidationListener` do 01-07 permanece sem consumidor em produção.
 - O refresh token vive em `InMemoryOAuth2AuthorizedClientService`, que não sobrevive a restart nem é compartilhado entre réplicas, ao contrário da sessão que o 01-06 moveu para o Redis. Aceito como pendência conhecida, a resolver antes de existir qualquer disparo real de revogação; registrado com os demais P3 em `01-22-PLAN.md`.
-- Cinco regressões negativas dos validadores Node estão inertes em checkout Windows: `core.autocrlf=true` entrega CRLF enquanto as fixtures mutam com strings `\n`. Buraco de cobertura do projeto, a corrigir por `.gitattributes` ou normalização das mutações.
+- ~~Cinco regressões negativas dos validadores Node inertes em checkout Windows.~~ **Medido no 01-31: era uma, não cinco.** Os dois validadores que mutam texto têm guarda de fixture-mudou, então mutação inerte falha em vez de passar escondida, e o terceiro muta objeto JSON. A única inerte foi corrigida por `replaceAcrossLines`, que casa `\r?\n` e preserva o CRLF real da fixture. **A causa raiz permanece:** `core.autocrlf=true` segue ativo e `.gitattributes` não cobre `backend/src/main/java/**`, portanto mutação multilinha nova sobre fonte Java deve usar aquele helper. A contagem de cinco no `CLAUDE.md` está superestimada e merece correção.
 - O Playwright 1.62.1 e o Chromium 1234 do 01-21 foram fixados, inspecionados e validados; qualquer atualização, nova instalação ou aquisição de navegador continua sujeita a checkpoint próprio.
 - `GET /api/v1/session` e `POST /api/v1/session/logout` existem em runtime sem constar em `backend/openapi/betufu.yaml`, e nenhum validador detecta a divergência. Bloco atribuído ao **Plano 01-26, Task 2** (Wave 23), que já declara o yaml e a árvore gerada e verifica por `scripts/validate-phase1.mjs --contract` — script ainda inexistente. Divergência conhecida, atribuída e sem detector até lá.
 - `/ws` e o gate STOMP do 01-08 existem no backend mas não têm rota no `frontend/proxy.conf.json` — `validate-tracer.mjs:775-776` congela o proxy nos três segmentos BFF — nem cobertura E2E em navegador. Atribuído à Phase 7 (`ROADMAP.md:245-250`, `CHAT-01`/`CHAT-02`), que entrega o roteamento `/ws`, o repasse explícito de `Origin` (necessário para que o `setAllowedOrigins` não fique inerte contra CSWSH) e a conexão STOMP real. Sem detector até lá.
@@ -141,7 +141,7 @@ Progress: [███████░░░] 67%
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
 - A Wave 19 foi concluída com o 01-24, único plano da onda; a Wave 20 está liberada e começa pelo 01-12.
-- O gate agregado do 01-16 deixou de ser bloqueado por `validate-keycloak-realm.mjs`, verde desde o 01-30. Continua bloqueado pela pendência de `core.autocrlf=true` em `validate-runtime-prerequisites`, única falha remanescente do agregado.
+- **A suíte Node está integralmente verde: 481/481.** O gate agregado do 01-16 não é mais bloqueado por nenhum detector Node — `validate-keycloak-realm` foi destravado pelo 01-30 e a última falha, de CRLF, pelo 01-31.
 - A allowlist do 01-24 declarava 4 paths; `STATE.md` e `ROADMAP.md` foram ratificados pelo responsável no fechamento, para que o registro do projeto não continuasse descrevendo o 01-11. Ampliação registrada aqui, e não no SUMMARY, porque o SUMMARY estava sob `PASS` externo e editá-lo o invalidaria.
 
 ## Itens adiados
