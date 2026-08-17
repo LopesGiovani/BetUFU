@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 18/29 plans executed
+**Plans**: 22/31 plans executed
 Plans:
 **Wave 1**
 
@@ -116,7 +116,7 @@ Plans:
       A allowlist do plano foi ampliada no fechamento para `STATE.md` e `ROADMAP.md`,
       com ratificação do responsável.
 
-**Wave 20** *(liberada; Wave 19 concluída)*
+**Wave 20** *(concluída; Planos 01-30, 01-31 e 01-12 executados, revisados com PASS)*
 
 - [x] 01-30-PLAN.md — Reconciliar o contrato do validador de realm com o artefato canônico.
       Plano criado durante a Wave 20 para corrigir drift herdado do 01-29, que deixava
@@ -125,9 +125,9 @@ Plans:
 - [x] 01-31-PLAN.md — Fechar a última regressão negativa inerte da suíte Node.
       Criado durante a Wave 20 para eliminar o ruído de `core.autocrlf=true` antes do
       gate agregado do 01-16. Suíte Node passou a 481/481.
-- [ ] 01-12-PLAN.md — Padronizar Problem Details, correlação e logs estruturados.
+- [x] 01-12-PLAN.md — Padronizar Problem Details, correlação e logs estruturados.
 
-**Wave 21** *(blocked on Wave 20 completion)*
+**Wave 21** *(liberada; Wave 20 concluída)*
 
 - [ ] 01-25-PLAN.md — Expor health e métricas operacionais mínimos e seguros.
 

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P31 executado; suíte Node integralmente verde em 481/481 e o primeiro --apply do reset provado pelo responsável. Wave 20 com 01-30 e 01-31 concluídos; 01-12 pendente.
+stopped_at: F1/P12 executado com PASS externo; Problem Details RFC 9457 e observabilidade com sanitização total de logs entregues. Wave 20 concluída (01-12, 01-30, 01-31).
 last_updated: "2026-08-17"
 last_activity: 2026-08-17
-last_activity_desc: O Plano 01-31 fechou a última regressão inerte da suíte Node, que passou a 481/481; e o primeiro --apply do reset removeu exatamente 11 recursos preservando as 29 stacks de terceiro.
+last_activity_desc: O Plano 01-12 concluiu a infraestrutura de Problem Details e observabilidade/sanitização de logs da plataforma, com PASS da revisão externa e 152 testes no agregado Java.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 20 — Plano 01-12 (Problem Details, correlação e logs estruturados)
+**Current focus:** Wave 21 — Próximos planos da Fundação Segura
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 21 of 31 (Plano 01-31 concluído)
-Status: In progress — Wave 19 concluída; Wave 20 em andamento, com 01-30 e 01-31 concluídos e o 01-12 pendente
-Last activity: 2026-08-17 — Suíte Node integralmente verde e reset destrutivo provado em execução real.
+Plan: 22 of 31 (Plano 01-12 concluído)
+Status: In progress — Wave 20 concluída (01-12, 01-30, 01-31)
+Last activity: 2026-08-17 — Problem Details RFC 9457 e observabilidade entregues com PASS externo.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` e `origin/master` estão **sincronizados em `3440f35`**, divergência `0/0`. Os Planos 01-24 e 01-30 foram publicados em quatro commits canônicos sobre `6ca340a`, sem merge commit — `f0b1b3b` (`feat(01-24)`), `76e4923` (`docs(01-24)`), `eb13093` (`feat(01-30)`) e `3440f35` (`docs(01-30)`). O push foi executado pelo responsável em 2026-08-17 10:49:47 -0300, confirmado pelo reflog de `origin/master`; hooks e automação foram descartados por medição. A revisão externa reconferiu que o conteúdo publicado é byte-idêntico ao snapshot auditado nos dois planos.
+Git: `master` e `origin/master` estão **sincronizados em `3440f35`**, divergência `0/0`.
 
-Progress: [███████░░░] 68%
+Progress: [███████░░░] 71%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 21
+- Total de planos concluídos: 22
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [███████░░░] 68%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 21 | não mensurado | não mensurada |
+| 1 | 22 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-10, 01-11, 01-24, 01-30, 01-31
+- Últimos 5 planos: 01-11, 01-24, 01-30, 01-31, 01-12
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -126,7 +126,7 @@ Progress: [███████░░░] 68%
 - O refresh token vive em `InMemoryOAuth2AuthorizedClientService`, que não sobrevive a restart nem é compartilhado entre réplicas, ao contrário da sessão que o 01-06 moveu para o Redis. Aceito como pendência conhecida, a resolver antes de existir qualquer disparo real de revogação; registrado com os demais P3 em `01-22-PLAN.md`.
 - ~~Cinco regressões negativas dos validadores Node inertes em checkout Windows.~~ **Medido no 01-31: era uma, não cinco.** Os dois validadores que mutam texto têm guarda de fixture-mudou, então mutação inerte falha em vez de passar escondida, e o terceiro muta objeto JSON. A única inerte foi corrigida por `replaceAcrossLines`, que casa `\r?\n` e preserva o CRLF real da fixture. **A causa raiz permanece:** `core.autocrlf=true` segue ativo e `.gitattributes` não cobre `backend/src/main/java/**`, portanto mutação multilinha nova sobre fonte Java deve usar aquele helper. A contagem de cinco no `CLAUDE.md` está superestimada e merece correção.
 - O Playwright 1.62.1 e o Chromium 1234 do 01-21 foram fixados, inspecionados e validados; qualquer atualização, nova instalação ou aquisição de navegador continua sujeita a checkpoint próprio.
-- `GET /api/v1/session` e `POST /api/v1/session/logout` existem em runtime sem constar em `backend/openapi/betufu.yaml`, e nenhum validador detecta a divergência. Bloco atribuído ao **Plano 01-26, Task 2** (Wave 23), que já declara o yaml e a árvore gerada e verifica por `scripts/validate-phase1.mjs --contract` — script ainda inexistente. Divergência conhecida, atribuída e sem detector até lá.
+- `GET /api/v1/session`, `POST /api/v1/session/logout` e o schema RFC 9457 de Problem Details (Plano 01-12) existem em runtime sem constar em `backend/openapi/betufu.yaml`, e nenhum validador detecta a divergência. Bloco atribuído ao **Plano 01-26, Task 2** (Wave 23), que já declara o yaml e a árvore gerada e verifica por `scripts/validate-phase1.mjs --contract` — script ainda inexistente. Divergência conhecida, atribuída e sem detector até lá.
 - `/ws` e o gate STOMP do 01-08 existem no backend mas não têm rota no `frontend/proxy.conf.json` — `validate-tracer.mjs:775-776` congela o proxy nos três segmentos BFF — nem cobertura E2E em navegador. Atribuído à Phase 7 (`ROADMAP.md:245-250`, `CHAT-01`/`CHAT-02`), que entrega o roteamento `/ws`, o repasse explícito de `Origin` (necessário para que o `setAllowedOrigins` não fique inerte contra CSWSH) e a conexão STOMP real. Sem detector até lá.
 - Registrar o `post_logout_redirect_uri` no realm do Keycloak. Condição da ratificação do `id_token_hint`: sem isso o redirect pós-logout não é honrado e o usuário para na página genérica do provedor.
 - `mfaAuthenticated` permanece no `SessionContractDto` sem ser publicado pela API; decidir a regra `acr`/`amr` antes de existir consumidor.
