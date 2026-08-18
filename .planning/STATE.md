@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P14 executado e verificado; tema escuro, tokens de acessibilidade e tipografia local entregues. Wave 24 concluída (01-14); Wave 25 liberada.
+stopped_at: F1/P27 executado e verificado; store de sessão reativo, layout autenticado e modo --session-ui entregues. Wave 25 concluída (01-27); Wave 26 liberada.
 last_updated: "2026-08-18"
 last_activity: 2026-08-18
-last_activity_desc: O Plano 01-14 entregou os tokens SCSS oficiais, tema escuro Angular Material, regras globais de foco e acessibilidade WCAG 2.2 AA, e tipografia Inter/Barlow auto-hospedada com fontes canônicas.
+last_activity_desc: O Plano 01-27 entregou o SessionStore com Signals, a casca AuthenticatedLayoutComponent com 4 estados de sessão, skip link, alvos de 44px e o validador --session-ui.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 25 — Plano 01-27 (layout base autenticado, store de sessão e navegação segura)
+**Current focus:** Wave 26 — Plano 01-15 (página visual de diagnóstico técnico)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 26 of 31 (Plano 01-14 concluído)
-Status: In progress — Wave 24 concluída (01-14); Wave 25 liberada com o 01-27
-Last activity: 2026-08-18 — Sistema visual, tokens de design e fontes locais no Angular.
+Plan: 27 of 31 (Plano 01-27 concluído)
+Status: In progress — Wave 25 concluída (01-27); Wave 26 liberada com o 01-15
+Last activity: 2026-08-18 — Layout autenticado, store de sessão e isolamento OIDC no Angular.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` recebeu o Plano 01-26 anteriormente e está pronto para receber o Plano 01-14.
+Git: `master` recebeu o Plano 01-14 anteriormente e está pronto para receber o Plano 01-27.
 
-Progress: [████████░░] 84%
+Progress: [█████████░] 87%
 
 ## Métricas de desempenho
 

@@ -146,11 +146,11 @@ Plans:
 
 - [x] 01-14-PLAN.md — Implementar tokens, tema e fontes/ícones auto-hospedados.
 
-**Wave 25** *(liberada; Wave 24 concluída)*
+**Wave 25** *(concluída; Plano 01-27 executado e testado)*
 
-- [ ] 01-27-PLAN.md — Montar a estrutura inicial autenticada e seus testes focais.
+- [x] 01-27-PLAN.md — Montar a estrutura inicial autenticada e seus testes focais.
 
-**Wave 26** *(blocked on Wave 25 completion)*
+**Wave 26** *(liberada; Wave 25 concluída)*
 
 - [ ] 01-15-PLAN.md — Entregar adapter/store e a página diagnóstica com oito garantias de UI.
 
