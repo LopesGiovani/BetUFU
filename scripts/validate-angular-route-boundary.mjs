@@ -77,6 +77,29 @@ const CANONICAL_TRACER_ROUTES_PATTERN = new RegExp(
   'u',
 );
 
+const CANONICAL_LAYOUT_TRACER_ROUTES_PATTERN = new RegExp(
+  [
+    '^',
+    String.raw`\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular/router'\s*;`,
+    String.raw`\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\./layout/authenticated-layout\.component'\s*;`,
+    String.raw`\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[`,
+    String.raw`\s*\{`,
+    String.raw`\s*path\s*:\s*''\s*,`,
+    String.raw`\s*component\s*:\s*AuthenticatedLayoutComponent\s*,`,
+    String.raw`\s*children\s*:\s*\[`,
+    String.raw`\s*\{`,
+    String.raw`\s*path\s*:\s*'tracer'\s*,`,
+    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
+    CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
+    String.raw`\s*\.then\s*\(`,
+    String.raw`\s*\(\s*\{\s*TracerPageComponent\s*\}\s*\)`,
+    String.raw`\s*=>\s*TracerPageComponent\s*,?\s*\)\s*,?`,
+    String.raw`\s*\}\s*,?\s*\]\s*,?`,
+    String.raw`\s*\}\s*,?\s*\]\s*;\s*$`,
+  ].join(''),
+  'u',
+);
+
 const HOST_SOURCE_PATHS = Object.freeze([
   PATHS.main,
   PATHS.config,
@@ -1316,9 +1339,10 @@ function validateRouteSources(sources) {
   );
   expect(
     EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN.test(development)
-      || CANONICAL_TRACER_ROUTES_PATTERN.test(development),
+      || CANONICAL_TRACER_ROUTES_PATTERN.test(development)
+      || CANONICAL_LAYOUT_TRACER_ROUTES_PATTERN.test(development),
     'DEVELOPMENT_ROUTES_SHAPE',
-    'development deve conter somente a lista vazia ou a unica lazy route canonica do tracer.',
+    'development deve conter somente a lista vazia ou a rota autenticada canonica.',
   );
   expect(
     !/(?:\btracer\b|\bTracerPageComponent\b)/iu.test(production),

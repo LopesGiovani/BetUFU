@@ -438,6 +438,43 @@ const tracerRouteMutations = [
   },
 ];
 
+const CANONICAL_LAYOUT_TRACER_ROUTES = [
+  "import type { Routes } from '@angular/router';",
+  "import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';",
+  '',
+  'export const BUILD_SPECIFIC_ROUTES: Routes = [',
+  '  {',
+  "    path: '',",
+  '    component: AuthenticatedLayoutComponent,',
+  '    children: [',
+  CANONICAL_TRACER_ROUTE_ENTRY,
+  '    ],',
+  '  },',
+  '];',
+  '',
+].join('\n');
+
+const layoutRouteMutations = [
+  {
+    name: 'componente de layout autenticado trocado',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: (source) => source.replaceAll('AuthenticatedLayoutComponent', 'OtherLayoutComponent'),
+  },
+  {
+    name: 'path pai autenticado diferente de vazio',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: (source) => source.replace("path: ''", "path: 'auth'"),
+  },
+  {
+    name: 'rota filha extra dentro de layout autenticado',
+    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    mutate: (source) => source.replace(
+      'children: [',
+      "children: [\n      { path: 'leak', loadComponent: () => null },",
+    ),
+  },
+];
+
 for (const tracerRouteMutation of tracerRouteMutations) {
   test(`recusa ${tracerRouteMutation.name}`, async () => {
     await withFixture(tracerRouteMutation.name, async (fixtureRoot) => {
@@ -450,6 +487,22 @@ for (const tracerRouteMutation of tracerRouteMutations) {
       const result = runValidator(fixtureRoot);
 
       expectValidationFailure(result, tracerRouteMutation.rule);
+    });
+  });
+}
+
+for (const layoutRouteMutation of layoutRouteMutations) {
+  test(`recusa ${layoutRouteMutation.name}`, async () => {
+    await withFixture(layoutRouteMutation.name, async (fixtureRoot) => {
+      await overwriteText(
+        fixtureRoot,
+        developmentRoutesPath,
+        layoutRouteMutation.mutate(CANONICAL_LAYOUT_TRACER_ROUTES),
+      );
+
+      const result = runValidator(fixtureRoot);
+
+      expectValidationFailure(result, layoutRouteMutation.rule);
     });
   });
 }
