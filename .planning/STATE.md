@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P26 executado e revisado em 2 rodadas; claim técnica, diagnóstico restrito e contrato OpenAPI final entregues. Wave 23 concluída (01-26); Wave 24 liberada.
-last_updated: "2026-08-17"
-last_activity: 2026-08-17
-last_activity_desc: O Plano 01-26 converteu a claim betufu_roles em ROLE_TECHNICAL por allowlist fechada, restringiu o diagnóstico a dev/homolog com ausência material em produção, fechou os quatro paths do contrato e regenerou o cliente de 13 para 20 arquivos.
+stopped_at: F1/P14 executado e verificado; tema escuro, tokens de acessibilidade e tipografia local entregues. Wave 24 concluída (01-14); Wave 25 liberada.
+last_updated: "2026-08-18"
+last_activity: 2026-08-18
+last_activity_desc: O Plano 01-14 entregou os tokens SCSS oficiais, tema escuro Angular Material, regras globais de foco e acessibilidade WCAG 2.2 AA, e tipografia Inter/Barlow auto-hospedada com fontes canônicas.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 24 — Plano 01-14 (tokens, tema e fontes auto-hospedados); antes do gate do 01-16, o plano do harness de validadores
+**Current focus:** Wave 25 — Plano 01-27 (layout base autenticado, store de sessão e navegação segura)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 25 of 31 (Plano 01-26 concluído)
-Status: In progress — Wave 23 concluída (01-26); Wave 24 liberada com o 01-14
-Last activity: 2026-08-17 — Handoff da claim OIDC, diagnóstico restrito por papel e contrato OpenAPI final com cliente regenerado.
+Plan: 26 of 31 (Plano 01-14 concluído)
+Status: In progress — Wave 24 concluída (01-14); Wave 25 liberada com o 01-27
+Last activity: 2026-08-18 — Sistema visual, tokens de design e fontes locais no Angular.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` recebeu o Plano 01-26 em dois commits canônicos, sendo o primeiro `5c89a63` (`feat(01-26)`, 20 paths de código, validadores e cliente gerado); o segundo é o commit de documentação que carrega este arquivo, e seu hash não é citado aqui porque emendar um commit para inserir o próprio hash o mudaria. Sincronização com `origin/master` depende de autorização própria de push.
+Git: `master` recebeu o Plano 01-26 anteriormente e está pronto para receber o Plano 01-14.
 
-Progress: [████████░░] 81%
+Progress: [████████░░] 84%
 
 ## Métricas de desempenho
 

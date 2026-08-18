@@ -142,11 +142,11 @@ Plans:
       `scripts/validate-phase1.mjs` para o modo `--contract`, e os dois validadores cujos guards
       pinavam artefato em vez de propriedade.
 
-**Wave 24** *(liberada; Wave 23 concluída)*
+**Wave 24** *(concluída; Plano 01-14 executado e testado com fontes locais)*
 
-- [ ] 01-14-PLAN.md — Implementar tokens, tema e fontes/ícones auto-hospedados.
+- [x] 01-14-PLAN.md — Implementar tokens, tema e fontes/ícones auto-hospedados.
 
-**Wave 25** *(blocked on Wave 24 completion)*
+**Wave 25** *(liberada; Wave 24 concluída)*
 
 - [ ] 01-27-PLAN.md — Montar a estrutura inicial autenticada e seus testes focais.
 
