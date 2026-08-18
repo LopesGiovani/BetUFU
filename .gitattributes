@@ -7,3 +7,5 @@ backend/src/main/resources/db/migration/*.sql text eol=lf
 frontend/openapitools.json text eol=lf
 frontend/scripts/*.mjs text eol=lf
 frontend/src/app/api/generated/** text eol=lf whitespace=-blank-at-eol
+frontend/src/assets/fonts/*.woff2 binary
+frontend/src/assets/fonts/*-ofl.txt text eol=lf

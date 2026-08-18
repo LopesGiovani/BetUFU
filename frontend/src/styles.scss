@@ -1,3 +1,136 @@
+// =============================================================================
+// BETUFU — Estilos Globais, Reset e Acessibilidade (D-01, WCAG 2.2 AA)
+// =============================================================================
+
+@use './styles/tokens' as tokens;
+@use './styles/fonts' as fonts;
+@use './styles/material-theme' as material;
+
+// Injeta estilos do tema Angular Material
+@include material.apply-theme();
+
+// -----------------------------------------------------------------------------
+// Reset e Layout Base (Dark Theme Imutável)
+// -----------------------------------------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
 body {
+  height: 100%;
   margin: 0;
+  padding: 0;
+  background-color: tokens.$color-canvas;
+  color: tokens.$color-text;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// -----------------------------------------------------------------------------
+// Acessibilidade: Foco Visível Obrigatório (3px solid #FFC08A)
+// -----------------------------------------------------------------------------
+
+:focus-visible {
+  outline: tokens.$focus-outline-width solid tokens.$color-focus;
+  outline-offset: tokens.$focus-outline-offset;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: tokens.$focus-outline-width solid tokens.$color-focus;
+  outline-offset: tokens.$focus-outline-offset;
+}
+
+// -----------------------------------------------------------------------------
+// Acessibilidade: Alvos de Toque Mínimos (44x44px)
+// -----------------------------------------------------------------------------
+
+button,
+a,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"] {
+  min-height: tokens.$min-touch-target;
+  min-width: tokens.$min-touch-target;
+}
+
+// -----------------------------------------------------------------------------
+// Links e Tipografia Base
+// -----------------------------------------------------------------------------
+
+a {
+  color: tokens.$color-text;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: tokens.$color-accent;
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 0;
+  color: tokens.$color-text;
+}
+
+h1 {
+  font-size: 32px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+// -----------------------------------------------------------------------------
+// Responsividade e Layout Containers (320px+)
+// -----------------------------------------------------------------------------
+
+.container {
+  width: 100%;
+  max-width: tokens.$container-max-width;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: tokens.$space-4;
+  padding-right: tokens.$space-4;
+
+  @media (min-width: #{tokens.$breakpoint-tablet-min}) {
+    padding-left: tokens.$space-6;
+    padding-right: tokens.$space-6;
+  }
+
+  @media (min-width: #{tokens.$breakpoint-desktop-min}) {
+    padding-left: tokens.$space-8;
+    padding-right: tokens.$space-8;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Acessibilidade: Prefers Reduced Motion (Desativa Animações/Transições)
+// -----------------------------------------------------------------------------
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

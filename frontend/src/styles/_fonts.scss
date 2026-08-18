@@ -1,0 +1,28 @@
+// =============================================================================
+// BETUFU — Tipografia Auto-Hospedada (Inter & Barlow Condensed)
+// =============================================================================
+// Sem dependência de CDNs ou Google Fonts. Ativos idênticos aos do Keycloak.
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/inter-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/assets/fonts/inter-semibold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/assets/fonts/barlow-condensed-semibold.woff2') format('woff2');
+}

@@ -1,0 +1,79 @@
+// =============================================================================
+// BETUFU — Sistema de Design: Tokens Oficiais (D-01 & UI-SPEC)
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. Cores e Superfícies (Dark Theme Exclusivo)
+// -----------------------------------------------------------------------------
+
+// Dominante (60%): Fundo base da aplicação
+$color-canvas: #0B1220;
+
+// Secundária (30%): Cabeçalho, cartões, menus, áreas de conteúdo
+$color-surface: #142033;
+
+// Superfície elevada: Hover, foco, resumo elevado
+$color-surface-raised: #1C2C42;
+
+// Acento (10%): CTA primário e ênfase específica (nunca em excesso)
+$color-accent: #FF8A3D;
+
+// Contraste sobre o acento (texto/ícone em botão primário)
+$color-on-accent: #0B1220;
+
+// Tipografia
+$color-text: #F8FAFC;
+$color-text-muted: #C5D1E0;
+
+// Estrutura e Foco
+$color-border: #52657D;
+$color-focus: #FFC08A;
+
+// Estados de Diagnóstico (sempre acompanhados de ícone e texto)
+$color-available: #56D19C;
+$color-degraded: #F6C453;
+$color-unavailable: #FF6B6B;
+
+// -----------------------------------------------------------------------------
+// 2. Escala de Espaçamento (Sempre múltiplos de 4px)
+// -----------------------------------------------------------------------------
+
+$space-1: 4px;   // Vão de ícone/texto, microajuste
+$space-2: 8px;   // Itens compactos, etiquetas, linhas de formulário
+$space-4: 16px;  // Espaçamento padrão entre controles e conteúdo de cartão
+$space-6: 24px;  // Padding de cartão, distância entre grupos
+$space-8: 32px;  // Padding lateral desktop, lacuna da grade
+$space-12: 48px; // Separação de blocos principais
+$space-16: 64px; // Respiro superior/inferior de página completa
+
+// -----------------------------------------------------------------------------
+// 3. Dimensões Mínimas e Acessibilidade (WCAG 2.2 AA)
+// -----------------------------------------------------------------------------
+
+$min-touch-target: 44px;
+$focus-outline-width: 3px;
+$focus-outline-offset: 3px;
+
+// -----------------------------------------------------------------------------
+// 4. Raios de Borda (Forma)
+// -----------------------------------------------------------------------------
+
+$radius-sm: 4px;    // Chips, etiquetas de estado
+$radius-md: 8px;    // Cartões, campos, botões
+$radius-full: 999px; // Avatar, indicadores circulares
+
+// -----------------------------------------------------------------------------
+// 5. Elevação e Sombras
+// -----------------------------------------------------------------------------
+
+$shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.24);
+
+// -----------------------------------------------------------------------------
+// 6. Breakpoints de Layout
+// -----------------------------------------------------------------------------
+
+$breakpoint-mobile-max: 599px;
+$breakpoint-tablet-min: 600px;
+$breakpoint-tablet-max: 899px;
+$breakpoint-desktop-min: 900px;
+$container-max-width: 1200px;
