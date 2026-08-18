@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 22/31 plans executed
+**Plans**: 25/31 plans executed
 Plans:
 **Wave 1**
 
@@ -135,11 +135,14 @@ Plans:
 
 - [x] 01-13-PLAN.md — Modelar a projeção diagnóstica e seus probes tolerantes a falha.
 
-**Wave 23** *(liberada; Wave 22 concluída)*
+**Wave 23** *(concluída; Plano 01-26 executado e revisado em 2 rodadas)*
 
-- [ ] 01-26-PLAN.md — Expor o diagnóstico não-prod e regenerar o cliente OpenAPI final.
+- [x] 01-26-PLAN.md — Expor o diagnóstico não-prod e regenerar o cliente OpenAPI final.
+      A allowlist foi ampliada três vezes com ratificação prévia: path `platform.diagnostic`,
+      `scripts/validate-phase1.mjs` para o modo `--contract`, e os dois validadores cujos guards
+      pinavam artefato em vez de propriedade.
 
-**Wave 24** *(blocked on Wave 23 completion)*
+**Wave 24** *(liberada; Wave 23 concluída)*
 
 - [ ] 01-14-PLAN.md — Implementar tokens, tema e fontes/ícones auto-hospedados.
 

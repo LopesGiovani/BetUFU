@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P13 executado com sucesso; Modelagem da projeção diagnóstica e probes tolerantes a falha entregues. Wave 22 concluída (01-13).
+stopped_at: F1/P26 executado e revisado em 2 rodadas; claim técnica, diagnóstico restrito e contrato OpenAPI final entregues. Wave 23 concluída (01-26); Wave 24 liberada.
 last_updated: "2026-08-17"
 last_activity: 2026-08-17
-last_activity_desc: O Plano 01-13 entregou DTOs, serviço de agregação com ordenação fixa e probes concorrentes tolerantes a falha parcial per D-03/D-04, com 167 testes Java agregados.
+last_activity_desc: O Plano 01-26 converteu a claim betufu_roles em ROLE_TECHNICAL por allowlist fechada, restringiu o diagnóstico a dev/homolog com ausência material em produção, fechou os quatro paths do contrato e regenerou o cliente de 13 para 20 arquivos.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # Estado do Projeto
@@ -23,25 +23,25 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 23 — Exposição HTTP e cliente do diagnóstico (Plano 01-26)
+**Current focus:** Wave 24 — Plano 01-14 (tokens, tema e fontes auto-hospedados); antes do gate do 01-16, o plano do harness de validadores
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 24 of 31 (Plano 01-13 concluído)
-Status: In progress — Wave 22 concluída (01-13)
-Last activity: 2026-08-17 — Projeção diagnóstica e probes tolerantes a falha entregues per D-03/D-04.
+Plan: 25 of 31 (Plano 01-26 concluído)
+Status: In progress — Wave 23 concluída (01-26); Wave 24 liberada com o 01-14
+Last activity: 2026-08-17 — Handoff da claim OIDC, diagnóstico restrito por papel e contrato OpenAPI final com cliente regenerado.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` e `origin/master` em avanço local.
+Git: `master` recebeu o Plano 01-26 em dois commits canônicos, sendo o primeiro `5c89a63` (`feat(01-26)`, 20 paths de código, validadores e cliente gerado); o segundo é o commit de documentação que carrega este arquivo, e seu hash não é citado aqui porque emendar um commit para inserir o próprio hash o mudaria. Sincronização com `origin/master` depende de autorização própria de push.
 
-Progress: [████████░░] 77%
+Progress: [████████░░] 81%
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 23
+- Total de planos concluídos: 25
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -49,11 +49,11 @@ Progress: [████████░░] 77%
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 23 | não mensurado | não mensurada |
+| 1 | 25 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 01-30, 01-31, 01-12, 01-25
+- Últimos 5 planos: 01-31, 01-12, 01-25, 01-13, 01-26
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -61,6 +61,10 @@ Progress: [████████░░] 77%
 
 ### Decisões
 
+- A claim `betufu_roles` do ID token vira `ROLE_TECHNICAL` por allowlist positiva e fechada: exige coleção, depois String, depois igualdade byte a byte com `TECHNICAL`. E-mail, username, grupo e `realm_access` nunca concedem autoridade, e a fiação do mapper é explícita nos dois ramos do `SecurityConfiguration`.
+- `GET /api/v1/diagnostic` existe apenas em `dev` e `homolog`. Em produção não há bean nem mapping — ausência material, provada por inspeção do contexto e do `RequestMappingHandlerMapping`, nunca por status 403, que não distingue negado de inexistente.
+- O contrato OpenAPI passou a cobrir os quatro paths `/api/v1` da fase, e o modo `--contract` do gate agregado foi implementado: ele compara mappings do código com o contrato e roda o check de drift do cliente gerado.
+- **Guard de validador protege propriedade, não identidade de artefato.** Dois guards caíram neste plano sem que nenhuma propriedade fosse violada, e ambos foram escritos quando existia um único artefato do tipo: o `OIDC_BOUNDARY` fixava `Customizer.withDefaults()`, e o `GENERATED_WITH_CREDENTIALS` fixava `identity.service.ts` com contagem exata. É padrão, não coincidência.
 - O reset local é o único comando destrutivo da fase. Dry-run é o padrão, `--apply` exige a frase literal `APAGAR DADOS LOCAIS BETUFU` em terminal interativo, e o bootstrap é opcional e desligado.
 - Um recurso Docker só é removido pela conjunção de todos os critérios: containers exigem serviço na allowlist, `project=infra`, `oneoff=False` e `config_files` apontando para este checkout; volumes exigem nome literal, `project=infra` e label de volume igual ao nome. Redes ficam fora.
 - O label `com.docker.compose.project` sozinho é insuficiente para autorizar remoção, porque `--project-name infra` é genérico e colide com qualquer composição num diretório homônimo. `config_files` é o único discriminador que amarra um recurso a um checkout — verificado presente em containers e ausente em volumes e redes no Compose 5.3.1.
@@ -83,7 +87,7 @@ Progress: [████████░░] 77%
 - A allowlist de cinco pacotes `hasInstallScript` reconhece o grafo, mas não autoriza scripts; `npm ci --ignore-scripts` foi preservado e o risco moderado `GHSA-frvp-7c67-39w9` foi aceito temporariamente.
 - O cliente OpenAPI inicial usa o wrapper npm `@openapitools/openapi-generator-cli@2.40.1` somente com `--ignore-scripts` e o motor Java `7.24.0` adquirido separadamente, com 31.904.922 bytes e SHA-256 `4B83CCC6FD43056C8C631CD0195E5100BD0550912502527BAB09AC76152DAB0C`.
 - O lockfile do 01-20 é governado pelo SHA-256 `99A856C8C635EB4FB9845DEE6F1F2E7A2A4E8576BF80654B9695B5E6D6C4F035`; sua allowlist de seis entradas `hasInstallScript` apenas reconhece metadados e não autoriza lifecycle.
-- A árvore TypeScript gerada é machine-owned, exige exatamente 13 paths e o digest canônico `78E92BB17EBC45E25F86CA3D23C66958BDCD1786983DEFDC2DD1050BE8D13D5F`; o digest histórico `701CCD...` é não reproduzível e não pode ser reutilizado.
+- A árvore TypeScript gerada é machine-owned e exige exatamente **20 paths** com o digest canônico `27AC44819495367D671C92341400E86EE0B79F4ECAE4229F53BB90F2560C35C0`, aprovado pelo responsável no 01-26. O digest anterior `78E92BB1...` valia para os 13 paths de antes do contrato completo; o histórico `701CCD...` continua não reproduzível.
 - O risco de o runner resolver Java pelo `PATH` local permanece aceito temporariamente somente com as propriedades aprovadas de Java 25/Eclipse Adoptium; a identidade binária imutável deve ser decidida para CI.
 - A identidade local usa o par OIDC exato `(issuer, subject)` como chave natural case-sensitive e um UUID aleatório como identificador público; e-mail e claims opcionais não participam da correlação.
 - A migration Flyway V1 e o JPA validam `public.local_identity` no PostgreSQL 18.4; repetição e concorrência usam `ON CONFLICT DO NOTHING` seguido de `SELECT` em `READ_COMMITTED`, sem no-op update.
@@ -113,6 +117,9 @@ Progress: [████████░░] 77%
 
 ### Pendências
 
+- **27 regras semânticas de `validate-angular-route-boundary` nunca tiveram prova negativa, e não há controle válido.** O loop de `generatedSourceMutations` asserta sempre `GENERATED_MANIFEST_DIGEST` e ignora o campo `rule` de cada entrada; o digest muda a cada mutação e dispara antes de qualquer regra semântica. Medido: substituindo a constante pelo `rule` declarado, 25 das 27 falham. As duas que passam são as únicas cujo `rule` já é `GENERATED_MANIFEST_DIGEST` — passam por tautologia, e semanticamente pertencem à família `origem absoluta`, cujas outras quatro irmãs declaram `GENERATED_ABSOLUTE_URL`. **São 27 alvos e zero controles.** Entre as regras sem prova está toda a superfície de credencial do cliente gerado. Defeito pré-existente; exige plano próprio e **precede o gate do 01-16**, que consome este validador como prova.
+- **Varrer os demais validadores atrás de guards que pinam artefato em vez de propriedade.** Dois apareceram no 01-26 e ambos foram escritos quando existia um único artefato do tipo.
+- **O adiamento do contrato OpenAPI tem custo medido.** A dívida aberta no 01-22 e repetida no 01-12 custou **4 dos 7 arquivos novos** do cliente regenerado no 01-26. Paga na época, o 01-26 teria acrescentado 3. Registrar como custo real de adiamento, não como observação.
 - ~~Dois validadores em contradição sobre o usuário técnico do Keycloak.~~ **Resolvido pelo Plano 01-30.** `validate-keycloak-realm.mjs` exigia exatamente 9 chaves em `realm.users[0]` e rejeitava `firstName`/`lastName`, que `016390b` (01-29) acrescentou ao realm para destravar o provider `VERIFY_PROFILE`, e que `validate-runtime-prerequisites.mjs:1290-1297` já exigia. O contrato foi ampliado para 11 chaves com valores pinados; o realm não foi alterado, porque o defeito estava no validador. Qual lado cedia não dependeu de julgamento: `01-03-PLAN.md:203` proíbe required action na conta técnica, e `VERIFY_PROFILE` é required action de provider, então o 01-29 respeitou o contrato de origem.
 - ~~O reset local nunca executou `--apply`.~~ **Executado pelo responsável em 2026-08-17.** Removeu exatamente os 11 recursos da lista — 7 containers `infra-*` e 4 volumes `betufu-local-*` — com 0 falhas. Verificado depois: zero containers `infra-*` e zero volumes `betufu-local-*` restantes; total da máquina caiu de 36/23 para 29/19, exatamente os 11; `finvise-postgres` e as demais stacks de terceiro intactas; e a segunda execução converge para `(nenhum — nada a fazer)` sobre 29/29 e 19/19. O limite declarado desde o primeiro handoff está fechado: está provado que o reset remove o certo e só o certo.
 - Reavaliar `GHSA-frvp-7c67-39w9` quando houver correção upstream compatível com a Matriz B, sem `npm audit fix`, `--force` ou downgrade silencioso.
