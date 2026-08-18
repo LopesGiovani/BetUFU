@@ -131,11 +131,11 @@ Plans:
 
 - [x] 01-25-PLAN.md — Expor health e métricas operacionais mínimos e seguros.
 
-**Wave 22** *(liberada; Wave 21 concluída)*
+**Wave 22** *(concluída; Plano 01-13 executado e testado com 167 testes Java)*
 
-- [ ] 01-13-PLAN.md — Modelar a projeção diagnóstica e seus probes tolerantes a falha.
+- [x] 01-13-PLAN.md — Modelar a projeção diagnóstica e seus probes tolerantes a falha.
 
-**Wave 23** *(blocked on Wave 22 completion)*
+**Wave 23** *(liberada; Wave 22 concluída)*
 
 - [ ] 01-26-PLAN.md — Expor o diagnóstico não-prod e regenerar o cliente OpenAPI final.
 

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P25 executado com PASS externo; Governança de health e métricas seguras na JVM entregues. Wave 21 concluída (01-25).
+stopped_at: F1/P13 executado com sucesso; Modelagem da projeção diagnóstica e probes tolerantes a falha entregues. Wave 22 concluída (01-13).
 last_updated: "2026-08-17"
 last_activity: 2026-08-17
-last_activity_desc: O Plano 01-25 concluiu a governança de health e métricas seguras com MeterFilter e isolamento contra alta cardinalidade e segredos, com PASS externo e 158 testes agregados.
+last_activity_desc: O Plano 01-13 entregou DTOs, serviço de agregação com ordenação fixa e probes concorrentes tolerantes a falha parcial per D-03/D-04, com 167 testes Java agregados.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 22 — Modelagem da projeção diagnóstica
+**Current focus:** Wave 23 — Exposição HTTP e cliente do diagnóstico (Plano 01-26)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 23 of 31 (Plano 01-25 concluído)
-Status: In progress — Wave 21 concluída (01-25)
-Last activity: 2026-08-17 — Health e métricas seguros entregues com PASS externo.
+Plan: 24 of 31 (Plano 01-13 concluído)
+Status: In progress — Wave 22 concluída (01-13)
+Last activity: 2026-08-17 — Projeção diagnóstica e probes tolerantes a falha entregues per D-03/D-04.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
 Git: `master` e `origin/master` em avanço local.
 
-Progress: [███████░░░] 74%
+Progress: [████████░░] 77%
 
 ## Métricas de desempenho
 
