@@ -26,6 +26,77 @@ paths:
               schema:
                 $ref: "#/components/schemas/CurrentIdentityResponse"
 
+  /api/v1/session:
+    get:
+      tags:
+        - Session
+      operationId: getSession
+      summary: Consultar o estado seguro da sessão atual
+      description: >-
+        Projeção segura da sessão, entregue pelo Plano 01-22. Não retorna
+        identificador de sessão, cookie, token nem claims completas. A consulta
+        não renova o prazo de inatividade e é o único par anônimo de
+        `/api/v1/**`, para que a SPA possa perguntar se está autenticada sem ser
+        redirecionada ao provedor.
+      responses:
+        "200":
+          description: Estado da sessão, autenticada ou não.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionStateResponse"
+
+  /api/v1/session/logout:
+    post:
+      tags:
+        - Session
+      operationId: logoutCurrentSession
+      summary: Encerrar somente a sessão do dispositivo atual
+      description: >-
+        Encerra apenas a sessão BFF corrente, per D-08 e D-09; as demais sessões
+        do usuário permanecem válidas. Protegido por CSRF. A URL devolvida usa
+        `client_id` e um `post_logout_redirect_uri` same-origin, sem
+        `id_token_hint`, porque o ID token é material de autenticação e uma URL
+        entregue ao navegador vaza por histórico e log de proxy.
+      responses:
+        "200":
+          description: Sessão local encerrada e coordenação disponível.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentDeviceLogoutResponse"
+        "502":
+          description: >-
+            Sessão local encerrada, mas o `end_session_endpoint` não estava
+            disponível. O corpo é sanitizado e não revela endpoint nem motivo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentDeviceLogoutResponse"
+
+  /api/v1/diagnostic:
+    get:
+      tags:
+        - Diagnostic
+      operationId: getDiagnostic
+      summary: Consultar o diagnóstico das dependências da plataforma
+      description: >-
+        Existe somente nos profiles `dev` e `homolog`, per D-02: em produção não
+        há bean nem mapping, e portanto o path não é alcançável. Exige a
+        autoridade `ROLE_TECHNICAL`, produzida exclusivamente pelo handoff
+        allowlistado da claim aprovada no Gate 1 do Plano 01-03.
+      responses:
+        "200":
+          description: Projeção diagnóstica com exatamente seis componentes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiagnosticResponse"
+        "401":
+          description: Requisição anônima.
+        "403":
+          description: Autenticado sem a autoridade técnica.
+
 components:
   schemas:
     CurrentIdentityResponse:
@@ -51,3 +122,101 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    SessionStateResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - authenticated
+        - idleTimeout
+        - absoluteTimeout
+      properties:
+        authenticated:
+          type: boolean
+        displayName:
+          type: [string, "null"]
+          description: Nome de exibição não sensível, ausente quando anônimo.
+        idleTimeout:
+          type: string
+          description: Duração ISO-8601 do prazo de inatividade, sempre `PT8H`.
+        absoluteTimeout:
+          type: [string, "null"]
+          description: >-
+            Sempre nulo no MVP. Emitido explicitamente, per D-06, para
+            representar a ausência de prazo absoluto em vez de omiti-la.
+        lastValidActivityAt:
+          type: [string, "null"]
+          format: date-time
+
+    CurrentDeviceLogoutResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - endSessionUrl
+      properties:
+        status:
+          type: string
+          enum:
+            - LOGGED_OUT
+            - END_SESSION_UNAVAILABLE
+        endSessionUrl:
+          type: [string, "null"]
+          description: >-
+            URL pública de RP-initiated logout, ou nulo quando o provedor não
+            publica `end_session_endpoint`. Nunca contém token.
+
+    DiagnosticResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - summary
+        - correlationId
+        - timestamp
+        - components
+      properties:
+        status:
+          $ref: "#/components/schemas/DiagnosticStatus"
+        summary:
+          type: string
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        components:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/DiagnosticComponent"
+        environment:
+          type: [string, "null"]
+        version:
+          type: [string, "null"]
+
+    DiagnosticComponent:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - status
+      properties:
+        name:
+          type: string
+        status:
+          $ref: "#/components/schemas/DiagnosticStatus"
+        detail:
+          type: [string, "null"]
+          description: Texto sanitizado, sem credencial, host interno ou stack trace.
+        durationMs:
+          type: [integer, "null"]
+          format: int64
+
+    DiagnosticStatus:
+      type: string
+      enum:
+        - UP
+        - DEGRADED
+        - DOWN

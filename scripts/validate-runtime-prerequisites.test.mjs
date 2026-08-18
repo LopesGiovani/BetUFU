@@ -1124,6 +1124,30 @@ test('rejeita bypass CSRF na SecurityConfiguration canonica', async () => {
   await expectRule(root, 'CSRF_BYPASS');
 });
 
+// O guard OIDC_BOUNDARY aceita `Customizer.withDefaults()` OU lambda desde o Plano 01-26,
+// porque a fiacao do OidcTechnicalAuthorityMapper exige a forma lambda. A propriedade
+// protegida e a presenca do Authorization Code, nao uma sintaxe especifica — entao as duas
+// regressoes abaixo existem para provar que ampliar nao afrouxou.
+test('rejeita remocao do oauth2Login na SecurityConfiguration canonica', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
+    (source) => source.replaceAll('.oauth2Login(', '.formLogin('),
+  );
+  await expectRule(root, 'OIDC_BOUNDARY');
+});
+
+test('rejeita oauth2Login sem configurador na SecurityConfiguration canonica', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
+    (source) => source.replaceAll('.oauth2Login(oauth2 -> oauth2', '.oauth2Login('),
+  );
+  await expectRule(root, 'OIDC_BOUNDARY');
+});
+
 for (const [label, source] of [
   ['csrf.disable', 'class UnsafeCsrfConfiguration { void configure() { csrf.disable(); } }\n'],
   [

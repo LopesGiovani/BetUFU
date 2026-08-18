@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
@@ -134,11 +133,25 @@ public class SecurityConfiguration {
         return new OidcLogoutSuccessHandler();
     }
 
+    /**
+     * Handoff Keycloak para Spring, declarado como bean e fiado explicitamente abaixo.
+     *
+     * <p>A fiacao e explicita, e nao por deteccao implicita de bean, pelo mesmo motivo que levou o
+     * Plano 01-07 a declarar {@link #oidcUserService()}: um opt-in implicito e silenciosamente
+     * reversivel. Se o mapeamento de autoridade dependesse de o Spring encontrar o bean sozinho,
+     * uma mudanca de configuracao poderia desligar o handoff sem que nenhum teste percebesse.
+     */
+    @Bean
+    OidcTechnicalAuthorityMapper oidcTechnicalAuthorityMapper() {
+        return new OidcTechnicalAuthorityMapper();
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             CookieCsrfTokenRepository csrfTokenRepository,
             CorsConfigurationSource corsConfigurationSource,
+            OidcTechnicalAuthorityMapper oidcTechnicalAuthorityMapper,
             ObjectProvider<SessionLifecycleService> sessionLifecycleServiceProvider,
             ObjectProvider<ValidActivityFilter> validActivityFilterProvider) throws Exception {
         SessionLifecycleService sessionLifecycleService =
@@ -215,6 +228,17 @@ public class SecurityConfiguration {
                         // Order matters: a broader matcher placed first would swallow it.
                         .requestMatchers(HttpMethod.GET, "/api/v1/session")
                         .permitAll()
+                        // Diagnostico exige o papel tecnico, e o matcher precisa vir ANTES de
+                        // /api/v1/** — senao aquele matcher mais largo o engoliria e bastaria
+                        // estar autenticado. A autoridade so pode ser produzida pelo
+                        // OidcTechnicalAuthorityMapper, a partir da claim aprovada no Gate 1.
+                        //
+                        // Em producao o controller nao existe (@Profile no bean), entao este
+                        // matcher nao tem alvo. Mante-lo na cadeia unica em todos os profiles e
+                        // defesa em profundidade: se alguem um dia registrar o mapping em prod
+                        // por engano, ele ja nasce exigindo TECHNICAL em vez de apenas sessao.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/diagnostic")
+                        .hasRole("TECHNICAL")
                         .requestMatchers("/api/v1/**")
                         .authenticated()
                         .anyRequest()
@@ -225,12 +249,19 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session
                         .sessionFixation(fixation -> fixation.changeSessionId()));
 
+        // O mapper de autoridade e fiado nos DOIS ramos. Ligar apenas no ramo completo deixaria
+        // os contextos focais de teste sem o handoff, e um teste que passasse ali estaria
+        // provando um pipeline diferente do de producao.
         if (sessionLifecycleService == null) {
-            http.oauth2Login(Customizer.withDefaults());
+            http.oauth2Login(oauth2 -> oauth2
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userAuthoritiesMapper(oidcTechnicalAuthorityMapper)));
         } else {
             http
                     .addFilterAfter(validActivityFilter, AuthorizationFilter.class)
                     .oauth2Login(oauth2 -> oauth2
+                            .userInfoEndpoint(userInfo -> userInfo
+                                    .userAuthoritiesMapper(oidcTechnicalAuthorityMapper))
                             .successHandler(sessionLifecycleService));
         }
 

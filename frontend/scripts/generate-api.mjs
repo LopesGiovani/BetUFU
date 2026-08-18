@@ -85,18 +85,25 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api.base.service.ts',
   'api.module.ts',
   'api/api.ts',
+  'api/diagnostic.service.ts',
   'api/identity.service.ts',
+  'api/session.service.ts',
   'configuration.ts',
   'encoder.ts',
   'index.ts',
+  'model/current-device-logout-response.ts',
   'model/current-identity-response.ts',
+  'model/diagnostic-component.ts',
+  'model/diagnostic-response.ts',
+  'model/diagnostic-status.ts',
   'model/models.ts',
+  'model/session-state-response.ts',
   'param.ts',
   'provide-api.ts',
   'query.params.ts',
   'variables.ts',
 ]);
-export const APPROVED_GENERATED_DIGEST = '78E92BB17EBC45E25F86CA3D23C66958BDCD1786983DEFDC2DD1050BE8D13D5F';
+export const APPROVED_GENERATED_DIGEST = '27AC44819495367D671C92341400E86EE0B79F4ECAE4229F53BB90F2560C35C0';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

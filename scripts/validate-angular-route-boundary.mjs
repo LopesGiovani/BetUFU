@@ -1167,11 +1167,20 @@ function validateGeneratedClient(generatedSources) {
     }
 
     if (/\bwithCredentials\b/u.test(activeSource)) {
+      // A propriedade protegida e o encadeamento DORMENTE, nao a identidade do arquivo.
+      // Ate o Plano 01-26 existia um unico servico gerado, e este guard prendia
+      // identity.service.ts com exatamente 3 ocorrencias. A regeneracao que documentou
+      // sessao, logout e diagnostico criou mais servicos com o mesmo padrao dormente e
+      // derrubou o guard sem que nenhuma propriedade tivesse sido violada.
+      //
+      // Continua exigido, agora em QUALQUER servico gerado: destructuring canonico, toda
+      // ocorrencia contida no spread dormente (1 do destructuring mais 2 por spread) e a
+      // proibicao absoluta da forma forcada.
+      const dormantSpreads = countMatches(activeSource, /\.\.\.\(withCredentials\s*\?\s*\{\s*withCredentials\s*\}\s*:\s*\{\s*\}\s*\)/u);
       expect(
-        relativePath === PATHS.generatedIdentityService
-          && countMatches(activeSource, /\bwithCredentials\b/u) === 3
-          && /const\s*\{\s*basePath\s*,\s*withCredentials\s*\}\s*=\s*this\.configuration\s*;/u.test(activeSource)
-          && /\.\.\.\(withCredentials\s*\?\s*\{\s*withCredentials\s*\}\s*:\s*\{\s*\}\s*\)/u.test(activeSource)
+        dormantSpreads >= 1
+          && countMatches(activeSource, /\bwithCredentials\b/u) === 3 * dormantSpreads
+          && countMatches(activeSource, /const\s*\{\s*basePath\s*,\s*withCredentials\s*\}\s*=\s*this\.configuration\s*;/u) === dormantSpreads
           && !/withCredentials\s*:\s*true\b/u.test(activeSource),
         'GENERATED_WITH_CREDENTIALS',
         'withCredentials gerado deve permanecer apenas no encadeamento dormente aprovado.',

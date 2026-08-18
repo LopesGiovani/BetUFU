@@ -1155,7 +1155,7 @@ function assertSecurityContract(securitySource) {
     'denyAll final deve ser preservado.',
   );
   expect(
-    /\.oauth2Login\s*\(\s*Customizer\.withDefaults\s*\(\s*\)\s*\)/su.test(active),
+    /\.oauth2Login\s*\(\s*(?:Customizer\s*\.\s*withDefaults\s*\(\s*\)|[A-Za-z_$][A-Za-z0-9_$]*\s*->)/su.test(active),
     'OIDC_BOUNDARY',
     'oauth2Login Authorization Code deve ser preservado.',
   );
