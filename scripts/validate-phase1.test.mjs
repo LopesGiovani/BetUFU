@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateSessionUiContract } from './validate-phase1.mjs';
+import { validateSessionUiContract, validateDiagnosticUiContract } from './validate-phase1.mjs';
 
 const scriptsDir = resolve(fileURLToPath(import.meta.url), '..');
 const projectRoot = resolve(scriptsDir, '..');
@@ -56,6 +56,56 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [];
     cleanup: () => rm(root, { recursive: true, force: true }),
   };
 }
+
+async function createDiagnosticFixtureTree(overrides = {}) {
+  const root = await mkdtemp(join(tmpdir(), 'betufu-phase1-diag-fixture-'));
+
+  const diagDir = join(root, 'frontend', 'src', 'app', 'features', 'diagnostic');
+  const routesDir = join(root, 'frontend', 'src', 'app');
+
+  await mkdir(diagDir, { recursive: true });
+
+  const defaultDiagComponent = `
+import { Component } from '@angular/core';
+@Component({ selector: 'app-diagnostic-page', template: '' })
+export class DiagnosticPageComponent {}
+`;
+
+  const defaultRoutesDev = `
+import type { Routes } from '@angular/router';
+import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';
+export const BUILD_SPECIFIC_ROUTES: Routes = [
+  {
+    path: '',
+    component: AuthenticatedLayoutComponent,
+    children: [
+      {
+        path: 'diagnostic',
+        loadComponent: () => import('./features/diagnostic/diagnostic-page.component').then(({ DiagnosticPageComponent }) => DiagnosticPageComponent)
+      }
+    ]
+  }
+];
+`;
+
+  const defaultRoutesProd = `
+import type { Routes } from '@angular/router';
+export const BUILD_SPECIFIC_ROUTES: Routes = [];
+`;
+
+  await writeFile(join(diagDir, 'diagnostic-page.component.ts'), overrides.component ?? defaultDiagComponent, 'utf8');
+  await writeFile(join(routesDir, 'app.routes.development.ts'), overrides.routesDev ?? defaultRoutesDev, 'utf8');
+  await writeFile(join(routesDir, 'app.routes.production.ts'), overrides.routesProd ?? defaultRoutesProd, 'utf8');
+
+  return {
+    root,
+    cleanup: () => rm(root, { recursive: true, force: true }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Testes validateSessionUiContract
+// ---------------------------------------------------------------------------
 
 test('validateSessionUiContract: aceita estrutura canonica valida', async () => {
   const fixture = await createFixtureTree();
@@ -175,3 +225,100 @@ test('validateSessionUiContract: detecta arquivo extra nao-canonico em subdireto
   }
 });
 
+// ---------------------------------------------------------------------------
+// Testes validateDiagnosticUiContract
+// ---------------------------------------------------------------------------
+
+test('validateDiagnosticUiContract: aceita estrutura canonica com rota diagnostic sob layout', async () => {
+  const fixture = await createDiagnosticFixtureTree();
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, true);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('validateDiagnosticUiContract: recusa localStorage em arquivos de diagnostic', async () => {
+  const fixture = await createDiagnosticFixtureTree({
+    component: 'export class Diag { run() { localStorage.setItem("d", "1"); } }',
+  });
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, false);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('validateDiagnosticUiContract: recusa sessionStorage em arquivos de diagnostic', async () => {
+  const fixture = await createDiagnosticFixtureTree({
+    component: 'export class Diag { run() { sessionStorage.getItem("d"); } }',
+  });
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, false);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('validateDiagnosticUiContract: recusa document.cookie em diagnostic', async () => {
+  const fixture = await createDiagnosticFixtureTree({
+    component: 'export class Diag { run() { const c = document.cookie; } }',
+  });
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, false);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('validateDiagnosticUiContract: recusa token Bearer manual em diagnostic', async () => {
+  const fixture = await createDiagnosticFixtureTree({
+    component: 'export const h = { Authorization: "Bearer xyz" };',
+  });
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, false);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('validateDiagnosticUiContract: recusa polling continuo (setInterval) em diagnostic', async () => {
+  const fixture = await createDiagnosticFixtureTree({
+    component: 'export class Diag { poll() { setInterval(() => {}, 5000); } }',
+  });
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, false);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('validateDiagnosticUiContract: recusa app.routes.development sem rota diagnostic', async () => {
+  const fixture = await createDiagnosticFixtureTree({
+    routesDev: 'import { AuthenticatedLayoutComponent } from "./layout"; export const BUILD_SPECIFIC_ROUTES = [{ path: "", component: AuthenticatedLayoutComponent, children: [] }];',
+  });
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, false);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('validateDiagnosticUiContract: recusa app.routes.production contendo DiagnosticPageComponent ou rota diagnostic', async () => {
+  const fixture = await createDiagnosticFixtureTree({
+    routesProd: 'export const BUILD_SPECIFIC_ROUTES = [{ path: "diagnostic", component: DiagnosticPageComponent }];',
+  });
+  try {
+    const result = await validateDiagnosticUiContract(fixture.root);
+    assert.strictEqual(result, false);
+  } finally {
+    await fixture.cleanup();
+  }
+});

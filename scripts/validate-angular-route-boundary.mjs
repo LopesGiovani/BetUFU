@@ -100,6 +100,49 @@ const CANONICAL_LAYOUT_TRACER_ROUTES_PATTERN = new RegExp(
   'u',
 );
 
+const CANONICAL_DIAGNOSTIC_MODULE_PATTERN_SOURCE =
+  String.raw`'\./features/diagnostic/diagnostic-page\.component'`;
+const CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN_SOURCE = [
+  String.raw`\bimport\s*\(\s*`,
+  CANONICAL_DIAGNOSTIC_MODULE_PATTERN_SOURCE,
+  String.raw`\s*\)`,
+].join('');
+const CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN = new RegExp(
+  CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN_SOURCE,
+  'u',
+);
+
+const CANONICAL_LAYOUT_TRACER_AND_DIAGNOSTIC_ROUTES_PATTERN = new RegExp(
+  [
+    '^',
+    String.raw`\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular/router'\s*;`,
+    String.raw`\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\./layout/authenticated-layout\.component'\s*;`,
+    String.raw`\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[`,
+    String.raw`\s*\{`,
+    String.raw`\s*path\s*:\s*''\s*,`,
+    String.raw`\s*component\s*:\s*AuthenticatedLayoutComponent\s*,`,
+    String.raw`\s*children\s*:\s*\[`,
+    String.raw`\s*\{`,
+    String.raw`\s*path\s*:\s*'tracer'\s*,`,
+    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
+    CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
+    String.raw`\s*\.then\s*\(`,
+    String.raw`\s*\(\s*\{\s*TracerPageComponent\s*\}\s*\)`,
+    String.raw`\s*=>\s*TracerPageComponent\s*,?\s*\)\s*,?`,
+    String.raw`\s*\}\s*,`,
+    String.raw`\s*\{`,
+    String.raw`\s*path\s*:\s*'diagnostic'\s*,`,
+    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
+    CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN_SOURCE,
+    String.raw`\s*\.then\s*\(`,
+    String.raw`\s*\(\s*\{\s*DiagnosticPageComponent\s*\}\s*\)`,
+    String.raw`\s*=>\s*DiagnosticPageComponent\s*,?\s*\)\s*,?`,
+    String.raw`\s*\}\s*,?\s*\]\s*,?`,
+    String.raw`\s*\}\s*,?\s*\]\s*;\s*$`,
+  ].join(''),
+  'u',
+);
+
 const HOST_SOURCE_PATHS = Object.freeze([
   PATHS.main,
   PATHS.config,
@@ -439,11 +482,17 @@ function validateScriptLexicalSafety(sources) {
         code,
         CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN,
       );
+      const canonicalDiagnosticImportCount = countActiveImports(
+        code,
+        CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN,
+      );
+      const totalCanonicalImports = canonicalTracerImportCount + canonicalDiagnosticImportCount;
       expect(
-        dynamicImportCount === canonicalTracerImportCount
-          && dynamicImportCount <= 1,
+        canonicalTracerImportCount <= 1
+          && canonicalDiagnosticImportCount <= 1
+          && dynamicImportCount === totalCanonicalImports,
         'DYNAMIC_IMPORT_FORBIDDEN',
-        `${relativePath} aceita no maximo o import dinamico literal canonico do tracer.`,
+        `${relativePath} aceita no maximo um import dinamico literal canonico de cada feature tecnica.`,
       );
     } else {
       expect(
@@ -1340,14 +1389,15 @@ function validateRouteSources(sources) {
   expect(
     EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN.test(development)
       || CANONICAL_TRACER_ROUTES_PATTERN.test(development)
-      || CANONICAL_LAYOUT_TRACER_ROUTES_PATTERN.test(development),
+      || CANONICAL_LAYOUT_TRACER_ROUTES_PATTERN.test(development)
+      || CANONICAL_LAYOUT_TRACER_AND_DIAGNOSTIC_ROUTES_PATTERN.test(development),
     'DEVELOPMENT_ROUTES_SHAPE',
     'development deve conter somente a lista vazia ou a rota autenticada canonica.',
   );
   expect(
-    !/(?:\btracer\b|\bTracerPageComponent\b)/iu.test(production),
+    !/(?:\btracer\b|\bTracerPageComponent\b|\bdiagnostic\b|\bDiagnosticPageComponent\b)/iu.test(production),
     'PRODUCTION_TRACER_FORBIDDEN',
-    'production nao pode importar, mencionar nem expor o tracer.',
+    'production nao pode importar, mencionar nem expor o tracer ou o diagnostico.',
   );
   expect(
     EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN.test(production),

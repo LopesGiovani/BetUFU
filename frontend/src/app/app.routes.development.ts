@@ -13,6 +13,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ TracerPageComponent }) => TracerPageComponent,
           ),
       },
+      {
+        path: 'diagnostic',
+        loadComponent: () =>
+          import('./features/diagnostic/diagnostic-page.component').then(
+            ({ DiagnosticPageComponent }) => DiagnosticPageComponent,
+          ),
+      },
     ],
   },
 ];

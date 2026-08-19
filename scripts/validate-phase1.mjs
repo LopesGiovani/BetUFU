@@ -245,6 +245,128 @@ async function modeSessionUi() {
   );
 
   if (buildResult.stdout) console.log(buildResult.stdout);
+  if (buildResult.exitCode !== 0) {
+    console.error(`[validate-phase1] FALHA: ng build production retornou exit code ${buildResult.exitCode}`);
+    return false;
+  }
+
+  console.log('[validate-phase1] PASS: --session-ui (store, layout, testes e build production)');
+  return true;
+}
+
+export async function validateDiagnosticUiContract(rootPath) {
+  const routesDevFile = resolve(rootPath, 'frontend', 'src', 'app', 'app.routes.development.ts');
+  const routesProdFile = resolve(rootPath, 'frontend', 'src', 'app', 'app.routes.production.ts');
+  const diagnosticDir = resolve(rootPath, 'frontend', 'src', 'app', 'features', 'diagnostic');
+
+  const prohibitedTokens = ['localStorage', 'sessionStorage', 'document.cookie', 'indexedDB', 'Bearer '];
+  const prohibitedLoops = ['setInterval', 'interval('];
+
+  const diagnosticFiles = (await collectFiles(diagnosticDir))
+    .filter((f) => f.endsWith('.ts') || f.endsWith('.html'))
+    .filter((f) => !f.endsWith('.spec.ts'));
+  if (diagnosticFiles.length === 0) {
+    console.error(`[validate-phase1] FALHA: nenhum arquivo de feature diagnostic encontrado em ${diagnosticDir}`);
+    return false;
+  }
+
+  for (const file of diagnosticFiles) {
+    const source = await readFile(file, 'utf8');
+    for (const token of prohibitedTokens) {
+      if (source.includes(token)) {
+        console.error(`[validate-phase1] FALHA: ${file} contem token proibido: '${token}'`);
+        return false;
+      }
+    }
+    for (const token of prohibitedLoops) {
+      if (source.includes(token)) {
+        console.error(`[validate-phase1] FALHA: ${file} contem chamada de polling continuo: '${token}'`);
+        return false;
+      }
+    }
+  }
+
+  const routesDevSource = await readFile(routesDevFile, 'utf8');
+  const routesProdSource = await readFile(routesProdFile, 'utf8');
+
+  if (!routesDevSource.includes('AuthenticatedLayoutComponent')) {
+    console.error('[validate-phase1] FALHA: app.routes.development.ts nao encapsula rotas sob AuthenticatedLayoutComponent');
+    return false;
+  }
+
+  if (!routesDevSource.includes('DiagnosticPageComponent') || !routesDevSource.includes("'diagnostic'")) {
+    console.error('[validate-phase1] FALHA: app.routes.development.ts nao registra a rota /diagnostic com DiagnosticPageComponent');
+    return false;
+  }
+
+  if (
+    routesProdSource.includes('AuthenticatedLayoutComponent') ||
+    routesProdSource.includes('TracerPageComponent') ||
+    routesProdSource.includes('DiagnosticPageComponent') ||
+    routesProdSource.includes("'tracer'") ||
+    routesProdSource.includes("'diagnostic'")
+  ) {
+    console.error('[validate-phase1] FALHA: app.routes.production.ts contem componentes ou rotas de desenvolvimento/diagnostico');
+    return false;
+  }
+
+  return true;
+}
+
+async function verifyProductionBundleAbsence(distDirectory) {
+  const files = await collectFiles(distDirectory);
+  if (files.length === 0) {
+    console.error(`[validate-phase1] FALHA: nenhum arquivo gerado em ${distDirectory}`);
+    return false;
+  }
+
+  for (const file of files) {
+    if (!file.endsWith('.js') && !file.endsWith('.html') && !file.endsWith('.json')) {
+      continue;
+    }
+    const content = await readFile(file, 'utf8');
+    if (content.includes('DiagnosticPageComponent') || content.includes('TracerPageComponent')) {
+      console.error(`[validate-phase1] FALHA: ${file} no bundle de producao vaza componentes tecnicos de desenvolvimento`);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function modeDiagnosticUi() {
+  console.log('[validate-phase1] === Modo: --diagnostic-ui ===');
+  console.log('[validate-phase1] 1/3: verificando contratos de rotas build-specific e regras de seguranca de diagnostico');
+
+  const contractOk = await validateDiagnosticUiContract(projectRoot);
+  if (!contractOk) {
+    return false;
+  }
+
+  console.log('[validate-phase1] 2/3: verificando testes unitarios de frontend (Vitest)');
+  const ngCli = resolve(projectRoot, 'frontend', 'node_modules', '@angular', 'cli', 'bin', 'ng.js');
+  const testResult = await runCaptured(
+    process.execPath,
+    [ngCli, 'test', '--watch=false'],
+    { cwd: resolve(projectRoot, 'frontend'), timeoutMs: 120_000 },
+  );
+
+  if (testResult.stdout) console.log(testResult.stdout);
+  if (testResult.stderr) console.error(testResult.stderr);
+
+  if (testResult.exitCode !== 0) {
+    console.error(`[validate-phase1] FALHA: testes unitarios de frontend retornaram exit code ${testResult.exitCode}`);
+    return false;
+  }
+
+  console.log('[validate-phase1] 3/3: compilando bundle de producao e verificando ausencia estrita de rotas tecnicas');
+  const buildResult = await runCaptured(
+    process.execPath,
+    [ngCli, 'build', '--configuration', 'production'],
+    { cwd: resolve(projectRoot, 'frontend'), timeoutMs: 120_000 },
+  );
+
+  if (buildResult.stdout) console.log(buildResult.stdout);
   if (buildResult.stderr) console.error(buildResult.stderr);
 
   if (buildResult.exitCode !== 0) {
@@ -252,7 +374,13 @@ async function modeSessionUi() {
     return false;
   }
 
-  console.log('[validate-phase1] PASS: --session-ui (store, layout, testes e build production)');
+  const distDir = resolve(projectRoot, 'frontend', 'dist', 'betufu');
+  const absenceOk = await verifyProductionBundleAbsence(distDir);
+  if (!absenceOk) {
+    return false;
+  }
+
+  console.log('[validate-phase1] PASS: --diagnostic-ui (contratos de rota, testes e bundle production sem vazamentos)');
   return true;
 }
 
@@ -274,7 +402,7 @@ export async function main() {
     // Modos futuros serão adicionados aqui pelos planos 01-12 a 01-28:
     { flag: '--contract', fn: modeContract },
     { flag: '--session-ui', fn: modeSessionUi },
-    // { flag: '--diagnostic-ui', fn: modeDiagnosticUi },
+    { flag: '--diagnostic-ui', fn: modeDiagnosticUi },
   ];
 
   let failed = false;
