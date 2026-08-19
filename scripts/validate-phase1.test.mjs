@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateSessionUiContract, validateDiagnosticUiContract } from './validate-phase1.mjs';
+import { validateSessionUiContract, validateDiagnosticUiContract, resolveBackendMavenArgs } from './validate-phase1.mjs';
 
 const scriptsDir = resolve(fileURLToPath(import.meta.url), '..');
 const projectRoot = resolve(scriptsDir, '..');
@@ -322,3 +322,27 @@ test('validateDiagnosticUiContract: recusa app.routes.production contendo Diagno
     await fixture.cleanup();
   }
 });
+
+test('resolveBackendMavenArgs: retorna args com -f backend/pom.xml e verify por padrao', () => {
+  const args = resolveBackendMavenArgs();
+  assert.deepStrictEqual(args, ['-f', 'backend/pom.xml', 'verify']);
+});
+
+test('resolveBackendMavenArgs: recusa goal "test" e exige "verify" para cobrir integracao (Failsafe)', () => {
+  assert.throws(
+    () => resolveBackendMavenArgs('test'),
+    /Goal Maven inválido para o Gate da Fase 1: "test"/,
+  );
+});
+
+test('resolveBackendMavenArgs: recusa outros goals incompletos como "compile" ou "package"', () => {
+  assert.throws(
+    () => resolveBackendMavenArgs('compile'),
+    /Goal Maven inválido para o Gate da Fase 1: "compile"/,
+  );
+  assert.throws(
+    () => resolveBackendMavenArgs('package'),
+    /Goal Maven inválido para o Gate da Fase 1: "package"/,
+  );
+});
+

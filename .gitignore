@@ -8,3 +8,6 @@
 /frontend/bazel-out/
 /frontend/.angular/cache/
 /frontend/coverage/
+/.idea/
+/.agents/
+skills-lock.json

@@ -447,7 +447,7 @@ async function commandVerifyFull() {
       fail(`docker compose build falhou com exit code ${buildExit}.`);
       return;
     }
-    const upExit = await runInherited('docker', [...composeArgs('full'), 'up', '-d', '--wait']);
+    const upExit = await runInherited('docker', [...composeArgs('full'), 'up', '-d', '--force-recreate', '--wait']);
     if (upExit !== 0) {
       fail(`docker compose up falhou com exit code ${upExit}.`);
       return;

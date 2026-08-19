@@ -384,25 +384,51 @@ async function modeDiagnosticUi() {
   return true;
 }
 
+export function resolveBackendMavenArgs(goal = 'verify') {
+  if (goal !== 'verify') {
+    throw new Error(
+      `Goal Maven inválido para o Gate da Fase 1: "${goal}". O Gate Nyquist exige "verify" para cobrir testes unitários (Surefire) e de integração (Failsafe).`
+    );
+  }
+  return ['-f', 'backend/pom.xml', goal];
+}
+
+async function modeBackend() {
+  console.log('[validate-phase1] === Modo: --backend (Maven & Spring Modulith / OIDC) ===');
+  const mavenScript = resolve(projectRoot, 'scripts', 'maven.mjs');
+  const mavenArgs = resolveBackendMavenArgs('verify');
+  const result = await runCaptured(
+    process.execPath,
+    [mavenScript, ...mavenArgs],
+    { cwd: projectRoot, timeoutMs: 600_000 },
+  );
+
+  if (result.stdout) console.log(result.stdout);
+  if (result.stderr) console.error(result.stderr);
+
+  if (result.exitCode !== 0) {
+    console.error(`[validate-phase1] FALHA: testes Maven retornaram exit code ${result.exitCode}`);
+    return false;
+  }
+
+  console.log('[validate-phase1] PASS: --backend (testes Maven, Spring Modulith, OIDC e dados)');
+  return true;
+}
+
 export async function main() {
   const args = process.argv.slice(2);
   const modes = new Set(args.filter((arg) => arg.startsWith('--')));
 
-  // Sem argumentos: reservado para o gate integral no Plano 01-16
-  if (modes.size === 0) {
-    console.error('[validate-phase1] Especifique um modo: --infra ou --all');
-    console.error('[validate-phase1] (A execução sem argumentos será o gate integral final no Plano 01-16).');
-    process.exit(1);
-  }
-
-  const runAll = modes.has('--all');
+  // Sem argumentos: executa o gate integral completo da Fase 1 (Plano 01-16)
+  const isFullGate = modes.size === 0;
+  const runAll = isFullGate || modes.has('--all');
 
   const availableModes = [
     { flag: '--infra', fn: modeInfra },
-    // Modos futuros serão adicionados aqui pelos planos 01-12 a 01-28:
     { flag: '--contract', fn: modeContract },
     { flag: '--session-ui', fn: modeSessionUi },
     { flag: '--diagnostic-ui', fn: modeDiagnosticUi },
+    { flag: '--backend', fn: modeBackend },
   ];
 
   let failed = false;
@@ -411,13 +437,19 @@ export async function main() {
   for (const flag of modes) {
     if (!knownFlags.has(flag)) {
       console.error(`[validate-phase1] Flag desconhecida: ${flag}`);
-      console.error('[validate-phase1] Flags disponíveis: --infra, --all');
+      console.error('[validate-phase1] Flags disponíveis: --infra, --contract, --session-ui, --diagnostic-ui, --backend, --all');
       failed = true;
     }
   }
 
   if (!failed) {
     try {
+      if (isFullGate) {
+        console.log('[validate-phase1] ========================================================');
+        console.log('[validate-phase1] === GATE INTEGRAL DA FASE 1 (Plano 01-16 Nyquist)   ===');
+        console.log('[validate-phase1] ========================================================');
+      }
+
       for (const mode of availableModes) {
         if (runAll || modes.has(mode.flag)) {
           const success = await mode.fn();
@@ -438,7 +470,7 @@ export async function main() {
     process.exitCode = 1;
   } else {
     console.log('');
-    console.log('[validate-phase1] === Todos os modos passaram ===');
+    console.log('[validate-phase1] === Gate da Fase 1: TODOS OS MODOS PASSARAM COM SUCESSO ===');
   }
 }
 
