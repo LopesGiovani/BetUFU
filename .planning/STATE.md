@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P15 executado e verificado; modelos, adapter, store reativo com Signals e DiagnosticPageComponent com oito garantias de UI entregues. Wave 26 concluída (01-15); Wave 27 liberada.
-last_updated: "2026-08-18"
-last_activity: 2026-08-18
-last_activity_desc: O Plano 01-15 entregou o adapter de diagnóstico OpenAPI, store reativo com Angular Signals, página responsiva com 6 cartões canônicos e cópia acessível de correlationId.
+stopped_at: F1/P28 executado e verificado; rotas técnicas seladas sob layout, modo --diagnostic-ui e provas de ausência em production entregues. Wave 27 concluída (01-28); Wave 28 liberada.
+last_updated: "2026-08-19"
+last_activity: 2026-08-19
+last_activity_desc: O Plano 01-28 selou o roteamento protegido de desenvolvimento com as rotas /tracer e /diagnostic e comprovou a ausência total em builds de produção.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 27 — Plano 01-28 (roteamento protegido final, lazy loading e exclusão de dev em prod)
+**Current focus:** Wave 28 — Plano 01-16 (Gate Integral e E2E da Fase 1)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 28 of 31 (Plano 01-15 concluído)
-Status: In progress — Wave 26 concluída (01-15); Wave 27 liberada com o 01-28
-Last activity: 2026-08-18 — Página diagnóstica acessível e store reativo entregues no Angular.
+Plan: 29 of 31 (Plano 01-28 concluído)
+Status: In progress — Wave 27 concluída (01-28); Wave 28 liberada com o 01-16
+Last activity: 2026-08-19 — Roteamento selado e ausência em produção comprovada.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` pronto para receber o Plano 01-15.
+Git: `master` pronto para receber o Plano 01-28.
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 93%
 
 ## Métricas de desempenho
 

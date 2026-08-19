@@ -154,11 +154,11 @@ Plans:
 
 - [x] 01-15-PLAN.md — Entregar adapter/store e a página diagnóstica com oito garantias de UI.
 
-**Wave 27** *(liberada; Wave 26 concluída)*
+**Wave 27** *(concluída; Plano 01-28 executado e testado com ausência total em production comprovada)*
 
-- [ ] 01-28-PLAN.md — Selar rotas técnicas e provar ausência de diagnóstico/tracer em production.
+- [x] 01-28-PLAN.md — Selar rotas técnicas e provar ausência de diagnóstico/tracer em production.
 
-**Wave 28** *(blocked on Wave 27 completion)*
+**Wave 28** *(liberada; Wave 27 concluída)*
 
 - [ ] 01-16-PLAN.md — Executar o gate Nyquist integral e a aprovação humana final.
 
