@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
-status: In progress
-stopped_at: F1/P28 executado e verificado; rotas técnicas seladas sob layout, modo --diagnostic-ui e provas de ausência em production entregues. Wave 27 concluída (01-28); Wave 28 liberada.
+status: Completed
+stopped_at: F1/P16 executado e verificado; Gate Integral Nyquist da Fase 1 aprovado 100% (infra, contratos, sessão, diagnóstico, ausência em produção e backend Maven mvn verify com 192 testes). Fase 1 concluída; Fase 2 liberada.
 last_updated: "2026-08-19"
 last_activity: 2026-08-19
-last_activity_desc: O Plano 01-28 selou o roteamento protegido de desenvolvimento com as rotas /tracer e /diagnostic e comprovou a ausência total em builds de produção.
+last_activity_desc: O Plano 01-16 executou o Gate Integral da Fase 1 com sucesso em todos os 5 modos automatizados (incluindo mvn verify com 192 testes Surefire e Failsafe).
 progress:
-  total_phases: 1
-  completed_phases: 0
+  total_phases: 7
+  completed_phases: 1
   total_plans: 31
-  completed_plans: 29
+  completed_plans: 31
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 28 — Plano 01-16 (Gate Integral e E2E da Fase 1)
+**Current focus:** Fase 2 — Contas, Verificação e Operações Governadas
 
 ## Current Position
 
-Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 29 of 31 (Plano 01-28 concluído)
-Status: In progress — Wave 27 concluída (01-28); Wave 28 liberada com o 01-16
-Last activity: 2026-08-19 — Roteamento selado e ausência em produção comprovada.
+Phase: 1 of 7 (Fundação Segura da Plataforma) — CONCLUÍDA
+Plan: 31 of 31 (Plano 01-16 concluído)
+Status: Completed — Fase 1 (Fundação Segura da Plataforma) concluída com sucesso; Fase 2 liberada.
+Last activity: 2026-08-19 — Gate Integral da Fase 1 executado e aprovado.
 
-GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` pronto para receber o Plano 01-28.
+GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
+Git: `master` pronto para fechar a Fase 1.
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100% da Fase 1
 
 ## Métricas de desempenho
 

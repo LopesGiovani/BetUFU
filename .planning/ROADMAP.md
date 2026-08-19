@@ -11,7 +11,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - Fases inteiras representam o trabalho planejado do MVP.
 - Fases decimais ficam reservadas para inserções urgentes após o planejamento.
 
-- [ ] **Phase 1: Fundação Segura da Plataforma** - Estabelecer a base modular, observável e segura da qual todas as capacidades do MVP dependem.
+- [x] **Phase 1: Fundação Segura da Plataforma** - Estabelecer a base modular, observável e segura da qual todas as capacidades do MVP dependem.
 - [ ] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
 - [ ] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar dados confiáveis de confrontos diretos, equipes e elencos das Olimpíadas UFU.
 - [ ] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
@@ -158,9 +158,9 @@ Plans:
 
 - [x] 01-28-PLAN.md — Selar rotas técnicas e provar ausência de diagnóstico/tracer em production.
 
-**Wave 28** *(liberada; Wave 27 concluída)*
+**Wave 28** *(concluída; Plano 01-16 executado — Gate Integral Nyquist aprovado e Fase 1 concluída)*
 
-- [ ] 01-16-PLAN.md — Executar o gate Nyquist integral e a aprovação humana final.
+- [x] 01-16-PLAN.md — Executar o gate Nyquist integral e a aprovação humana final.
 
 **UI hint**: yes
 
