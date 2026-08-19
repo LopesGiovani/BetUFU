@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: In progress
-stopped_at: F1/P27 executado e verificado; store de sessão reativo, layout autenticado e modo --session-ui entregues. Wave 25 concluída (01-27); Wave 26 liberada.
+stopped_at: F1/P15 executado e verificado; modelos, adapter, store reativo com Signals e DiagnosticPageComponent com oito garantias de UI entregues. Wave 26 concluída (01-15); Wave 27 liberada.
 last_updated: "2026-08-18"
 last_activity: 2026-08-18
-last_activity_desc: O Plano 01-27 entregou o SessionStore com Signals, a casca AuthenticatedLayoutComponent com 4 estados de sessão, skip link, alvos de 44px e o validador --session-ui.
+last_activity_desc: O Plano 01-15 entregou o adapter de diagnóstico OpenAPI, store reativo com Angular Signals, página responsiva com 6 cartões canônicos e cópia acessível de correlationId.
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 31
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Estado do Projeto
@@ -23,19 +23,19 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 26 — Plano 01-15 (página visual de diagnóstico técnico)
+**Current focus:** Wave 27 — Plano 01-28 (roteamento protegido final, lazy loading e exclusão de dev em prod)
 
 ## Current Position
 
 Phase: 1 of 7 (Fundação Segura da Plataforma)
-Plan: 27 of 31 (Plano 01-27 concluído)
-Status: In progress — Wave 25 concluída (01-27); Wave 26 liberada com o 01-15
-Last activity: 2026-08-18 — Layout autenticado, store de sessão e isolamento OIDC no Angular.
+Plan: 28 of 31 (Plano 01-15 concluído)
+Status: In progress — Wave 26 concluída (01-15); Wave 27 liberada com o 01-28
+Last activity: 2026-08-18 — Página diagnóstica acessível e store reativo entregues no Angular.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; issues `#1` a `#9` e `#30` concluídas, com `#11` e a tracking `#29` ainda abertas.
-Git: `master` recebeu o Plano 01-14 anteriormente e está pronto para receber o Plano 01-27.
+Git: `master` pronto para receber o Plano 01-15.
 
-Progress: [█████████░] 87%
+Progress: [█████████░] 90%
 
 ## Métricas de desempenho
 

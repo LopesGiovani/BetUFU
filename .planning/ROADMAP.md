@@ -150,11 +150,11 @@ Plans:
 
 - [x] 01-27-PLAN.md — Montar a estrutura inicial autenticada e seus testes focais.
 
-**Wave 26** *(liberada; Wave 25 concluída)*
+**Wave 26** *(concluída; Plano 01-15 executado e verificado com as 8 garantias de UI)*
 
-- [ ] 01-15-PLAN.md — Entregar adapter/store e a página diagnóstica com oito garantias de UI.
+- [x] 01-15-PLAN.md — Entregar adapter/store e a página diagnóstica com oito garantias de UI.
 
-**Wave 27** *(blocked on Wave 26 completion)*
+**Wave 27** *(liberada; Wave 26 concluída)*
 
 - [ ] 01-28-PLAN.md — Selar rotas técnicas e provar ausência de diagnóstico/tracer em production.
 
