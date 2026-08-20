@@ -43,7 +43,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Papéis, Operação e Integridade
 
-- [ ] **OPER-01**: Administrador geral pode conceder e revogar separadamente os papéis de moderador, revisor de matrícula e administrador de competição, sempre com escopo e auditoria.
+- [ ] **OPER-01**: Administrador geral pode conceder e revogar separadamente os papéis de moderador e administrador de competição, sempre com escopo e auditoria. O papel de revisor de matrícula saiu do MVP junto com a verificação documental (ver `OPER-05` na v2).
 - [ ] **OPER-02**: Administrador de competição visualiza e opera somente competições atribuídas, salvo permissão superior explicitamente auditada.
 - [ ] **OPER-03**: Administrador geral gerencia papéis e configurações da plataforma e não pode registrar apostas em nenhum evento.
 - [ ] **OPER-04**: Moderador pode atuar nos chats e denúncias sem receber acesso a comprovantes, saldos ou funções esportivas que não lhe pertençam.

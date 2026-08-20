@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 1
 current_phase_name: Fundação Segura da Plataforma
 status: Completed
-stopped_at: "Fase 2: contexto coletado; escopo emendado (verificacao documental -> v2; MFA opcional no MVP)"
-last_updated: "2026-08-20T03:27:26.535Z"
-last_activity: 2026-08-19
-last_activity_desc: O Plano 01-16 executou o Gate Integral da Fase 1 com sucesso em todos os 5 modos automatizados (incluindo mvn verify com 192 testes Surefire e Failsafe).
+stopped_at: "Fase 2: UI-SPEC aprovado apos duas passadas do checker"
+last_updated: "2026-08-20T04:08:47.744Z"
+last_activity: 2026-08-20
+last_activity_desc: Fase 2 discutida; `02-CONTEXT.md` produzido e escopo da fase emendado.
 progress:
   total_phases: 7
   completed_phases: 1
@@ -33,12 +33,13 @@ Status: Completed — Fase 1 (Fundação Segura da Plataforma) concluída com su
 Last activity: 2026-08-20 — Fase 2 discutida; `02-CONTEXT.md` produzido e escopo da fase emendado.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: `master` está 2 commits à frente de `origin/master`, que permanece em `ff82e08`. **Push ainda não autorizado.**
+Git: `master` está 3 commits à frente de `origin/master`, que permanece em `ff82e08`. **Push ainda não autorizado.** Os commits `7ae235a` e `db4177f` foram reescritos em 2026-08-20 para remover um rodapé de mensagem, antes de qualquer publicação; os hashes anteriores (`6785047`, `b45bb84`) nunca saíram desta máquina.
 
 | Commit | Conteúdo |
 |---|---|
 | `7ae235a` | Emendas de escopo da Fase 2 em `PROJECT.md`, `REQUIREMENTS.md` e `ROADMAP.md`: verificação documental do vínculo UFU adiada para a v2 (`VERI-01`–`VERI-05`, `VERI-08`, `VERI-12`, `OPER-05`), `PRIV-02` reatribuído à Fase 3, e MFA tornado opcional em todo o MVP (`IDEN-05`, `ODDS-12`). |
-| _(commit seguinte, sem hash próprio)_ | Este `STATE.md` mais `02-CONTEXT.md` e `02-DISCUSSION-LOG.md`. O hash não aparece aqui porque citá-lo dentro do próprio commit é impossível; será registrado numa passada seguinte, se necessário. |
+| `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
+| _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
 Progress: [██████████] 100% da Fase 1
 
@@ -164,6 +165,6 @@ Progress: [██████████] 100% da Fase 1
 
 ## Session Continuity
 
-Last session: 2026-08-20T03:27:26.494Z
-Stopped at: Fase 2: contexto coletado; escopo emendado (verificacao documental -> v2; MFA opcional no MVP)
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-CONTEXT.md
+Last session: 2026-08-20T04:08:47.709Z
+Stopped at: Fase 2: UI-SPEC aprovado apos duas passadas do checker
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-UI-SPEC.md
