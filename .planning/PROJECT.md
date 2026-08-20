@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A BETUFU é uma aplicação web responsiva, independente e sem vínculo oficial com a Universidade Federal de Uberlândia. Ela transforma uma edição das Olimpíadas UFU em uma experiência social de palpites esportivos com créditos exclusivamente virtuais: visitantes acompanham competições e equipes, usuários conversam e formam grupos, e estudantes com vínculo UFU verificado podem apostar e disputar o ranking universitário.
+A BETUFU é uma aplicação web responsiva, independente e sem vínculo oficial com a Universidade Federal de Uberlândia. Ela transforma uma edição das Olimpíadas UFU em uma experiência social de palpites esportivos com créditos exclusivamente virtuais: visitantes acompanham competições e equipes, usuários conversam e formam grupos, e estudantes que registram sua matrícula UFU podem apostar e disputar o ranking universitário.
 
 O MVP será operado por administradores com escopos e conflitos de interesse controlados. Equipes, atletas, elencos, partidas e resultados são cadastrados pela operação; odds pré-jogo são calculadas automaticamente e só admitem override excepcional, com mercado suspenso, justificativa, dupla aprovação e auditoria.
 
@@ -21,9 +21,9 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - [ ] Permitir navegação pública por competições, agenda, partidas, equipes e resultados.
 - [ ] Oferecer contas BETUFU com autenticação gerenciada por Keycloak, sem login ou SSO da UFU.
 - [ ] Manter perfis públicos por apelido, equipe favorita, conquistas e posição permitida, sem expor matrícula, documentos ou identidade privada.
-- [ ] Permitir verificação opcional do vínculo UFU por comprovante, com revisão manual, acesso temporário e auditado e exclusão do arquivo após a decisão final.
+- [ ] Permitir o registro voluntário e opcional da matrícula UFU, sem exigir comprovante no MVP; a verificação documental com revisão manual foi adiada para a v2.
 - [ ] Representar a matrícula por HMAC normalizado e único, sem conservar o número original consultável, impedindo mais de uma conta por matrícula.
-- [ ] Restringir apostas em eventos internos e participação no ranking a estudantes com verificação UFU válida.
+- [ ] Restringir apostas em eventos internos e participação no ranking a contas com matrícula UFU registrada e única.
 - [ ] Usar uma edição das Olimpíadas UFU como piloto, começando pelas modalidades de confronto direto que possuam tabelas e resultados confiáveis.
 - [ ] Modelar competições, edições, modalidades, categorias, equipes, atletas, elencos, fases, partidas e mercados de forma extensível.
 - [ ] Fazer o administrador da competição cadastrar equipes e elencos no escopo que administra.
@@ -31,7 +31,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - [ ] Exibir páginas de equipes com modalidade, elenco público autorizado, desempenho recente, resultados e próximas partidas.
 - [ ] Calcular odds pré-jogo automaticamente com baseline Elo por modalidade e categoria, influência de recência, regressão entre edições, peso limitado de confrontos diretos e margem configurável.
 - [ ] Exibir metodologia, confiança, versões e mudanças das odds, preservando em cada aposta a versão aceita.
-- [ ] Admitir override de odds somente como exceção: mercado suspenso, motivo e evidência obrigatórios, proposta e aprovação por administradores distintos, MFA, comparação com o modelo e nova versão imutável.
+- [ ] Admitir override de odds somente como exceção: mercado suspenso, motivo e evidência obrigatórios, proposta e aprovação por administradores distintos, comparação com o modelo e nova versão imutável.
 - [ ] Conceder a todo estudante verificado a mesma quantidade inicial de créditos, com valor configurável ainda a definir e sem concessão duplicada por revalidação.
 - [ ] Manter o saldo entre edições, sem reset automático no MVP; saldo insuficiente ou zerado pode impedir novas apostas por tempo indeterminado.
 - [ ] Operar créditos sem compra, venda, transferência, saque, conversão, prêmio financeiro, recarga discricionária ou mecânica recorrente de recuperação no MVP.
@@ -58,6 +58,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - Apostas ao vivo e apostas múltiplas — exigem operação e regras incompatíveis com o piloto.
 - Mercados criados por usuários — abririam espaço para manipulação e liquidação inconsistente.
 - Edição manual rotineira ou override unilateral de odds — odds são automáticas e a exceção exige controle por duas pessoas.
+- Verificação documental do vínculo UFU — envio de comprovante, revisão manual, acesso temporário auditado e exclusão do arquivo foram adiados para a v2 em 2026-08-19; no MVP a matrícula é autodeclarada e apenas a unicidade é verificada.
 - Notificações de partidas, liquidações, chat e ranking — adiadas para depois do MVP.
 - Janela formal de contestação de resultados — adiada para depois do MVP.
 - Mercados de provas com vários competidores, como atletismo e natação — adiados até validar os confrontos diretos.
@@ -67,8 +68,8 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 ## Context
 
 - O público principal são estudantes da UFU que acompanham e torcem por equipes e atléticas nos jogos universitários.
-- O cadastro de conta BETUFU é aberto, mas somente estudantes verificados podem apostar nos eventos UFU. Não há uma conta UFU usada para entrar na plataforma.
-- A matrícula é opcional para quem apenas navega ou usa recursos sociais, nunca aparece publicamente e não permanece armazenada de forma consultável após a verificação.
+- O cadastro de conta BETUFU é aberto, mas somente contas com matrícula UFU registrada podem apostar nos eventos UFU. No MVP esse registro é autodeclarado: a plataforma verifica a unicidade da matrícula, não a sua titularidade. Não há uma conta UFU usada para entrar na plataforma.
+- A matrícula é opcional para quem apenas navega ou usa recursos sociais, nunca aparece publicamente e não permanece armazenada de forma consultável após o registro.
 - O piloto concentra calendário, comunidade e operação em uma edição específica das Olimpíadas UFU; as modalidades exatas dependem das tabelas confiáveis disponíveis.
 - Atleta e usuário BETUFU são entidades distintas. O administrador comprova o vínculo esportivo do atleta mesmo que ele não tenha conta; se a pessoa criar uma conta depois, a coincidência de HMAC permite o vínculo auditável.
 - Equipes e elencos ficam sob responsabilidade do administrador da competição. O elenco deve ser travado antes da abertura do mercado; mudanças posteriores são auditadas e podem exigir revisão das apostas afetadas.
@@ -102,7 +103,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - Spring Security aplica autorização. O identificador estável é o par `(iss, sub)` emitido pelo Keycloak, nunca o e-mail.
 - A aplicação web usa BFF: Spring realiza OIDC e mantém tokens e sessão no servidor; o navegador recebe apenas cookie `HttpOnly`, `Secure` e `SameSite` compatível.
 - Operações mutáveis e o canal em tempo real são protegidos contra CSRF, origem indevida e acesso sem autorização.
-- MFA é obrigatório para contas administrativas.
+- MFA é opcional no MVP: o Keycloak o oferece a qualquer conta, inclusive administrativa, mas nenhum comando da plataforma é condicionado a ele. A obrigatoriedade fica para reavaliação futura.
 
 ### Dados e integrações
 
@@ -134,7 +135,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 
 - **Economia virtual**: nenhum crédito possui valor monetário ou pode ser comprado, vendido, transferido, convertido, sacado ou trocado por prêmio.
 - **Independência institucional**: a BETUFU não representa a UFU; textos, marcas e identidade não podem sugerir vínculo oficial.
-- **Privacidade**: matrícula e comprovante são dados identificadores; coleta mínima, impressão HMAC versionada e protegida por segredo, armazenamento temporário privado e exclusão após decisão são obrigatórios.
+- **Privacidade**: matrícula e comprovante são dados identificadores; coleta mínima e impressão HMAC versionada e protegida por segredo são obrigatórias. No MVP, o armazenamento temporário privado e a exclusão após decisão aplicam-se ao comprovante de atleta (`SPRT-04`); o comprovante de conta foi adiado para a v2.
 - **Integridade**: uma conta por matrícula, uma seleção por mercado, bloqueio de conflitos, dupla confirmação de resultado e ledger imutável.
 - **Stack aprovada**: Angular/TypeScript no frontend e Java/Spring no backend; qualquer troca relevante volta para decisão explícita.
 - **Plataforma**: web responsiva primeiro, sem aplicativos nativos no MVP.
@@ -145,14 +146,12 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 
 - Quantidade inicial exata de créditos.
 - Limites mínimo e máximo por aposta, casas decimais, fórmula de pagamento, inclusão ou não da stake no retorno e política de arredondamento.
-- Prazo e regra exatos de validade da verificação UFU.
-- Visibilidade e posição no ranking enquanto a verificação estiver expirada.
 - Tratamento de matrícula reemitida ou de uma mesma pessoa com mais de uma matrícula legítima.
 - Política para correção de resultado quando créditos pagos incorretamente já tiverem sido gastos, sem apagar o ledger nem permitir saldo negativo.
 - Controle de aprovação para ajuste compensatório direto no ledger; dupla aprovação é a recomendação de segurança, ainda não uma decisão.
 - Destino de aposta aceita quando vínculo de atleta, alteração de elenco ou papel administrativo posterior revelar conflito de interesse.
 - Parâmetros numéricos do Elo, tratamento probabilístico de empate e fixtures de referência por modalidade.
-- Protocolo de normalização, versionamento, rotação e resposta a comprometimento da chave HMAC.
+- Protocolo de normalização, versionamento, rotação e resposta a comprometimento da chave HMAC — passou a ser o único mecanismo de integridade da matrícula no MVP.
 - Indicadores e resposta operacional caso a margem e a ausência de reposição reduzam excessivamente a oferta total de créditos.
 - Modalidades, categorias e tabelas exatas da edição piloto.
 - Provedor de nuvem e plataforma de CI/CD.
@@ -165,9 +164,12 @@ Essas decisões devem permanecer configuráveis ou ser fechadas antes da fase qu
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Usar exclusivamente créditos virtuais | Validar diversão e integridade sem movimentação financeira | ✓ Aprovado para o MVP |
-| Manter cadastro aberto e restringir apostas UFU a estudantes verificados | Permitir descoberta pública e reduzir participação indevida | ✓ Aprovado |
+| Manter cadastro aberto e restringir apostas UFU a contas com matrícula registrada | Permitir descoberta pública e reduzir participação indevida | ✓ Aprovado |
 | Autenticar contas BETUFU com Keycloak, sem conta ou SSO UFU | Separar identidade da plataforma de uma integração institucional inexistente | ✓ Aprovado |
-| Verificar vínculo por comprovante privado, exclusão posterior e HMAC da matrícula | Minimizar dados e impedir duplicidade sem conservar o número consultável | ✓ Aprovado |
+| Verificar vínculo por comprovante privado, exclusão posterior e HMAC da matrícula | Minimizar dados e impedir duplicidade sem conservar o número consultável | ⚠ Superada em 2026-08-19: o HMAC da matrícula permanece no MVP, mas o comprovante de conta e a revisão manual foram adiados para a v2 |
+| Registrar a matrícula UFU por autodeclaração no MVP, sem comprovante | Reduzir o escopo do MVP mantendo a unicidade por HMAC, que impede duas contas com a mesma matrícula | ✓ Aprovado em 2026-08-19; o risco de alguém registrar matrícula alheia foi apresentado e aceito explicitamente, inclusive a ausência de meio de disputa, porque o número original não é conservado |
+| Não aplicar prazo de validade à matrícula registrada no MVP | Sem verificação documental não existe evento que justifique revalidação periódica | ✓ Aprovado em 2026-08-19 |
+| Tornar o MFA opcional em todo o MVP, inclusive para contas administrativas | Reduzir o escopo do MVP; as guardas de duas pessoas distintas permanecem como controle de integridade | ✓ Aprovado em 2026-08-20; substitui a regra anterior de MFA obrigatório e alcança IDEN-05 e ODDS-12. Risco aceito explicitamente: a governança da plataforma passa a depender apenas de senha |
 | Usar uma edição das Olimpíadas UFU como piloto | Concentrar calendário, equipes e comunidade em um evento observável | ✓ Aprovado |
 | Começar por confrontos diretos | Reduzir a complexidade inicial de mercados e liquidação | ✓ Aprovado |
 | Usar Angular 22 e TypeScript 6 no frontend | Construir uma aplicação web tipada e estruturada | ✓ Aprovado |
@@ -212,4 +214,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-09 after approval of the local S3 and interactive infrastructure gates*
+*Last updated: 2026-08-20 after making MFA optional across the whole MVP*

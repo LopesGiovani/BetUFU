@@ -16,20 +16,13 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **PROF-01**: Usuário pode editar apelido e equipe favorita dentro das regras públicas de perfil.
 - [ ] **PROF-02**: Perfil público exibe somente apelido, equipe favorita, posição permitida e conquistas, sem revelar e-mail, matrícula, HMAC, comprovante ou identidade civil.
 
-### Verificação UFU
+### Matrícula UFU
 
-- [ ] **VERI-01**: Usuário pode solicitar voluntariamente a verificação UFU enviando um comprovante de matrícula aceito pela política vigente.
-- [ ] **VERI-02**: O envio valida tamanho, extensão, tipo real de conteúdo e ameaças antes de armazenar o comprovante em área privada.
-- [ ] **VERI-03**: Somente revisor de matrícula autorizado obtém acesso temporário ao comprovante, e cada acesso fica auditado.
-- [ ] **VERI-04**: Revisor pode aprovar ou rejeitar a solicitação com motivo, fonte da decisão, validade e datas registradas.
-- [ ] **VERI-05**: Usuário pode acompanhar os estados pendente, aprovado, rejeitado e expirado e reenviar documentação quando a política permitir.
 - [ ] **VERI-06**: A matrícula normalizada gera um HMAC único para impedir duplicidade, sem armazenar o número original de forma consultável.
-- [ ] **VERI-07**: Uma matrícula pode estar associada a somente uma conta BETUFU; conflito ou colisão exige revisão manual e não cria segunda associação.
-- [ ] **VERI-08**: O comprovante e o número de matrícula temporariamente processado são excluídos após a decisão final conforme prazo operacional definido, com sucesso ou falha da exclusão rastreável.
-- [ ] **VERI-09**: Somente conta com verificação UFU válida pode apostar em eventos internos e integrar o ranking UFU.
+- [ ] **VERI-07**: Uma matrícula pode estar associada a somente uma conta BETUFU; conflito ou colisão é bloqueado e auditado, sem criar segunda associação.
+- [ ] **VERI-09**: Somente conta com matrícula UFU registrada e única pode apostar em eventos internos e integrar o ranking UFU.
 - [ ] **VERI-10**: Revalidar o vínculo não concede novamente os créditos iniciais já concedidos à mesma conta elegível.
 - [ ] **VERI-11**: Nenhuma etapa de cadastro ou verificação exige login, senha, conta ou SSO oficial da UFU.
-- [ ] **VERI-12**: Revisor não pode decidir a própria solicitação nem solicitação em que possua conflito registrado; a tentativa é bloqueada e auditada.
 
 ### Competições, Equipes e Elencos
 
@@ -54,7 +47,6 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **OPER-02**: Administrador de competição visualiza e opera somente competições atribuídas, salvo permissão superior explicitamente auditada.
 - [ ] **OPER-03**: Administrador geral gerencia papéis e configurações da plataforma e não pode registrar apostas em nenhum evento.
 - [ ] **OPER-04**: Moderador pode atuar nos chats e denúncias sem receber acesso a comprovantes, saldos ou funções esportivas que não lhe pertençam.
-- [ ] **OPER-05**: Revisor de matrícula pode analisar comprovantes sem receber permissão para alterar odds, resultados ou créditos.
 - [ ] **OPER-06**: Painel operacional apresenta pendências, falhas e estados necessários para manter a edição piloto.
 - [ ] **INTE-01**: Atleta com vínculo vigente não pode apostar em mercado relacionado a uma partida da própria equipe.
 - [ ] **INTE-02**: Administrador de competição não pode apostar em nenhum evento da competição atribuída, ainda que não tenha criado a partida específica.
@@ -88,7 +80,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **ODDS-09**: Pessoa pode consultar odd atual, histórico de versões e explicação legível da metodologia e do nível de confiança.
 - [ ] **ODDS-10**: Administrador tenta corrigir a fonte e recalcular antes de solicitar qualquer override; se a distorção persistir, precisa suspender o mercado.
 - [ ] **ODDS-11**: Override excepcional exige proposta com motivo e evidência, comparação entre odd do modelo e proposta, probabilidades e delta visível.
-- [ ] **ODDS-12**: Override exige aprovação por segundo administrador distinto, ambos autenticados com MFA, e cria nova versão imutável e auditada.
+- [ ] **ODDS-12**: Override exige aprovação por segundo administrador distinto e cria nova versão imutável e auditada. MFA é opcional no MVP e não condiciona a aprovação.
 - [ ] **ODDS-13**: Override pode ocorrer durante suspensão administrativa, mas não após o encerramento definitivo do mercado por prazo ou estado CLOSED/LOCKED, e nunca altera a odd de aposta já aceita.
 - [ ] **ODDS-14**: Mudança de versão antes do envio invalida o bilhete aberto e exige reconfirmação explícita do usuário.
 - [ ] **ODDS-15**: Somente resultado confirmado e vigente alimenta o rating; correção confirmada recompõe ratings e odds futuras de forma versionada sem alterar odds já aceitas.
@@ -155,7 +147,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **IDEN-02**: A aplicação correlaciona o par estável `(iss, sub)` do Keycloak ao usuário BETUFU e não usa e-mail como identificador imutável.
 - [ ] **IDEN-03**: Spring atua como BFF OIDC, mantém tokens e sessão no servidor e nunca exige que o frontend armazene access ou refresh token.
 - [ ] **IDEN-04**: Contrato de sessão BFF define TTL ocioso e absoluto, regeneração, logout e revogação, state, nonce, PKCE, política SameSite e CSRF inclusive no STOMP CONNECT.
-- [ ] **IDEN-05**: Comando administrativo sensível exige papel vigente, MFA recente comprovado por acr/amr e step-up quando necessário; concessão ou revogação de papel invalida sessões incompatíveis e fica auditada.
+- [ ] **IDEN-05**: Comando administrativo sensível exige papel vigente e fica auditado; concessão ou revogação de papel invalida as sessões da identidade afetada. MFA é opcional no MVP e não condiciona nenhum comando.
 - [ ] **DATA-01**: PostgreSQL 18 é a fonte oficial de saldo, elegibilidade, odds, aposta, resultado, liquidação, ranking e chat.
 - [ ] **DATA-02**: Toda alteração de schema ocorre por migration Flyway versionada e validada.
 - [ ] **DATA-03**: Comando crítico valida e bloqueia mercado, versão da odd, elegibilidade, conflito e saldo autoritativos dentro da mesma transação PostgreSQL.
@@ -189,6 +181,19 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 Requisitos reconhecidos, mas deliberadamente fora do primeiro roadmap.
 
+### Verificação documental do vínculo UFU
+
+Adiados do MVP em 2026-08-19. No MVP a matrícula é autodeclarada e a plataforma verifica somente a unicidade por HMAC (`VERI-06`, `VERI-07`), sem comprovante, sem revisor e sem prazo de validade.
+
+- **VERI-01**: Usuário pode solicitar voluntariamente a verificação UFU enviando um comprovante de matrícula aceito pela política vigente.
+- **VERI-02**: O envio valida tamanho, extensão, tipo real de conteúdo e ameaças antes de armazenar o comprovante em área privada.
+- **VERI-03**: Somente revisor de matrícula autorizado obtém acesso temporário ao comprovante, e cada acesso fica auditado.
+- **VERI-04**: Revisor pode aprovar ou rejeitar a solicitação com motivo, fonte da decisão, validade e datas registradas.
+- **VERI-05**: Usuário pode acompanhar os estados pendente, aprovado, rejeitado e expirado e reenviar documentação quando a política permitir.
+- **VERI-08**: O comprovante e o número de matrícula temporariamente processado são excluídos após a decisão final conforme prazo operacional definido, com sucesso ou falha da exclusão rastreável.
+- **VERI-12**: Revisor não pode decidir a própria solicitação nem solicitação em que possua conflito registrado; a tentativa é bloqueada e auditada.
+- **OPER-05**: Revisor de matrícula pode analisar comprovantes sem receber permissão para alterar odds, resultados ou créditos.
+
 ### Engajamento posterior
 
 - **NOTF-01**: Usuário recebe notificações de início próximo, liquidação, vitória, resposta no chat e mudança de posição.
@@ -218,7 +223,7 @@ Requisitos reconhecidos, mas deliberadamente fora do primeiro roadmap.
 | Apostas ao vivo | Exigiriam feed de baixa latência e operação contínua incompatíveis com o piloto. |
 | Apostas múltiplas ou acumuladas | Multiplicariam regras de cancelamento e aproximariam o produto de um sportsbook tradicional. |
 | Mercados criados por usuários | Abririam espaço para manipulação e liquidação inconsistente. |
-| Edição manual rotineira ou override unilateral de odds | Odds são automáticas; exceção exige mercado suspenso, justificativa, MFA e duas pessoas. |
+| Edição manual rotineira ou override unilateral de odds | Odds são automáticas; exceção exige mercado suspenso, justificativa e duas pessoas distintas. |
 | Alteração retroativa da odd aceita | Destruiria reprodutibilidade e tratamento uniforme das apostas. |
 | Chat anônimo, global ou sem moderação | Aumentaria abuso e removeria o contexto da partida. |
 | Login, senha ou SSO oficial da UFU | A BETUFU possui identidade própria e não presume integração institucional. |
@@ -254,26 +259,17 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | AUTH-04 | Phase 2 | Pending |
 | PROF-01 | Phase 2 | Pending |
 | PROF-02 | Phase 2 | Pending |
-| VERI-01 | Phase 2 | Pending |
-| VERI-02 | Phase 2 | Pending |
-| VERI-03 | Phase 2 | Pending |
-| VERI-04 | Phase 2 | Pending |
-| VERI-05 | Phase 2 | Pending |
 | VERI-06 | Phase 2 | Pending |
 | VERI-07 | Phase 2 | Pending |
-| VERI-08 | Phase 2 | Pending |
 | VERI-09 | Phase 2 | Pending |
 | VERI-11 | Phase 2 | Pending |
-| VERI-12 | Phase 2 | Pending |
 | OPER-01 | Phase 2 | Pending |
 | OPER-02 | Phase 2 | Pending |
 | OPER-03 | Phase 2 | Pending |
 | OPER-04 | Phase 2 | Pending |
-| OPER-05 | Phase 2 | Pending |
 | OPER-06 | Phase 2 | Pending |
 | IDEN-05 | Phase 2 | Pending |
 | PRIV-01 | Phase 2 | Pending |
-| PRIV-02 | Phase 2 | Pending |
 | AUDT-01 | Phase 2 | Pending |
 | AUDT-02 | Phase 2 | Pending |
 | AUTH-01 | Phase 3 | Pending |
@@ -291,6 +287,7 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | SPRT-12 | Phase 3 | Pending |
 | SPRT-13 | Phase 3 | Pending |
 | SPRT-14 | Phase 3 | Pending |
+| PRIV-02 | Phase 3 | Pending |
 | ODDS-01 | Phase 4 | Pending |
 | ODDS-02 | Phase 4 | Pending |
 | ODDS-03 | Phase 4 | Pending |
@@ -379,10 +376,10 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | UX-02 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 145 total
-- Mapped to phases: 145
+- v1 requirements: 137 total
+- Mapped to phases: 137
 - Unmapped: 0 ✓
 
 ---
 *Requisitos definidos em: 2026-08-01*
-*Última atualização: 2026-08-01 após aprovação do roadmap e mapeamento da rastreabilidade*
+*Última atualização: 2026-08-20 após tornar o MFA opcional em todo o MVP (IDEN-05 e ODDS-12)*

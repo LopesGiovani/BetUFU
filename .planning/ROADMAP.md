@@ -166,18 +166,19 @@ Plans:
 
 ### Phase 2: Contas, Verificação e Operações Governadas
 
-**Goal**: Pessoas conseguem administrar com segurança contas BETUFU e a verificação UFU opcional, enquanto operadores atuam apenas nos escopos e dados privados para os quais possuem autorização.
+**Goal**: Pessoas conseguem administrar com segurança contas BETUFU e o registro opcional da matrícula UFU, enquanto operadores atuam apenas nos escopos e dados privados para os quais possuem autorização.
 **Mode:** mvp
 **Depends on**: Phase 1
-**Requirements**: AUTH-02, AUTH-03, AUTH-04, PROF-01, PROF-02, VERI-01, VERI-02, VERI-03, VERI-04, VERI-05, VERI-06, VERI-07, VERI-08, VERI-09, VERI-11, VERI-12, OPER-01, OPER-02, OPER-03, OPER-04, OPER-05, OPER-06, IDEN-05, PRIV-01, PRIV-02, AUDT-01, AUDT-02
-**Decisão pendente**: A regra de validade da verificação, o tratamento de matrículas reemitidas ou múltiplas e o protocolo de normalização, rotação e comprometimento do HMAC continuam em aberto; esta fase deve submetê-los a uma decisão explícita ou configuração antes que a implementação dependa deles.
+**Requirements**: AUTH-02, AUTH-03, AUTH-04, PROF-01, PROF-02, VERI-06, VERI-07, VERI-09, VERI-11, OPER-01, OPER-02, OPER-03, OPER-04, OPER-06, IDEN-05, PRIV-01, AUDT-01, AUDT-02
+**Escopo reduzido em 2026-08-19**: a verificação documental do vínculo UFU (`VERI-01` a `VERI-05`, `VERI-08`, `VERI-12`, `OPER-05`) foi adiada para a v2, e `PRIV-02` foi reatribuído à Phase 3, onde o comprovante de atleta (`SPRT-04`) o mantém vivo no MVP. No MVP a matrícula é autodeclarada e a plataforma verifica somente a unicidade por HMAC — a titularidade não é comprovada.
+**Decisão pendente**: O tratamento de matrículas reemitidas ou múltiplas e o protocolo de normalização, versionamento, rotação e comprometimento do HMAC continuam em aberto e passaram a ser o único mecanismo de integridade da matrícula no MVP; esta fase deve submetê-los a uma decisão explícita ou configuração antes que a implementação dependa deles. A regra de validade deixou de ser pendência: sem verificação documental, a matrícula registrada não expira no MVP.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
   1. Uma pessoa consegue criar uma conta BETUFU, verificar o e-mail, entrar novamente em visitas futuras, recuperar o acesso, sair e atualizar um perfil público sem que a BETUFU receba sua senha.
-  2. Uma pessoa consegue enviar voluntariamente um documento permitido, acompanhar os estados pendente, aprovado, rejeitado e expirado e reenviar quando a política permitir.
-  3. Revisores autorizados acessam documentos privados apenas temporariamente, decidem com motivo e validade registrados e acompanham a exclusão do arquivo processado; a autorrevisão ou revisão em conflito é bloqueada.
-  4. A plataforma usa um HMAC não público da matrícula para impedir identidades verificadas duplicadas e comunica decisões de elegibilidade sem expor informações privadas.
-  5. Um administrador geral consegue conceder, revogar e delimitar papéis operacionais; cada papel enxerga somente seu trabalho autorizado, e ações sensíveis exigem MFA e ficam auditáveis.
+  2. Uma pessoa consegue registrar voluntariamente sua matrícula UFU, recebe recusa imediata e compreensível quando aquela matrícula já pertence a outra conta e consegue consultar o próprio estado de vínculo.
+  3. O número da matrícula nunca fica armazenado de forma consultável: o HMAC é a única representação persistida, e nem ele nem o número aparecem em resposta pública, URL, telemetria ou log.
+  4. A plataforma usa um HMAC não público da matrícula para impedir vínculos duplicados e comunica decisões de elegibilidade sem expor informações privadas.
+  5. Um administrador geral consegue conceder, revogar e delimitar papéis operacionais; cada papel enxerga somente seu trabalho autorizado, e ações sensíveis ficam auditáveis. MFA é opcional no MVP e não condiciona nenhum comando.
 
 **Plans**: TBD
 **UI hint**: yes
@@ -187,7 +188,7 @@ Plans:
 **Goal**: Visitantes conseguem acompanhar um piloto confiável de confrontos diretos das Olimpíadas UFU, enquanto administradores de competição mantêm seus dados esportivos dentro de escopos responsabilizáveis.
 **Mode:** mvp
 **Depends on**: Phase 1, Phase 2
-**Requirements**: AUTH-01, SPRT-01, SPRT-02, SPRT-03, SPRT-04, SPRT-05, SPRT-06, SPRT-07, SPRT-08, SPRT-09, SPRT-10, SPRT-11, SPRT-12, SPRT-13, SPRT-14
+**Requirements**: AUTH-01, SPRT-01, SPRT-02, SPRT-03, SPRT-04, SPRT-05, SPRT-06, SPRT-07, SPRT-08, SPRT-09, SPRT-10, SPRT-11, SPRT-12, SPRT-13, SPRT-14, PRIV-02
 **Decisão pendente**: As modalidades, categorias e tabelas autoritativas exatas do piloto continuam em aberto; somente partidas confiáveis em formato de confronto direto podem ser lançadas.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
@@ -213,7 +214,7 @@ Plans:
   2. Um visitante consegue consultar a odd atual, seu histórico de versões, metodologia legível, dados de entrada e indicador de confiança; dados escassos produzem uma estimativa neutra explicitamente marcada como baixa confiança, não odds manuais rotineiras.
   3. Preços publicados aplicam a margem configurável de forma reproduzível e não são influenciados pelo volume de palpites dos usuários; cancelamento e W.O. seguem tratamento explicável e versionado.
   4. Um administrador precisa suspender o mercado e tentar corrigir a fonte ou recalcular antes de propor uma substituição, apresentando evidências e uma comparação visível com o modelo.
-  5. Um segundo administrador, distinto e autenticado com MFA, precisa aprovar a substituição excepcional, produzindo uma nova versão imutável e auditada que não altera odds já aceitas nem mercados definitivamente encerrados.
+  5. Um segundo administrador, distinto, precisa aprovar a substituição excepcional, produzindo uma nova versão imutável e auditada que não altera odds já aceitas nem mercados definitivamente encerrados.
 
 **Plans**: TBD
 **UI hint**: yes
