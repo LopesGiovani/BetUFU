@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1
-current_phase_name: Fundação Segura da Plataforma
-status: Completed
-stopped_at: "Fase 2: UI-SPEC aprovado apos duas passadas do checker"
-last_updated: "2026-08-20T04:08:47.744Z"
+current_phase: 2
+current_phase_name: Contas, Verificação e Operações Governadas
+status: Ready to execute
+stopped_at: "Fase 2: planejamento verificado; aguardando execução interativa da Wave 1"
+last_updated: "2026-08-20T16:52:40.831Z"
 last_activity: 2026-08-20
-last_activity_desc: Fase 2 discutida; `02-CONTEXT.md` produzido e escopo da fase emendado.
+last_activity_desc: "Fase 2 planejada e verificada: 25 planos, 14 ondas e 54 tarefas; checker final PASS."
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 31
+  total_plans: 56
   completed_plans: 31
 ---
 
@@ -148,7 +148,7 @@ Progress: [██████████] 100% da Fase 1
 
 ### Bloqueios e pontos de atenção
 
-- Antes do planejamento da Phase 2: validade da verificação, ciclo de vida da matrícula/HMAC e política para matrícula reemitida precisam de decisão explícita ou configuração.
+- Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
 - Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam de decisão explícita ou configuração.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
@@ -165,6 +165,6 @@ Progress: [██████████] 100% da Fase 1
 
 ## Session Continuity
 
-Last session: 2026-08-20T04:08:47.709Z
-Stopped at: Fase 2: UI-SPEC aprovado apos duas passadas do checker
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-UI-SPEC.md
+Last session: 2026-08-20T16:52:40.831Z
+Stopped at: Fase 2 planejada e verificada; aguardando execução interativa da Wave 1
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-01-PLAN.md
