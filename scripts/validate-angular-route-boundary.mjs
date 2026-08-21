@@ -38,110 +38,68 @@ const EXPECTED_REPLACEMENT = Object.freeze({
   with: 'src/app/app.routes.production.ts',
 });
 
-const CANONICAL_TRACER_MODULE_PATTERN_SOURCE =
-  String.raw`'\./features/tracer/tracer-page\.component'`;
-const CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE = [
-  String.raw`\bimport\s*\(\s*`,
-  CANONICAL_TRACER_MODULE_PATTERN_SOURCE,
-  String.raw`\s*\)`,
-].join('');
-const CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN = new RegExp(
-  CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
-  'u',
-);
-const BUILD_SPECIFIC_ROUTES_PREFIX_PATTERN_SOURCE = [
-  String.raw`\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular/router'\s*;`,
-  String.raw`\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[`,
-].join('');
-const EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN = new RegExp(
-  [
-    '^',
-    BUILD_SPECIFIC_ROUTES_PREFIX_PATTERN_SOURCE,
-    String.raw`\s*\]\s*;\s*$`,
-  ].join(''),
-  'u',
-);
-const CANONICAL_TRACER_ROUTES_PATTERN = new RegExp(
-  [
-    '^',
-    BUILD_SPECIFIC_ROUTES_PREFIX_PATTERN_SOURCE,
-    String.raw`\s*\{`,
-    String.raw`\s*path\s*:\s*'tracer'\s*,`,
-    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
-    CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
-    String.raw`\s*\.then\s*\(`,
-    String.raw`\s*\(\s*\{\s*TracerPageComponent\s*\}\s*\)`,
-    String.raw`\s*=>\s*TracerPageComponent\s*,?\s*\)\s*,?`,
-    String.raw`\s*\}\s*,?\s*\]\s*;\s*$`,
-  ].join(''),
-  'u',
-);
+function canonicalDynamicImportPattern(modulePath) {
+  const escapedModulePath = modulePath.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  return new RegExp(String.raw`\bimport\s*\(\s*'${escapedModulePath}'\s*\)`, 'u');
+}
 
-const CANONICAL_LAYOUT_TRACER_ROUTES_PATTERN = new RegExp(
-  [
-    '^',
-    String.raw`\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular/router'\s*;`,
-    String.raw`\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\./layout/authenticated-layout\.component'\s*;`,
-    String.raw`\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[`,
-    String.raw`\s*\{`,
-    String.raw`\s*path\s*:\s*''\s*,`,
-    String.raw`\s*component\s*:\s*AuthenticatedLayoutComponent\s*,`,
-    String.raw`\s*children\s*:\s*\[`,
-    String.raw`\s*\{`,
-    String.raw`\s*path\s*:\s*'tracer'\s*,`,
-    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
-    CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
-    String.raw`\s*\.then\s*\(`,
-    String.raw`\s*\(\s*\{\s*TracerPageComponent\s*\}\s*\)`,
-    String.raw`\s*=>\s*TracerPageComponent\s*,?\s*\)\s*,?`,
-    String.raw`\s*\}\s*,?\s*\]\s*,?`,
-    String.raw`\s*\}\s*,?\s*\]\s*;\s*$`,
-  ].join(''),
-  'u',
-);
+function approvedRoute(path, modulePath, component) {
+  return Object.freeze({
+    path,
+    modulePath,
+    component,
+    dynamicImportPattern: canonicalDynamicImportPattern(modulePath),
+  });
+}
 
-const CANONICAL_DIAGNOSTIC_MODULE_PATTERN_SOURCE =
-  String.raw`'\./features/diagnostic/diagnostic-page\.component'`;
-const CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN_SOURCE = [
-  String.raw`\bimport\s*\(\s*`,
-  CANONICAL_DIAGNOSTIC_MODULE_PATTERN_SOURCE,
-  String.raw`\s*\)`,
-].join('');
-const CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN = new RegExp(
-  CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN_SOURCE,
-  'u',
-);
+const APPROVED_PRODUCT_ROUTES = Object.freeze([
+  approvedRoute(
+    'conta/perfil/completar',
+    './features/profile/profile-gate-page.component',
+    'ProfileGatePageComponent',
+  ),
+  approvedRoute(
+    'conta/perfil',
+    './features/profile/profile-page.component',
+    'ProfilePageComponent',
+  ),
+  approvedRoute(
+    'conta/matricula',
+    './features/enrollment/enrollment-page.component',
+    'EnrollmentPageComponent',
+  ),
+  approvedRoute(
+    'operacao/painel',
+    './features/operations/operations-panel-page.component',
+    'OperationsPanelPageComponent',
+  ),
+  approvedRoute(
+    'operacao/papeis',
+    './features/operations/role-admin-page.component',
+    'RoleAdminPageComponent',
+  ),
+  approvedRoute(
+    'operacao/matriculas/corrigir',
+    './features/operations/enrollment-admin-page.component',
+    'EnrollmentAdminPageComponent',
+  ),
+]);
 
-const CANONICAL_LAYOUT_TRACER_AND_DIAGNOSTIC_ROUTES_PATTERN = new RegExp(
-  [
-    '^',
-    String.raw`\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular/router'\s*;`,
-    String.raw`\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\./layout/authenticated-layout\.component'\s*;`,
-    String.raw`\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[`,
-    String.raw`\s*\{`,
-    String.raw`\s*path\s*:\s*''\s*,`,
-    String.raw`\s*component\s*:\s*AuthenticatedLayoutComponent\s*,`,
-    String.raw`\s*children\s*:\s*\[`,
-    String.raw`\s*\{`,
-    String.raw`\s*path\s*:\s*'tracer'\s*,`,
-    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
-    CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN_SOURCE,
-    String.raw`\s*\.then\s*\(`,
-    String.raw`\s*\(\s*\{\s*TracerPageComponent\s*\}\s*\)`,
-    String.raw`\s*=>\s*TracerPageComponent\s*,?\s*\)\s*,?`,
-    String.raw`\s*\}\s*,`,
-    String.raw`\s*\{`,
-    String.raw`\s*path\s*:\s*'diagnostic'\s*,`,
-    String.raw`\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*`,
-    CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN_SOURCE,
-    String.raw`\s*\.then\s*\(`,
-    String.raw`\s*\(\s*\{\s*DiagnosticPageComponent\s*\}\s*\)`,
-    String.raw`\s*=>\s*DiagnosticPageComponent\s*,?\s*\)\s*,?`,
-    String.raw`\s*\}\s*,?\s*\]\s*,?`,
-    String.raw`\s*\}\s*,?\s*\]\s*;\s*$`,
-  ].join(''),
-  'u',
-);
+const APPROVED_TECHNICAL_ROUTES = Object.freeze([
+  approvedRoute(
+    'tracer',
+    './features/tracer/tracer-page.component',
+    'TracerPageComponent',
+  ),
+  approvedRoute(
+    'diagnostic',
+    './features/diagnostic/diagnostic-page.component',
+    'DiagnosticPageComponent',
+  ),
+]);
+
+const AUTHENTICATED_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\.\/layout\/authenticated-layout\.component'\s*;\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*AuthenticatedLayoutComponent\s*,\s*children\s*:\s*\[(?<children>[\s\S]*)\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
+const LAZY_CHILD_ROUTE_PATTERN = /\{\s*path\s*:\s*'(?<path>[^']+)'\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'(?<modulePath>[^']+)'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*(?<component>[A-Za-z_$][\w$]*)\s*\}\s*\)\s*=>\s*\k<component>\s*,?\s*\)\s*,?\s*\}\s*,?/gu;
 
 const HOST_SOURCE_PATHS = Object.freeze([
   PATHS.main,
@@ -477,22 +435,23 @@ function validateScriptLexicalSafety(sources) {
     );
     const dynamicImportCount = countMatches(executableCode, /\bimport\s*\(/u);
 
-    if (relativePath === PATHS.development) {
-      const canonicalTracerImportCount = countActiveImports(
+    if (relativePath === PATHS.development || relativePath === PATHS.production) {
+      const approvedRoutes = relativePath === PATHS.development
+        ? [...APPROVED_PRODUCT_ROUTES, ...APPROVED_TECHNICAL_ROUTES]
+        : APPROVED_PRODUCT_ROUTES;
+      const approvedImportCounts = approvedRoutes.map((route) => countActiveImports(
         code,
-        CANONICAL_TRACER_DYNAMIC_IMPORT_PATTERN,
+        route.dynamicImportPattern,
+      ));
+      const totalApprovedImports = approvedImportCounts.reduce(
+        (total, count) => total + count,
+        0,
       );
-      const canonicalDiagnosticImportCount = countActiveImports(
-        code,
-        CANONICAL_DIAGNOSTIC_DYNAMIC_IMPORT_PATTERN,
-      );
-      const totalCanonicalImports = canonicalTracerImportCount + canonicalDiagnosticImportCount;
       expect(
-        canonicalTracerImportCount <= 1
-          && canonicalDiagnosticImportCount <= 1
-          && dynamicImportCount === totalCanonicalImports,
+        approvedImportCounts.every((count) => count <= 1)
+          && dynamicImportCount === totalApprovedImports,
         'DYNAMIC_IMPORT_FORBIDDEN',
-        `${relativePath} aceita no maximo um import dinamico literal canonico de cada feature tecnica.`,
+        `${relativePath} aceita somente um import dinamico literal canonico por rota aprovada.`,
       );
     } else {
       expect(
@@ -1334,6 +1293,53 @@ function expectRoutesTypeImport(source, relativePath) {
   );
 }
 
+function parseAuthenticatedRoutes(source, rule, environmentLabel) {
+  const match = AUTHENTICATED_ROUTES_PATTERN.exec(source);
+  expect(
+    match !== null,
+    rule,
+    `${environmentLabel} deve declarar um unico layout autenticado como pai das rotas.`,
+  );
+
+  const children = match.groups.children;
+  const routeMatches = [...children.matchAll(LAZY_CHILD_ROUTE_PATTERN)];
+  const unparsedChildren = children.replace(LAZY_CHILD_ROUTE_PATTERN, '').trim();
+  expect(
+    unparsedChildren === '',
+    rule,
+    `${environmentLabel} aceita somente filhos canonicos carregados sob demanda.`,
+  );
+
+  return routeMatches.map((routeMatch) => Object.freeze({
+    path: routeMatch.groups.path,
+    modulePath: routeMatch.groups.modulePath,
+    component: routeMatch.groups.component,
+  }));
+}
+
+function routeMatchesDescriptor(route, descriptor) {
+  return route.path === descriptor.path
+    && route.modulePath === descriptor.modulePath
+    && route.component === descriptor.component;
+}
+
+function expectApprovedRoutes(routes, approvedRoutes, rule, environmentLabel) {
+  const uniquePaths = new Set(routes.map((route) => route.path));
+  expect(
+    uniquePaths.size === routes.length,
+    rule,
+    `${environmentLabel} nao pode repetir caminhos de rota.`,
+  );
+
+  expect(
+    routes.every((route) => approvedRoutes.some(
+      (descriptor) => routeMatchesDescriptor(route, descriptor),
+    )),
+    rule,
+    `${environmentLabel} contem uma rota fora do conjunto fechado aprovado.`,
+  );
+}
+
 function validateRouteSources(sources) {
   const seam = stripScriptComments(sources.get(PATHS.seam));
   const development = stripScriptComments(sources.get(PATHS.development));
@@ -1375,36 +1381,57 @@ function validateRouteSources(sources) {
     'DEVELOPMENT_ROUTES_EXPORT',
     'export BUILD_SPECIFIC_ROUTES: Routes em development',
   );
-  expectExactlyOnce(
-    maskScriptStrings(production),
-    /\bexport\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\]\s*;/u,
-    'PRODUCTION_ROUTES_EXPORT',
-    'lista production vazia e tipada',
+  const productionExecutable = maskScriptStrings(production);
+  expect(
+    countMatches(
+      productionExecutable,
+      /\bexport\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[/u,
+    ) === 1
+      && countMatches(productionExecutable, /\bBUILD_SPECIFIC_ROUTES\b/u) === 1,
+    'PRODUCTION_ROUTES_UNIQUE',
+    'production deve exportar o simbolo BUILD_SPECIFIC_ROUTES tipado exatamente uma vez.',
+  );
+
+  const productionRoutes = parseAuthenticatedRoutes(
+    production,
+    'PRODUCTION_AUTHENTICATED_LAYOUT',
+    'production',
   );
   expect(
-    countMatches(maskScriptStrings(production), /\bBUILD_SPECIFIC_ROUTES\b/u) === 1,
-    'PRODUCTION_ROUTES_EMPTY',
-    'a lista production deve permanecer vazia e nao pode ser alterada depois da declaracao.',
+    productionRoutes.length > 0,
+    'PRODUCTION_ROUTES_ALLOWLIST',
+    'production deve publicar ao menos uma rota de produto aprovada.',
   );
-  expect(
-    EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN.test(development)
-      || CANONICAL_TRACER_ROUTES_PATTERN.test(development)
-      || CANONICAL_LAYOUT_TRACER_ROUTES_PATTERN.test(development)
-      || CANONICAL_LAYOUT_TRACER_AND_DIAGNOSTIC_ROUTES_PATTERN.test(development),
+  expectApprovedRoutes(
+    productionRoutes,
+    APPROVED_PRODUCT_ROUTES,
+    'PRODUCTION_ROUTES_ALLOWLIST',
+    'production',
+  );
+
+  const developmentRoutes = parseAuthenticatedRoutes(
+    development,
     'DEVELOPMENT_ROUTES_SHAPE',
-    'development deve conter somente a lista vazia ou a rota autenticada canonica.',
+    'development',
+  );
+  expectApprovedRoutes(
+    developmentRoutes,
+    [...APPROVED_PRODUCT_ROUTES, ...APPROVED_TECHNICAL_ROUTES],
+    'DEVELOPMENT_ROUTES_ALLOWLIST',
+    'development',
+  );
+  expect(
+    productionRoutes.every((productionRoute) => developmentRoutes.some(
+      (developmentRoute) => routeMatchesDescriptor(developmentRoute, productionRoute),
+    )),
+    'DEVELOPMENT_ROUTES_ALLOWLIST',
+    'development deve conter todas as rotas publicadas em production.',
   );
   expect(
     !/(?:\btracer\b|\bTracerPageComponent\b|\bdiagnostic\b|\bDiagnosticPageComponent\b)/iu.test(production),
     'PRODUCTION_TRACER_FORBIDDEN',
     'production nao pode importar, mencionar nem expor o tracer ou o diagnostico.',
   );
-  expect(
-    EMPTY_BUILD_SPECIFIC_ROUTES_PATTERN.test(production),
-    'PRODUCTION_ROUTES_SHAPE',
-    'production deve conter somente o import type Routes e a lista vazia canonica.',
-  );
-
   for (const [relativePath, source, executableSource] of scriptSources) {
     const developmentImportCount = countActiveModuleReferences(
       source,
@@ -1480,7 +1507,7 @@ function validateTracerRuntimeBoundary(runtimeSources) {
     const activeSource = activeRuntimeSource(relativePath, source);
     const decodedSource = decodeUrlEscapes(activeSource);
 
-    if (relativePath.endsWith('.ts')) {
+    if (relativePath.endsWith('.ts') && relativePath !== PATHS.production) {
       expect(
         countMatches(maskScriptStrings(activeSource), /\bimport\s*\(/u) === 0,
         'DYNAMIC_IMPORT_FORBIDDEN',

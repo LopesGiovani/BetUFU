@@ -13,13 +13,6 @@ const validatorPath = join(scriptsDirectory, 'validate-angular-route-boundary.mj
 const developmentRoutesPath = 'frontend/src/app/app.routes.development.ts';
 const tracerComponentPath = 'frontend/src/app/features/tracer/tracer-page.component.ts';
 
-const EMPTY_DEVELOPMENT_ROUTES = [
-  "import type { Routes } from '@angular/router';",
-  '',
-  'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
-  '',
-].join('\n');
-
 const CANONICAL_TRACER_ROUTE_ENTRY = [
   '  {',
   "    path: 'tracer',",
@@ -38,6 +31,54 @@ const CANONICAL_TRACER_ROUTES = [
   '];',
   '',
 ].join('\n');
+
+const CANONICAL_DIAGNOSTIC_ROUTE_ENTRY = [
+  '  {',
+  "    path: 'diagnostic',",
+  '    loadComponent: () =>',
+  "      import('./features/diagnostic/diagnostic-page.component').then(",
+  '        ({ DiagnosticPageComponent }) => DiagnosticPageComponent,',
+  '      ),',
+  '  },',
+].join('\n');
+
+const CANONICAL_PROFILE_ROUTE_ENTRY = [
+  '  {',
+  "    path: 'conta/perfil/completar',",
+  '    loadComponent: () =>',
+  "      import('./features/profile/profile-gate-page.component').then(",
+  '        ({ ProfileGatePageComponent }) => ProfileGatePageComponent,',
+  '      ),',
+  '  },',
+].join('\n');
+
+function canonicalAuthenticatedRoutes(routeEntries) {
+  return [
+    "import type { Routes } from '@angular/router';",
+    "import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';",
+    '',
+    'export const BUILD_SPECIFIC_ROUTES: Routes = [',
+    '  {',
+    "    path: '',",
+    '    component: AuthenticatedLayoutComponent,',
+    '    children: [',
+    ...routeEntries,
+    '    ],',
+    '  },',
+    '];',
+    '',
+  ].join('\n');
+}
+
+const CANONICAL_PRODUCTION_ROUTES = canonicalAuthenticatedRoutes([
+  CANONICAL_PROFILE_ROUTE_ENTRY,
+]);
+
+const CANONICAL_DEVELOPMENT_ROUTES = canonicalAuthenticatedRoutes([
+  CANONICAL_TRACER_ROUTE_ENTRY,
+  CANONICAL_DIAGNOSTIC_ROUTE_ENTRY,
+  CANONICAL_PROFILE_ROUTE_ENTRY,
+]);
 
 const EAGER_TRACER_ROUTES = [
   "import type { Routes } from '@angular/router';",
@@ -173,12 +214,36 @@ test('aceita uma fixture canonica isolada', async () => {
   });
 });
 
-test('aceita explicitamente a lista development vazia', async () => {
+test('recusa development sem o subconjunto de producao', async () => {
   await withFixture('explicit-empty-development-routes', async (fixtureRoot) => {
     await overwriteText(
       fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      CANONICAL_PRODUCTION_ROUTES,
+    );
+    await overwriteText(
+      fixtureRoot,
       developmentRoutesPath,
-      EMPTY_DEVELOPMENT_ROUTES,
+      canonicalAuthenticatedRoutes([]),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DEVELOPMENT_ROUTES_ALLOWLIST');
+  });
+});
+
+test('aceita o subconjunto de producao mais as rotas tecnicas em development', async () => {
+  await withFixture('canonical-tracer-route', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      CANONICAL_PRODUCTION_ROUTES,
+    );
+    await overwriteText(
+      fixtureRoot,
+      developmentRoutesPath,
+      CANONICAL_DEVELOPMENT_ROUTES,
     );
 
     const result = runValidator(fixtureRoot);
@@ -188,18 +253,77 @@ test('aceita explicitamente a lista development vazia', async () => {
   });
 });
 
-test('aceita a lazy route canonica do tracer somente em development', async () => {
-  await withFixture('canonical-tracer-route', async (fixtureRoot) => {
+test('recusa rota de producao fora do conjunto de produto aprovado', async () => {
+  await withFixture('production-route-outside-allowlist', async (fixtureRoot) => {
     await overwriteText(
       fixtureRoot,
-      developmentRoutesPath,
-      CANONICAL_TRACER_ROUTES,
+      'frontend/src/app/app.routes.production.ts',
+      CANONICAL_PRODUCTION_ROUTES.replace(
+        "path: 'conta/perfil/completar'",
+        "path: 'produto/nao-aprovado'",
+      ),
     );
 
     const result = runValidator(fixtureRoot);
 
-    assert.equal(result.status, 0, result.stderr);
-    assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+    expectValidationFailure(result, 'PRODUCTION_ROUTES_ALLOWLIST');
+  });
+});
+
+test('recusa o simbolo de rotas de producao exportado duas vezes', async () => {
+  await withFixture('duplicate-production-routes-export', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      `${CANONICAL_PRODUCTION_ROUTES}\nexport const BUILD_SPECIFIC_ROUTES: Routes = [];\n`,
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'PRODUCTION_ROUTES_UNIQUE');
+  });
+});
+
+test('recusa rotas de producao sem o layout autenticado como pai', async () => {
+  await withFixture('production-routes-without-authenticated-layout', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      [
+        "import type { Routes } from '@angular/router';",
+        '',
+        'export const BUILD_SPECIFIC_ROUTES: Routes = [',
+        CANONICAL_PROFILE_ROUTE_ENTRY,
+        '];',
+        '',
+      ].join('\n'),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'PRODUCTION_AUTHENTICATED_LAYOUT');
+  });
+});
+
+test('recusa rota de development fora do conjunto permitido', async () => {
+  await withFixture('development-route-outside-allowlist', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      CANONICAL_PRODUCTION_ROUTES,
+    );
+    await overwriteText(
+      fixtureRoot,
+      developmentRoutesPath,
+      CANONICAL_DEVELOPMENT_ROUTES.replace(
+        "path: 'diagnostic'",
+        "path: 'tecnico/nao-aprovado'",
+      ),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DEVELOPMENT_ROUTES_ALLOWLIST');
   });
 });
 
@@ -361,7 +485,7 @@ const tracerRouteMutations = [
   },
   {
     name: 'path divergente na rota tracer',
-    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    rule: 'DEVELOPMENT_ROUTES_ALLOWLIST',
     mutate: (source) => source.replace("path: 'tracer'", "path: 'other'"),
   },
   {
@@ -374,7 +498,7 @@ const tracerRouteMutations = [
   },
   {
     name: 'export divergente na lazy route tracer',
-    rule: 'DEVELOPMENT_ROUTES_SHAPE',
+    rule: 'DEVELOPMENT_ROUTES_ALLOWLIST',
     mutate: (source) => source.replaceAll(
       'TracerPageComponent',
       'OtherPageComponent',
@@ -438,21 +562,10 @@ const tracerRouteMutations = [
   },
 ];
 
-const CANONICAL_LAYOUT_TRACER_ROUTES = [
-  "import type { Routes } from '@angular/router';",
-  "import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';",
-  '',
-  'export const BUILD_SPECIFIC_ROUTES: Routes = [',
-  '  {',
-  "    path: '',",
-  '    component: AuthenticatedLayoutComponent,',
-  '    children: [',
+const CANONICAL_LAYOUT_TRACER_ROUTES = canonicalAuthenticatedRoutes([
   CANONICAL_TRACER_ROUTE_ENTRY,
-  '    ],',
-  '  },',
-  '];',
-  '',
-].join('\n');
+  CANONICAL_PROFILE_ROUTE_ENTRY,
+]);
 
 const layoutRouteMutations = [
   {
@@ -481,7 +594,7 @@ for (const tracerRouteMutation of tracerRouteMutations) {
       await overwriteText(
         fixtureRoot,
         developmentRoutesPath,
-        tracerRouteMutation.mutate(CANONICAL_TRACER_ROUTES),
+        tracerRouteMutation.mutate(CANONICAL_DEVELOPMENT_ROUTES),
       );
 
       const result = runValidator(fixtureRoot);
@@ -512,16 +625,12 @@ test('recusa import eager do tracer em production', async () => {
     await mutateText(
       fixtureRoot,
       'frontend/src/app/app.routes.production.ts',
-      (source) => source.replace(
-        'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
-        [
-          "import { TracerPageComponent } from './features/tracer/tracer-page.component';",
-          '',
-          'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
-          '',
-          'void TracerPageComponent;',
-        ].join('\n'),
-      ),
+      (source) => [
+        "import { TracerPageComponent } from './features/tracer/tracer-page.component';",
+        source,
+        'void TracerPageComponent;',
+        '',
+      ].join('\n'),
     );
 
     const result = runValidator(fixtureRoot);
@@ -627,21 +736,17 @@ test('recusa qualquer import estatico adicional em production', async () => {
     await mutateText(
       fixtureRoot,
       'frontend/src/app/app.routes.production.ts',
-      (source) => source.replace(
-        'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
-        [
-          "import { OtherPageComponent } from './features/other-page.component';",
-          '',
-          'export const BUILD_SPECIFIC_ROUTES: Routes = [];',
-          '',
-          'void OtherPageComponent;',
-        ].join('\n'),
-      ),
+      (source) => [
+        "import { OtherPageComponent } from './features/other-page.component';",
+        source,
+        'void OtherPageComponent;',
+        '',
+      ].join('\n'),
     );
 
     const result = runValidator(fixtureRoot);
 
-    expectValidationFailure(result, 'PRODUCTION_ROUTES_SHAPE');
+    expectValidationFailure(result, 'PRODUCTION_AUTHENTICATED_LAYOUT');
   });
 });
 
@@ -1124,13 +1229,13 @@ provideHttpClient(
   {
     name: 'mutacao posterior da lista production',
     path: 'frontend/src/app/app.routes.production.ts',
-    rule: 'PRODUCTION_ROUTES_EMPTY',
+    rule: 'PRODUCTION_ROUTES_UNIQUE',
     mutate: (source) => `${source}\nBUILD_SPECIFIC_ROUTES.push({ path: 'technical', redirectTo: '' });\n`,
   },
   {
     name: 'mutacao production em interpolacao executavel',
     path: 'frontend/src/app/app.routes.production.ts',
-    rule: 'PRODUCTION_ROUTES_EMPTY',
+    rule: 'PRODUCTION_ROUTES_UNIQUE',
     mutate: (source) => `${source}\nconst hiddenMutation = \`\${BUILD_SPECIFIC_ROUTES.push({ path: 'technical', redirectTo: '' })}\`;\n`,
   },
   {

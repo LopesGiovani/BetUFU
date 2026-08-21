@@ -1,0 +1,90 @@
+<section class="gate-card">
+      <h1 class="gate-title">Escolha seu apelido</h1>
+      <p class="gate-intro">
+        Seu apelido é o nome que aparece para outras pessoas na BETUFU. Você precisa escolher um antes de continuar.
+      </p>
+
+      <!-- Recusa de negócio ou erro de transporte em bloco de alerta no topo -->
+      <div
+        *ngIf="store.isError() && store.errorMessage()"
+        class="alert-box"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div class="alert-content">
+          <p class="alert-message">{{ store.errorMessage() }}</p>
+          <div
+            *ngIf="store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D'"
+            class="correlation-box"
+          >
+            <span>Código de referência:</span>
+            <span class="code-value">{{ store.errorCorrelationId() }}</span>
+            <button
+              type="button"
+              class="btn-copy-small"
+              (click)="copyCorrelationId(store.errorCorrelationId()!)"
+              aria-label="Copiar código de referência"
+            >
+              Copiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário de apelido obrigatório -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="gate-form">
+        <div class="form-field-group">
+          <div class="label-row">
+            <label for="nickname-input" class="field-label">Apelido</label>
+            <span class="char-counter" aria-hidden="true">{{ nicknameLength }}/20</span>
+          </div>
+
+          <input
+            id="nickname-input"
+            #nicknameInput
+            type="text"
+            formControlName="nickname"
+            class="field-input"
+            [class.input-invalid]="hasFieldError"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="20"
+            [attr.aria-invalid]="hasFieldError"
+            [attr.aria-describedby]="hasFieldError ? 'nickname-error nickname-help' : 'nickname-help'"
+          />
+
+          <p id="nickname-help" class="help-text">
+            De 3 a 20 caracteres. Use letras sem acento, números, hífen (-) ou sublinhado (_).
+          </p>
+
+          <p
+            *ngIf="hasFieldError"
+            id="nickname-error"
+            class="field-error"
+            role="alert"
+          >
+            {{ fieldErrorMessage }}
+          </p>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="store.isSaving()"
+          >
+            {{ store.isSaving() ? 'Salvando…' : 'Salvar apelido e continuar' }}
+          </button>
+        </div>
+      </form>
+</section>
+
+<!-- Live region para feedbacks de sucesso e cópia -->
+<div
+  id="gate-live-region"
+  class="visually-hidden"
+  role="status"
+  aria-live="polite"
+>
+  {{ successMessage() || copyFeedbackMessage() }}
+</div>

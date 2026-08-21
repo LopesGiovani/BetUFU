@@ -20,6 +20,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ DiagnosticPageComponent }) => DiagnosticPageComponent,
           ),
       },
+      {
+        path: 'conta/perfil/completar',
+        loadComponent: () =>
+          import('./features/profile/profile-gate-page.component').then(
+            ({ ProfileGatePageComponent }) => ProfileGatePageComponent,
+          ),
+      },
     ],
   },
 ];

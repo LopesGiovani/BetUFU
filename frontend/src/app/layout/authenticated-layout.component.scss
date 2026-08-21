@@ -45,6 +45,7 @@
   align-items: center;
   justify-content: space-between;
   gap: tokens.$space-4;
+  min-width: 0;
 }
 
 .brand-area {
@@ -75,6 +76,7 @@
   display: flex;
   align-items: center;
   gap: tokens.$space-4;
+  min-width: 0;
 }
 
 .user-identity {
@@ -206,5 +208,38 @@
 
   &:hover {
     opacity: 0.9;
+  }
+}
+
+@media (max-width: tokens.$breakpoint-mobile-max) {
+  .layout-header {
+    padding: tokens.$space-2 0;
+  }
+
+  .header-inner,
+  .user-navigation {
+    gap: tokens.$space-2;
+  }
+
+  .brand-area {
+    flex-shrink: 0;
+  }
+
+  .user-identity {
+    flex-shrink: 0;
+
+    .user-name {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+  }
+
+  .btn-logout {
+    padding-inline: tokens.$space-4;
   }
 }

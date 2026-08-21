@@ -206,11 +206,25 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelectorAll('a.skip-link')).toHaveLength(1);
+    expect(compiled.querySelectorAll('header')).toHaveLength(1);
+    expect(compiled.querySelectorAll('main#main-content')).toHaveLength(1);
     expect(compiled.querySelector('.layout-header')).not.toBeNull();
     expect(compiled.querySelector('.brand-name')?.textContent).toContain('BETUFU');
     expect(compiled.querySelector('#user-display-name')?.textContent).toContain('GiovaniLopes');
     expect(compiled.querySelector('.btn-logout')).not.toBeNull();
     expect(compiled.querySelector('main#main-content')).not.toBeNull();
+  });
+
+  it('Layout responsivo: preserva o nome para tecnologia assistiva sem alargar o header em 320px', () => {
+    const basePath = typeof process !== 'undefined' && process.cwd ? process.cwd() : '';
+    const stylePath = path.resolve(basePath, 'src/app/layout/authenticated-layout.component.scss');
+    const styleContent: string = fs.readFileSync(stylePath, 'utf8');
+
+    expect(styleContent).toMatch(/@media\s*\(max-width:/);
+    expect(styleContent).toMatch(/\.header-inner\s*\{[^}]*min-width:\s*0/s);
+    expect(styleContent).toMatch(/\.user-navigation\s*\{[^}]*min-width:\s*0/s);
+    expect(styleContent).toMatch(/\.user-name\s*\{[^}]*position:\s*absolute/s);
   });
 
   it('Layout UI: expired oculta router-outlet e exibe aviso com CTA para entrar', async () => {
