@@ -183,7 +183,7 @@ Plans:
 **Plans**: 25 planos em 14 ondas
 
 - **Wave 1** *(concluída: 02-01, 02-02 e 02-03 implementados, verificados e revisados)*: 02-01, 02-02, 02-03
-- **Wave 2**: 02-04, 02-06, 02-14
+- **Wave 2** *(parcial: 02-04 e 02-14 concluídos; 02-06 pendente)*: 02-04, 02-06, 02-14
 - **Wave 3**: 02-05, 02-09, 02-21
 - **Wave 4**: 02-11, 02-15, 02-22
 - **Wave 5**: 02-07, 02-24

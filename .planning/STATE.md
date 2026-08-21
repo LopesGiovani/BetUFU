@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 3 of 25 (`02-01`, `02-02` e `02-03` concluídos)
-Status: In Progress — Wave 1 implementada e formalizada em dois commits locais; integração na `master` pendente.
-Last activity: 2026-08-21 — `02-03` formalizado após Maven 225/225, Node 518/518 e revisão Codex final `CLEAN`.
+Plan: 5 of 25 (`02-01`, `02-02`, `02-03`, `02-04` e `02-14` concluídos)
+Status: In Progress — Wave 1 concluída; Wave 2 possui `02-04` e `02-14` concluídos e aguarda somente `02-06`.
+Last activity: 2026-08-21 — `02-04` fixou o contrato minimizado de auditoria, a segregação dos usuários de banco e a retenção do MVP fechado.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: a branch `worktree-agent-02-03` contém `ea7aca0` e o commit documental subsequente; `master` e `origin/master` permanecem em `2f0abf8`. A `master` está pronta para receber os dois commits por fast-forward; nenhum push foi realizado.
+Git: `master` está em `7a9fd629`, quatro commits à frente de `origin/master`. Os Planos 02-03 e 02-14 já foram integrados localmente; nenhum push foi realizado. As decisões do 02-04 permanecem sem commit até aprovação Git separada.
 
 | Commit | Conteúdo |
 |---|---|
@@ -41,13 +41,13 @@ Git: a branch `worktree-agent-02-03` contém `ea7aca0` e o commit documental sub
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [█░░░░░░░░░] 3/25 planos da Fase 2 (12%)
+Progress: [██░░░░░░░░] 5/25 planos da Fase 2 (20%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 34
+- Total de planos concluídos: 36
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -55,18 +55,22 @@ Progress: [█░░░░░░░░░] 3/25 planos da Fase 2 (12%)
 
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
-| 1 | 25 | não mensurado | não mensurada |
-| 2 | 3 | não mensurado | não mensurada |
+| 1 | 31 | não mensurado | não mensurada |
+| 2 | 5 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-03, 02-02, 02-01, 01-31, 01-12
+- Últimos 5 planos: 02-04, 02-14, 02-03, 02-02, 02-01
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
 
 ### Decisões
+
+- A trilha de auditoria referencia estados e versões sem armazenar o HMAC da matrícula; MFA e evidência documental permanecem ausentes do MVP.
+- O usuário de migration será separado do usuário de runtime. A aplicação não terá `UPDATE`, `DELETE`, `TRUNCATE` ou DDL sobre `audit_event`, e um trigger que lança erro servirá como segunda camada.
+- Durante o MVP fechado, a auditoria é retida pela vida do ambiente. Uma política definitiva por classe de dado permanece gate de `PRIV-05` antes do lançamento público.
 
 - A claim `betufu_roles` do ID token vira `ROLE_TECHNICAL` por allowlist positiva e fechada: exige coleção, depois String, depois igualdade byte a byte com `TECHNICAL`. E-mail, username, grupo e `realm_access` nunca concedem autoridade, e a fiação do mapper é explícita nos dois ramos do `SecurityConfiguration`.
 - `GET /api/v1/diagnostic` existe apenas em `dev` e `homolog`. Em produção não há bean nem mapping — ausência material, provada por inspeção do contexto e do `RequestMappingHandlerMapping`, nunca por status 403, que não distingue negado de inexistente.
@@ -166,6 +170,6 @@ Progress: [█░░░░░░░░░] 3/25 planos da Fase 2 (12%)
 
 ## Session Continuity
 
-Last session: 2026-08-21T02:09:50-03:00
-Stopped at: dois commits locais do Plano 02-03 concluídos; aguarda integração fast-forward na master
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-03-SUMMARY.md
+Last session: 2026-08-21T12:47:40.865Z
+Stopped at: Plano 02-04 formalizado; Wave 2 aguarda somente o Plano 02-06
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-04-SUMMARY.md
