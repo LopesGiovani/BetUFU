@@ -912,6 +912,17 @@ function assertRedisSessionContract(applicationConfigurations, environment, pom)
       'server.servlet.session.cookie.same-site',
     ],
   );
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'betufu.verification',
+    [
+      'betufu.verification',
+      'betufu.verification.matricula-hmac',
+      'betufu.verification.matricula-hmac.current-version',
+      'betufu.verification.matricula-hmac.keys',
+      'betufu.verification.matricula-hmac.keys.v1',
+    ],
+  );
   const activationPrefix = normalizeYamlPath('spring.config.activate') + '.';
   const approvedActivationPath = normalizeYamlPath(
     'spring.config.activate.on-profile',
@@ -1060,6 +1071,36 @@ function assertRedisSessionContract(applicationConfigurations, environment, pom)
     ['openid'],
     'OIDC_SETTING',
   );
+
+  for (const variable of [
+    'BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION',
+    'BETUFU_MATRICULA_HMAC_KEY_V1',
+  ]) {
+    expect(
+      !allApplicationYaml.includes('${' + variable + ':'),
+      'MATRICULA_HMAC_PLACEHOLDER',
+      variable + ' nao pode possuir fallback.',
+    );
+  }
+
+  for (const [path, expected] of [
+    [
+      'betufu.verification.matricula-hmac.current-version',
+      '${BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION}',
+    ],
+    [
+      'betufu.verification.matricula-hmac.keys.v1',
+      '${BETUFU_MATRICULA_HMAC_KEY_V1}',
+    ],
+  ]) {
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      baseDocument,
+      path,
+      expected,
+      'MATRICULA_HMAC_SETTING',
+    );
+  }
 
   for (const [path, expected] of [
     ['server.servlet.session.cookie.http-only', 'true'],

@@ -28,6 +28,13 @@ management:
       probes:
         enabled: true
 
+betufu:
+  verification:
+    matricula-hmac:
+      current-version: "${BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION}"
+      keys:
+        v1: "${BETUFU_MATRICULA_HMAC_KEY_V1}"
+
 ---
 spring:
   config:

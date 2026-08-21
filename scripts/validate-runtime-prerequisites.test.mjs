@@ -626,6 +626,16 @@ for (const [label, relativePath, yaml] of [
     'backend/src/main/resources/application-prod.yaml',
     'server:\n  servlet:\n    session:\n      tracking-modes: cookie',
   ],
+  [
+    'betufu verification extra',
+    'backend/src/main/resources/application-dev.yaml',
+    'betufu:\n  verification:\n    unsafe: true',
+  ],
+  [
+    'betufu matricula-hmac extra',
+    'backend/src/main/resources/application-homolog.yaml',
+    'betufu:\n  verification:\n    matricula-hmac:\n      unsafe: true',
+  ],
 ]) {
   test('rejeita propriedade lateral sensivel: ' + label, async () => {
     const root = await createFixture();
@@ -835,6 +845,39 @@ test('rejeita override OIDC no profile dev', async () => {
       + '        registration:\n          keycloak:\n            client-id: unsafe\n',
   );
   await expectRule(root, 'OIDC_SETTING');
+});
+
+for (const [label, approved, drift] of [
+  [
+    'versao corrente literal',
+    '${BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION}',
+    'v1',
+  ],
+  [
+    'chave v1 literal',
+    '${BETUFU_MATRICULA_HMAC_KEY_V1}',
+    'dGVzdC1vbmx5LWZhaWwtY2xvc2VkLWtleS0wMDAwMDE=',
+  ],
+]) {
+  test('rejeita drift HMAC da matricula: ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(approved, drift),
+    );
+    await expectRule(root, 'MATRICULA_HMAC_SETTING');
+  });
+}
+
+test('rejeita override HMAC da matricula no profile dev', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nbetufu:\n  verification:\n    matricula-hmac:\n      current-version: unsafe\n',
+  );
+  await expectRule(root, 'MATRICULA_HMAC_SETTING');
 });
 
 for (const [label, approved, drift] of [
@@ -1049,6 +1092,29 @@ test('rejeita fallback em variavel datasource', async () => {
   );
   await expectRule(root, 'DATASOURCE_PLACEHOLDER');
 });
+
+for (const [label, placeholder, fallback] of [
+  [
+    'versao corrente',
+    '$' + '{BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION}',
+    '$' + '{BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION:v1}',
+  ],
+  [
+    'chave v1',
+    '$' + '{BETUFU_MATRICULA_HMAC_KEY_V1}',
+    '$' + '{BETUFU_MATRICULA_HMAC_KEY_V1:dGVzdC1vbmx5LWZhaWwtY2xvc2VkLWtleS0wMDAwMDE=}',
+  ],
+]) {
+  test('rejeita fallback em variavel de HMAC da matricula: ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(placeholder, fallback),
+    );
+    await expectRule(root, 'MATRICULA_HMAC_PLACEHOLDER');
+  });
+}
 
 const LOCAL_FAKE_URL = 'jdbc:postgresql://fallback.invalid:5432/unsafe';
 
