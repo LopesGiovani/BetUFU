@@ -182,7 +182,7 @@ Plans:
 
 **Plans**: 25 planos em 14 ondas
 
-- **Wave 1**: 02-01, 02-02, 02-03
+- **Wave 1** *(parcial: 02-01 e 02-02 concluídos; 02-03 pendente)*: 02-01, 02-02, 02-03
 - **Wave 2**: 02-04, 02-06, 02-14
 - **Wave 3**: 02-05, 02-09, 02-21
 - **Wave 4**: 02-11, 02-15, 02-22
@@ -296,7 +296,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 17/29 | In Progress | - |
-| 2. Contas, Verificação e Operações Governadas | 0/25 | Planned | - |
+| 2. Contas, Verificação e Operações Governadas | 2/25 | In Progress | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |

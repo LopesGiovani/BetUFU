@@ -768,7 +768,7 @@ for (const [profile, approved, drift] of [
     await mutate(
       root,
       'backend/src/main/resources/application.yaml',
-      (source) => source.replace(approved, drift),
+      (source) => replaceAcrossLines(source, approved, drift),
     );
     await expectRule(root, 'APPLICATION_PROFILE_GROUP');
   });
@@ -1026,7 +1026,10 @@ for (const [label, mutateRealm] of [
   ['senha temporaria', (realm) => {
     realm.users[0].credentials[0].temporary = true;
   }],
-  ['verificacao de email obrigatoria', (realm) => { realm.verifyEmail = true; }],
+  ['email nao verificado sob realm que exige verificacao', (realm) => {
+    realm.verifyEmail = true;
+    realm.users[0].emailVerified = false;
+  }],
 ]) {
   test('rejeita usuario tecnico Keycloak com ' + label, async () => {
     const root = await createFixture();

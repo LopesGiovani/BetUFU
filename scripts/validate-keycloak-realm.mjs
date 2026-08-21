@@ -68,12 +68,25 @@ function expectSingleEntry(value, label) {
 }
 
 export function validateRealmDocument(realm) {
+  expect(
+    realm?.registrationAllowed === true
+      && realm?.registrationEmailAsUsername === true
+      && (!('identityProviders' in (realm ?? {}))
+        || (Array.isArray(realm?.identityProviders) && realm.identityProviders.length === 0)),
+    'KEYCLOAK_SELF_REGISTRATION: autocadastro deve estar habilitado, com email como username, e o realm nao pode declarar provedores de identidade externos.',
+  );
+  expect(
+    realm?.verifyEmail === true,
+    'KEYCLOAK_EMAIL_VERIFICATION: confirmacao de email deve ser obrigatoria.',
+  );
+
   expectExactKeys(
     realm,
     [
       'realm',
       'enabled',
       'registrationAllowed',
+      'registrationEmailAsUsername',
       'resetPasswordAllowed',
       'verifyEmail',
       'loginTheme',
@@ -82,15 +95,17 @@ export function validateRealmDocument(realm) {
       'clients',
       'clientScopeMappings',
       'users',
+      'components',
     ],
     'realm',
   );
 
   expectExact(realm.realm, EXPECTED.realm, 'realm.realm');
   expectExact(realm.enabled, true, 'realm.enabled');
-  expectExact(realm.registrationAllowed, false, 'realm.registrationAllowed');
+  expectExact(realm.registrationAllowed, true, 'realm.registrationAllowed');
+  expectExact(realm.registrationEmailAsUsername, true, 'realm.registrationEmailAsUsername');
   expectExact(realm.resetPasswordAllowed, true, 'realm.resetPasswordAllowed');
-  expectExact(realm.verifyEmail, false, 'realm.verifyEmail');
+  expectExact(realm.verifyEmail, true, 'realm.verifyEmail');
   expectExact(realm.loginTheme, 'betufu', 'realm.loginTheme');
 
   expectExactKeys(
@@ -271,7 +286,7 @@ export function validateRealmDocument(realm) {
   expectExact(
     technicalUser.lastName, EXPECTED.technicalLastName, 'technical user lastName');
   expectExact(technicalUser.enabled, true, 'technical user enabled');
-  expectExact(technicalUser.emailVerified, false, 'technical user emailVerified');
+  expectExact(technicalUser.emailVerified, true, 'technical user emailVerified');
   expectExact(technicalUser.requiredActions, [], 'technical user requiredActions');
   expectExact(technicalUser.realmRoles, [], 'technical user realmRoles');
   expectExactKeys(
@@ -294,6 +309,105 @@ export function validateRealmDocument(realm) {
     'technical user credential value',
   );
   expectExact(credential.temporary, false, 'technical user credential temporary');
+
+  expectExactKeys(
+    realm.components,
+    ['org.keycloak.userprofile.UserProfileProvider'],
+    'realm.components',
+  );
+  const userProfileProvider = expectSingleEntry(
+    realm.components['org.keycloak.userprofile.UserProfileProvider'],
+    'realm.components.org.keycloak.userprofile.UserProfileProvider',
+  );
+  expectExactKeys(
+    userProfileProvider,
+    ['providerId', 'config'],
+    'user profile provider',
+  );
+  expectExact(
+    userProfileProvider.providerId,
+    'declarative-user-profile',
+    'user profile providerId',
+  );
+  expectExactKeys(
+    userProfileProvider.config,
+    ['kc.user.profile.config'],
+    'user profile config',
+  );
+  const rawConfig = expectSingleEntry(
+    userProfileProvider.config['kc.user.profile.config'],
+    'kc.user.profile.config',
+  );
+  expect(typeof rawConfig === 'string', 'kc.user.profile.config deve ser uma string.');
+
+  let upConfig;
+  try {
+    upConfig = JSON.parse(rawConfig);
+  } catch {
+    contractError('kc.user.profile.config nao contem JSON valido.');
+  }
+
+  expectExactKeys(upConfig, ['attributes', 'groups'], 'UPConfig');
+  expectExact(upConfig.groups, [], 'UPConfig.groups');
+  expect(Array.isArray(upConfig.attributes), 'UPConfig.attributes deve ser uma lista.');
+  expect(
+    upConfig.attributes.length === 2,
+    'UPConfig.attributes deve conter exatamente 2 atributos.',
+  );
+
+  const attributeNames = upConfig.attributes.map((attr) => attr?.name);
+  expect(
+    !attributeNames.includes('firstName') && !attributeNames.includes('lastName'),
+    'UPConfig nao pode conter firstName ou lastName.',
+  );
+  expectExact(
+    attributeNames,
+    ['username', 'email'],
+    'UPConfig.attributes nomes',
+  );
+
+  const expectedUsernameAttr = {
+    name: 'username',
+    displayName: '${username}',
+    validations: {
+      length: { min: 3, max: 255 },
+      'username-prohibited-characters': {},
+      'up-username-not-idn-homograph': {},
+    },
+    permissions: {
+      view: ['admin', 'user'],
+      edit: ['admin', 'user'],
+    },
+    multivalued: false,
+  };
+
+  const expectedEmailAttr = {
+    name: 'email',
+    displayName: '${email}',
+    validations: {
+      email: {},
+      length: { max: 255 },
+    },
+    required: {
+      roles: ['user'],
+    },
+    permissions: {
+      view: ['admin', 'user'],
+      edit: ['admin', 'user'],
+    },
+    multivalued: false,
+  };
+
+  expectExact(
+    upConfig.attributes[0],
+    expectedUsernameAttr,
+    'UPConfig username attribute',
+  );
+  expectExact(
+    upConfig.attributes[1],
+    expectedEmailAttr,
+    'UPConfig email attribute',
+  );
 
   return realm;
 }

@@ -509,20 +509,124 @@ function assertSafeKeycloakRedirect(location, currentUrl) {
   return target;
 }
 
-async function fetchWithSafeRedirects(input, init = {}) {
+
+const COOKIE_NAME_PATTERN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+const COOKIE_OCTET_PATTERN = /^[\x21\x23-\x2B\x2D-\x3A\x3C-\x5B\x5D-\x7E]+$/;
+
+function parseSetCookieHeaders(headers) {
+  if (typeof headers.getSetCookie === 'function') {
+    return headers.getSetCookie();
+  }
+  const raw = headers.get('set-cookie');
+  if (!raw) {
+    return [];
+  }
+  const parts = [];
+  let start = 0;
+  const pattern = /,\s*(?=[!#$%&'*+\-.^_`|~0-9A-Za-z]+=)/g;
+  let match;
+  while ((match = pattern.exec(raw)) !== null) {
+    parts.push(raw.slice(start, match.index).trim());
+    start = match.index + match[0].length;
+  }
+  if (start < raw.length) {
+    parts.push(raw.slice(start).trim());
+  }
+  return parts.filter(Boolean);
+}
+
+function createEphemeralCookieJar() {
+  const cookies = new Map();
+
+  return {
+    saveFromResponse(response, url) {
+      const targetUrl = new URL(url);
+      if (targetUrl.origin !== KEYCLOAK_ORIGIN) {
+        return;
+      }
+
+      for (const headerLine of parseSetCookieHeaders(response.headers)) {
+        if (/[\r\n]/.test(headerLine)) {
+          continue;
+        }
+        const [nameValuePart, ...attributeParts] = headerLine.split(';');
+        if (!nameValuePart) {
+          continue;
+        }
+        const separatorIndex = nameValuePart.indexOf('=');
+        if (separatorIndex <= 0) {
+          continue;
+        }
+        const rawName = nameValuePart.slice(0, separatorIndex);
+        const rawValue = nameValuePart.slice(separatorIndex + 1);
+        if (rawName !== rawName.trim() || rawValue !== rawValue.trim()) {
+          continue;
+        }
+        const name = rawName;
+        const value = rawValue;
+        if (!COOKIE_NAME_PATTERN.test(name)) {
+          continue;
+        }
+
+        let isRemoved = value === '';
+        for (const attr of attributeParts) {
+          const trimmed = attr.trim();
+          const attrEquals = trimmed.indexOf('=');
+          const attrName = (attrEquals > 0 ? trimmed.slice(0, attrEquals) : trimmed).trim().toLowerCase();
+          const attrVal = attrEquals > 0 ? trimmed.slice(attrEquals + 1).trim() : '';
+          if (attrName === 'max-age') {
+            const maxAge = parseInt(attrVal, 10);
+            if (!Number.isNaN(maxAge) && maxAge <= 0) {
+              isRemoved = true;
+            }
+          }
+        }
+
+        if (isRemoved) {
+          cookies.delete(name);
+        } else if (COOKIE_OCTET_PATTERN.test(value)) {
+          cookies.set(name, value);
+        }
+      }
+    },
+
+    getCookieHeader(url) {
+      const targetUrl = new URL(url);
+      if (targetUrl.origin !== KEYCLOAK_ORIGIN || cookies.size === 0) {
+        return null;
+      }
+      return [...cookies.entries()].map(([name, value]) => `${name}=${value}`).join('; ');
+    },
+  };
+}
+
+async function fetchWithSafeRedirects(input, init = {}, jar = null) {
   invariant(!init.method || init.method === 'GET', 'O smoke aceita somente requests GET');
   let currentUrl = new URL(input);
   invariant(currentUrl.origin === KEYCLOAK_ORIGIN, `Request inicial fora do Keycloak: ${currentUrl.origin}`);
 
   for (let redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
+    const headers = new Headers(init.headers);
+    if (jar && currentUrl.origin === KEYCLOAK_ORIGIN) {
+      const cookieHeader = jar.getCookieHeader(currentUrl);
+      if (cookieHeader) {
+        headers.set('Cookie', cookieHeader);
+      }
+    }
+
     const response = await fetch(currentUrl, {
       ...init,
+      headers,
       method: 'GET',
       redirect: 'manual',
       credentials: 'omit',
       referrerPolicy: 'no-referrer',
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
+
+    if (jar && currentUrl.origin === KEYCLOAK_ORIGIN) {
+      jar.saveFromResponse(response, currentUrl);
+    }
 
     if (![301, 302, 303, 307, 308].includes(response.status)) {
       return { response, finalUrl: currentUrl };
@@ -741,9 +845,14 @@ async function validateHttpTheme() {
     code_challenge_method: 'S256',
   }).toString();
 
-  const { response, finalUrl } = await fetchWithSafeRedirects(authorizationUrl, {
-    headers: { Accept: 'text/html' },
-  });
+  const cookieJar = createEphemeralCookieJar();
+  const { response, finalUrl } = await fetchWithSafeRedirects(
+    authorizationUrl,
+    {
+      headers: { Accept: 'text/html' },
+    },
+    cookieJar,
+  );
   invariant(response.status === 200, `Página de login respondeu HTTP ${response.status}`);
   invariant(/text\/html/i.test(response.headers.get('content-type') ?? ''), 'Página de login não retornou HTML');
   const html = await response.text();
@@ -754,13 +863,90 @@ async function validateHttpTheme() {
     'Resposta não contém o marcador visível do login Keycloak',
   );
 
-  const { resources, stylesheets } = extractHtmlResources(html, finalUrl);
-  const uniqueStylesheets = [...new Map(stylesheets.map((url) => [url.href, url])).values()];
-  invariant(uniqueStylesheets.length > 0, 'Página de login não referencia folhas de estilo');
+  const { resources: loginResources, stylesheets: loginStylesheets } = extractHtmlResources(html, finalUrl);
+  invariant(loginStylesheets.length > 0, 'Página de login não referencia folhas de estilo');
   invariant(
-    uniqueStylesheets.some((url) => url.pathname.endsWith('/login/betufu/css/login.css')),
-    'A página real não referencia diretamente css/login.css do tema betufu',
+    loginStylesheets.some((url) => url.pathname.endsWith('/login/betufu/css/login.css')),
+    'A página de login não referencia diretamente css/login.css do tema betufu',
   );
+
+  const registrationLinkMatch = html.match(/href=["']([^"']*\/login-actions\/registration[^"']*)["']/i);
+  invariant(
+    registrationLinkMatch,
+    'KEYCLOAK_THEME_REGISTRATION_PAGE: Página de login não contém link de cadastro',
+  );
+  let registrationUrl;
+  try {
+    registrationUrl = new URL(registrationLinkMatch[1].replace(/&amp;/g, '&'), finalUrl);
+  } catch {
+    throw new Error('KEYCLOAK_THEME_REGISTRATION_PAGE: Link de cadastro contém URL malformada');
+  }
+  assertSameOriginResource(
+    registrationUrl.href,
+    finalUrl,
+    'KEYCLOAK_THEME_REGISTRATION_PAGE: Link de cadastro',
+  );
+
+  const { response: regResponse, finalUrl: regFinalUrl } = await fetchWithSafeRedirects(
+    registrationUrl,
+    {
+      headers: { Accept: 'text/html' },
+    },
+    cookieJar,
+  );
+  invariant(
+    regResponse.status === 200,
+    `KEYCLOAK_THEME_REGISTRATION_PAGE: Página de cadastro respondeu HTTP ${regResponse.status}`,
+  );
+  invariant(
+    /text\/html/i.test(regResponse.headers.get('content-type') ?? ''),
+    'KEYCLOAK_THEME_REGISTRATION_PAGE: Página de cadastro não retornou HTML',
+  );
+  const regHtml = await regResponse.text();
+  invariant(
+    regHtml.trim().length > 0,
+    'KEYCLOAK_THEME_REGISTRATION_PAGE: Página de cadastro retornou HTML vazio',
+  );
+  const regVisibleHtml = assertRenderedNotice(regHtml);
+  invariant(
+    /id=["']kc-page-title["']/i.test(regVisibleHtml),
+    'KEYCLOAK_THEME_REGISTRATION_PAGE: Resposta não contém o marcador visível da página de cadastro Keycloak',
+  );
+  invariant(
+    !/name=["']password(?:-confirm)?["']/i.test(regHtml),
+    'KEYCLOAK_THEME_NO_INITIAL_PASSWORD: Página inicial de cadastro não pode conter campos de senha',
+  );
+
+  const inputTags = [...regHtml.matchAll(/<input\b([^>]*)>/gi)];
+  const editableInputNames = [];
+  for (const match of inputTags) {
+    const attributes = parseAttributes(match[1]);
+    const type = (attributes.get('type') ?? 'text').toLowerCase();
+    if (['hidden', 'submit', 'button'].includes(type)) {
+      continue;
+    }
+    const name = attributes.get('name');
+    if (name) {
+      editableInputNames.push(name);
+    }
+  }
+  invariant(
+    editableInputNames.length === 1 && editableInputNames[0] === 'email',
+    `KEYCLOAK_THEME_REGISTRATION_INPUTS: A página de cadastro deve conter exatamente o input editável [email], encontrados: [${editableInputNames.join(', ')}]`,
+  );
+
+  const { resources: regResources, stylesheets: regStylesheets } = extractHtmlResources(regHtml, regFinalUrl);
+  invariant(
+    regStylesheets.length > 0,
+    'KEYCLOAK_THEME_REGISTRATION_PAGE: Página de cadastro não referencia folhas de estilo',
+  );
+  invariant(
+    regStylesheets.some((url) => url.pathname.endsWith('/login/betufu/css/login.css')),
+    'KEYCLOAK_THEME_REGISTRATION_PAGE: A página de cadastro não referencia diretamente css/login.css do tema betufu',
+  );
+
+  const combinedStylesheets = [...loginStylesheets, ...regStylesheets];
+  const uniqueStylesheets = [...new Map(combinedStylesheets.map((url) => [url.href, url])).values()];
 
   const localCssBytes = await readFile(CSS_PATH);
   let customCssFound = false;
@@ -794,7 +980,7 @@ async function validateHttpTheme() {
 
   invariant(customCssFound, 'A página real não carregou o css/login.css do tema betufu');
 
-  const directResources = [...resources, ...cssResourceUrls].filter(
+  const directResources = [...loginResources, ...regResources, ...cssResourceUrls].filter(
     (url) => !inspectedStylesheets.has(url.href),
   );
   const uniqueResources = [...new Map(directResources.map((url) => [url.href, url])).values()];

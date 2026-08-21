@@ -1296,9 +1296,9 @@ function assertKeycloakTechnicalUserContract(keycloakRealmSource) {
     'usuario tecnico Keycloak deve possuir perfil completo.',
   );
   expect(
-    realm.verifyEmail === false,
+    realm.verifyEmail === false || technicalUser.emailVerified === true,
     'KEYCLOAK_TECHNICAL_USER',
-    'realm tecnico nao pode exigir verificacao de email.',
+    'usuario tecnico deve autenticar sem acao obrigatoria pendente de verificacao de email.',
   );
   expect(
     Array.isArray(technicalUser.requiredActions)

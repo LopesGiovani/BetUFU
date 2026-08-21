@@ -48,7 +48,7 @@ Esta é a distinção mais fácil de errar nesta fase. Ela é normativa.
 
 | Página | Observação |
 |---|---|
-| Cadastro (`register`) | Novo nesta fase: `registrationAllowed` passa a `true`. Coleta **e-mail e senha**, nada mais. **O apelido não é coletado aqui** — não criar atributo customizado, não estender o formulário. |
+| Cadastro (`register`) | Novo nesta fase: `registrationAllowed` passa a `true`. Na primeira etapa coleta **somente o e-mail**; depois de a pessoa confirmar esse endereço pelo link recebido, o Keycloak apresenta a criação da senha. **O apelido não é coletado aqui** — não criar atributo customizado, não estender o formulário. |
 | Confirmação de e-mail (`login-verify-email` e página após o link) | Novo nesta fase: `verifyEmail` passa a `true`. O login não conclui antes da confirmação, então **não existe estado intermediário no Angular** a desenhar. |
 | Login | Já existente. |
 | Redefinição de senha (`login-reset-password`, `login-update-password`) | Já existente. |

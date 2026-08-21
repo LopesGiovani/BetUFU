@@ -4,16 +4,16 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
-status: Ready to execute
-stopped_at: "Fase 2: planejamento verificado; aguardando execução interativa da Wave 1"
-last_updated: "2026-08-20T16:52:40.831Z"
+status: In progress
+stopped_at: "Fase 2, Wave 1 parcial: 02-01 e 02-02 concluídos; 02-03 aguarda execução interativa"
+last_updated: "2026-08-20T21:21:09-03:00"
 last_activity: 2026-08-20
-last_activity_desc: "Fase 2 planejada e verificada: 25 planos, 14 ondas e 54 tarefas; checker final PASS."
+last_activity_desc: "Planos 02-01 e 02-02 implementados, verificados e revisados; Wave 1 permanece parcial até 02-03."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 56
-  completed_plans: 31
+  completed_plans: 33
 ---
 
 # Estado do Projeto
@@ -27,13 +27,13 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 ## Current Position
 
-Phase: 1 of 7 (Fundação Segura da Plataforma) — CONCLUÍDA
-Plan: 31 of 31 (Plano 01-16 concluído)
-Status: Completed — Fase 1 (Fundação Segura da Plataforma) concluída com sucesso; Fase 2 liberada.
-Last activity: 2026-08-20 — Fase 2 discutida; `02-CONTEXT.md` produzido e escopo da fase emendado.
+Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
+Plan: 2 of 25 (`02-01` e `02-02` concluídos; `02-03` é o próximo plano)
+Status: In Progress — Wave 1 parcial; implementação, duas suítes agregadas e revisão final verdes para os dois planos concluídos.
+Last activity: 2026-08-20 — `02-01` e `02-02` formalizados após Node 518/518, Java 200/200 e validação do Keycloak real.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: `master` está 3 commits à frente de `origin/master`, que permanece em `ff82e08`. **Push ainda não autorizado.** Os commits `7ae235a` e `db4177f` foram reescritos em 2026-08-20 para remover um rodapé de mensagem, antes de qualquer publicação; os hashes anteriores (`6785047`, `b45bb84`) nunca saíram desta máquina.
+Git: `master` e `origin/master` apontam para `01057ac`; o trabalho da Wave 1 permanece somente no working tree, sem stage, commit ou push autorizados.
 
 | Commit | Conteúdo |
 |---|---|
@@ -41,7 +41,7 @@ Git: `master` está 3 commits à frente de `origin/master`, que permanece em `ff
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [██████████] 100% da Fase 1
+Progress: [█░░░░░░░░░] 2/25 planos da Fase 2 (8%)
 
 ## Métricas de desempenho
 
@@ -165,6 +165,6 @@ Progress: [██████████] 100% da Fase 1
 
 ## Session Continuity
 
-Last session: 2026-08-20T16:52:40.831Z
-Stopped at: Fase 2 planejada e verificada; aguardando execução interativa da Wave 1
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-01-PLAN.md
+Last session: 2026-08-20T21:21:09-03:00
+Stopped at: Wave 1 parcial; 02-01 e 02-02 concluídos, 02-03 pendente
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-03-PLAN.md

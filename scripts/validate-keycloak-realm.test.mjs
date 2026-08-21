@@ -235,6 +235,111 @@ const unsafeMutations = [
       realm.users[0].lastName = '';
     },
   },
+  {
+    name: 'autocadastro desabilitado',
+    mutate: (realm) => {
+      realm.registrationAllowed = false;
+    },
+  },
+  {
+    name: 'provedor de identidade externo declarado',
+    mutate: (realm) => {
+      realm.identityProviders = [
+        {
+          alias: 'ufu-sso',
+          displayName: 'UFU SSO',
+          providerId: 'saml',
+          enabled: true,
+        },
+      ];
+    },
+  },
+  {
+    name: 'confirmacao de email desabilitada',
+    mutate: (realm) => {
+      realm.verifyEmail = false;
+    },
+  },
+  {
+    name: 'conta tecnica com email nao verificado',
+    mutate: (realm) => {
+      realm.users[0].emailVerified = false;
+    },
+  },
+  {
+    name: 'registrationEmailAsUsername desabilitado',
+    mutate: (realm) => {
+      realm.registrationEmailAsUsername = false;
+    },
+  },
+  {
+    name: 'componente UserProfileProvider ausente',
+    mutate: (realm) => {
+      delete realm.components;
+    },
+  },
+  {
+    name: 'providerId do UserProfileProvider divergente',
+    mutate: (realm) => {
+      realm.components['org.keycloak.userprofile.UserProfileProvider'][0].providerId = 'other-provider';
+    },
+  },
+  {
+    name: 'config kc.user.profile.config com JSON invalido',
+    mutate: (realm) => {
+      realm.components['org.keycloak.userprofile.UserProfileProvider'][0].config['kc.user.profile.config'] = ['{invalido'];
+    },
+  },
+  {
+    name: 'UPConfig com firstName reintroduzido',
+    mutate: (realm) => {
+      const cfg = JSON.parse(
+        realm.components['org.keycloak.userprofile.UserProfileProvider'][0].config[
+          'kc.user.profile.config'
+        ][0],
+      );
+      cfg.attributes.push({
+        name: 'firstName',
+        displayName: '${firstName}',
+        permissions: { view: ['admin', 'user'], edit: ['admin', 'user'] },
+      });
+      realm.components['org.keycloak.userprofile.UserProfileProvider'][0].config[
+        'kc.user.profile.config'
+      ] = [JSON.stringify(cfg)];
+    },
+  },
+  {
+    name: 'UPConfig com lastName reintroduzido',
+    mutate: (realm) => {
+      const cfg = JSON.parse(
+        realm.components['org.keycloak.userprofile.UserProfileProvider'][0].config[
+          'kc.user.profile.config'
+        ][0],
+      );
+      cfg.attributes.push({
+        name: 'lastName',
+        displayName: '${lastName}',
+        permissions: { view: ['admin', 'user'], edit: ['admin', 'user'] },
+      });
+      realm.components['org.keycloak.userprofile.UserProfileProvider'][0].config[
+        'kc.user.profile.config'
+      ] = [JSON.stringify(cfg)];
+    },
+  },
+  {
+    name: 'UPConfig com email sem ser obrigatorio',
+    mutate: (realm) => {
+      const cfg = JSON.parse(
+        realm.components['org.keycloak.userprofile.UserProfileProvider'][0].config[
+          'kc.user.profile.config'
+        ][0],
+      );
+      delete cfg.attributes[1].required;
+      realm.components['org.keycloak.userprofile.UserProfileProvider'][0].config[
+        'kc.user.profile.config'
+      ] = [JSON.stringify(cfg)];
+    },
+  },
 ];
 
 for (const [index, unsafeMutation] of unsafeMutations.entries()) {
