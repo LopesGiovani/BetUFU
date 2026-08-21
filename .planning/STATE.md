@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2, Wave 1: commits feat e docs criados na branch do worktree; master aguarda integração"
-last_updated: "2026-08-21T02:09:50-03:00"
+stopped_at: "Fase 2: Wave 2 concluída; Wave 3 autorizada para execução paralela"
+last_updated: "2026-08-21T10:51:55-03:00"
 last_activity: 2026-08-21
-last_activity_desc: "Plano 02-03 implementado em ea7aca0 e formalizado no commit documental subsequente; integração local pendente."
+last_activity_desc: "Plano 02-06 implementado, revisado, formalizado e integrado localmente; Wave 2 concluída."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 56
-  completed_plans: 34
+  completed_plans: 37
 ---
 
 # Estado do Projeto
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 5 of 25 (`02-01`, `02-02`, `02-03`, `02-04` e `02-14` concluídos)
-Status: In Progress — Wave 1 concluída; Wave 2 possui `02-04` e `02-14` concluídos e aguarda somente `02-06`.
-Last activity: 2026-08-21 — `02-04` fixou o contrato minimizado de auditoria, a segregação dos usuários de banco e a retenção do MVP fechado.
+Plan: 6 of 25 (`02-01`, `02-02`, `02-03`, `02-04`, `02-06` e `02-14` concluídos)
+Status: In Progress — Waves 1 e 2 concluídas; Wave 3 (`02-05`, `02-09` e `02-21`) autorizada para execução paralela.
+Last activity: 2026-08-21 — `02-06` entregou normalização determinística e HMAC-SHA256 versionado da matrícula com bootstrap fail-closed.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: `master` está em `7a9fd629`, quatro commits à frente de `origin/master`. Os Planos 02-03 e 02-14 já foram integrados localmente; nenhum push foi realizado. As decisões do 02-04 permanecem sem commit até aprovação Git separada.
+Git: `master` contém os Planos 02-03, 02-04, 02-06 e 02-14 integrados localmente e permanece sem push. O commit técnico do 02-06 é `5fbaf79`; esta atualização administrativa integra o commit documental por amend.
 
 | Commit | Conteúdo |
 |---|---|
@@ -41,13 +41,13 @@ Git: `master` está em `7a9fd629`, quatro commits à frente de `origin/master`. 
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [██░░░░░░░░] 5/25 planos da Fase 2 (20%)
+Progress: [██░░░░░░░░] 6/25 planos da Fase 2 (24%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 36
+- Total de planos concluídos: 37
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -56,11 +56,11 @@ Progress: [██░░░░░░░░] 5/25 planos da Fase 2 (20%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 5 | não mensurado | não mensurada |
+| 2 | 6 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-04, 02-14, 02-03, 02-02, 02-01
+- Últimos 5 planos: 02-06, 02-04, 02-14, 02-03, 02-02
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -170,6 +170,6 @@ Progress: [██░░░░░░░░] 5/25 planos da Fase 2 (20%)
 
 ## Session Continuity
 
-Last session: 2026-08-21T12:47:40.865Z
-Stopped at: Plano 02-04 formalizado; Wave 2 aguarda somente o Plano 02-06
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-04-SUMMARY.md
+Last session: 2026-08-21T10:51:55-03:00
+Stopped at: Wave 2 concluída; Wave 3 autorizada para execução paralela
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-06-SUMMARY.md
