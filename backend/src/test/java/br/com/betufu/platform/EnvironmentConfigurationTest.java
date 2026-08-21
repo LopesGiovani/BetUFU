@@ -18,6 +18,7 @@ import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
@@ -27,11 +28,15 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.session.SessionRepository;
-import org.springframework.session.data.redis.RedisSessionRepository;
+
+import br.com.betufu.platform.session.SelectiveTouchSessionRepository;
+import br.com.betufu.platform.session.SessionSecurityConfiguration;
 
 class EnvironmentConfigurationTest {
 
@@ -245,7 +250,7 @@ class EnvironmentConfigurationTest {
                     assertThat(context.getStartupFailure()).isNull();
                     assertThat(context).hasSingleBean(SessionRepository.class);
                     assertThat(context.getBean(SessionRepository.class))
-                            .isInstanceOf(RedisSessionRepository.class);
+                            .isInstanceOf(SelectiveTouchSessionRepository.class);
                     assertThat(context.getEnvironment().getProperty("spring.autoconfigure.exclude")).isNull();
                     assertRedisSessionContract(context.getEnvironment());
                     verifyNoInteractions(context.getBean(RedisConnectionFactory.class));
@@ -326,7 +331,7 @@ class EnvironmentConfigurationTest {
         assertThat(environment.getProperty("spring.session.data.redis.namespace"))
                 .isEqualTo(REDIS_NAMESPACE);
         assertThat(environment.getProperty("spring.session.data.redis.repository-type"))
-                .isEqualTo("default");
+                .isEqualTo("indexed");
         assertThat(environment.getProperty("spring.session.data.redis.flush-mode"))
                 .isEqualTo("on-save");
         assertThat(environment.getProperty("spring.session.data.redis.save-mode"))
@@ -413,6 +418,7 @@ class EnvironmentConfigurationTest {
     }
 
     @Configuration(proxyBeanMethods = false)
+    @Import(SessionSecurityConfiguration.class)
     @EnableAutoConfiguration(excludeName = {
         "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration",
         "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration",
@@ -424,6 +430,19 @@ class EnvironmentConfigurationTest {
         @Bean
         RedisConnectionFactory redisConnectionFactory() {
             return mock(RedisConnectionFactory.class);
+        }
+
+        @Bean
+        static BeanPostProcessor redisMessageListenerContainerLifecycleController() {
+            return new BeanPostProcessor() {
+                @Override
+                public Object postProcessBeforeInitialization(Object bean, String beanName) {
+                    if (bean instanceof RedisMessageListenerContainer container) {
+                        container.setAutoStartup(false);
+                    }
+                    return bean;
+                }
+            };
         }
     }
 

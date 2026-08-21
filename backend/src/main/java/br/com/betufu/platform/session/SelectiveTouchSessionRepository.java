@@ -3,6 +3,7 @@ package br.com.betufu.platform.session;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -11,20 +12,38 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
-import org.springframework.session.SessionRepository;
-import org.springframework.session.data.redis.RedisSessionRepository;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 
 /**
- * Preserves Spring Session's default Redis representation while making idle renewal explicit.
+ * Preserves Spring Session's default Redis representation while making idle renewal explicit
+ * and exposing principal name session enumeration.
  */
 public final class SelectiveTouchSessionRepository
-        implements SessionRepository<SelectiveTouchSessionRepository.SelectiveSession> {
+        implements FindByIndexNameSessionRepository<SelectiveTouchSessionRepository.SelectiveSession>,
+                DisposableBean,
+                MessageListener {
+
+    private static final Logger log = LoggerFactory.getLogger(SelectiveTouchSessionRepository.class);
 
     static final String APPROVED_ACTIVITY_ATTRIBUTE =
             SelectiveTouchSessionRepository.class.getName() + ".approvedActivity";
@@ -38,31 +57,42 @@ public final class SelectiveTouchSessionRepository
     static final String AUTHENTICATION_AMR_PREFIX = "betufu.session.authentication.amr.";
 
     private static final String SESSIONS_SUFFIX = "sessions:";
+    private static final String EXPIRES_SUFFIX = "expires:";
+    private static final String PRINCIPAL_SUFFIX = "principal:";
     private static final String CREATION_TIME_FIELD = "creationTime";
     private static final String LAST_ACCESSED_TIME_FIELD = "lastAccessedTime";
     private static final String MAX_INACTIVE_INTERVAL_FIELD = "maxInactiveInterval";
     private static final String SESSION_ATTRIBUTE_PREFIX = "sessionAttr:";
     private static final int MAX_TRANSACTION_ATTEMPTS = 4;
+    private static final int REVERSE_PRINCIPAL_KEY_EXPIRATION_BUFFER_SECONDS = 300;
+    private static final Duration RECONCILIATION_INTERVAL = Duration.ofMinutes(15);
 
-    private final SessionRepository<? extends Session> delegateRepository;
+    private final RedisIndexedSessionRepository delegateRepository;
     private final RedisOperations<String, Object> redisOperations;
     private final Duration idleTimeout;
     private final int idleTimeoutSeconds;
+    private final String namespace;
     private final String sessionKeyPrefix;
+    private final String expiredSessionKeyPrefix;
+    private final String reversePrincipalKeyPrefix;
     private final ConcurrentMap<String, String> pendingOriginalIds = new ConcurrentHashMap<>();
+    private ScheduledExecutorService reconcilerExecutor;
 
+    @SuppressWarnings("unchecked")
     public SelectiveTouchSessionRepository(
-            RedisSessionRepository delegate, String namespace, Duration idleTimeout) {
-        RedisSessionRepository requiredDelegate =
-                Objects.requireNonNull(delegate, "delegate must not be null");
-        this.delegateRepository = requiredDelegate;
-        this.redisOperations = requiredDelegate.getSessionRedisOperations();
+            RedisIndexedSessionRepository delegate, String namespace, Duration idleTimeout) {
+        this.delegateRepository = Objects.requireNonNull(delegate, "delegate must not be null");
+        this.redisOperations = (RedisOperations<String, Object>) (RedisOperations<?, ?>)
+                this.delegateRepository.getSessionRedisOperations();
+        this.namespace = Objects.requireNonNull(namespace, "namespace must not be null");
         this.idleTimeout = Objects.requireNonNull(idleTimeout, "idleTimeout must not be null");
         if (!SessionPolicy.IDLE_TIMEOUT.equals(idleTimeout)) {
             throw new IllegalArgumentException("idleTimeout must be exactly PT8H");
         }
         this.idleTimeoutSeconds = Math.toIntExact(idleTimeout.toSeconds());
         this.sessionKeyPrefix = normalizeNamespace(namespace) + SESSIONS_SUFFIX;
+        this.expiredSessionKeyPrefix = this.sessionKeyPrefix + EXPIRES_SUFFIX;
+        this.reversePrincipalKeyPrefix = this.sessionKeyPrefix + PRINCIPAL_SUFFIX;
     }
 
     @Override
@@ -86,7 +116,7 @@ public final class SelectiveTouchSessionRepository
                         new SessionCallback<TransactionResult>() {
                             @Override
                             public <K, V> TransactionResult execute(RedisOperations<K, V> operations)
-                                    throws DataAccessException {
+                                     throws DataAccessException {
                                 @SuppressWarnings("unchecked")
                                 RedisOperations<String, Object> typedOperations =
                                         (RedisOperations<String, Object>)
@@ -111,20 +141,299 @@ public final class SelectiveTouchSessionRepository
     }
 
     @Override
+    public Map<String, SelectiveSession> findByIndexNameAndIndexValue(
+            String indexName, String indexValue) {
+        Objects.requireNonNull(indexName, "indexName must not be null");
+        Objects.requireNonNull(indexValue, "indexValue must not be null");
+        if (!PRINCIPAL_NAME_INDEX_NAME.equals(indexName)) {
+            return Map.of();
+        }
+        Map<String, ?> found = delegateRepository.findByIndexNameAndIndexValue(indexName, indexValue);
+        reconcilePrincipalIndexMembers(indexValue, found == null ? Collections.emptySet() : found.keySet());
+        if (found == null || found.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, SelectiveSession> result = new LinkedHashMap<>();
+        found.forEach((sessionId, session) -> {
+            if (session instanceof Session s) {
+                result.put(sessionId, new SelectiveSession(s, false));
+            }
+        });
+        return Collections.unmodifiableMap(result);
+    }
+
+    @Override
     public void deleteById(String id) {
         Objects.requireNonNull(id, "id must not be null");
         String originalId = pendingOriginalIds.remove(id);
-        if (originalId == null || originalId.equals(id)) {
-            redisOperations.delete(sessionKey(id));
+        SelectiveSession session = findById(id);
+        String principal = session == null ? null : extractPrincipalName(session);
+        if (principal == null) {
+            Object p = redisOperations.opsForValue().get(reversePrincipalKey(id));
+            if (p instanceof String s && !s.isBlank()) {
+                principal = s;
+            } else if (originalId != null && !originalId.equals(id)) {
+                Object origP = redisOperations.opsForValue().get(reversePrincipalKey(originalId));
+                if (origP instanceof String s2 && !s2.isBlank()) {
+                    principal = s2;
+                }
+            }
+        }
+
+        List<String> keysToDelete = new java.util.ArrayList<>();
+        keysToDelete.add(sessionKey(id));
+        keysToDelete.add(expiredSessionKey(id));
+        keysToDelete.add(reversePrincipalKey(id));
+        if (originalId != null && !originalId.equals(id)) {
+            keysToDelete.add(sessionKey(originalId));
+            keysToDelete.add(expiredSessionKey(originalId));
+            keysToDelete.add(reversePrincipalKey(originalId));
+        }
+
+        final String finalPrincipal = principal;
+        List<Object> executed = redisOperations.execute(new SessionCallback<List<Object>>() {
+            @Override
+            public <K, V> List<Object> execute(RedisOperations<K, V> operations) throws DataAccessException {
+                @SuppressWarnings("unchecked")
+                RedisOperations<String, Object> typedOperations =
+                        (RedisOperations<String, Object>) (RedisOperations<?, ?>) operations;
+                typedOperations.multi();
+                if (finalPrincipal != null && !finalPrincipal.isBlank()) {
+                    typedOperations.opsForSet().remove(getPrincipalIndexKey(finalPrincipal), id);
+                    if (originalId != null && !originalId.equals(id)) {
+                        typedOperations.opsForSet().remove(getPrincipalIndexKey(finalPrincipal), originalId);
+                    }
+                }
+                typedOperations.delete(keysToDelete);
+                return typedOperations.exec();
+            }
+        });
+
+        if (executed == null || executed.isEmpty()) {
+            throw new IllegalStateException("Redis session deletion transaction failed");
+        }
+        for (Object result : executed) {
+            if (result instanceof Throwable throwable) {
+                throw new IllegalStateException("Redis session deletion transaction failed", throwable);
+            }
+        }
+    }
+
+    @Override
+    public void onMessage(Message message, byte[] pattern) {
+        if (message == null) {
             return;
         }
-        redisOperations.delete(List.of(sessionKey(originalId), sessionKey(id)));
+        byte[] bodyBytes = message.getBody();
+        if (bodyBytes == null || bodyBytes.length == 0) {
+            return;
+        }
+        String body = new String(bodyBytes, java.nio.charset.StandardCharsets.UTF_8);
+        if (body.startsWith(expiredSessionKeyPrefix)) {
+            String sessionId = body.substring(expiredSessionKeyPrefix.length());
+            if (!sessionId.isBlank()) {
+                handleSessionExpiredNotification(sessionId);
+                return;
+            }
+        }
+
+        delegateRepository.onMessage(message, pattern);
+    }
+
+    private void handleSessionExpiredNotification(String sessionId) {
+        String reverseKey = reversePrincipalKey(sessionId);
+        Object principalObj = redisOperations.opsForValue().get(reverseKey);
+        String principal = principalObj instanceof String p ? p : (principalObj != null ? principalObj.toString() : null);
+
+        List<String> keysToDelete = List.of(
+                sessionKey(sessionId),
+                expiredSessionKey(sessionId),
+                reversePrincipalKey(sessionId)
+        );
+
+        List<Object> executed = redisOperations.execute(new SessionCallback<List<Object>>() {
+            @Override
+            public <K, V> List<Object> execute(RedisOperations<K, V> operations) throws DataAccessException {
+                @SuppressWarnings("unchecked")
+                RedisOperations<String, Object> typedOperations =
+                        (RedisOperations<String, Object>) (RedisOperations<?, ?>) operations;
+                typedOperations.multi();
+                if (principal != null && !principal.isBlank()) {
+                    typedOperations.opsForSet().remove(getPrincipalIndexKey(principal), sessionId);
+                }
+                typedOperations.delete(keysToDelete);
+                return typedOperations.exec();
+            }
+        });
+
+        if (executed == null || executed.isEmpty()) {
+            throw new IllegalStateException("Redis session expiration cleanup transaction failed");
+        }
+        for (Object result : executed) {
+            if (result instanceof Throwable throwable) {
+                throw new IllegalStateException("Redis session expiration cleanup transaction failed", throwable);
+            }
+        }
+    }
+
+    /**
+     * Starts periodic background index reconciliation if not already started.
+     * The first global scan is deferred by the reconciliation interval so that application
+     * bootstrap does not access Redis eagerly.
+     */
+    public synchronized void startReconciliation() {
+        if (reconcilerExecutor != null && !reconcilerExecutor.isShutdown()) {
+            return;
+        }
+        this.reconcilerExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "betufu-session-index-reconciler");
+            thread.setDaemon(true);
+            return thread;
+        });
+        this.reconcilerExecutor.scheduleWithFixedDelay(
+                this::reconcileOrphanedIndexes,
+                RECONCILIATION_INTERVAL.toSeconds(),
+                RECONCILIATION_INTERVAL.toSeconds(),
+                TimeUnit.SECONDS);
+    }
+
+    /**
+     * Returns the underlying Redis operations with its configured serializers.
+     */
+    public RedisOperations<String, Object> getSessionRedisOperations() {
+        return this.redisOperations;
+    }
+
+    @Override
+    public synchronized void destroy() {
+        if (reconcilerExecutor != null) {
+            reconcilerExecutor.shutdown();
+            try {
+                if (!reconcilerExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    reconcilerExecutor.shutdownNow();
+                }
+            } catch (InterruptedException ex) {
+                reconcilerExecutor.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+        delegateRepository.destroy();
+    }
+
+    private void reconcilePrincipalIndexMembers(String principal, Set<String> liveSessionIds) {
+        if (principal == null || principal.isBlank()) {
+            return;
+        }
+        try {
+            String indexKey = getPrincipalIndexKey(principal);
+            Set<Object> members = redisOperations.opsForSet().members(indexKey);
+            if (members == null || members.isEmpty()) {
+                return;
+            }
+            for (Object member : members) {
+                if (member == null) {
+                    continue;
+                }
+                String sessionId = member.toString();
+                if (!liveSessionIds.contains(sessionId)) {
+                    Boolean sessionExists = redisOperations.hasKey(sessionKey(sessionId));
+                    if (Boolean.FALSE.equals(sessionExists)) {
+                        redisOperations.opsForSet().remove(indexKey, sessionId);
+                        redisOperations.delete(List.of(
+                                expiredSessionKey(sessionId),
+                                reversePrincipalKey(sessionId)));
+                    }
+                }
+            }
+        } catch (RuntimeException failure) {
+            log.warn("Session principal index lookup self-healing encountered an error");
+        }
+    }
+
+    /**
+     * Reconciles principal index sets across the keyspace using SCAN for keys and SSCAN for set members
+     * in bounded batches to purge orphaned members whose session hash no longer exists in Redis.
+     * Uses the configured RedisOperations serializers to correctly deserialize index members.
+     */
+    public void reconcileOrphanedIndexes() {
+        try {
+            @SuppressWarnings("unchecked")
+            RedisSerializer<Object> valueSerializer =
+                    (RedisSerializer<Object>) redisOperations.getValueSerializer();
+            if (valueSerializer == null) {
+                log.warn("Redis operations value serializer is unavailable; skipping periodic session index reconciliation");
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            RedisSerializer<String> keySerializer = (RedisSerializer<String>) (
+                    redisOperations.getKeySerializer() != null
+                            ? redisOperations.getKeySerializer()
+                            : RedisSerializer.string());
+
+            redisOperations.execute((RedisCallback<Void>) connection -> {
+                ScanOptions keyScanOptions = ScanOptions.scanOptions()
+                        .match(normalizeNamespace(namespace) + "index:*")
+                        .count(100)
+                        .build();
+                try (Cursor<byte[]> keyCursor = connection.keyCommands().scan(keyScanOptions)) {
+                    while (keyCursor.hasNext()) {
+                        byte[] indexKeyBytes = keyCursor.next();
+                        ScanOptions memberScanOptions = ScanOptions.scanOptions()
+                                .count(100)
+                                .build();
+                        try (Cursor<byte[]> memberCursor =
+                                connection.setCommands().sScan(indexKeyBytes, memberScanOptions)) {
+                            while (memberCursor.hasNext()) {
+                                byte[] memberBytes = memberCursor.next();
+                                if (memberBytes == null || memberBytes.length == 0) {
+                                    continue;
+                                }
+                                Object deserializedMember;
+                                try {
+                                    deserializedMember = valueSerializer != null
+                                            ? valueSerializer.deserialize(memberBytes)
+                                            : null;
+                                } catch (RuntimeException ex) {
+                                    deserializedMember = null;
+                                }
+                                if (deserializedMember == null) {
+                                    continue;
+                                }
+                                String sessionId = deserializedMember.toString();
+                                if (sessionId.isBlank()) {
+                                    continue;
+                                }
+                                byte[] sessionKeyBytes = keySerializer.serialize(sessionKey(sessionId));
+                                Boolean sessionExists = sessionKeyBytes != null
+                                        ? connection.keyCommands().exists(sessionKeyBytes)
+                                        : Boolean.FALSE;
+                                if (Boolean.FALSE.equals(sessionExists)) {
+                                    connection.setCommands().sRem(indexKeyBytes, memberBytes);
+                                    byte[] expiredKeyBytes = keySerializer.serialize(expiredSessionKey(sessionId));
+                                    byte[] reverseKeyBytes = keySerializer.serialize(reversePrincipalKey(sessionId));
+                                    if (expiredKeyBytes != null && reverseKeyBytes != null) {
+                                        connection.keyCommands().del(expiredKeyBytes, reverseKeyBytes);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return null;
+            });
+        } catch (RuntimeException failure) {
+            log.warn("Periodic Redis session index reconciliation encountered an error");
+        }
     }
 
     private TransactionResult saveOnce(
             RedisOperations<String, Object> operations, PendingSave pending) {
         String oldKey = sessionKey(pending.originalId());
         String currentKey = sessionKey(pending.currentId());
+        String oldExpiredKey = expiredSessionKey(pending.originalId());
+        String currentExpiredKey = expiredSessionKey(pending.currentId());
+        String oldReverseKey = reversePrincipalKey(pending.originalId());
+        String currentReverseKey = reversePrincipalKey(pending.currentId());
         Collection<String> watchedKeys = oldKey.equals(currentKey)
                 ? List.of(oldKey)
                 : List.of(oldKey, currentKey);
@@ -133,6 +442,7 @@ public final class SelectiveTouchSessionRepository
         try {
             operations.watch(watchedKeys);
             HashOperations<String, Object, Object> hashes = operations.opsForHash();
+            String currentPrincipal = extractPrincipalNameFromAttributes(pending.completeAttributes());
 
             if (pending.newSession()) {
                 if (Boolean.TRUE.equals(operations.hasKey(currentKey))) {
@@ -140,6 +450,8 @@ public final class SelectiveTouchSessionRepository
                 }
                 Instant effective = maximum(
                         pending.initialLastAccessedTime(), pending.approvedActivity());
+                Instant sessionExpiry = expiryFor(effective);
+                Instant reverseExpiry = sessionExpiry.plusSeconds(REVERSE_PRINCIPAL_KEY_EXPIRATION_BUFFER_SECONDS);
                 Map<Object, Object> fields = new LinkedHashMap<>();
                 fields.put(CREATION_TIME_FIELD, pending.creationTime().toEpochMilli());
                 fields.put(MAX_INACTIVE_INTERVAL_FIELD, idleTimeoutSeconds);
@@ -150,7 +462,14 @@ public final class SelectiveTouchSessionRepository
                 operations.multi();
                 transactionStarted = true;
                 hashes.putAll(currentKey, fields);
-                operations.expireAt(currentKey, expiryFor(effective));
+                operations.expireAt(currentKey, sessionExpiry);
+                operations.opsForValue().set(currentExpiredKey, "");
+                operations.expireAt(currentExpiredKey, sessionExpiry);
+                if (currentPrincipal != null && !currentPrincipal.isBlank()) {
+                    operations.opsForSet().add(getPrincipalIndexKey(currentPrincipal), pending.currentId());
+                    operations.opsForValue().set(currentReverseKey, currentPrincipal);
+                    operations.expireAt(currentReverseKey, reverseExpiry);
+                }
                 hashes.hasKey(currentKey, CREATION_TIME_FIELD);
                 List<Object> executed = operations.exec();
                 transactionStarted = false;
@@ -183,6 +502,10 @@ public final class SelectiveTouchSessionRepository
                 throw new IllegalStateException("Expired Redis session cannot be renewed");
             }
 
+            Instant sessionExpiry = expiryFor(effective);
+            Instant reverseExpiry = sessionExpiry.plusSeconds(REVERSE_PRINCIPAL_KEY_EXPIRATION_BUFFER_SECONDS);
+            String oldPrincipal = extractPrincipalNameFromHashEntries(persisted);
+
             Map<Object, Object> updates = attributeUpdates(pending.attributeUpdates());
             Set<Object> removals = attributeFields(pending.removedAttributes());
             removeTemporalFields(updates, removals);
@@ -199,6 +522,13 @@ public final class SelectiveTouchSessionRepository
             transactionStarted = true;
             if (!oldKey.equals(currentKey)) {
                 operations.rename(oldKey, currentKey);
+                operations.delete(oldExpiredKey);
+                operations.delete(oldReverseKey);
+                operations.opsForValue().set(currentExpiredKey, "");
+                operations.expireAt(currentExpiredKey, sessionExpiry);
+                if (oldPrincipal != null && !oldPrincipal.isBlank()) {
+                    operations.opsForSet().remove(getPrincipalIndexKey(oldPrincipal), pending.originalId());
+                }
             }
             if (!removals.isEmpty()) {
                 hashes.delete(currentKey, removals.toArray());
@@ -207,7 +537,24 @@ public final class SelectiveTouchSessionRepository
                 hashes.putAll(currentKey, updates);
             }
             if (pending.approvedActivity() != null) {
-                operations.expireAt(currentKey, expiryFor(effective));
+                operations.expireAt(currentKey, sessionExpiry);
+                operations.opsForValue().set(currentExpiredKey, "");
+                operations.expireAt(currentExpiredKey, sessionExpiry);
+                if (currentPrincipal != null && !currentPrincipal.isBlank()) {
+                    operations.opsForValue().set(currentReverseKey, currentPrincipal);
+                    operations.expireAt(currentReverseKey, reverseExpiry);
+                }
+            }
+            if (oldPrincipal != null && !oldPrincipal.equals(currentPrincipal)) {
+                operations.opsForSet().remove(getPrincipalIndexKey(oldPrincipal), pending.originalId());
+                operations.opsForSet().remove(getPrincipalIndexKey(oldPrincipal), pending.currentId());
+            }
+            if (currentPrincipal != null && !currentPrincipal.isBlank()) {
+                operations.opsForSet().add(getPrincipalIndexKey(currentPrincipal), pending.currentId());
+                operations.opsForValue().set(currentReverseKey, currentPrincipal);
+                operations.expireAt(currentReverseKey, reverseExpiry);
+            } else if (currentPrincipal == null) {
+                operations.delete(currentReverseKey);
             }
             hashes.hasKey(currentKey, CREATION_TIME_FIELD);
             List<Object> executed = operations.exec();
@@ -352,6 +699,14 @@ public final class SelectiveTouchSessionRepository
         return sessionKeyPrefix + Objects.requireNonNull(id, "session id must not be null");
     }
 
+    private String expiredSessionKey(String id) {
+        return expiredSessionKeyPrefix + Objects.requireNonNull(id, "session id must not be null");
+    }
+
+    private String reversePrincipalKey(String id) {
+        return reversePrincipalKeyPrefix + Objects.requireNonNull(id, "session id must not be null");
+    }
+
     private static String sessionAttributeField(String attributeName) {
         return SESSION_ATTRIBUTE_PREFIX + attributeName;
     }
@@ -362,6 +717,64 @@ public final class SelectiveTouchSessionRepository
             throw new IllegalArgumentException("namespace must not be blank");
         }
         return required.endsWith(":") ? required : required + ":";
+    }
+
+    private String getPrincipalIndexKey(String principalName) {
+        return normalizeNamespace(namespace) + "index:" + PRINCIPAL_NAME_INDEX_NAME + ":" + principalName;
+    }
+
+    private static String extractPrincipalNameFromHashEntries(Map<Object, Object> entries) {
+        if (entries == null || entries.isEmpty()) {
+            return null;
+        }
+        Object securityContext = entries.get(sessionAttributeField("SPRING_SECURITY_CONTEXT"));
+        if (securityContext instanceof SecurityContext sc && sc.getAuthentication() != null) {
+            String name = sc.getAuthentication().getName();
+            if (name != null && !name.isBlank()) {
+                return name;
+            }
+        }
+        Object principalIndex = entries.get(sessionAttributeField(PRINCIPAL_NAME_INDEX_NAME));
+        if (principalIndex instanceof String name && !name.isBlank()) {
+            return name;
+        }
+        return null;
+    }
+
+    private static String extractPrincipalName(SelectiveSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object securityContext = session.getAttribute("SPRING_SECURITY_CONTEXT");
+        if (securityContext instanceof SecurityContext sc && sc.getAuthentication() != null) {
+            String name = sc.getAuthentication().getName();
+            if (name != null && !name.isBlank()) {
+                return name;
+            }
+        }
+        Object principalIndex = session.getAttribute(PRINCIPAL_NAME_INDEX_NAME);
+        if (principalIndex instanceof String name && !name.isBlank()) {
+            return name;
+        }
+        return null;
+    }
+
+    private static String extractPrincipalNameFromAttributes(Map<String, Object> attributes) {
+        if (attributes == null || attributes.isEmpty()) {
+            return null;
+        }
+        Object securityContext = attributes.get("SPRING_SECURITY_CONTEXT");
+        if (securityContext instanceof SecurityContext sc && sc.getAuthentication() != null) {
+            String name = sc.getAuthentication().getName();
+            if (name != null && !name.isBlank()) {
+                return name;
+            }
+        }
+        Object principalIndex = attributes.get(PRINCIPAL_NAME_INDEX_NAME);
+        if (principalIndex instanceof String name && !name.isBlank()) {
+            return name;
+        }
+        return null;
     }
 
     public final class SelectiveSession implements Session {

@@ -3,26 +3,35 @@ package br.com.betufu.platform.session;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.session.SessionRepository;
-import org.springframework.session.data.redis.RedisSessionRepository;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
 
 @Configuration(proxyBeanMethods = false)
 public class SessionSecurityConfiguration {
 
     private static final String SESSION_REPOSITORY_BEAN_NAME = "sessionRepository";
+    private static final String REDIS_LISTENER_CONTAINER_BEAN_NAME =
+            "springSessionRedisMessageListenerContainer";
     private static final String REDIS_SESSION_AUTO_CONFIGURATION =
             "org.springframework.boot.session.data.redis.autoconfigure."
                     + "SessionDataRedisAutoConfiguration";
@@ -65,13 +74,23 @@ public class SessionSecurityConfiguration {
     }
 
     static final class SelectiveRepositoryPostProcessor
-            implements BeanPostProcessor, SmartInitializingSingleton, Ordered {
+            implements BeanPostProcessor, SmartInitializingSingleton, BeanFactoryAware, Ordered {
 
         private final Environment environment;
         private final AtomicInteger compatibleDelegates = new AtomicInteger();
+        private ConfigurableListableBeanFactory beanFactory;
+        private RedisIndexedSessionRepository redisDelegate;
+        private SelectiveTouchSessionRepository selectiveRepository;
 
         private SelectiveRepositoryPostProcessor(Environment environment) {
             this.environment = Objects.requireNonNull(environment, "environment must not be null");
+        }
+
+        @Override
+        public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+            if (beanFactory instanceof ConfigurableListableBeanFactory listableBeanFactory) {
+                this.beanFactory = listableBeanFactory;
+            }
         }
 
         @Override
@@ -81,7 +100,7 @@ public class SessionSecurityConfiguration {
                 return bean;
             }
             if (!SESSION_REPOSITORY_BEAN_NAME.equals(beanName)
-                    || !(bean instanceof RedisSessionRepository redisDelegate)) {
+                    || !(bean instanceof RedisIndexedSessionRepository delegate)) {
                 throw new IllegalStateException(
                         "Expected exactly the official Redis bean named sessionRepository");
             }
@@ -90,11 +109,13 @@ public class SessionSecurityConfiguration {
             }
 
             String namespace = environment.getProperty("spring.session.data.redis.namespace");
-            Duration timeout = environment.getProperty("spring.session.timeout", Duration.class);
+            Duration timeout = Binder.get(environment)
+                    .bind("spring.session.timeout", Duration.class)
+                    .orElse(null);
             requireProperty(EXPECTED_NAMESPACE.equals(namespace), "Redis session namespace");
             requireProperty(SessionPolicy.IDLE_TIMEOUT.equals(timeout), "Redis session timeout");
             requireProperty(
-                    propertyEquals("spring.session.data.redis.repository-type", "default"),
+                    propertyEquals("spring.session.data.redis.repository-type", "indexed"),
                     "Redis repository type");
             requireProperty(
                     propertyEquals("spring.session.data.redis.flush-mode", "on-save"),
@@ -102,17 +123,55 @@ public class SessionSecurityConfiguration {
             requireProperty(
                     propertyEquals("spring.session.data.redis.save-mode", "on-set-attribute"),
                     "Redis save mode");
-            return new SelectiveTouchSessionRepository(redisDelegate, namespace, timeout);
+            if (beanFactory != null) {
+                beanFactory.registerResolvableDependency(
+                        RedisIndexedSessionRepository.class, delegate);
+            }
+            this.redisDelegate = delegate;
+            this.selectiveRepository = new SelectiveTouchSessionRepository(delegate, namespace, timeout);
+            return this.selectiveRepository;
         }
 
         @Override
         public void afterSingletonsInstantiated() {
             int count = compatibleDelegates.get();
-            if (count == 1 || (count == 0 && redisSessionAutoConfigurationIsExcluded())) {
+            if (count == 0 && redisSessionAutoConfigurationIsExcluded()) {
                 return;
             }
-            throw new IllegalStateException(
-                    "Expected exactly one compatible Redis session repository, found " + count);
+            if (count != 1) {
+                throw new IllegalStateException(
+                        "Expected exactly one compatible Redis session repository, found " + count);
+            }
+            if (beanFactory == null) {
+                throw new IllegalStateException("BeanFactory must be available to rewire RedisMessageListenerContainer");
+            }
+
+            if (!beanFactory.containsBean(REDIS_LISTENER_CONTAINER_BEAN_NAME)) {
+                throw new IllegalStateException(
+                        "Expected bean named " + REDIS_LISTENER_CONTAINER_BEAN_NAME + " to be present");
+            }
+            Object containerBean;
+            try {
+                containerBean = beanFactory.getBean(REDIS_LISTENER_CONTAINER_BEAN_NAME);
+            } catch (BeansException ex) {
+                throw new IllegalStateException(
+                        "Failed to obtain bean " + REDIS_LISTENER_CONTAINER_BEAN_NAME, ex);
+            }
+            if (!(containerBean instanceof RedisMessageListenerContainer container)) {
+                throw new IllegalStateException(
+                        "Bean " + REDIS_LISTENER_CONTAINER_BEAN_NAME
+                                + " is not of expected type RedisMessageListenerContainer");
+            }
+
+            container.removeMessageListener(this.redisDelegate);
+            container.addMessageListener(
+                    this.selectiveRepository,
+                    List.of(
+                            new PatternTopic(this.redisDelegate.getSessionExpiredChannel()),
+                            new PatternTopic(this.redisDelegate.getSessionDeletedChannel()),
+                            new PatternTopic(this.redisDelegate.getSessionCreatedChannelPrefix() + "*")));
+
+            this.selectiveRepository.startReconciliation();
         }
 
         @Override

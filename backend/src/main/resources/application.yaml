@@ -54,7 +54,7 @@ spring:
     data:
       redis:
         namespace: betufu:session
-        repository-type: default
+        repository-type: indexed
         flush-mode: on-save
         save-mode: on-set-attribute
   data:

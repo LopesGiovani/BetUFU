@@ -981,7 +981,7 @@ function assertRedisSessionContract(applicationConfigurations, environment, pom)
   for (const [path, expected] of [
     ['spring.session.timeout', '8h'],
     ['spring.session.data.redis.namespace', 'betufu:session'],
-    ['spring.session.data.redis.repository-type', 'default'],
+    ['spring.session.data.redis.repository-type', 'indexed'],
     ['spring.session.data.redis.flush-mode', 'on-save'],
     ['spring.session.data.redis.save-mode', 'on-set-attribute'],
   ]) {

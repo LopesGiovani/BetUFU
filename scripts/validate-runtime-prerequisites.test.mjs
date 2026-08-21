@@ -918,7 +918,7 @@ test('rejeita override Secure do cookie em profile dev', async () => {
 for (const [label, approved, drift] of [
   ['timeout', 'timeout: 8h', 'timeout: 7h'],
   ['namespace', 'namespace: betufu:session', 'namespace: unsafe:session'],
-  ['repository-type', 'repository-type: default', 'repository-type: indexed'],
+  ['repository-type', 'repository-type: indexed', 'repository-type: default'],
   ['flush-mode', 'flush-mode: on-save', 'flush-mode: immediate'],
   ['save-mode', 'save-mode: on-set-attribute', 'save-mode: always'],
 ]) {
