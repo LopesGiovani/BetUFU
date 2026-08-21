@@ -74,6 +74,68 @@ paths:
               schema:
                 $ref: "#/components/schemas/CurrentDeviceLogoutResponse"
 
+  /api/v1/profile/me:
+    get:
+      tags:
+        - Profile
+      operationId: getMyProfile
+      summary: Consultar o perfil da conta autenticada atual
+      description: >-
+        Retorna a projeção pública do perfil BETUFU associado à sessão BFF
+        autenticada atual, conforme PROF-01, PROF-02 e PRIV-01. Não expõe e-mail,
+        matrícula, HMAC, papéis ou MFA. Retorna 404 se a identidade ainda não
+        possuir perfil criado.
+      responses:
+        "200":
+          description: Perfil próprio consultado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentProfileResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "404":
+          description: Perfil não encontrado para a identidade atual.
+    put:
+      tags:
+        - Profile
+      operationId: putMyProfile
+      summary: Criar ou atualizar o apelido do perfil próprio
+      description: >-
+        Cria o perfil ou atualiza o apelido da conta autenticada atual,
+        respeitando a regra de cooldown de 30 dias entre trocas reais e
+        idempotência ao reenviar o mesmo apelido (PROF-01, D-45). Valida o
+        formato de 3 a 20 caracteres ASCII permitidos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdateRequest"
+      responses:
+        "200":
+          description: Perfil próprio criado ou atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentProfileResponse"
+        "400":
+          description: Requisição inválida ou violação de formato do apelido.
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "422":
+          description: Violação da regra de negócio (ex. cooldown de 30 dias ativo).
+
   /api/v1/diagnostic:
     get:
       tags:
@@ -122,6 +184,45 @@ components:
         updatedAt:
           type: string
           format: date-time
+
+    CurrentProfileResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - identityId
+        - nickname
+        - nicknameUpdatedAt
+        - matriculaStatus
+      properties:
+        identityId:
+          type: string
+          format: uuid
+          description: Identificador opaco da identidade BETUFU.
+        nickname:
+          type: string
+          description: Apelido público do usuário (3 a 20 caracteres ASCII).
+        nicknameUpdatedAt:
+          type: [string, "null"]
+          format: date-time
+          description: Instante em UTC da última alteração do apelido, ou nulo se nunca alterado.
+        matriculaStatus:
+          type: string
+          description: Estado de verificação de vínculo institucional.
+
+    ProfileUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - nickname
+      properties:
+        nickname:
+          type: string
+          minLength: 3
+          pattern: '^[\x00-\x20]*[A-Za-z0-9_-]{3,20}[\x00-\x20]*(?![\s\S])'
+          description: >-
+            Apelido desejado com 3 a 20 caracteres (ASCII letras, números,
+            hífen ou sublinhado); caracteres de U+0000 a U+0020 nas pontas são
+            removidos antes da validação, como em String.trim() no Java.
 
     SessionStateResponse:
       type: object
