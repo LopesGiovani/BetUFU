@@ -6,7 +6,7 @@ nyquist_compliant: true
 wave_0_complete: false
 evidence_state: planned-not-run
 created: 2026-08-19
-updated: 2026-08-20
+updated: 2026-08-21
 ---
 
 # Phase 02 — Validation Strategy
@@ -47,9 +47,9 @@ updated: 2026-08-20
 | 02-04-T2 | AUDT-01; AUDT-02; D-40 | leitura automatizada precede a decisão conjunta de segregação e retenção | solução que cubra apenas um lado bloqueia plano/fase | PLANNED — NOT RUN |
 | 02-21-T1 | AUDT-01; AUDT-02; D-40 | `AuditEventIT`, `AuditImmutabilityIT`, `FlywayMigrationIT` e `FlywayChecksumIT` cobrem append-only, trigger, partição e minimização | remover o trigger, gravar segredo/PII ou permitir update/delete deve falhar | PLANNED — NOT RUN |
 | 02-21-T2 | AUDT-01; AUDT-02; D-40 | verificador do procedimento cobre acesso, retenção e expurgo aprovados | omitir prazo, responsável ou segregação deve falhar | PLANNED — NOT RUN |
-| 02-05-T1 | PROF-01; PROF-02; UI S1 | `profile-api.adapter.spec.ts` e `profile-gate-page.component.spec.ts` cobrem os estados do perfil, ausência de `HttpClient` no componente e rota apenas de desenvolvimento | adapter/gate ausente ou componente acoplado a `HttpClient` começa RED; rota de produção e validadores permanecem inalterados por hash | PLANNED — NOT RUN |
-| 02-05-T2 | PROF-01; PROF-02; UI S1 | a suíte frontend verde é a pré-condição automatizada da revisão humana entre os dois blocos | sem aprovação explícita do bloco de fronteira de produção, 02-05-T3 não começa | PLANNED — NOT RUN |
-| 02-05-T3 | PROF-01; PROF-02; UI S1 | `validate-angular-route-boundary.test.mjs`, o validador de fronteira, build de produção e suítes completas cobrem a primeira rota publicada | cada uma das quatro mutações de rota/propriedade deve tornar o validador vermelho e ser restaurada por hash | PLANNED — NOT RUN |
+| 02-05-T1 | PROF-01; PROF-02; UI S1 | `profile-api.adapter.spec.ts` e `profile-gate-page.component.spec.ts` cobrem estados, foco, privacidade, preservação do valor e navegação contratual | RED inicial observado; Angular agregado 69/69 e ausência de `HttpClient` direto confirmada | PASS — 2026-08-21 |
+| 02-05-T2 | PROF-01; PROF-02; UI S1 | revisão humana em 320 px e desktop cobre foco, overflow, cópia, estados e ausência de navegação indevida | screenshots finais aprovados; nenhum resíduo de apelido permaneceu no banco | PASS — 2026-08-21 |
+| 02-05-T3 | PROF-01; PROF-02; UI S1 | validador focal, build de produção e suítes completas cobrem a primeira rota publicada | quatro mutações observaram vermelho; validador 158/158, Node 529/529, Maven 307/307; guard do tracer preservado por hash | PASS — 2026-08-21 |
 | 02-06-T1 | VERI-06; PRIV-01; D-26 | leitura automatizada das fontes precede a decisão do regex normalizado | ausência de regex literal aprovado mantém a decisão aberta e bloqueia a implementação | PLANNED — NOT RUN |
 | 02-06-T2 | VERI-06; PRIV-01; D-26, D-48, D-52 | `MatriculaNormalizerTest`, `MatriculaHmacTest`, `HmacKeyFailClosedTest` e `validate-runtime-prerequisites.test.mjs` cobrem formato e chave dedicada/versionada | trocar locale, usar dado bruto, aceitar fallback ou tolerar chave ausente deve falhar | PLANNED — NOT RUN |
 | 02-22-T1 | PRIV-01; VERI-06; D-48 | `PrivacyArchitectureTest` impede matrícula/digest em logger, DTO, URL e mensagem de exceção | cada um dos quatro violadores sintéticos deve tornar a regra vermelha e ser removido | PLANNED — NOT RUN |

@@ -184,7 +184,7 @@ Plans:
 
 - **Wave 1** *(concluída: 02-01, 02-02 e 02-03 implementados, verificados e revisados)*: 02-01, 02-02, 02-03
 - **Wave 2** *(concluída: 02-04, 02-06 e 02-14 implementados, verificados, revisados e integrados)*: 02-04, 02-06, 02-14
-- **Wave 3** *(em andamento: 02-09 implementado, verificado e formalizado; 02-05 e 02-21 pendentes)*: 02-05, 02-09, 02-21
+- **Wave 3** *(parcial: 02-05 e 02-09 implementados, verificados, formalizados e integrados; 02-21 em execução no worktree)*: 02-05, 02-09, 02-21
 - **Wave 4**: 02-11, 02-15, 02-22
 - **Wave 5**: 02-07, 02-24
 - **Wave 6**: 02-08, 02-16
@@ -296,7 +296,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 17/29 | In Progress | - |
-| 2. Contas, Verificação e Operações Governadas | 7/25 | In Progress | - |
+| 2. Contas, Verificação e Operações Governadas | 8/25 | In Progress | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |

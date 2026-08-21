@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Plano 02-09 formalizado; Wave 3 em andamento com 02-05 e 02-21 pendentes"
-last_updated: "2026-08-21T14:28:10-03:00"
+stopped_at: "Fase 2: Planos 02-05 e 02-09 concluídos; 02-21 em execução no worktree"
+last_updated: "2026-08-21T16:36:54-03:00"
 last_activity: 2026-08-21
-last_activity_desc: "Plano 02-09 implementado, revisado, testado e formalizado no worktree; commit e integração pendentes."
+last_activity_desc: "Planos 02-05 e 02-09 implementados, revisados, testados, formalizados e integrados localmente; 02-21 permanece em execução."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 56
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Estado do Projeto
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 7 of 25 (`02-01`, `02-02`, `02-03`, `02-04`, `02-06`, `02-09` e `02-14` concluídos)
-Status: In Progress — Waves 1 e 2 concluídas; Wave 3 em andamento, com `02-09` formalizado e `02-05`/`02-21` pendentes.
-Last activity: 2026-08-21 — `02-09` entregou enumeração e encerramento governado de sessões por identidade com índice Redis reconciliável.
+Plan: 8 of 25 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09` e `02-14` concluídos)
+Status: In Progress — Waves 1 e 2 concluídas; Wave 3 parcial, com `02-05` e `02-09` concluídos e `02-21` em execução no worktree.
+Last activity: 2026-08-21 — `02-05` entregou o gate S1 e publicou a primeira rota de produto sob fronteira de produção fechada.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: `master` contém os Planos 02-03, 02-04, 02-06 e 02-14 integrados localmente e permanece sem push. O Plano 02-09 está formalizado apenas no worktree `02-09`, ainda sem stage ou commit.
+Git: `master` contém os Planos 02-03, 02-04, 02-05, 02-06, 02-09 e 02-14 integrados localmente e permanece sem push. O commit técnico do 02-05 é `41adbdc`; esta atualização administrativa forma o commit documental subsequente, cujo próprio hash não cabe dentro dele.
 
 | Commit | Conteúdo |
 |---|---|
@@ -41,7 +41,7 @@ Git: `master` contém os Planos 02-03, 02-04, 02-06 e 02-14 integrados localment
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [███░░░░░░░] 7/25 planos da Fase 2 (28%)
+Progress: [███░░░░░░░] 8/25 planos da Fase 2 (32%)
 
 ## Métricas de desempenho
 
@@ -170,6 +170,6 @@ Progress: [███░░░░░░░] 7/25 planos da Fase 2 (28%)
 
 ## Session Continuity
 
-Last session: 2026-08-21T14:28:10-03:00
-Stopped at: Plano 02-09 formalizado; Wave 3 em andamento com 02-05 e 02-21 pendentes
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-09-SUMMARY.md
+Last session: 2026-08-21T16:36:54-03:00
+Stopped at: Planos 02-05 e 02-09 concluídos; 02-21 em execução no worktree
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-21-PLAN.md
