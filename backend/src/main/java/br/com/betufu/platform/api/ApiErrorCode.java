@@ -18,6 +18,24 @@ public enum ApiErrorCode {
             "Um ou mais campos estão inválidos.",
             "Corrija os campos indicados e tente novamente."),
 
+    UNAUTHORIZED(
+            "BETUFU-401-UNAUTHORIZED",
+            "Sessão expirada",
+            "Sua sessão expirou.",
+            "Entre novamente para continuar."),
+
+    FORBIDDEN(
+            "BETUFU-403-FORBIDDEN",
+            "Sem autorização",
+            "Você não tem acesso a esta área.",
+            "Retorne à página inicial."),
+
+    SELF_GRANT_BLOCKED(
+            "BETUFU-403-SELF_GRANT_BLOCKED",
+            "Autoconcessão bloqueada",
+            "Você não pode conceder papéis a si mesmo.",
+            "Peça a outro administrador geral."),
+
     METHOD_NOT_ALLOWED(
             "BETUFU-405-METHOD",
             "Método não permitido",
@@ -30,11 +48,47 @@ public enum ApiErrorCode {
             "O formato solicitado não está disponível.",
             "Verifique o cabeçalho Accept da requisição."),
 
+    MATRICULA_ALREADY_REGISTERED(
+            "BETUFU-409-MATRICULA_DUPLICADA",
+            "Matrícula já registrada",
+            "Esta matrícula já está registrada em outra conta BETUFU.",
+            "Se ela é sua, fale com um administrador geral para pedir a correção."),
+
+    ACCOUNT_ALREADY_ENROLLED(
+            "BETUFU-409-CONTA_JA_VINCULADA",
+            "Conta já possui matrícula",
+            "Sua conta já tem uma matrícula registrada.",
+            "Só um administrador geral pode alterá-la."),
+
+    LAST_ADMIN_REVOCATION_BLOCKED(
+            "BETUFU-409-LAST_ADMIN",
+            "Último administrador geral",
+            "Você é o único administrador geral.",
+            "Conceda o papel a outra pessoa antes de revogar o seu."),
+
+    CORRECTION_MATRICULA_ALREADY_REGISTERED(
+            "BETUFU-409-NOVA_MATRICULA_DUPLICADA",
+            "Nova matrícula já registrada",
+            "A nova matrícula já está registrada em outra conta.",
+            "A correção não foi aplicada."),
+
     UNSUPPORTED_MEDIA_TYPE(
             "BETUFU-415-MEDIA_TYPE",
             "Formato não aceito",
             "O formato enviado não é aceito.",
             "Verifique o cabeçalho Content-Type da requisição."),
+
+    NICKNAME_COOLDOWN_ACTIVE(
+            "BETUFU-422-NICKNAME_COOLDOWN",
+            "Intervalo de troca de apelido",
+            "O intervalo mínimo entre trocas de apelido ainda não foi cumprido.",
+            "Aguarde o prazo mínimo de 30 dias para realizar uma nova troca."),
+
+    TOO_MANY_ATTEMPTS(
+            "BETUFU-429-TOO_MANY_ATTEMPTS",
+            "Muitas tentativas",
+            "Muitas tentativas de registro.",
+            "Aguarde alguns minutos e tente novamente."),
 
     INTERNAL_ERROR(
             "BETUFU-500-INTERNAL",
@@ -79,9 +133,13 @@ public enum ApiErrorCode {
     public static ApiErrorCode fromStatus(int status) {
         return switch (status) {
             case 400 -> VALIDATION_FAILED;
+            case 401 -> UNAUTHORIZED;
+            case 403 -> FORBIDDEN;
             case 405 -> METHOD_NOT_ALLOWED;
             case 406 -> NOT_ACCEPTABLE;
             case 415 -> UNSUPPORTED_MEDIA_TYPE;
+            case 422 -> NICKNAME_COOLDOWN_ACTIVE;
+            case 429 -> TOO_MANY_ATTEMPTS;
             default -> INTERNAL_ERROR;
         };
     }

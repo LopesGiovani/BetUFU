@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -17,9 +18,11 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 public final class ValidActivityFilter extends OncePerRequestFilter {
 
-    private static final RequestMatcher CURRENT_IDENTITY_UPDATE =
+    private static final List<RequestMatcher> ALLOWLISTED_MUTATIONS = List.of(
             PathPatternRequestMatcher.withDefaults().matcher(
-                    HttpMethod.PUT, "/api/v1/tracer/identity/current");
+                    HttpMethod.PUT, "/api/v1/tracer/identity/current"),
+            PathPatternRequestMatcher.withDefaults().matcher(
+                    HttpMethod.PUT, "/api/v1/profile/me"));
 
     private final SessionLifecycleService sessionLifecycleService;
 
@@ -31,7 +34,12 @@ public final class ValidActivityFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !CURRENT_IDENTITY_UPDATE.matches(request);
+        for (RequestMatcher matcher : ALLOWLISTED_MUTATIONS) {
+            if (matcher.matches(request)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

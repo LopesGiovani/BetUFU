@@ -8,20 +8,27 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -33,6 +40,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -74,6 +82,7 @@ class ProblemDetailsIT {
     private static final String EXPLODE_PATH = "/api/v1/error-probe/explode";
     private static final String EMPTY_ERROR_PATH = "/api/v1/error-probe/empty-error";
     private static final String CONTROL_CHARS_PATH = "/api/v1/error-probe/control-chars";
+    private static final String DATA_INTEGRITY_PATH = "/api/v1/error-probe/data-integrity";
 
     @Autowired
     private WebApplicationContext context;
@@ -195,6 +204,134 @@ class ProblemDetailsIT {
                 .andExpect(jsonPath("$.correlationId").doesNotExist());
     }
 
+    @Test
+    void validationErrorNeverLeaksRejectedValueInResponseBody() throws Exception {
+        String sensitiveInvalidEmail = "sensitive-secret-token-without-at-sign";
+
+        MvcResult result = mockMvc.perform(post(VALIDATE_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"valid-name\",\"email\":\"" + sensitiveInvalidEmail + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.code").value("BETUFU-400-VALIDATION"))
+                .andExpect(jsonPath("$.fieldErrors").isArray())
+                .andReturn();
+
+        assertThat(result.getResponse().getContentAsString())
+                .doesNotContain(sensitiveInvalidEmail);
+    }
+
+    @Test
+    void unsupportedMediaTypeProducesStableCode() throws Exception {
+        mockMvc.perform(post(VALIDATE_PATH)
+                        .contentType(MediaType.APPLICATION_XML)
+                        .content("<probe/>"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(415))
+                .andExpect(jsonPath("$.code").value("BETUFU-415-MEDIA_TYPE"))
+                .andExpect(jsonPath("$.title").value("Formato não aceito"))
+                .andExpect(jsonPath("$.action").value("Verifique o cabeçalho Content-Type da requisição."));
+    }
+
+    @Test
+    void apiErrorCodeEnumSatisfiesStabilityContract() {
+        for (ApiErrorCode errorCode : ApiErrorCode.values()) {
+            assertThat(errorCode.code()).startsWith("BETUFU-").isNotBlank();
+            assertThat(errorCode.title()).isNotBlank();
+            assertThat(errorCode.detail()).isNotBlank();
+            assertThat(errorCode.action()).isNotBlank();
+        }
+
+        assertThat(ApiErrorCode.VALIDATION_FAILED.code()).isEqualTo("BETUFU-400-VALIDATION");
+        assertThat(ApiErrorCode.METHOD_NOT_ALLOWED.code()).isEqualTo("BETUFU-405-METHOD");
+        assertThat(ApiErrorCode.NOT_ACCEPTABLE.code()).isEqualTo("BETUFU-406-NOT_ACCEPTABLE");
+        assertThat(ApiErrorCode.UNSUPPORTED_MEDIA_TYPE.code()).isEqualTo("BETUFU-415-MEDIA_TYPE");
+        assertThat(ApiErrorCode.INTERNAL_ERROR.code()).isEqualTo("BETUFU-500-INTERNAL");
+
+        assertThat(ApiErrorCode.fromStatus(400)).isEqualTo(ApiErrorCode.VALIDATION_FAILED);
+        assertThat(ApiErrorCode.fromStatus(401)).isEqualTo(ApiErrorCode.UNAUTHORIZED);
+        assertThat(ApiErrorCode.fromStatus(403)).isEqualTo(ApiErrorCode.FORBIDDEN);
+        assertThat(ApiErrorCode.fromStatus(405)).isEqualTo(ApiErrorCode.METHOD_NOT_ALLOWED);
+        assertThat(ApiErrorCode.fromStatus(406)).isEqualTo(ApiErrorCode.NOT_ACCEPTABLE);
+        assertThat(ApiErrorCode.fromStatus(415)).isEqualTo(ApiErrorCode.UNSUPPORTED_MEDIA_TYPE);
+        assertThat(ApiErrorCode.fromStatus(422)).isEqualTo(ApiErrorCode.NICKNAME_COOLDOWN_ACTIVE);
+        assertThat(ApiErrorCode.fromStatus(429)).isEqualTo(ApiErrorCode.TOO_MANY_ATTEMPTS);
+        assertThat(ApiErrorCode.fromStatus(500)).isEqualTo(ApiErrorCode.INTERNAL_ERROR);
+        assertThat(ApiErrorCode.fromStatus(999)).isEqualTo(ApiErrorCode.INTERNAL_ERROR);
+    }
+
+    @Test
+    void dataIntegrityExceptionNeverLeaksRawMessageOrDatabaseDetails() throws Exception {
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        rootLogger.addAppender(listAppender);
+
+        try {
+            MvcResult result = mockMvc.perform(get(DATA_INTEGRITY_PATH))
+                    .andExpect(status().isInternalServerError())
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                    .andExpect(jsonPath("$.status").value(500))
+                    .andExpect(jsonPath("$.code").value("BETUFU-500-INTERNAL"))
+                    .andExpect(jsonPath("$.title").value("Erro interno"))
+                    .andExpect(jsonPath("$.detail").value("Ocorreu um erro inesperado."))
+                    .andExpect(jsonPath("$.action").value("Tente novamente mais tarde."))
+                    .andReturn();
+
+            String body = result.getResponse().getContentAsString();
+            String capturedLogs = listAppender.list.stream()
+                    .map(event -> event.getFormattedMessage()
+                            + " "
+                            + (event.getThrowableProxy() == null
+                                    ? ""
+                                    : event.getThrowableProxy().getMessage()))
+                    .collect(Collectors.joining("\n"));
+
+            assertThat(body)
+                    .doesNotContain("matricula_hmac")
+                    .doesNotContain("sensitive-raw-column-value")
+                    .doesNotContain("betufu_profile")
+                    .doesNotContain("uq_betufu_profile_identity")
+                    .doesNotContain("DataIntegrityViolationException")
+                    .doesNotContain("constraint");
+            assertThat(capturedLogs)
+                    .doesNotContain("matricula_hmac")
+                    .doesNotContain("sensitive-raw-column-value")
+                    .doesNotContain("betufu_profile")
+                    .doesNotContain("uq_betufu_profile_identity")
+                    .doesNotContain("constraint");
+        } finally {
+            rootLogger.detachAppender(listAppender);
+            listAppender.stop();
+        }
+    }
+
+    @Test
+    void validActivityFilterAllowlistMatchesOnlyApprovedMutations() {
+        br.com.betufu.platform.session.ValidActivityFilter filter =
+                new br.com.betufu.platform.session.ValidActivityFilter(
+                        org.mockito.Mockito.mock(br.com.betufu.platform.session.SessionLifecycleService.class));
+
+        assertThat(matchesAllowlist(filter, "PUT", "/api/v1/tracer/identity/current")).isTrue();
+        assertThat(matchesAllowlist(filter, "PUT", "/api/v1/profile/me")).isTrue();
+
+        assertThat(matchesAllowlist(filter, "POST", "/api/v1/profile/me")).isFalse();
+        assertThat(matchesAllowlist(filter, "GET", "/api/v1/profile/me")).isFalse();
+        assertThat(matchesAllowlist(filter, "GET", "/api/v1/session")).isFalse();
+        assertThat(matchesAllowlist(filter, "POST", "/api/v1/tracer/identity/current")).isFalse();
+        assertThat(matchesAllowlist(filter, "DELETE", "/api/v1/profile/me")).isFalse();
+        assertThat(matchesAllowlist(filter, "GET", "/actuator/health/liveness")).isFalse();
+        assertThat(matchesAllowlist(filter, "PUT", "/api/v1/other")).isFalse();
+    }
+
+    private boolean matchesAllowlist(
+            br.com.betufu.platform.session.ValidActivityFilter filter, String method, String path) {
+        Boolean shouldNotFilter = ReflectionTestUtils.invokeMethod(
+                filter, "shouldNotFilter", new MockHttpServletRequest(method, path));
+        return Boolean.FALSE.equals(shouldNotFilter);
+    }
+
     // ── Probe controller ──────────────────────────────────────────────────────
 
     @RestController
@@ -225,6 +362,12 @@ class ProblemDetailsIT {
         @GetMapping(CONTROL_CHARS_PATH)
         ResponseEntity<Void> controlChars() {
             throw new RuntimeException("leaked\u0000secret\rinternal\ndetail");
+        }
+
+        @GetMapping(DATA_INTEGRITY_PATH)
+        ResponseEntity<Void> dataIntegrity() {
+            throw new DataIntegrityViolationException(
+                    "Key (matricula_hmac)=(sensitive-raw-column-value) already exists in table betufu_profile constraint uq_betufu_profile_identity");
         }
     }
 

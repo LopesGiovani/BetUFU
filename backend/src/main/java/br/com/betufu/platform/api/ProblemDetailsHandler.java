@@ -82,6 +82,17 @@ public class ProblemDetailsHandler extends ResponseEntityExceptionHandler {
                 .body(problem);
     }
 
+    /** Converts a domain rejection into its stable, non-sensitive public representation. */
+    @ExceptionHandler(ApiProblemException.class)
+    public ResponseEntity<ProblemDetail> handleApiProblem(ApiProblemException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(ex.status());
+        enrich(problem, ex.errorCode());
+
+        return ResponseEntity.status(ex.status())
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problem);
+    }
+
     // ── Catch-all (500) ───────────────────────────────────────────────────────
 
     /**
@@ -102,7 +113,7 @@ public class ProblemDetailsHandler extends ResponseEntityExceptionHandler {
         }
 
         if (logger.isErrorEnabled()) {
-            logger.error("Unhandled exception", ex);
+            logger.error("Unhandled exception type: " + ex.getClass().getName());
         }
 
         ApiErrorCode errorCode = ApiErrorCode.INTERNAL_ERROR;

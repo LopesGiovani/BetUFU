@@ -112,6 +112,7 @@ class RedisSessionIT {
 
     private static final String CURRENT_IDENTITY_PATH =
             "/api/v1/tracer/identity/current";
+    private static final String PROFILE_ME_PATH = "/api/v1/profile/me";
     private static final String OAUTH_CALLBACK_PATH = "/login/oauth2/code/keycloak";
     private static final String SESSION_COOKIE_NAME = "SESSION";
     private static final String XSRF_COOKIE_NAME = "XSRF-TOKEN";
@@ -320,6 +321,37 @@ class RedisSessionIT {
 
         long idempotentPttl = pttl(session.getId());
         assertThat(idempotentPttl).isPositive().isLessThanOrEqualTo(firstRenewedPttl);
+        assertThat(lastValidActivity(repository.findById(session.getId())))
+                .isEqualTo(approvedAt);
+    }
+
+    @Test
+    void profilePutRenewsOnlyAfterSuccessfulAuthenticatedMutation() throws Exception {
+        SelectiveTouchSessionRepository.SelectiveSession session = createLifecycleSession();
+        shortenTtl(session.getId());
+        Cookie cookie = sessionCookie(session.getId());
+        Cookie xsrfCookie = materializeXsrfWithoutRenewing(session.getId(), cookie);
+        Instant initialActivity = lastValidActivity(repository.findById(session.getId()));
+
+        MvcResult rejected = assertDoesNotRenew(
+                session.getId(),
+                authenticatedWithXsrf(
+                        put(PROFILE_ME_PATH).header("X-Test-Status", "422"),
+                        cookie,
+                        xsrfCookie));
+        assertThat(rejected.getResponse().getStatus()).isEqualTo(422);
+        assertThat(lastValidActivity(repository.findById(session.getId())))
+                .isEqualTo(initialActivity);
+
+        long shortenedPttl = pttl(session.getId());
+        Instant approvedAt = Instant.now().plusSeconds(1);
+        clock.set(approvedAt);
+        mockMvc.perform(authenticatedWithXsrf(put(PROFILE_ME_PATH), cookie, xsrfCookie))
+                .andExpect(status().isNoContent());
+
+        long renewedPttl = pttl(session.getId());
+        assertThat(renewedPttl).isGreaterThan(shortenedPttl);
+        assertPttlMatchesDeadline(renewedPttl, approvedAt.plus(SessionPolicy.IDLE_TIMEOUT));
         assertThat(lastValidActivity(repository.findById(session.getId())))
                 .isEqualTo(approvedAt);
     }
@@ -721,6 +753,13 @@ class RedisSessionIT {
             Integer mutations = (Integer) session.getAttribute("betufu.it.mutations");
             session.setAttribute("betufu.it.mutations", mutations == null ? 1 : mutations + 1);
             return ResponseEntity.noContent().build();
+        }
+
+        @PutMapping(PROFILE_ME_PATH)
+        ResponseEntity<Void> updateProfile(
+                HttpSession session,
+                @RequestHeader(name = "X-Test-Status", required = false) Integer forcedStatus) {
+            return updateCurrentIdentity(session, forcedStatus);
         }
 
         @GetMapping("/api/v1/session")

@@ -1,13 +1,17 @@
 package br.com.betufu.platform.security;
 
+import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.session.OidcLogoutSuccessHandler;
 import br.com.betufu.platform.session.SessionLifecycleService;
 import br.com.betufu.platform.session.ValidActivityFilter;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +36,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.ObjectMapper;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
@@ -149,6 +154,7 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
+            ObjectMapper objectMapper,
             CookieCsrfTokenRepository csrfTokenRepository,
             CorsConfigurationSource corsConfigurationSource,
             OidcTechnicalAuthorityMapper oidcTechnicalAuthorityMapper,
@@ -163,27 +169,19 @@ public class SecurityConfiguration {
                     "Session lifecycle and valid-activity filter must be configured together");
         }
 
-        AuthenticationEntryPoint problemDetailsEntryPoint = (request, response, authException) -> {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/problem+json");
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.getWriter().write(
-                    "{\"type\":\"about:blank\","
-                            + "\"title\":\"Unauthorized\","
-                            + "\"status\":401,"
-                            + "\"detail\":\"Authentication is required to access this resource\"}");
-        };
+        AuthenticationEntryPoint problemDetailsEntryPoint = (request, response, authException) ->
+                writeProblemDetails(
+                        response,
+                        objectMapper,
+                        HttpServletResponse.SC_UNAUTHORIZED,
+                        ApiErrorCode.UNAUTHORIZED);
 
-        AccessDeniedHandler problemDetailsAccessDeniedHandler = (request, response, accessDeniedException) -> {
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            response.setContentType("application/problem+json");
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.getWriter().write(
-                    "{\"type\":\"about:blank\","
-                            + "\"title\":\"Forbidden\","
-                            + "\"status\":403,"
-                            + "\"detail\":\"Access denied or invalid CSRF token\"}");
-        };
+        AccessDeniedHandler problemDetailsAccessDeniedHandler = (request, response, accessDeniedException) ->
+                writeProblemDetails(
+                        response,
+                        objectMapper,
+                        HttpServletResponse.SC_FORBIDDEN,
+                        ApiErrorCode.FORBIDDEN);
 
         RequestMatcher apiOrProblemMatcher = request -> {
             String accept = request.getHeader("Accept");
@@ -266,5 +264,24 @@ public class SecurityConfiguration {
         }
 
         return http.build();
+    }
+
+    private static void writeProblemDetails(
+            HttpServletResponse response,
+            ObjectMapper objectMapper,
+            int status,
+            ApiErrorCode errorCode) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/problem+json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("type", "about:blank");
+        body.put("title", errorCode.title());
+        body.put("status", status);
+        body.put("detail", errorCode.detail());
+        body.put("code", errorCode.code());
+        body.put("action", errorCode.action());
+        objectMapper.writeValue(response.getWriter(), body);
     }
 }

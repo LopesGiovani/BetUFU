@@ -102,14 +102,16 @@ class CsrfSecurityIT {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.title").value("Forbidden"))
-                .andExpect(jsonPath("$.detail").value("Access denied or invalid CSRF token"));
+                .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"))
+                .andExpect(jsonPath("$.title").value("Sem autorização"))
+                .andExpect(jsonPath("$.detail").value("Você não tem acesso a esta área."))
+                .andExpect(jsonPath("$.action").value("Retorne à página inicial."));
 
         mockMvc.perform(post(PROBE_PATH).with(oidcPrincipal()))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.title").value("Forbidden"));
+                .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"));
 
         mockMvc.perform(patch(PROBE_PATH).with(oidcPrincipal()))
                 .andExpect(status().isForbidden())
@@ -151,8 +153,10 @@ class CsrfSecurityIT {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.title").value("Forbidden"))
-                .andExpect(jsonPath("$.detail").value("Access denied or invalid CSRF token"));
+                .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"))
+                .andExpect(jsonPath("$.title").value("Sem autorização"))
+                .andExpect(jsonPath("$.detail").value("Você não tem acesso a esta área."))
+                .andExpect(jsonPath("$.action").value("Retorne à página inicial."));
     }
 
     @Test
@@ -244,8 +248,10 @@ class CsrfSecurityIT {
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.title").value("Unauthorized"))
-                .andExpect(jsonPath("$.detail").value("Authentication is required to access this resource"))
+                .andExpect(jsonPath("$.code").value("BETUFU-401-UNAUTHORIZED"))
+                .andExpect(jsonPath("$.title").value("Sessão expirada"))
+                .andExpect(jsonPath("$.detail").value("Sua sessão expirou."))
+                .andExpect(jsonPath("$.action").value("Entre novamente para continuar."))
                 .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -268,8 +274,10 @@ class CsrfSecurityIT {
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.title").value("Unauthorized"))
-                .andExpect(jsonPath("$.detail").value("Authentication is required to access this resource"));
+                .andExpect(jsonPath("$.code").value("BETUFU-401-UNAUTHORIZED"))
+                .andExpect(jsonPath("$.title").value("Sessão expirada"))
+                .andExpect(jsonPath("$.detail").value("Sua sessão expirou."))
+                .andExpect(jsonPath("$.action").value("Entre novamente para continuar."));
     }
 
     @Test

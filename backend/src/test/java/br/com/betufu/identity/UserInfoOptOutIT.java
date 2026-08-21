@@ -174,7 +174,7 @@ class UserInfoOptOutIT {
     @BeforeEach
     void prepareTest() {
         USER_INFO_CALLS.set(0);
-        jdbcTemplate.execute("TRUNCATE TABLE public.local_identity");
+        jdbcTemplate.execute("TRUNCATE TABLE public.betufu_profile, public.local_identity");
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
                 .addFilters(springSecurityFilterChain)
                 .build();

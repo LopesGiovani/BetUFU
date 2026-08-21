@@ -136,7 +136,7 @@ class LocalIdentityTracerIT {
 
     @BeforeEach
     void prepareTest() {
-        jdbcTemplate.execute("TRUNCATE TABLE public.local_identity");
+        jdbcTemplate.execute("TRUNCATE TABLE public.betufu_profile, public.local_identity");
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
                 .addFilters(springSecurityFilterChain)
                 .build();
