@@ -807,6 +807,16 @@ test('rejeita override datasource em profile dev', async () => {
   await expectRule(root, 'DATASOURCE_SETTING');
 });
 
+test('rejeita override Flyway em profile dev', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/resources/application-dev.yaml',
+    (source) => source + '\nspring:\n  flyway:\n    user: unsafe\n',
+  );
+  await expectRule(root, 'DATASOURCE_SETTING');
+});
+
 for (const [label, approved, drift] of [
   [
     'issuer literal',
@@ -1032,6 +1042,8 @@ test('ambiente Java filho recebe Redis e exclusao sem mutar o ambiente pai', () 
     BETUFU_DB_JDBC_URL: 'jdbc:postgresql://db/betufu',
     BETUFU_DB_USER: 'app',
     BETUFU_DB_PASSWORD: 'db-secret',
+    BETUFU_FLYWAY_USER: 'flyway',
+    BETUFU_FLYWAY_PASSWORD: 'flyway-secret',
     BETUFU_REDIS_HOST: 'redis.internal',
     BETUFU_REDIS_PORT: '6380',
     BETUFU_REDIS_PASSWORD: 'redis-secret',
@@ -1051,6 +1063,8 @@ test('ambiente Java filho recebe Redis e exclusao sem mutar o ambiente pai', () 
   assert.equal(childEnvironment.BETUFU_REDIS_HOST, values.BETUFU_REDIS_HOST);
   assert.equal(childEnvironment.BETUFU_REDIS_PORT, values.BETUFU_REDIS_PORT);
   assert.equal(childEnvironment.BETUFU_REDIS_PASSWORD, values.BETUFU_REDIS_PASSWORD);
+  assert.equal(childEnvironment.BETUFU_FLYWAY_USER, values.BETUFU_FLYWAY_USER);
+  assert.equal(childEnvironment.BETUFU_FLYWAY_PASSWORD, values.BETUFU_FLYWAY_PASSWORD);
   assert.equal(
     childEnvironment.SPRING_AUTOCONFIGURE_EXCLUDE,
     REDIS_SESSION_AUTO_CONFIGURATION,
@@ -1081,17 +1095,52 @@ for (const [label, mutateRealm] of [
   });
 }
 
-test('rejeita fallback em variavel datasource', async () => {
-  const root = await createFixture();
-  const placeholder = '$' + '{BETUFU_DB_JDBC_URL}';
-  const fallback = '$' + '{BETUFU_DB_JDBC_URL:' + LOCAL_FAKE_URL + '}';
-  await mutate(
-    root,
-    'backend/src/main/resources/application.yaml',
-    (source) => source.replace(placeholder, fallback),
-  );
-  await expectRule(root, 'DATASOURCE_PLACEHOLDER');
-});
+const LOCAL_FAKE_URL = 'jdbc:postgresql://fallback.invalid:5432/unsafe';
+
+for (const [label, variable, fallbackValue] of [
+  ['URL runtime', 'BETUFU_DB_JDBC_URL', LOCAL_FAKE_URL],
+  ['usuario Flyway', 'BETUFU_FLYWAY_USER', 'unsafe_flyway'],
+  ['senha Flyway', 'BETUFU_FLYWAY_PASSWORD', 'unsafe-flyway-secret'],
+]) {
+  test('rejeita fallback em variavel de banco: ' + label, async () => {
+    const root = await createFixture();
+    const placeholder = '$' + '{' + variable + '}';
+    const fallback = '$' + '{' + variable + ':' + fallbackValue + '}';
+    await mutate(
+      root,
+      'backend/src/main/resources/application.yaml',
+      (source) => source.replace(placeholder, fallback),
+    );
+    await expectRule(root, 'DATASOURCE_PLACEHOLDER');
+  });
+}
+
+for (const variable of ['BETUFU_FLYWAY_USER', 'BETUFU_FLYWAY_PASSWORD']) {
+  test('rejeita credencial Flyway ausente no ambiente local: ' + variable, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'infra/.env.example',
+      (source) => source.replace(new RegExp('^' + variable + '=.*(?:\\r?\\n|$)', 'mu'), ''),
+    );
+    await expectRule(root, 'LOCAL_ENV');
+  });
+}
+
+for (const [label, variable, value] of [
+  ['usuario', 'BETUFU_FLYWAY_USER', 'betufu_app'],
+  ['senha', 'BETUFU_FLYWAY_PASSWORD', 'betufu-local-postgres-app'],
+]) {
+  test('rejeita credencial Flyway igual ao runtime: ' + label, async () => {
+    const root = await createFixture();
+    await mutate(
+      root,
+      'infra/.env.example',
+      (source) => source.replace(new RegExp('^' + variable + '=.*$', 'mu'), variable + '=' + value),
+    );
+    await expectRule(root, 'DATABASE_IDENTITY_SEPARATION');
+  });
+}
 
 for (const [label, placeholder, fallback] of [
   [
@@ -1115,8 +1164,6 @@ for (const [label, placeholder, fallback] of [
     await expectRule(root, 'MATRICULA_HMAC_PLACEHOLDER');
   });
 }
-
-const LOCAL_FAKE_URL = 'jdbc:postgresql://fallback.invalid:5432/unsafe';
 
 test('rejeita URL local embutida em application.yaml', async () => {
   const root = await createFixture();

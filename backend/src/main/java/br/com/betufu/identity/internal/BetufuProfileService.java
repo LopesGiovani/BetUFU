@@ -60,7 +60,10 @@ public class BetufuProfileService {
                     ApiErrorCode.NICKNAME_COOLDOWN_ACTIVE);
         }
 
-        current.changeNickname(trimmedNickname, now);
+        Instant effectiveChange = now.isBefore(current.getCreatedAt())
+                ? current.getCreatedAt()
+                : now;
+        current.changeNickname(trimmedNickname, effectiveChange);
         return current;
     }
 

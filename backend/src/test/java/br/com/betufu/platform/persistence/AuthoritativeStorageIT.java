@@ -109,7 +109,8 @@ class AuthoritativeStorageIT {
     static final PostgreSQLContainer POSTGRESQL = new PostgreSQLContainer(POSTGRES_IMAGE)
             .withDatabaseName("betufu_app")
             .withUsername("betufu_app")
-            .withPassword("betufu-test-only");
+            .withPassword("betufu-test-only")
+            .withInitScript("postgres-audit-runtime-role.sql");
 
     @Container
     static final GenericContainer<?> REDIS = new GenericContainer<>(REDIS_IMAGE)

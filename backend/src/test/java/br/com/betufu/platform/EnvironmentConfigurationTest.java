@@ -44,6 +44,8 @@ class EnvironmentConfigurationTest {
     private static final String JDBC_URL = "jdbc:postgresql://db.invalid:5432/betufu_test";
     private static final String DATABASE_USER = "betufu_test";
     private static final String DATABASE_PASSWORD = "test-only-password";
+    private static final String FLYWAY_USER = "betufu_flyway_test";
+    private static final String FLYWAY_PASSWORD = "test-only-flyway-password";
     private static final String REDIS_HOST = "redis.invalid";
     private static final int REDIS_PORT = 6380;
     private static final String REDIS_PASSWORD = "test-only-redis-password";
@@ -62,6 +64,8 @@ class EnvironmentConfigurationTest {
                     "BETUFU_DB_JDBC_URL=" + JDBC_URL,
                     "BETUFU_DB_USER=" + DATABASE_USER,
                     "BETUFU_DB_PASSWORD=" + DATABASE_PASSWORD,
+                    "BETUFU_FLYWAY_USER=" + FLYWAY_USER,
+                    "BETUFU_FLYWAY_PASSWORD=" + FLYWAY_PASSWORD,
                     "BETUFU_REDIS_HOST=" + REDIS_HOST,
                     "BETUFU_REDIS_PORT=" + REDIS_PORT,
                     "BETUFU_REDIS_PASSWORD=" + REDIS_PASSWORD);
@@ -120,7 +124,7 @@ class EnvironmentConfigurationTest {
     }
 
     @Test
-    void requiresExactlyThreeDatasourcePlaceholdersWithoutDefaults() throws IOException {
+    void requiresDistinctDatasourceAndFlywayPlaceholdersWithoutDefaults() throws IOException {
         String content = new ClassPathResource("application.yaml")
                 .getContentAsString(StandardCharsets.UTF_8)
                 .replace("\r\n", "\n");
@@ -129,12 +133,18 @@ class EnvironmentConfigurationTest {
         assertThat(countOccurrences(content, "${BETUFU_DB_USER}")).isEqualTo(1);
         assertThat(countOccurrences(content, "${BETUFU_DB_PASSWORD}")).isEqualTo(1);
         assertThat(countOccurrences(content, "${BETUFU_DB_")).isEqualTo(3);
+        assertThat(countOccurrences(content, "${BETUFU_FLYWAY_USER}")).isEqualTo(1);
+        assertThat(countOccurrences(content, "${BETUFU_FLYWAY_PASSWORD}")).isEqualTo(1);
+        assertThat(countOccurrences(content, "${BETUFU_FLYWAY_")).isEqualTo(2);
         assertThat(content)
                 .doesNotContain("${BETUFU_DB_JDBC_URL:")
                 .doesNotContain("${BETUFU_DB_USER:")
                 .doesNotContain("${BETUFU_DB_PASSWORD:")
+                .doesNotContain("${BETUFU_FLYWAY_USER:")
+                .doesNotContain("${BETUFU_FLYWAY_PASSWORD:")
                 .doesNotContain("jdbc:postgresql://127.0.0.1:5432/betufu_local")
-                .doesNotContain("betufu-local-postgres-app");
+                .doesNotContain("betufu-local-postgres-app")
+                .doesNotContain("betufu-local-postgres-flyway");
     }
 
     @Test
@@ -169,6 +179,8 @@ class EnvironmentConfigurationTest {
                     assertThat(environment.getProperty("spring.datasource.url")).isEqualTo(JDBC_URL);
                     assertThat(environment.getProperty("spring.datasource.username")).isEqualTo(DATABASE_USER);
                     assertThat(environment.getProperty("spring.datasource.password")).isEqualTo(DATABASE_PASSWORD);
+                    assertThat(environment.getProperty("spring.flyway.user")).isEqualTo(FLYWAY_USER);
+                    assertThat(environment.getProperty("spring.flyway.password")).isEqualTo(FLYWAY_PASSWORD);
 
                     assertThat(context).hasSingleBean(DataSource.class);
                     DataSource dataSource = context.getBean(DataSource.class);
@@ -188,11 +200,13 @@ class EnvironmentConfigurationTest {
     }
 
     @Test
-    void rejectsEachMissingDatasourceVariableWithoutFallback() {
-        Map.of(
-                        "BETUFU_DB_JDBC_URL", "spring.datasource.url",
-                        "BETUFU_DB_USER", "spring.datasource.username",
-                        "BETUFU_DB_PASSWORD", "spring.datasource.password")
+    void rejectsEachMissingDatabaseCredentialVariableWithoutFallback() {
+        Map.ofEntries(
+                        Map.entry("BETUFU_DB_JDBC_URL", "spring.datasource.url"),
+                        Map.entry("BETUFU_DB_USER", "spring.datasource.username"),
+                        Map.entry("BETUFU_DB_PASSWORD", "spring.datasource.password"),
+                        Map.entry("BETUFU_FLYWAY_USER", "spring.flyway.user"),
+                        Map.entry("BETUFU_FLYWAY_PASSWORD", "spring.flyway.password"))
                 .forEach((missingVariable, propertyName) -> new ApplicationContextRunner()
                         .withInitializer(new ConfigDataApplicationContextInitializer())
                         .withPropertyValues(requiredRuntimeConfigurationExcept(missingVariable))
@@ -318,6 +332,12 @@ class EnvironmentConfigurationTest {
         assertThat(environment.getProperty("spring.datasource.password")).isEqualTo(DATABASE_PASSWORD);
         assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
         assertThat(environment.getProperty("spring.flyway.enabled", Boolean.class)).isTrue();
+        assertThat(environment.getProperty("spring.flyway.user"))
+                .isEqualTo(FLYWAY_USER)
+                .isNotEqualTo(DATABASE_USER);
+        assertThat(environment.getProperty("spring.flyway.password"))
+                .isEqualTo(FLYWAY_PASSWORD)
+                .isNotEqualTo(DATABASE_PASSWORD);
         assertRedisSessionContract(environment);
         assertThat(environment.getProperty("management.endpoints.web.exposure.include"))
                 .isEqualTo("health");
@@ -343,17 +363,19 @@ class EnvironmentConfigurationTest {
     }
 
     private static String[] requiredRuntimeConfigurationExcept(String missingVariable) {
-        return StreamSupport.stream(Map.of(
-                                "BETUFU_OIDC_ISSUER_URI", "https://idp.invalid/realms/betufu",
-                                "BETUFU_OIDC_CLIENT_ID", "betufu-test",
-                                "BETUFU_OIDC_CLIENT_SECRET", "unused",
-                                "spring.profiles.active", "runtime",
-                                "BETUFU_DB_JDBC_URL", JDBC_URL,
-                                "BETUFU_DB_USER", DATABASE_USER,
-                                "BETUFU_DB_PASSWORD", DATABASE_PASSWORD,
-                                "BETUFU_REDIS_HOST", REDIS_HOST,
-                                "BETUFU_REDIS_PORT", Integer.toString(REDIS_PORT),
-                                "BETUFU_REDIS_PASSWORD", REDIS_PASSWORD)
+        return StreamSupport.stream(Map.ofEntries(
+                                Map.entry("BETUFU_OIDC_ISSUER_URI", "https://idp.invalid/realms/betufu"),
+                                Map.entry("BETUFU_OIDC_CLIENT_ID", "betufu-test"),
+                                Map.entry("BETUFU_OIDC_CLIENT_SECRET", "unused"),
+                                Map.entry("spring.profiles.active", "runtime"),
+                                Map.entry("BETUFU_DB_JDBC_URL", JDBC_URL),
+                                Map.entry("BETUFU_DB_USER", DATABASE_USER),
+                                Map.entry("BETUFU_DB_PASSWORD", DATABASE_PASSWORD),
+                                Map.entry("BETUFU_FLYWAY_USER", FLYWAY_USER),
+                                Map.entry("BETUFU_FLYWAY_PASSWORD", FLYWAY_PASSWORD),
+                                Map.entry("BETUFU_REDIS_HOST", REDIS_HOST),
+                                Map.entry("BETUFU_REDIS_PORT", Integer.toString(REDIS_PORT)),
+                                Map.entry("BETUFU_REDIS_PASSWORD", REDIS_PASSWORD))
                         .entrySet()
                         .spliterator(), false)
                 .filter(entry -> !entry.getKey().equals(missingVariable))

@@ -23,6 +23,8 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class FlywayChecksumIT {
 
+    private static final String RUNTIME_USER = "betufu_checksum_runtime";
+
     private static final String POSTGRES_IMAGE_REFERENCE =
             "docker.io/library/postgres:18.4-trixie@sha256:"
                     + "a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636";
@@ -49,6 +51,16 @@ class FlywayChecksumIT {
 
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         jdbcTemplate.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+        jdbcTemplate.execute("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'betufu_checksum_runtime') THEN
+                        CREATE ROLE betufu_checksum_runtime LOGIN;
+                    END IF;
+                END $$
+                """);
+        jdbcTemplate.execute("ALTER DATABASE " + POSTGRESQL.getDatabaseName()
+                + " SET betufu.runtime_role TO '" + RUNTIME_USER + "'");
     }
 
     @Test

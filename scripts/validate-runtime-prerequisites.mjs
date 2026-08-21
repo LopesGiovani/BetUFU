@@ -65,6 +65,8 @@ const REQUIRED_RUNTIME_ENV = Object.freeze([
   'BETUFU_DB_JDBC_URL',
   'BETUFU_DB_USER',
   'BETUFU_DB_PASSWORD',
+  'BETUFU_FLYWAY_USER',
+  'BETUFU_FLYWAY_PASSWORD',
   'BETUFU_REDIS_HOST',
   'BETUFU_REDIS_PORT',
   'BETUFU_REDIS_PASSWORD',
@@ -494,6 +496,8 @@ const PROTECTED_APPLICATION_YAML_PATHS = Object.freeze([
   'spring.datasource.url',
   'spring.datasource.username',
   'spring.datasource.password',
+  'spring.flyway.user',
+  'spring.flyway.password',
   'spring.security.oauth2.client.provider.keycloak.issuer-uri',
   'spring.security.oauth2.client.registration.keycloak.provider',
   'spring.security.oauth2.client.registration.keycloak.client-id',
@@ -740,12 +744,16 @@ function assertYamlSubtreeAllowlist(documents, root, allowedPaths) {
 
 function assertDatasourceContract(application, environment) {
   const placeholderPrefix = '$' + '{';
-  const placeholders = [
+  const datasourcePlaceholders = [
     'BETUFU_DB_JDBC_URL',
     'BETUFU_DB_USER',
     'BETUFU_DB_PASSWORD',
   ];
-  for (const variable of placeholders) {
+  const flywayPlaceholders = [
+    'BETUFU_FLYWAY_USER',
+    'BETUFU_FLYWAY_PASSWORD',
+  ];
+  for (const variable of [...datasourcePlaceholders, ...flywayPlaceholders]) {
     const exact = placeholderPrefix + variable + '}';
     expect(
       application.split(exact).length - 1 === 1,
@@ -764,6 +772,11 @@ function assertDatasourceContract(application, environment) {
     'application.yaml deve conter somente os tres placeholders datasource.',
   );
   expect(
+    application.split(placeholderPrefix + 'BETUFU_FLYWAY_').length - 1 === 2,
+    'DATASOURCE_PLACEHOLDER',
+    'application.yaml deve conter somente os dois placeholders Flyway.',
+  );
+  expect(
     !application.includes(LOCAL_JDBC_URL),
     'DATASOURCE_LOCAL_LEAK',
     'URL local deve ficar fora de application.yaml.',
@@ -773,10 +786,26 @@ function assertDatasourceContract(application, environment) {
     'LOCAL_ENV',
     'URL JDBC local exata deve aparecer uma vez no .env.example.',
   );
+  const environmentValue = (name) => {
+    const match = new RegExp('^' + name + '=([^\\r\\n]+)$', 'mu').exec(environment);
+    expect(match !== null, 'LOCAL_ENV', 'credencial obrigatoria ausente: ' + name + '.');
+    return match[1];
+  };
+  expect(
+    environmentValue('BETUFU_DB_USER') !== environmentValue('BETUFU_FLYWAY_USER')
+      && environmentValue('BETUFU_DB_PASSWORD') !== environmentValue('BETUFU_FLYWAY_PASSWORD'),
+    'DATABASE_IDENTITY_SEPARATION',
+    'runtime e Flyway devem usar usuarios e senhas distintos.',
+  );
   expect(
     /^BETUFU_DB_USER=betufu_app$/mu.test(environment),
     'LOCAL_ENV',
     'role local da aplicacao deve ser betufu_app.',
+  );
+  expect(
+    /^BETUFU_FLYWAY_USER=betufu_flyway$/mu.test(environment),
+    'LOCAL_ENV',
+    'role local do Flyway deve ser betufu_flyway.',
   );
   expect(
     !/^SPRING_DATASOURCE_/mu.test(environment),
@@ -856,6 +885,16 @@ function assertRedisSessionContract(applicationConfigurations, environment, pom)
       'spring.datasource.url',
       'spring.datasource.username',
       'spring.datasource.password',
+    ],
+  );
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'spring.flyway',
+    [
+      'spring.flyway',
+      'spring.flyway.enabled',
+      'spring.flyway.user',
+      'spring.flyway.password',
     ],
   );
   assertYamlSubtreeAllowlist(
@@ -961,6 +1000,8 @@ function assertRedisSessionContract(applicationConfigurations, environment, pom)
     ['spring.datasource.url', 'BETUFU_DB_JDBC_URL'],
     ['spring.datasource.username', 'BETUFU_DB_USER'],
     ['spring.datasource.password', 'BETUFU_DB_PASSWORD'],
+    ['spring.flyway.user', 'BETUFU_FLYWAY_USER'],
+    ['spring.flyway.password', 'BETUFU_FLYWAY_PASSWORD'],
   ]) {
     const placeholder = '${' + variable + '}';
     assertUniqueApprovedYamlValue(
@@ -1946,6 +1987,12 @@ function parseEnvironmentFile(source) {
     'URL JDBC local diverge do contrato.',
   );
   expect(
+    result.BETUFU_DB_USER !== result.BETUFU_FLYWAY_USER
+      && result.BETUFU_DB_PASSWORD !== result.BETUFU_FLYWAY_PASSWORD,
+    'DATABASE_IDENTITY_SEPARATION',
+    'runtime e Flyway devem usar usuarios e senhas distintos.',
+  );
+  expect(
     result.BETUFU_OIDC_ISSUER_URI === KEYCLOAK_ORIGIN + '/realms/betufu-local',
     'RUNTIME_ENV',
     'issuer local diverge do contrato.',
@@ -2010,6 +2057,8 @@ export function buildBackendEnvironment(values, nonce, parentEnvironment = {}) {
     'BETUFU_DB_JDBC_URL',
     'BETUFU_DB_USER',
     'BETUFU_DB_PASSWORD',
+    'BETUFU_FLYWAY_USER',
+    'BETUFU_FLYWAY_PASSWORD',
     'BETUFU_REDIS_HOST',
     'BETUFU_REDIS_PORT',
     'BETUFU_REDIS_PASSWORD',

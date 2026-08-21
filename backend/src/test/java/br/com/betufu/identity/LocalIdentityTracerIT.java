@@ -105,7 +105,8 @@ class LocalIdentityTracerIT {
     static final PostgreSQLContainer POSTGRESQL = new PostgreSQLContainer(POSTGRES_IMAGE)
             .withDatabaseName("betufu_app")
             .withUsername("betufu_app")
-            .withPassword("betufu-test-only");
+            .withPassword("betufu-test-only")
+            .withInitScript("postgres-audit-runtime-role.sql");
 
     @Autowired
     private LocalIdentityService localIdentityService;
@@ -136,7 +137,8 @@ class LocalIdentityTracerIT {
 
     @BeforeEach
     void prepareTest() {
-        jdbcTemplate.execute("TRUNCATE TABLE public.betufu_profile, public.local_identity");
+        jdbcTemplate.execute(
+                "TRUNCATE TABLE public.audit_event, public.betufu_profile, public.local_identity");
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
                 .addFilters(springSecurityFilterChain)
                 .build();

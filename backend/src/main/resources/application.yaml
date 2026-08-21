@@ -49,6 +49,8 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+    user: "${BETUFU_FLYWAY_USER}"
+    password: "${BETUFU_FLYWAY_PASSWORD}"
   session:
     timeout: 8h
     data:

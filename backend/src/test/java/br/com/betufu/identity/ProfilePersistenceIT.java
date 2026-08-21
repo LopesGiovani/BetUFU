@@ -62,15 +62,16 @@ class ProfilePersistenceIT {
     static final PostgreSQLContainer POSTGRESQL = new PostgreSQLContainer(POSTGRES_IMAGE)
             .withDatabaseName("betufu_app")
             .withUsername("betufu_app")
-            .withPassword("betufu-test-only");
+            .withPassword("betufu-test-only")
+            .withInitScript("postgres-audit-runtime-role.sql");
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void cleanTables() {
-        jdbcTemplate.execute("TRUNCATE TABLE public.betufu_profile CASCADE");
-        jdbcTemplate.execute("TRUNCATE TABLE public.local_identity CASCADE");
+        jdbcTemplate.execute(
+                "TRUNCATE TABLE public.audit_event, public.betufu_profile, public.local_identity");
     }
 
     @Test

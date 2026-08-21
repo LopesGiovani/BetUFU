@@ -87,7 +87,8 @@ class ProfileControllerIT {
     static final PostgreSQLContainer POSTGRESQL = new PostgreSQLContainer(POSTGRES_IMAGE)
             .withDatabaseName("betufu_app")
             .withUsername("betufu_app")
-            .withPassword("betufu-test-only");
+            .withPassword("betufu-test-only")
+            .withInitScript("postgres-audit-runtime-role.sql");
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -106,8 +107,8 @@ class ProfileControllerIT {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("TRUNCATE TABLE public.betufu_profile CASCADE");
-        jdbcTemplate.execute("TRUNCATE TABLE public.local_identity CASCADE");
+        jdbcTemplate.execute(
+                "TRUNCATE TABLE public.audit_event, public.betufu_profile, public.local_identity");
 
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
                 .addFilters(springSecurityFilterChain)
@@ -272,6 +273,56 @@ class ProfileControllerIT {
         assertThat(result.getResponse().getContentAsString())
                 .doesNotContain("minimum interval")
                 .doesNotContain("Nickname change rejected");
+    }
+
+    @Test
+    @DisplayName("Troca de apelido não retrocede updated_at quando o relógio do banco está adiantado")
+    void nicknameChangeClampsTimestampToDatabaseCreatedAt() throws Exception {
+        String issuer = "https://idp.invalid";
+        String subject = "user-clock-skew";
+
+        mockMvc.perform(put(PROFILE_ME_PATH)
+                        .with(oidcPrincipal(issuer, subject))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nickname\":\"initial_nick\"}"))
+                .andExpect(status().isOk());
+
+        jdbcTemplate.update(
+                """
+                UPDATE public.betufu_profile p
+                SET created_at = CURRENT_TIMESTAMP + INTERVAL '1 minute',
+                    updated_at = CURRENT_TIMESTAMP + INTERVAL '1 minute'
+                FROM public.local_identity i
+                WHERE i.identity_id = p.identity_id
+                  AND i.issuer = ?
+                  AND i.subject = ?
+                """,
+                issuer,
+                subject);
+
+        mockMvc.perform(put(PROFILE_ME_PATH)
+                        .with(oidcPrincipal(issuer, subject))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nickname\":\"changed_nick\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nickname").value("changed_nick"));
+
+        Integer invalidTimestampRows = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM public.betufu_profile p
+                JOIN public.local_identity i ON i.identity_id = p.identity_id
+                WHERE i.issuer = ?
+                  AND i.subject = ?
+                  AND p.updated_at < p.created_at
+                """,
+                Integer.class,
+                issuer,
+                subject);
+
+        assertThat(invalidTimestampRows).isZero();
     }
 
     @Test

@@ -27,6 +27,9 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class FlywayMigrationIT {
 
+    private static final String RUNTIME_USER = "betufu_migration_runtime";
+    private static final String RUNTIME_PASSWORD = "betufu-migration-runtime-test-only";
+
     private static final String POSTGRES_IMAGE_REFERENCE =
             "docker.io/library/postgres:18.4-trixie@sha256:"
                     + "a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636";
@@ -54,10 +57,28 @@ class FlywayMigrationIT {
 
         jdbcTemplate = new JdbcTemplate(dataSource);
         jdbcTemplate.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+        jdbcTemplate.execute("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'betufu_migration_runtime') THEN
+                        CREATE ROLE betufu_migration_runtime LOGIN;
+                    END IF;
+                END $$
+                """);
+        jdbcTemplate.execute("ALTER ROLE " + RUNTIME_USER + " PASSWORD '" + RUNTIME_PASSWORD + "'");
+        jdbcTemplate.execute("ALTER DATABASE " + POSTGRESQL.getDatabaseName()
+                + " SET betufu.runtime_role TO '" + RUNTIME_USER + "'");
+        jdbcTemplate.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC");
+        jdbcTemplate.execute("REVOKE ALL PRIVILEGES ON SCHEMA public FROM " + RUNTIME_USER);
+        jdbcTemplate.execute("GRANT USAGE ON SCHEMA public TO " + RUNTIME_USER);
+        jdbcTemplate.execute("ALTER DEFAULT PRIVILEGES IN SCHEMA public"
+                + " GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO " + RUNTIME_USER);
+        jdbcTemplate.execute("ALTER DEFAULT PRIVILEGES IN SCHEMA public"
+                + " GRANT USAGE, SELECT ON SEQUENCES TO " + RUNTIME_USER);
     }
 
     @Test
-    @DisplayName("Aplica V1, V2 e V3 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
+    @DisplayName("Aplica V1 a V4 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
     void appliesV1AndV2MigrationsSequentially() {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
@@ -66,10 +87,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(3);
+        assertThat(result.migrationsExecuted).isEqualTo(4);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(3);
+        assertThat(applied).hasSize(4);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -79,6 +100,9 @@ class FlywayMigrationIT {
 
         assertThat(applied[2].getVersion().getVersion()).isEqualTo("3");
         assertThat(applied[2].getState()).isEqualTo(MigrationState.SUCCESS);
+
+        assertThat(applied[3].getVersion().getVersion()).isEqualTo("4");
+        assertThat(applied[3].getState()).isEqualTo(MigrationState.SUCCESS);
 
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
@@ -95,7 +119,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(3);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(4);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -104,7 +128,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(3);
+        assertThat(applied).hasSize(4);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -142,7 +166,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(3);
+            assertThat(totalExecuted).isEqualTo(4);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -150,7 +174,7 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(3);
+            assertThat(applied).hasSize(4);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();
