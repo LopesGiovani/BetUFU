@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Planos 02-05 e 02-09 concluídos; 02-21 em execução no worktree"
-last_updated: "2026-08-21T16:36:54-03:00"
+stopped_at: "Fase 2: Wave 3 tecnicamente concluída; 02-21 formalizado no worktree e aguardando integração Git"
+last_updated: "2026-08-21T19:06:58-03:00"
 last_activity: 2026-08-21
-last_activity_desc: "Planos 02-05 e 02-09 implementados, revisados, testados, formalizados e integrados localmente; 02-21 permanece em execução."
+last_activity_desc: "Plano 02-21 implementado, revisado, testado e formalizado no worktree; Wave 3 tecnicamente concluída."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 56
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Estado do Projeto
@@ -28,9 +28,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 8 of 25 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09` e `02-14` concluídos)
-Status: In Progress — Waves 1 e 2 concluídas; Wave 3 parcial, com `02-05` e `02-09` concluídos e `02-21` em execução no worktree.
-Last activity: 2026-08-21 — `02-05` entregou o gate S1 e publicou a primeira rota de produto sob fronteira de produção fechada.
+Plan: 9 of 25 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09`, `02-14` e `02-21` concluídos)
+Status: In Progress — Waves 1, 2 e 3 tecnicamente concluídas; `02-21` está formalizado no worktree e aguarda integração Git.
+Last activity: 2026-08-21 — `02-21` entregou auditoria append-only, separação Flyway/runtime e procedimento operacional.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git: `master` contém os Planos 02-03, 02-04, 02-05, 02-06, 02-09 e 02-14 integrados localmente e permanece sem push. O commit técnico do 02-05 é `41adbdc`; esta atualização administrativa forma o commit documental subsequente, cujo próprio hash não cabe dentro dele.
@@ -41,13 +41,13 @@ Git: `master` contém os Planos 02-03, 02-04, 02-05, 02-06, 02-09 e 02-14 integr
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [███░░░░░░░] 8/25 planos da Fase 2 (32%)
+Progress: [████░░░░░░] 9/25 planos da Fase 2 (36%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 37
+- Total de planos concluídos: 40
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -56,11 +56,11 @@ Progress: [███░░░░░░░] 8/25 planos da Fase 2 (32%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 6 | não mensurado | não mensurada |
+| 2 | 9 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-06, 02-04, 02-14, 02-03, 02-02
+- Últimos 5 planos: 02-21, 02-05, 02-09, 02-06, 02-04
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -71,6 +71,7 @@ Progress: [███░░░░░░░] 8/25 planos da Fase 2 (32%)
 - A trilha de auditoria referencia estados e versões sem armazenar o HMAC da matrícula; MFA e evidência documental permanecem ausentes do MVP.
 - O usuário de migration será separado do usuário de runtime. A aplicação não terá `UPDATE`, `DELETE`, `TRUNCATE` ou DDL sobre `audit_event`, e um trigger que lança erro servirá como segunda camada.
 - Durante o MVP fechado, a auditoria é retida pela vida do ambiente. Uma política definitiva por classe de dado permanece gate de `PRIV-05` antes do lançamento público.
+- Mudanças de apelido limitam o instante efetivo por `created_at`, impedindo regressão temporal quando o relógio do PostgreSQL está ligeiramente à frente do host Java.
 
 - A claim `betufu_roles` do ID token vira `ROLE_TECHNICAL` por allowlist positiva e fechada: exige coleção, depois String, depois igualdade byte a byte com `TECHNICAL`. E-mail, username, grupo e `realm_access` nunca concedem autoridade, e a fiação do mapper é explícita nos dois ramos do `SecurityConfiguration`.
 - `GET /api/v1/diagnostic` existe apenas em `dev` e `homolog`. Em produção não há bean nem mapping — ausência material, provada por inspeção do contexto e do `RequestMappingHandlerMapping`, nunca por status 403, que não distingue negado de inexistente.
@@ -170,6 +171,6 @@ Progress: [███░░░░░░░] 8/25 planos da Fase 2 (32%)
 
 ## Session Continuity
 
-Last session: 2026-08-21T16:36:54-03:00
-Stopped at: Planos 02-05 e 02-09 concluídos; 02-21 em execução no worktree
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-21-PLAN.md
+Last session: 2026-08-21T19:06:58-03:00
+Stopped at: Wave 3 tecnicamente concluída; 02-21 formalizado no worktree e aguardando integração Git
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-21-SUMMARY.md
