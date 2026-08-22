@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 4 concluída; 02-07 é o próximo plano na Wave 5"
-last_updated: "2026-08-22T14:45:00-03:00"
+stopped_at: "Fase 2: Wave 5 concluída; Wave 6 é o próximo bloco (02-08, 02-16 e 02-24)"
+last_updated: "2026-08-22T17:45:00-03:00"
 last_activity: 2026-08-22
-last_activity_desc: "Plano 02-22 fechou a privacidade estrutural da matrícula e o procedimento governado da chave HMAC; Wave 4 concluída."
+last_activity_desc: "Plano 02-07 entregou o registro governado da matrícula, limites duplos atômicos e elegibilidade pública; Wave 5 concluída."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 43
+  completed_plans: 44
 ---
 
 # Estado do Projeto
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 12 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09`, `02-11`, `02-14`, `02-15`, `02-21` e `02-22` concluídos)
-Status: In Progress — Waves 1, 2, 3 e 4 tecnicamente concluídas; `02-07` é o próximo plano na Wave 5.
-Last activity: 2026-08-22 — `02-22` criou quatro detectores estruturais de privacidade com provas de discriminação e documentou rotação e incidente da chave HMAC.
+Plan: 13 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-09`, `02-11`, `02-14`, `02-15`, `02-21` e `02-22` concluídos)
+Status: In Progress — Waves 1, 2, 3, 4 e 5 tecnicamente concluídas; a Wave 6 contém `02-08`, `02-16` e `02-24`.
+Last activity: 2026-08-22 — `02-07` implementou vínculo da matrícula sem texto puro, unicidade multiversão, limites atômicos por conta/origem e auditoria sanitizada.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: o worktree isolado `feat/02-22-hmac-privacy` permanece no HEAD `36a190b`, com implementação e formalização ainda não commitadas; o índice está vazio e nenhum push foi realizado neste bloco.
+Git: o Plano 02-07 possui o commit técnico `44d7c24`; esta formalização compõe o segundo commit local do plano. Nenhum push foi realizado.
 
 | Commit | Conteúdo |
 |---|---|
@@ -41,13 +41,13 @@ Git: o worktree isolado `feat/02-22-hmac-privacy` permanece no HEAD `36a190b`, c
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [████░░░░░░] 11/31 planos da Fase 2 (35%)
+Progress: [████░░░░░░] 13/31 planos da Fase 2 (42%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 42
+- Total de planos concluídos: 44
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -56,11 +56,11 @@ Progress: [████░░░░░░] 11/31 planos da Fase 2 (35%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 11 | não mensurado | não mensurada |
+| 2 | 13 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-11, 02-15, 02-21, 02-05, 02-09
+- Últimos 5 planos: 02-21, 02-05, 02-09, 02-22, 02-07
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -171,6 +171,6 @@ Progress: [████░░░░░░] 11/31 planos da Fase 2 (35%)
 
 ## Session Continuity
 
-Last session: 2026-08-22T14:45:00-03:00
-Stopped at: Wave 4 concluída; próximo plano 02-07 na Wave 5
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-22-SUMMARY.md
+Last session: 2026-08-22T17:45:00-03:00
+Stopped at: Wave 5 concluída; próxima execução começa pela Wave 6
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-07-SUMMARY.md
