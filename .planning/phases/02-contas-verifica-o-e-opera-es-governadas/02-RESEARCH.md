@@ -1248,4 +1248,184 @@ Conhecimento de treino, **não verificado nesta máquina**: A-1 a A-12 no *Assum
 | Auditoria (§7) | **MÉDIA** — estratégia sólida, sintaxe exata não verificada (A-9) |
 
 **Data da pesquisa:** 2026-08-20
+
 **Válido até:** 2026-09-19 (30 dias) para as descobertas de artefato e código, que só mudam se as dependências mudarem. As linhas de `[DOC — NÃO VERIFICADO]` **não têm validade** — são pendências de verificação, não conhecimento.
+
+## Suplemento D-40 — Event Listener UPDATE_PASSWORD do Keycloak (2026-08-22)
+
+### Escopo e conclusão
+
+A medição A-3 na imagem fixada mostrou que o reset hospedado preserva a sessão SSO/refresh token e não envia back-channel logout; o logout administrativo de controle o enviou. Logo, o plano 02-24 baseado nesse canal não satisfaz mais D-40 e deve ser replenejado, não apenas adaptado. [VERIFIED: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-MEASUREMENTS.md:76-124]
+
+`plugin-evento-keycloak` é a decisão já tomada. Ela não decide, por si, como tornar a entrega durável: essa topologia permanece um checkpoint humano bloqueador (D-40-B).
+
+### SPI, registro e identidade correlacionável
+
+| Necessidade | Fato verificado | Direção de plano |
+|---|---|---|
+| Callbacks | `org.keycloak.events.EventListenerProvider` declara `onEvent(Event)` e `onEvent(AdminEvent, boolean)`; a fábrica é `org.keycloak.events.EventListenerProviderFactory`, que estende `ProviderFactory<EventListenerProvider>`. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventListenerProvider.java] [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventListenerProviderFactory.java] | Criar uma fábrica por `KeycloakSession` e, se D-40-C for aprovado, tratar usuário e admin no mesmo provider. |
+| Service Loader | O guia oficial exige `META-INF/services/org.keycloak.events.EventListenerProviderFactory` com o nome totalmente qualificado da fábrica. [CITED: https://www.keycloak.org/docs/latest/server_development/index.html] | Esse arquivo é obrigatório; Spring não descobre este JAR. |
+| Habilitação por realm | O `EventBuilder` seleciona fábricas não globais cujo `id` aparece em `RealmModel.getEventsListeners()`; `isGlobal()` é `false` por padrão. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventBuilder.java] [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventListenerProviderFactory.java] | Manter `isGlobal=false`, acrescentar o ID no `eventsListeners` de `betufu-local`, atualizar o validador estrito e seu teste. O realm atual não tem essa chave e o validador fecha a lista de chaves raiz. [VERIFIED: infra/keycloak/realm-betufu.json:1-130] [VERIFIED: scripts/validate-keycloak-realm.mjs:83-101] |
+| Correlação | `Event` expõe `id`, `time`, `type`, `realmId`, `clientId`, `userId`, `sessionId`, IP, erro e detalhes; `EventBuilder` atribui UUID ao ID antes do despacho. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/Event.java] [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventBuilder.java] | Usar `event.id` como idempotency key de origem; transportar apenas `realmId`, `userId`, tipo canônico e instante. Nunca usar IP, `sessionId` ou `clientId` como identidade. |
+
+**Recomendação:** resolver a mensagem somente para uma identidade BETUFU existente por `(issuer, subject)`. O modelo local possui exatamente esses campos:
+
+<!-- DATA_D40A9K_START -->
+```java
+private String issuer;
+private String subject;
+```
+<!-- DATA_D40A9K_END -->
+
+[VERIFIED: backend/src/main/java/br/com/betufu/identity/internal/LocalIdentity.java:30-34]
+
+Não assumir por convenção que `event.getUserId()` sempre é o `sub` OIDC. A medição atual usou o mesmo `userId` para conferir o `sub` do token de logout, mas o novo teste de container deve comparar ID de evento, ID do usuário Keycloak e `sub` do ID token antes de liberar esse mapeamento. [VERIFIED: backend/src/test/java/br/com/betufu/platform/security/PasswordResetTriggerSpikeIT.java:273-277]
+
+### Timing transacional e a lacuna de HTTP síncrono
+
+O contrato oficial diz que os callbacks executam **dentro da transação**. Para efeitos não reversíveis, recomenda `KeycloakTransactionManager.enlistAfterCompletion(KeycloakTransaction)`, que os deixa ocorrer só após conclusão bem-sucedida. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventListenerProvider.java] O `EventBuilder` captura/loga exceções dos listeners; lançar exceção não é um contrato de rollback ou de retry. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventBuilder.java]
+
+- HTTP dentro de `onEvent` pode revogar na BETUFU e a senha ainda sofrer rollback: falso positivo.
+- HTTP em `enlistAfterCompletion` evita esse falso positivo, mas se o processo cair entre commit e envio não há evento persistido nem retry: perda.
+- Inbox durável somente no receptor deduplica o que chegou; não recupera perda anterior à chegada.
+
+**Recomendação obrigatória:** proibir HTTP direto do callback, mesmo com `try/catch`. D-40 só pode alegar entrega durável se houver uma fonte persistida de retry após o commit.
+
+```text
+mudança de senha -> Event Listener (na transação) -> persistência atômica de origem
+                                                       |
+                                                       v
+                                      worker pós-commit/retry -> HTTPS autenticado
+                                                       |
+                                                       v
+                                      inbox BETUFU única -> consumidor idempotente
+                                                       |
+                                                       v
+                         terminateAllSessionsFor(subject, SECURITY)
+```
+
+### Evento canônico e reset administrativo
+
+Em 26.7.1, `UpdatePassword` registra `UPDATE_CREDENTIAL` com `Details.CREDENTIAL_TYPE` password **e também** emite o legado `UPDATE_PASSWORD`; este último está depreciado. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/services/src/main/java/org/keycloak/authentication/requiredactions/UpdatePassword.java] [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventType.java]
+
+**Recomendação técnica:** implementar a intenção de D-40 com `UPDATE_CREDENTIAL` + credential type password, ignorando `UPDATE_PASSWORD` legado. Ouvir ambos gera duas mensagens com IDs diferentes, que não serão deduplicadas por `event.id`.
+
+**Checkpoint humano D-40-A:** ratificar esse filtro canônico, em vez de filtrar literalmente só `UPDATE_PASSWORD`. Se o tipo legado for exigido, registrar o risco de depreciação e provar a ausência de dupla entrega para a configuração escolhida.
+
+O endpoint administrativo `PUT /users/{id}/reset-password` emite `AdminEvent` com `ResourceType.USER` e `OperationType.ACTION`; não é o mesmo evento de usuário. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/services/src/main/java/org/keycloak/services/resources/admin/UserResource.java] [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/admin/ResourceType.java] [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/admin/OperationType.java] `AdminEvent.getResourceId()` devolve o último segmento do caminho e, para esta rota, não é o usuário alvo. [CITED: https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/admin/AdminEvent.java]
+
+**Checkpoint humano D-40-C:** decidir se reset administrativo integra D-40. Se incluir, filtrar realm + `USER` + `ACTION`, extrair e validar o segmento `{id}` de `users/{id}/reset-password` e provar esse path em container. Se excluir, declarar expressamente que a sessão pode persistir após mudança administrativa.
+
+### Alternativas de durabilidade
+
+| Alternativa | Benefício real | Lacuna | Nova dependência/decisão |
+|---|---|---|---|
+| HTTP síncrono + endpoint autenticado/inbox BETUFU | Autentica e deduplica o que recebeu. | Não é durável: envio antes de rollback ou perda pós-commit/restart. | **Rejeitar para D-40.** |
+| Ingestão autenticada + inbox + fonte de retry persistente | O aceite da inbox é atômico e um retry pode reenviar até `2xx`. | Só é válida se a própria fonte de retry for persistida atomicamente com a senha; caso contrário apenas renomeia a lacuna. | Definir a fonte e a recuperação de crash. |
+| Broker durável | Desacopla consumidor, retry e DLQ. | Publicar do callback ainda não é atômico com a senha; precisa outbox/ponte transacional antes do broker. | Broker, ACL, credenciais, retenção, monitoramento e DLQ: aprovação explícita. |
+| Outbox do Keycloak + worker + inbox BETUFU | Registro de origem na transação, envio pós-commit, retry/restart e entrega ao menos uma vez. | Requer modelo, worker e operação no Keycloak; o guia marca o SPI JPA customizado como API não suportada, com risco de upgrade. | Nova persistência/migração Keycloak e decisão de compatibilidade. [CITED: https://www.keycloak.org/docs/latest/server_development/index.html] |
+
+**Checkpoint humano D-40-B — BLOQUEADOR:** antes do plano executável, aprovar uma topologia: (1) outbox transacional no banco Keycloak, reconhecendo `JpaEntityProvider`/Liquibase customizados; (2) broker durável **mais** origem atômica comprovada; ou (3) outra fonte persistida demonstrada por teste de crash/restart. Não escolher banco, broker, esquema ou agendador por inferência.
+
+### Contrato de segurança e operação recomendado
+
+Os itens abaixo são recomendações, não funcionalidade existente:
+
+- **Autenticação/autorização:** endpoint interno HTTPS dedicado; assinatura por mensagem cobrindo `key-id`, timestamp, método, path, `sourceEventId` e hash do corpo. D-40-B deve escolher HMAC ou mTLS. Autenticar antes de processar, aceitar apenas realm/issuer e esquema esperados, e não conceder ao plugin permissão administrativa.
+- **Replay/idempotência:** inbox com unicidade `(sourceSystem, sourceEventId)` gravada no mesmo commit do aceite; janela temporal, ID único e `2xx` somente após persistir. A assinatura impede adulteração; a inbox remove duplicata/replay.
+- **Privacidade/auditoria:** transportar somente ID, instante, tipo, `realmId` e sujeito. Nunca senha, representação admin, email, IP, `sessionId`, cookies, tokens ou mapa livre de detalhes. Registrar correlação, tentativa, status, `key-id` e motivo redigido; PRIV-01 já veda segredos/tokens/cookies nos logs. [VERIFIED: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-CONTEXT.md:72-80]
+- **Timeout/retry/DLQ:** valores explícitos e limitados de conexão/leitura, backoff exponencial com jitter, teto de tentativas, `5xx`/rede reexecutáveis e assinatura/esquema/autorização em quarentena. DLQ alerta e só reprocessa por ação autorizada. Os números e o RTO são decisão operacional pendente.
+- **Ordenação/rotação:** não prometer ordenação global; serializar por sujeito quando necessário e tornar revogação monotônica. Usar chave atual + anterior só em janela de rotação auditada; segredos entram por configuração segura, nunca realm JSON, JAR ou logs.
+- **Falha:** uma entrega falha não desfaz mudança de senha; fica pendente na fonte durável, alerta e recupera. O plano deve fixar o intervalo máximo aceitável até a revogação e o owner de recovery.
+
+### Consumidor BETUFU: reutilizar a única revogação
+
+Após autenticar, deduplicar e localizar a identidade existente, o consumidor deve chamar exclusivamente:
+
+<!-- DATA_D40B7N_START -->
+```java
+identitySessionTerminationService.terminateAllSessionsFor(
+    subject,
+    SessionTerminationReason.SECURITY
+);
+```
+<!-- DATA_D40B7N_END -->
+
+[VERIFIED: backend/src/main/java/br/com/betufu/platform/session/IdentitySessionTerminationService.java:58-77] [VERIFIED: backend/src/main/java/br/com/betufu/platform/session/SessionTerminationReason.java:3-8]
+
+O serviço central já busca por principal, remove sessões locais, aciona o listener de invalidação e inspeciona o resumo; falha remota não reabre sessão local. [VERIFIED: backend/src/main/java/br/com/betufu/platform/session/IdentitySessionTerminationService.java:17-30] O novo fluxo registra resultado e trata falha conforme política existente, mas não reimplementa Redis, `SessionInvalidationListener` ou revogação de grant.
+
+### Imagem, build e configuração da versão fixada
+
+O compose atual fixa `quay.io/keycloak/keycloak:26.7.1` no digest `sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6` e inicia `start-dev --import-realm`.
+
+<!-- DATA_D40C3R_START -->
+```yaml
+image: quay.io/keycloak/keycloak:26.7.1@sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6
+command: ["start-dev", "--import-realm"]
+```
+<!-- DATA_D40C3R_END -->
+
+[VERIFIED: infra/compose.yaml:46-69]
+
+O procedimento oficial é copiar o JAR para `/opt/keycloak/providers` e executar `/opt/keycloak/bin/kc.sh build` na imagem customizada antes de iniciá-la. Providers compartilham classloader e não são isolados, portanto apenas código/dependências revisados devem entrar na imagem. [CITED: https://www.keycloak.org/server/containers] [CITED: https://www.keycloak.org/server/configuration-provider]
+
+**Recomendação de implantação:** módulo Maven isolado do provider, APIs Keycloak 26.7.1 e bytecode Java 21; Dockerfile multi-stage a partir do digest fixado, JAR em `providers/`, `kc.sh build`, e compose apontando para a imagem resultante enquanto preserva o import do realm. A imagem oficial Keycloak usa Java 21, enquanto o backend é compilado em Java 25; não reutilizar este alvo sem compatibilização. [CITED: https://www.keycloak.org/server/supported-configurations] [VERIFIED: backend/pom.xml:10-24]
+
+A alteração de `realm-betufu.json` para declarar `eventsListeners` deve alterar a lista exata do validador e teste negativo correspondente. [VERIFIED: scripts/validate-keycloak-realm.mjs:8-29] [VERIFIED: scripts/validate-keycloak-realm.mjs:83-101] Nenhuma dependência Maven foi instalada nesta pesquisa; a auditoria automatizada de legitimidade do GSD suporta npm/PyPI/crates, não Maven. [VERIFIED: gsd-tools package-legitimacy invocation, 2026-08-22] Fixar Keycloak 26.7.1 e obter aprovação antes do primeiro install/build.
+
+### Arquivos e módulos prováveis (não criar nesta pesquisa)
+
+| Ação | Alvo provável | Responsabilidade |
+|---|---|---|
+| Criar | `keycloak-password-event-listener/pom.xml`, `.../BetufuPasswordEventListener.java`, `.../BetufuPasswordEventListenerFactory.java` | JAR SPI, filtro canônico, payload mínimo e ligação à topologia escolhida. |
+| Criar | `keycloak-password-event-listener/src/main/resources/META-INF/services/org.keycloak.events.EventListenerProviderFactory` | Registro Service Loader da fábrica. |
+| Condicional D-40-B | entidades/outbox/worker; se JPA for escolhido, fábrica JPA, service file e changelog Liquibase no módulo Keycloak | Persistência, claim, retry, DLQ e recuperação após restart. |
+| Criar/modificar | `infra/keycloak/Dockerfile`, `infra/compose.yaml` | Imagem pré-construída e configuração segura de destino/chaves. |
+| Modificar | `infra/keycloak/realm-betufu.json`, `scripts/validate-keycloak-realm.mjs` e teste | Habilitar listener e preservar contrato de realm. |
+| Criar/modificar | controller/validador de assinatura, inbox/migração/repositório/consumer do backend; `SecurityConfiguration.java` e `application.yaml` | Aceite autenticado, deduplicação e chamada da revogação central. A cadeia atual possui regras explícitas e `anyRequest().denyAll()`, então o endpoint deve ter matcher estrito, não abertura ampla. [VERIFIED: backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java:214-246] |
+| Criar/modificar | testes Java, IT Keycloak/Testcontainers e validadores Node de realm/imagem | Provas de contrato, duplicata, replay, falha, restart e D-40 E2E. |
+| Replanejar, não executar como está | `.planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-24-PLAN.md` | O plano back-channel é evidência histórica, mas não implementação de D-40 depois de A-3. [VERIFIED: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-24-PLAN.md:85-95] |
+
+Os nomes novos são alvos de planejamento, não contrato já criado; a estrutura final depende de D-40-B.
+
+### Estratégia de testes, Maven/Node e prova D-40
+
+| Camada | Prova necessária |
+|---|---|
+| Unitária do provider | Aceita só `UPDATE_CREDENTIAL` password, ignora legado/erro/outro tipo, monta payload mínimo e não chama HTTP no callback. |
+| Unitária admin (se incluído) | Aceita somente realm + `USER` + `ACTION` e o path estrito `users/{id}/reset-password`; rejeita variantes e não usa `getResourceId()` como usuário. |
+| Container Keycloak 26.7.1 | Imagem customizada descobre Service Loader, realm seleciona listener, reset hospedado emite o evento escolhido, e prova `userId`--`sub`; exercitar também dupla emissão/legado e admin quando incluído. |
+| Falha/retry/restart | Receptor indisponível, timeout, `5xx`, queda e restart do worker; provar que a origem persistiu depois do commit e retoma sem perda. |
+| Inbox/replay | Mesma mensagem, assinatura inválida, timestamp expirado e sujeito/issuer desconhecido; uma revogação por duplicatas e nenhuma chamada de serviço em mensagem inválida. |
+| DLQ/recovery | Exaurir tentativas, alertar, auditar de forma redigida e reprocessar por procedimento autorizado. |
+| E2E D-40 | Criar sessão BETUFU, reset hospedado, aguardar entrega e provar que todas as sessões locais foram encerradas por `terminateAllSessionsFor(..., SECURITY)`; incluir admin se D-40-C o determinar. |
+
+Antes da execução, o plano deve incluir comandos Maven do módulo plugin e backend e comandos Node dos validadores de realm/compose; nenhum foi rodado nesta pesquisa. O backend já declara Spring Boot 4.1.0, Java 25 e Testcontainers. [VERIFIED: backend/pom.xml:10-24] [VERIFIED: backend/pom.xml:91-119]
+
+### Ameaças ASVS L1 a levar ao plano
+
+ASVS é a referência OWASP de controles verificáveis; a nova API interna e a cadeia de sessão exigem threat model específico mesmo em tráfego serviço-a-serviço. [CITED: https://owasp.org/www-project-application-security-verification-standard/]
+
+| Ameaça | Controle de planejamento |
+|---|---|
+| Evento forjado/credencial excessiva | Assinatura ou mTLS, `key-id`, menor privilégio, rotação e endpoint exclusivo. |
+| Replay/adulteração | Hash de corpo assinado, janela temporal e unique key de inbox. |
+| DoS, indisponibilidade ou crash pós-commit | Fonte persistida, timeout, jitter/retry, DLQ, alerta e teste de restart. |
+| Revogar sujeito errado | Realm/issuer fixos, identidade local existente, prova `userId`--`sub` e parser admin estrito. |
+| Vazamento de segredo/sessão | Payload mínimo, redaction e proibição de tokens, representations e details. |
+| Endpoint amplo | Matcher Spring exato, autenticação antes de processamento e `denyAll` preservado. |
+
+### Decisões pendentes para plano executável
+
+1. **D-40-A:** ratificar o gatilho `UPDATE_CREDENTIAL` + password e ignorar o legado `UPDATE_PASSWORD`.
+2. **D-40-B (bloqueadora):** aprovar topologia de durabilidade, persistência/infraestrutura e recovery operacional.
+3. **D-40-C:** incluir ou excluir explicitamente reset administrativo.
+4. **Política operacional:** escolher HMAC ou mTLS, RTO/limites/DLQ, retenção de inbox/outbox/auditoria e owner de recuperação.
+
+### Fontes primárias
+
+- [EventListenerProvider 26.7.1](https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventListenerProvider.java) — timing transacional; [Event](https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/Event.java), [EventBuilder](https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventBuilder.java) e [EventType](https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/server-spi-private/src/main/java/org/keycloak/events/EventType.java) — campos, IDs e despacho.
+- [UpdatePassword](https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/services/src/main/java/org/keycloak/authentication/requiredactions/UpdatePassword.java) e [UserResource administrativo](https://raw.githubusercontent.com/keycloak/keycloak/26.7.1/services/src/main/java/org/keycloak/services/resources/admin/UserResource.java) — semântica de senha em 26.7.1.
+- [Guia de desenvolvimento](https://www.keycloak.org/docs/latest/server_development/index.html), [containers](https://www.keycloak.org/server/containers) e [configuração de providers](https://www.keycloak.org/server/configuration-provider) — Service Loader, build e extensão JPA.
+- [OWASP ASVS](https://owasp.org/www-project-application-security-verification-standard/) — baseline de segurança.

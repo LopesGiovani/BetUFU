@@ -6,12 +6,12 @@ nyquist_compliant: true
 wave_0_complete: false
 evidence_state: planned-not-run
 created: 2026-08-19
-updated: 2026-08-21
+updated: 2026-08-22
 ---
 
 # Phase 02 — Validation Strategy
 
-> `nyquist_compliant: true` significa que todas as 54 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. Não significa que os testes já foram escritos ou passaram. `wave_0_complete: false` e `evidence_state: planned-not-run` são intencionais: esta revisão altera somente planejamento.
+> `nyquist_compliant: true` significa que todas as 67 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. Não significa que os testes já foram escritos ou passaram. `wave_0_complete: false` e `evidence_state: planned-not-run` são intencionais: esta revisão altera somente planejamento.
 
 ## Test Infrastructure
 
@@ -65,7 +65,20 @@ updated: 2026-08-21
 | 02-10-T2 | OPER-06; OPER-01; OPER-02; OPER-04; D-01..D-11 | `OperationalPanelIT`, `EnrollmentControllerIT` e allowlists da resposta cobrem os quatro blocos, contagem e vazio | transformar agregado em enumeração de identidades deve falhar | PLANNED — NOT RUN |
 | 02-11-T1 | IDEN-05; AUTH-04; D-40, D-50 | `PasswordResetTriggerSpikeIT` mede o comportamento real do Keycloak | resultado inconclusivo ou gatilho ausente mantém RED e bloqueia a decisão | PLANNED — NOT RUN |
 | 02-11-T2 | IDEN-05; AUTH-04; D-40, D-50 | spike GREEN é a pré-condição automatizada da decisão do mecanismo | mecanismo/canal sem aprovação ou prova mantém a fase bloqueada | PLANNED — NOT RUN |
-| 02-24-T1 | IDEN-05; AUTH-04; D-40, D-50 | `PasswordResetSessionTerminationIT`, `OidcRevocationKeycloakIT`, `SelfRegistrationKeycloakIT`, `IdentitySessionTerminationIT`, testes CSRF e `validate-keycloak-realm.test.mjs` cobrem o gatilho e encerramento | manter sessão após reset, cookie fora do padrão ou CSRF amplo demais deve falhar | PLANNED — NOT RUN |
+| 02-24-T1 | AUTH-04; IDEN-05; PRIV-01; D-40 | `PasswordResetProviderTracerIT` via Surefire cobre UPDATE_CREDENTIAL/password, commit/rollback, unicidade e payload mínimo da outbox | evento legado, credencial divergente, HTTP no callback, dado privado ou duplicata deve falhar | PLANNED — NOT RUN |
+| 02-24-T2 | AUTH-04; IDEN-05; PRIV-01; D-40 | o mesmo teste cobre ServiceLoader, entity provider, changelog e idempotência do bootstrap | provider ausente, migration duplicada ou índice único removido deve falhar | PLANNED — NOT RUN |
+| 02-24-T3 | AUTH-04; IDEN-05; PRIV-01; D-40 | o mesmo teste cobre USER/ACTION e parse exato de users/{id}/reset-password | getResourceId, path ambíguo, action/type divergente ou id vazio deve falhar | PLANNED — NOT RUN |
+| 02-28-T1 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | `PasswordResetDeliveryRecoveryTest` cobre claim/lease, 2 s/5 s, jitter/cap 30 s, restart e RTO <=60 s | claim duplo, timeout/cap divergente ou evento perdido no restart deve falhar | PLANNED — NOT RUN |
+| 02-28-T2 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | o mesmo teste cobre alerta na quinta falha, FAILED retido, replay manage-realm e cleanup DELIVERED >30 d | retry automático após FAILED, replay sem autoridade ou exclusão de estado não entregue deve falhar | PLANNED — NOT RUN |
+| 02-30-T1 | AUTH-04; IDEN-05; PRIV-01; D-40 | `PasswordResetHermeticTracerIT` cobre outbox 02-24, envelope exato, inbox e `terminateAllSessionsFor(subject, SECURITY)` | tampering, payload extra, lógica de terminação duplicada ou sessão controle encerrada deve falhar | PLANNED — NOT RUN |
+| 02-30-T2 | AUTH-04; IDEN-05; PRIV-01; D-40 | `PasswordResetEventInboxIT` cobre migration, unique sourceEventId, concorrência e rollback recuperável | ACK antes do commit, efeito duplicado ou estado falso de sucesso deve falhar | PLANNED — NOT RUN |
+| 02-30-T3 | AUTH-04; IDEN-05; PRIV-01; D-40 | os dois ITs cobrem rota/configuração dedicadas, HMAC constant-time e fail-closed sem chave | bearer/cookie substituindo HMAC, rota ampla ou segredo default deve falhar | PLANNED — NOT RUN |
+| 02-31-T1 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | `PasswordResetEventInboxIT` cobre current+previous, janela exata de cinco minutos e ACK idempotente | terceira chave, timestamp fora da janela, tampering ou segunda terminação deve falhar | PLANNED — NOT RUN |
+| 02-31-T2 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | `PasswordResetDeliveryRecoveryIT` cobre crash/restart, retomada única, FAILED retido e cleanup DELIVERED >30 d | perda/duplicação após crash ou exclusão de unresolved deve falhar | PLANNED — NOT RUN |
+| 02-31-T3 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | IT e `validate-password-reset-recovery.test.mjs` cobrem recovery admin, auditoria, owner/backup e runbook | membro/operador, ausência de owner ou ativação antecipada deve falhar/bloquear | PLANNED — NOT RUN |
+| 02-29-T1 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | imagem pinada + `PasswordResetSessionTerminationIT` provam hosted/admin, current+previous, crash/restart e RTO antes do rollout | digest/JDK/JAR divergente, segredo em layer, sessão controle encerrada ou ativação antecipada deve falhar | PLANNED — NOT RUN |
+| 02-29-T2 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | evidências, runbook, secrets e rollback são pré-condições do checkpoint literal | HIGH aberta, evidência pendente ou sinal diferente de `ativar rollout D-40 02-29` bloqueia | PLANNED — NOT RUN |
+| 02-29-T3 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | validators realm/runtime, compose config, E2E e gates completos cobrem a única ativação produtiva | listener/digest/secrets divergentes ou qualquer gate vermelho deve falhar | PLANNED — NOT RUN |
 | 02-12-T1 | VERI-07; OPER-01; AUDT-01; D-32 | `EnrollmentCorrectionIT` troca o vínculo, libera o anterior e preserva histórico/auditoria | liberar antes da confirmação, apagar histórico ou manter o anterior ativo deve falhar | PLANNED — NOT RUN |
 | 02-12-T2 | VERI-07; OPER-01; AUDT-01; D-32 | `EnrollmentCorrectionAuthorizationIT`, `RoleAuthorizationMatrixIT` e testes de contrato de erro provam exclusividade do administrador geral | colocar matcher depois de regra ampla ou permitir membro/operador deve falhar | PLANNED — NOT RUN |
 | 02-25-T1 | VERI-07; OPER-01; AUDT-01 | validadores de contrato/rota, cliente gerado e suítes completas mantêm a correção sincronizada | drift de endpoint, DTO ou digest deve falhar | PLANNED — NOT RUN |
@@ -92,7 +105,7 @@ updated: 2026-08-21
 
 ### Handoff de cobertura S7
 
-`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem continua em 54 Task IDs únicos; `02-15-T1` está `PASS`, enquanto `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
+`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem agora é 67 Task IDs únicos: D-40 possui 14 tasks distribuídas entre `02-24-T1..T3`, `02-28-T1..T2`, `02-30-T1..T3`, `02-31-T1..T3` e `02-29-T1..T3`, incluindo o checkpoint final `02-29-T2`; os gates materiais internos anteriores às tasks continuam sem Task ID. `02-15-T1` está `PASS`, enquanto as 14 tasks D-40, `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
 
 ## Wave 0 Requirements and Dependencies
 
@@ -108,7 +121,7 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 02-06, 02-22 | `MatriculaNormalizerTest`, `MatriculaHmacTest`, `HmacKeyFailClosedTest` e `PrivacyArchitectureTest` | núcleo HMAC e backstop estrutural de privacidade |
 | 02-07, 02-16 | `UfuEnrollmentUniquenessIT` (02-07-T2); `EnrollmentControllerIT`, `EnrollmentAttemptLimiterIT`, `EnrollmentEligibilityTest` (02-07-T3); `UfuEnrollmentRotationIT`, `UfuEnrollmentConcurrencyIT` (02-16-T1) | persistência exclusiva, integração/limites/elegibilidade exclusiva, rotação e concorrência |
 | 02-08, 02-17, 02-23 | pré-condição do seed, `RoleScopeTest`, `RoleAuthorizationMatrixIT`, `AdminSeedIdempotencyIT`, `RoleGrantControllerIT`, `RoleChangeSessionTerminationIT` | decisão, papéis, escopos e encerramento privilegiado |
-| 02-09, 02-11, 02-24 | `IdentitySessionTerminationIT`, `RedisSessionIT`, `CurrentDeviceLogoutIT`, `SessionControllerIT`, `PasswordResetTriggerSpikeIT`, `PasswordResetSessionTerminationIT` | enumeração, decisão e encerramento de sessões por mudança de segurança |
+| 02-09, 02-11, 02-24, 02-28, 02-30, 02-31, 02-29 | `IdentitySessionTerminationIT`, `RedisSessionIT`, `CurrentDeviceLogoutIT`, `SessionControllerIT`, `PasswordResetTriggerSpikeIT`, `PasswordResetProviderTracerIT`, `PasswordResetEventInboxIT`, `PasswordResetHermeticTracerIT`, `PasswordResetDeliveryRecoveryTest`, `PasswordResetDeliveryRecoveryIT`, `PasswordResetSessionTerminationIT` e validadores recovery/realm/runtime | enumeração e decisão; origem; hardening da origem; destino/tracer; hardening de inbox/operações; rollout final governado |
 | 02-10, 02-18 | `OperationalPanelIT`, `OperationalPanelResponseTest`, matriz de autorização e specs do painel | painel S4 após contrato |
 | 02-12, 02-25 | `EnrollmentCorrectionIT`, `EnrollmentCorrectionAuthorizationIT`, matriz de autorização e validadores de contrato/digest | correção administrativa D-32 e contrato S6 |
 | 02-13, 02-19, 02-20, 02-26, 02-27 | specs S3, S5 e S6; guard global de perfil, layout/menu disclosure e mutações do validador em S7; builds; axe; e evidência automatizada antes do checkpoint | superfícies finais, navegação governada e revisão humana S1..S7 sem perda de cobertura |
@@ -124,10 +137,11 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 2 | 02-04, 02-06, 02-14 | decisões de auditoria, núcleo HMAC e contrato de perfil aprovado |
 | 3 | 02-05, 02-09, 02-21 | S1, sessões próprias e auditoria append-only |
 | 4 | 02-11, 02-15, 02-22 | spike/decisão D-40, S2 e privacidade estrutural/procedimento HMAC |
-| 5 | 02-07, 02-24 | vínculo completo e integração automática D-40 |
-| 6 | 02-08, 02-16 | decisão OQ-4 e contrato de matrícula aprovado |
-| 7 | 02-23 | concessão/revogação, guardas D-48 e término D-49 |
-| 8 | 02-17 | autoridades/seed e contrato operacional aprovados |
+| 5 | 02-07 | vínculo completo e migration V5 concluídos antes da V5_1 D-40 |
+| 6 | 02-08, 02-16, 02-24 | decisão OQ-4, contrato de matrícula e núcleo de origem D-40 sem ativação |
+| 7 | 02-23, 02-28, 02-30 | concessão/revogação, hardening da origem e destino/tracer D-40 em arquivos disjuntos |
+| 8 | 02-17, 02-31 | autoridades/seed e hardening de inbox/operações sem ativação |
+| 9 | 02-10, 02-29 | painel operacional e rollout D-40 final sob gate bloqueante |
 | 9 | 02-10 | backend completo do painel |
 | 10 | 02-18 | contrato aprovado antes do adapter e S4 validada |
 | 11 | 02-12 | correção D-32 e autorização administrativa |
@@ -136,11 +150,25 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 14 | 02-20, 02-26 | S6 e S7/guard/menu/validador em paralelo, sem sobreposição de arquivos |
 | 15 | 02-27 | checkpoint humano final S1..S7, bloqueado nas duas fatias da Onda 14 |
 
+### Comandos obrigatórios das Waves 6–9 para D-40
+
+Estes comandos são evidência futura da execução aprovada, não resultados já obtidos. Cada plano possui checkpoint material próprio; 02-29 possui ainda um segundo checkpoint final antes da ativação. Nenhuma aprovação autoriza a onda seguinte ou Git.
+
+1. **Wave 6 / 02-24 origem:** `node scripts/maven.mjs -f keycloak-password-event-listener/pom.xml test '-Dtest=PasswordResetProviderTracerIT'`.
+2. **Wave 7 / 02-28 origem/recovery:** `node scripts/maven.mjs -f keycloak-password-event-listener/pom.xml test '-Dtest=PasswordResetDeliveryRecoveryTest'`.
+3. **Wave 7 / 02-30 destino/tracer:** `node scripts/maven.mjs -f keycloak-password-event-listener/pom.xml package` e `node scripts/maven.mjs -f backend/pom.xml test-compile failsafe:integration-test failsafe:verify '-Dit.test=PasswordResetEventInboxIT,PasswordResetHermeticTracerIT'`.
+4. **Wave 8 / 02-31 inbox/operações:** `node --test scripts/validate-password-reset-recovery.test.mjs`, `node scripts/validate-password-reset-recovery.mjs` e `node scripts/maven.mjs -f backend/pom.xml test-compile failsafe:integration-test failsafe:verify '-Dit.test=PasswordResetEventInboxIT,PasswordResetDeliveryRecoveryIT'`.
+5. **Wave 9 / 02-29 imagem e E2E pré-rollout:** `slopcheck keycloak-password-event-listener/pom.xml`, package do provider, build da imagem pinada e `node scripts/maven.mjs -f backend/pom.xml test-compile failsafe:integration-test failsafe:verify '-Dit.test=PasswordResetSessionTerminationIT'`.
+6. **Wave 9 / checkpoint final:** revisar a evidência e só prosseguir com o sinal literal `ativar rollout D-40 02-29`; não existe comando que substitua a decisão humana.
+7. **Wave 9 / ativação e gates:** validators realm/runtime, `docker compose -f infra/compose.yaml config --quiet`, E2E `PasswordResetSessionTerminationIT`, Maven verify dos dois módulos e `node --test scripts/*.test.mjs`.
+
+O formato `test-compile` seguido dos goals diretos de Failsafe é obrigatório nos ITs isolados; `-Dtest` seleciona Surefire e não serve como evidência de um `*IT`.
+
 Cada onda pausa para aprovação explícita conforme `AGENTS.md`; nenhuma aprovação autoriza a onda seguinte, Git ou serviços externos.
 
 ## Phase Exit Gate
 
-- Os 54 Task IDs acima precisam de evidência no SUMMARY proprietário; não há marcador pendente nem tarefa sem mapa.
+- Os 67 Task IDs acima precisam de evidência no SUMMARY proprietário; não há marcador pendente nem tarefa sem mapa.
 - Todo comportamento produtivo precisa de RED, GREEN e controle negativo/mutação registrado; checkpoints precisam da pré-condição automatizada e da decisão/aprovação humana.
 - Todos os testes focados passam, a suíte de regressão passa e nenhum artefato sensível aparece em logs, erros, cache, DTO ou UI.
 - Nenhuma ameaça `critical` ou `high` permanece aberta sob ASVS L1.
