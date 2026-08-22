@@ -83,3 +83,34 @@
 - **Opção escolhida:** `indexado` (trocar futuramente para o repositório indexado nativo do Spring Session).
 - **Data da decisão:** 2026-08-20
 - **Razão:** Usar a capacidade nativa do framework segue DRY/Don't Hand-Roll e evita manter um índice próprio sujeito a divergência silenciosa, aceitando o custo explícito de adaptar as travas e o `SelectiveTouchSessionRepository`.
+
+---
+
+## 6. Medição A-3: Comportamento do Keycloak 26.7.1 na Redefinição de Senha e Gatilhos de Sessão (D-40)
+
+- **Afirmação original:** A redefinição de senha (`AUTH-04`) no Keycloak encerra as sessões de SSO existentes do usuário e/ou dispara um gatilho de canal de retaguarda (OIDC Back-Channel Logout) para a aplicação (`D-40`).
+- **Data da medição:** 2026-08-22
+- **Referência no código:** `backend/src/test/java/br/com/betufu/platform/session/PasswordResetTriggerSpikeIT.java` (`spikeMeasuresPasswordResetPreservesUserSessionAndEmitsNoBackchannelLogout`, `spikeEnumeratesKeycloakRealmAndFlowConfigurationsForSessionTermination`)
+- **Ambiente de teste:** Container Keycloak 26.7.1 fixado por digest (`quay.io/keycloak/keycloak:26.7.1@sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6`) e Mailpit v1.30.7 (`docker.io/axllent/mailpit:v1.30.7@sha256:d5ecbb067db3705fa953d79e1b7f81ef84038df67aba6c52825d8c02a1ea748a`)
+- **Comando de evidência:** `node scripts/maven.mjs -f backend/pom.xml test-compile failsafe:integration-test failsafe:verify '-Dit.test=PasswordResetTriggerSpikeIT'`, com chave HMAC descartável restrita ao processo de teste.
+- **Resultado automatizado:** 2 testes executados, 0 falhas, 0 erros e 0 ignorados (`BUILD SUCCESS`).
+- **Veredito:** `gatilho não observado`. O fluxo hospedado de redefinição de senha do Keycloak 26.7.1 preserva a sessão SSO e não emite Back-Channel Logout.
+- **Perguntas e valores observados:**
+  1. **Pergunta 1 — A sessão de SSO da pessoa no provedor sobreviveu à redefinição?**
+     - **Método de teste:** Criar usuário no Keycloak, autenticar via Authorization Code Flow para estabelecer sessão SSO real, consultar `/users/{userId}/sessions` antes e depois de executar o fluxo completo de redefinição de senha (`reset-credentials` + action-token via Mailpit) e testar renovação de token com o refresh token anterior via `/protocol/openid-connect/token`.
+     - **Valor observado:** Sim. Havia 1 sessão antes e 1 depois; o identificador permaneceu igual e o refresh token emitido antes da redefinição continuou válido, com HTTP 200.
+  2. **Pergunta 2 — Com o canal de retaguarda habilitado no cliente, chega alguma requisição de volta para a aplicação?**
+     - **Método de teste:** Configurar `backchannel.logout.url` no cliente `betufu-bff` apontando para o receptor HTTP do teste (`BACKCHANNEL_SERVER`) e observar continuamente por 10 segundos as requisições recebidas durante o fluxo de redefinição, usando a mesma janela máxima do controle positivo.
+     - **Controle discriminante (Rejeição de Prova Vazia):** Executar logout administrativo explícito (`POST /users/{userId}/logout`) para provar que o canal de retaguarda e o receptor do teste recebem `logout_token` quando o Keycloak emite o evento.
+     - **Valor observado:** Não. Foram recebidas 0 requisições durante a redefinição. O controle positivo recebeu exatamente 1 requisição após o logout administrativo explícito.
+  3. **Pergunta 3 — Se algo chegou, o conteúdo casa com o que o registro em memória guardou?**
+     - **Método de teste:** Inspecionar as claims do `logout_token` recebido (`iss`, `sub`, `sid`, `events`, `nonce`).
+     - **Valor observado:** Não aplicável ao reset, pois nenhum evento chegou. No controle positivo, a requisição foi `POST`, continha `logout_token`, `iss` e `sub` corresponderam ao emissor e à pessoa do teste, `events` continha o evento de backchannel logout, e `sid`/`nonce` estavam ausentes como esperado para logout por pessoa.
+  4. **Pergunta 4 — Existe alguma configuração de realm ou de cliente que faça a redefinição encerrar as sessões?**
+     - **Método de teste:** Inspecionar via Admin API as representações do realm (`ssoSessionIdleTimeout`, `ssoSessionMaxLifespan`, `revokeRefreshToken`, `notBefore`), atributos do cliente e execuções do fluxo `reset credentials` (`reset-credentials-choose-user`, `reset-credential-email`, `reset-password`).
+     - **Valor observado:** Não foi encontrada execução de revogação. O realm expôs `ssoSessionIdleTimeout` e `ssoSessionMaxLifespan`, com `revokeRefreshToken=false` e `notBefore=0`; o fluxo continha `reset-credentials-choose-user`, `reset-credential-email` e `reset-password`, sem provider cujo nome indicasse sessão ou logout.
+- **Decisão D-40:** `plugin-evento-keycloak`.
+- **Data da decisão:** 2026-08-22.
+- **Razão:** Como a redefinição preserva a sessão e não emite backchannel logout, a BETUFU precisa observar `UPDATE_PASSWORD` por um listener do Keycloak com entrega autenticada e durável para manter o encerramento automático e imediato exigido por D-40. A implementação depende de replanejamento e aprovação específicos.
+- **Errata canônica (2026-08-22):** a decisão arquitetural continua sendo `plugin-evento-keycloak`, mas o filtro técnico aprovado é `EventType.UPDATE_CREDENTIAL` com `Details.CREDENTIAL_TYPE` exatamente `password`; `UPDATE_PASSWORD` é legado/deprecated e deve ser ignorado. A errata corrige apenas a terminologia técnica e não altera a observação empírica A-3: o reset hospedado não emitiu backchannel logout e preservou a sessão.
+- **Verificação agregada final (2026-08-22):** teste focal `2/2`; Maven completo com Surefire `172/172` e Failsafe `163/163`; Node completo `536/536`; zero falhas, erros, cancelamentos ou testes ignorados. A observação negativa e o controle positivo usaram janelas de 10 segundos.
