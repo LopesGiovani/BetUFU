@@ -74,8 +74,7 @@ updated: 2026-08-21
 | 02-14-T1 | PROF-01; PROF-02; PRIV-01; D-34..D-39 | validadores de contrato/rota provam OpenAPI e cliente gerado do perfil | somente o digest deve falhar imediatamente após regenerar o cliente | PLANNED — NOT RUN |
 | 02-14-T2 | PROF-01; PROF-02; PRIV-01 | validador de contrato/digest GREEN é pré-condição da aprovação humana literal | digest não aprovado bloqueia todos os consumidores Angular | PLANNED — NOT RUN |
 | 02-14-T3 | PROF-01; PROF-02; PRIV-01 | validadores de contrato/rota e suítes completas comprovam o digest corrigido | arquivo fora da árvore gerada/allowlist ou digest divergente deve falhar | PLANNED — NOT RUN |
-| 02-15-T1 | PROF-01; PROF-02; UI S2 | `profile-page.component.spec.ts`, specs do adapter e build cobrem estados e identificador público | editar campo imutável, mostrar fallback proibido ou perder erro/estado deve falhar | PLANNED — NOT RUN |
-| 02-15-T2 | PROF-01; PROF-02; UI S7 | `profile-completion.guard.spec.ts`, `session-layout.spec.ts`, build e validador de rota cobrem navegação responsiva por papel | renderizar item desabilitado ou alcançar rota não autorizada deve falhar | PLANNED — NOT RUN |
+| 02-15-T1 | PROF-01; PROF-02; UI S2 | `profile-page.component.spec.ts`, suíte Angular `85/85`, build production, validador de rota `OK`, regressões Node `158/158` e revisão Codex cobrem estados, privacidade, navegação e identificador público | as correções assíncronas foram validadas; edição indevida, fallback proibido e perda de erro/estado continuam cobertos pelas regressões | PASS — 2026-08-21 |
 | 02-16-T1 | VERI-06; VERI-07; VERI-09; D-25..D-35 | `UfuEnrollmentRotationIT` e `UfuEnrollmentConcurrencyIT` provam todas as versões ativas e corrida contra índice real | comparar só digest corrente ou remover índice parcial deve tornar o IT focal vermelho | PLANNED — NOT RUN |
 | 02-16-T2 | VERI-06; VERI-07; VERI-09 | validadores de contrato/rota cobrem vínculo e consulta governada antes do consumo | drift de schema, DTO, status, código ou digest deve falhar | PLANNED — NOT RUN |
 | 02-16-T3 | VERI-06; VERI-07; VERI-09 | validador de contrato/digest GREEN é pré-condição da aprovação humana | digest não aprovado bloqueia S5 e integrações | PLANNED — NOT RUN |
@@ -87,8 +86,13 @@ updated: 2026-08-21
 | 02-18-T3 | OPER-06; OPER-01; OPER-02; OPER-04; UI S4 | `operations-api.adapter.spec.ts`, `operations-panel-page.component.spec.ts`, build e validador de rota cobrem painel e estados vazios | renderizar para papel errado, expor PII ou quebrar retry/estado vazio deve falhar | PLANNED — NOT RUN |
 | 02-19-T1 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05; UI S5 | `role-admin-page.component.spec.ts`, `confirm-dialog.component.spec.ts`, build e validador de rota cobrem membro e operador | remover razões do guard, revelar matrícula ou alterar sem confirmação deve falhar | PLANNED — NOT RUN |
 | 02-19-T2 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05; UI S5 | suíte frontend GREEN é pré-condição da jornada humana membro/operador | cópia, teclado ou privacidade divergente bloqueia aprovação | PLANNED — NOT RUN |
-| 02-20-T1 | VERI-06; VERI-07; OPER-01; PRIV-01; AUDT-01; D-32; UI S6 | `enrollment-admin-page.component.spec.ts`, build, validador de rota e suíte completa cobrem UUID público, nova matrícula e motivo integral | persistir matrícula, exibir a anterior ou aceitar motivo ausente deve falhar | PLANNED — NOT RUN |
-| 02-20-T2 | VERI-06; VERI-07; OPER-01; PRIV-01; AUDT-01; UI S1..S7 | suíte frontend GREEN é pré-condição do checkpoint humano final S1–S7 | qualquer superfície, papel, teclado, foco ou viewport incompleto bloqueia a fase | PLANNED — NOT RUN |
+| 02-20-T1 | VERI-06; VERI-07; OPER-01; PRIV-01; AUDT-01; D-32; UI S6 | `enrollment-admin-page.component.spec.ts`, build, validador de rota e suíte completa cobrem nova matrícula somente em memória, motivo integral e correção governada | persistir matrícula, exibir a anterior, truncar motivo, aceitar motivo vazio/curto ou repetir mutação deve falhar | PLANNED — NOT RUN |
+| 02-26-T1 | PROF-01; PROF-02; OPER-01; OPER-02; OPER-03; OPER-04; AUTH-04; IDEN-05; D-39; D-46; UI S7 | `profile-completion.guard.spec.ts`, `session-layout.component.spec.ts`, prova de 403 real com cliente defasado, build e `validate-angular-route-boundary.test.mjs` cobrem guard global funcional, os três papéis autoritativos BETUFU/PostgreSQL, contrato real de capacidade, disclosure nativo e rotas protegidas | guard ausente/no gate incorreto, loop em S1, papel vindo do Keycloak, capacidade futura exposta, item não autorizado presente no DOM, autoridade inventada no cliente, estado defasado superando 403, causa de término inferida ou quebra de teclado/foco/320px deve falhar | PLANNED — NOT RUN |
+| 02-27-T1 | PROF-01; PROF-02; VERI-06; VERI-07; OPER-01; OPER-02; OPER-03; OPER-04; OPER-06; IDEN-05; PRIV-01; UI S1..S7 | evidências GREEN dos Planos 02-20 e 02-26 são pré-condição do checkpoint humano final S1–S7, incluindo variantes reais de papel/capacidade, disclosure nativo e cliente defasado com 403 | qualquer evidência pendente, superfície, papel, teclado, foco, scroll/wrap, viewport, privacidade ou autoridade divergente bloqueia a fase e nunca é autoaprovado | PLANNED — NOT RUN |
+
+### Handoff de cobertura S7
+
+`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem continua em 54 Task IDs únicos; `02-15-T1` está `PASS`, enquanto `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
 
 ## Wave 0 Requirements and Dependencies
 
@@ -100,14 +104,14 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 02-02 | `SelfRegistrationKeycloakIT`, `OidcRevocationKeycloakIT`, validadores de realm/runtime/tema e reimportação | autenticação e verificação |
 | 02-03 | `ProfileControllerIT`, `ProfilePersistenceIT`, `CurrentProfileResponseTest`, `ProblemDetailsIT` e testes de allowlist | perfil backend e erros estáveis |
 | 02-04, 02-21 | pré-condições das decisões D-40, `AuditEventIT`, `AuditImmutabilityIT`, `FlywayMigrationIT`, `FlywayChecksumIT` | decisões e persistência/retenção de auditoria |
-| 02-05, 02-15 | specs de `ProfileApiAdapter`, gate S1, página S2, guard/layout S7 e validador de fronteira | UI S1, S2 e S7 |
+| 02-05, 02-15 | specs de `ProfileApiAdapter`, gate S1, página S2 e validador de fronteira | UI S1 e S2 |
 | 02-06, 02-22 | `MatriculaNormalizerTest`, `MatriculaHmacTest`, `HmacKeyFailClosedTest` e `PrivacyArchitectureTest` | núcleo HMAC e backstop estrutural de privacidade |
 | 02-07, 02-16 | `UfuEnrollmentUniquenessIT` (02-07-T2); `EnrollmentControllerIT`, `EnrollmentAttemptLimiterIT`, `EnrollmentEligibilityTest` (02-07-T3); `UfuEnrollmentRotationIT`, `UfuEnrollmentConcurrencyIT` (02-16-T1) | persistência exclusiva, integração/limites/elegibilidade exclusiva, rotação e concorrência |
 | 02-08, 02-17, 02-23 | pré-condição do seed, `RoleScopeTest`, `RoleAuthorizationMatrixIT`, `AdminSeedIdempotencyIT`, `RoleGrantControllerIT`, `RoleChangeSessionTerminationIT` | decisão, papéis, escopos e encerramento privilegiado |
 | 02-09, 02-11, 02-24 | `IdentitySessionTerminationIT`, `RedisSessionIT`, `CurrentDeviceLogoutIT`, `SessionControllerIT`, `PasswordResetTriggerSpikeIT`, `PasswordResetSessionTerminationIT` | enumeração, decisão e encerramento de sessões por mudança de segurança |
 | 02-10, 02-18 | `OperationalPanelIT`, `OperationalPanelResponseTest`, matriz de autorização e specs do painel | painel S4 após contrato |
 | 02-12, 02-25 | `EnrollmentCorrectionIT`, `EnrollmentCorrectionAuthorizationIT`, matriz de autorização e validadores de contrato/digest | correção administrativa D-32 e contrato S6 |
-| 02-13, 02-19, 02-20 | specs S3, S5, S6, builds, validadores de rota e axe | superfícies finais e revisão S1..S7 |
+| 02-13, 02-19, 02-20, 02-26, 02-27 | specs S3, S5 e S6; guard global de perfil, layout/menu disclosure e mutações do validador em S7; builds; axe; e evidência automatizada antes do checkpoint | superfícies finais, navegação governada e revisão humana S1..S7 sem perda de cobertura |
 | 02-14, 02-16, 02-17, 02-18, 02-25 | validadores OpenAPI/cliente/digest | consumo frontend somente após contrato aprovado |
 
 `wave_0_complete` só poderá mudar para `true` depois que todos os scaffolds aplicáveis existirem e os REDs forem registrados nos SUMMARYs. Um teste que passa na primeira execução sem demonstrar ausência do comportamento deve ser corrigido antes da implementação.
@@ -119,7 +123,7 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 1 | 02-01, 02-02, 02-03 | decisões bloqueantes resolvidas quando exigidas; RED/GREEN das três fatias iniciais |
 | 2 | 02-04, 02-06, 02-14 | decisões de auditoria, núcleo HMAC e contrato de perfil aprovado |
 | 3 | 02-05, 02-09, 02-21 | S1, sessões próprias e auditoria append-only |
-| 4 | 02-11, 02-15, 02-22 | spike/decisão D-40, S2/S7 e privacidade estrutural/procedimento HMAC |
+| 4 | 02-11, 02-15, 02-22 | spike/decisão D-40, S2 e privacidade estrutural/procedimento HMAC |
 | 5 | 02-07, 02-24 | vínculo completo e integração automática D-40 |
 | 6 | 02-08, 02-16 | decisão OQ-4 e contrato de matrícula aprovado |
 | 7 | 02-23 | concessão/revogação, guardas D-48 e término D-49 |
@@ -129,7 +133,8 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 11 | 02-12 | correção D-32 e autorização administrativa |
 | 12 | 02-13, 02-25 | S3 validada e contrato/digest da correção aprovados |
 | 13 | 02-19 | S5 validada |
-| 14 | 02-20 | S6 e revisão humana final S1..S7 |
+| 14 | 02-20, 02-26 | S6 e S7/guard/menu/validador em paralelo, sem sobreposição de arquivos |
+| 15 | 02-27 | checkpoint humano final S1..S7, bloqueado nas duas fatias da Onda 14 |
 
 Cada onda pausa para aprovação explícita conforme `AGENTS.md`; nenhuma aprovação autoriza a onda seguinte, Git ou serviços externos.
 
@@ -141,7 +146,7 @@ Cada onda pausa para aprovação explícita conforme `AGENTS.md`; nenhuma aprova
 - Nenhuma ameaça `critical` ou `high` permanece aberta sob ASVS L1.
 - Os contratos OpenAPI e digests são aprovados antes dos adapters Angular dependentes.
 - D-40, D-49 e D-51 não possuem caminho de conclusão por adiamento: dúvida ou alternativa não aprovada bloqueia e exige replanejamento.
-- A revisão humana final confirma UI S1-S7, responsividade, teclado, foco, contraste, estados vazios/erro e separação por papel.
+- A revisão humana final de `02-27-T1`, somente após `02-20` e `02-26`, confirma UI S1-S7, responsividade, teclado, foco, contraste, estados vazios/erro, privacidade e separação por papel, sem caminho de autoaprovação.
 
 ## Approval
 

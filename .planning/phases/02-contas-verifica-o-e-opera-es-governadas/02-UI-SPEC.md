@@ -89,9 +89,9 @@ Ao voltar do Keycloak, a primeira pintura autenticada é o estado `Preparando su
 
 | Propriedade | Valor |
 |---|---|
-| Ferramenta | Nenhuma (não é projeto shadcn). Angular Material/CDK com tema e tokens proprietários BETUFU, componentes standalone. |
+| Ferramenta | Nenhuma (não é projeto shadcn). Angular standalone com HTML semântico, controles nativos e tema/tokens proprietários BETUFU. |
 | Preset | Não aplicável — `components.json` ausente por decisão de stack Angular. |
-| Biblioteca de componentes | Angular Material/CDK. Preferir `mat-form-field`, `mat-input`, `mat-menu`, `mat-button`, `mat-card`, `mat-icon`, `mat-dialog`, `mat-chip`, `mat-progress-spinner` e o CDK a equivalentes próprios. Formulários usam `ReactiveFormsModule`. |
+| Biblioteca de componentes | Nenhuma biblioteca externa. Reutilizar os componentes standalone nativos do repositório e HTML semântico (`label`, `input`, `button`, `nav`, disclosure e diálogo modal acessível); formulários usam `ReactiveFormsModule`. Não instalar Angular Material/CDK para esta fase. |
 | Ícones | Material Symbols Rounded auto-hospedados. Ícone sempre com texto visível ou nome acessível. |
 | Fontes | Inter e Barlow Condensed auto-hospedadas, bytes canônicos compartilhados com o tema Keycloak. **Nenhuma fonte nova pode ser introduzida nesta fase.** |
 | Tema | Somente escuro. Sem alternância. |
@@ -268,7 +268,7 @@ Bloqueia a navegação enquanto o perfil estiver incompleto (D-39).
 
 ### S7 — Navegação e sessão (evolução do cabeçalho da Fase 1)
 
-- O botão de identidade abre o `mat-menu` já contratado na Fase 1. Itens desta fase: `Meu perfil`, `Matrícula UFU`, divisor, `Sair`.
+- O botão de identidade controla um disclosure nativo acessível no próprio componente standalone do cabeçalho, sem biblioteca externa: expõe `aria-expanded` e `aria-controls`; Enter/Espaço alternam; Tab segue a ordem do DOM; Escape fecha e devolve o foco ao botão. Itens desta fase: `Meu perfil`, `Matrícula UFU`, divisor, `Sair`.
 - Itens governados por papel — `Painel operacional`, `Papéis operacionais`, `Corrigir matrícula` — aparecem em um grupo próprio rotulado `Operação` **somente quando o papel vigente os autoriza**. Sem papel: os itens não existem no DOM. **Nunca renderizar item desabilitado**, porque isso revela a existência do escopo.
 - Enquanto o gate S1 estiver ativo, o menu contém apenas `Sair`.
 - O menu não exibe papéis como texto, e-mail, matrícula ou selo de MFA.
@@ -361,7 +361,7 @@ Estado vazio só aparece após resposta válida sem dados. **Nunca confundir vaz
 
 ### Confirmações destrutivas
 
-Diálogo modal (`mat-dialog`), foco inicial no botão **cancelar**, `Esc` cancela, ação confirmatória nomeando explicitamente o que acontece. Nenhuma dessas ações é auto-repetida.
+Diálogo modal acessível no componente standalone compartilhado, usando a semântica modal nativa do repositório, foco inicial no botão **cancelar**, `Esc` cancela, foco preso enquanto aberto e devolvido ao gatilho ao fechar. A ação confirmatória nomeia explicitamente o que acontece. Nenhuma dessas ações é auto-repetida.
 
 | Ação | Título | Corpo | Botões |
 |---|---|---|---|
@@ -406,7 +406,7 @@ Conformidade obrigatória com D-14 a D-17:
 ## Acessibilidade, movimento e conteúdo resiliente
 
 - WCAG 2.2 AA como mínimo: contraste declarado acima, ordem de foco coerente com o DOM, alvos de 44px, rótulos programáticos e operação integral por teclado.
-- Foco: `outline: 3px solid #FFC08A; outline-offset: 3px` em todo controle, inclusive itens de `mat-menu`, botões de linha de tabela, campos e botões de diálogo. Nunca remover o foco nativo sem substituição equivalente.
+- Foco: `outline: 3px solid #FFC08A; outline-offset: 3px` em todo controle, inclusive o gatilho e os itens do disclosure nativo, botões de linha de tabela, campos e botões de diálogo. Nunca remover o foco nativo sem substituição equivalente.
 - O diálogo modal prende o foco, devolve o foco ao gatilho ao fechar e tem `aria-labelledby` no título e `aria-describedby` no corpo.
 - `aria-live="polite"` para sucesso e cópia; `role="alert"` apenas para recusa de negócio e falha bloqueante. Ao falhar um único bloco do painel, anunciar somente o bloco afetado.
 - Botão desabilitado por guarda (autoconcessão, último administrador) **sempre** traz o motivo em texto visível, ligado por `aria-describedby`. Botão desabilitado sem motivo legível é violação deste contrato.
@@ -444,7 +444,7 @@ As 41 resoluções estão agregadas nas oito categorias abaixo, cada linha nomea
 
 | Registro | Blocos usados | Safety Gate |
 |---|---|---|
-| Angular Material/CDK (dependências oficiais npm, já fixadas pela Matriz B da Fase 1) | `mat-form-field`, `mat-input`, `mat-button`, `mat-card`, `mat-menu`, `mat-dialog`, `mat-chip`, `mat-icon`, `mat-progress-spinner`, CDK a11y/overlay | Não é registry shadcn; nenhum pacote novo é introduzido por este contrato. Confirmado em 2026-08-20. |
+| Angular/HTML nativos do repositório | componentes standalone, `ReactiveFormsModule`, controles HTML semânticos, disclosure do cabeçalho e diálogo modal acessível compartilhado | Não é registry shadcn e não exige pacote novo. `package.json` e `package-lock.json` não contêm Angular Material/CDK; a implementação deve preservar essa ausência. Corrigido após inspeção do repositório em 2026-08-21. |
 | shadcn official | nenhum | Não aplicável — `components.json` ausente por decisão de stack Angular (Fase 1). Gate shadcn não se aplica a projeto Angular. |
 | Terceiros | nenhum | Nenhum registry de terceiro é declarado nesta fase. Não há bloco a inspecionar e nenhum vetting pendente. Confirmado em 2026-08-20. |
 

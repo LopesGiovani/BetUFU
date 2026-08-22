@@ -180,12 +180,12 @@ Plans:
   4. A plataforma usa um HMAC não público da matrícula para impedir vínculos duplicados e comunica decisões de elegibilidade sem expor informações privadas.
   5. Um administrador geral consegue conceder, revogar e delimitar papéis operacionais; cada papel enxerga somente seu trabalho autorizado, e ações sensíveis ficam auditáveis. MFA é opcional no MVP e não condiciona nenhum comando.
 
-**Plans**: 25 planos em 14 ondas
+**Plans**: 27 planos em 15 ondas
 
 - **Wave 1** *(concluída: 02-01, 02-02 e 02-03 implementados, verificados e revisados)*: 02-01, 02-02, 02-03
 - **Wave 2** *(concluída: 02-04, 02-06 e 02-14 implementados, verificados, revisados e integrados)*: 02-04, 02-06, 02-14
 - **Wave 3** *(concluída no worktree: 02-05, 02-09 e 02-21 implementados, verificados e formalizados; 02-21 aguarda integração Git)*: 02-05, 02-09, 02-21
-- **Wave 4**: 02-11, 02-15, 02-22
+- **Wave 4** *(parcial: 02-15 implementado, verificado e formalizado no worktree; 02-11 e 02-22 pendentes)*: 02-11, 02-15, 02-22
 - **Wave 5**: 02-07, 02-24
 - **Wave 6**: 02-08, 02-16
 - **Wave 7**: 02-23
@@ -195,7 +195,8 @@ Plans:
 - **Wave 11**: 02-12
 - **Wave 12**: 02-13, 02-25
 - **Wave 13**: 02-19
-- **Wave 14**: 02-20
+- **Wave 14**: 02-20, 02-26
+- **Wave 15**: 02-27
 
 **UI hint**: yes
 
@@ -296,7 +297,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 17/29 | In Progress | - |
-| 2. Contas, Verificação e Operações Governadas | 9/25 | In Progress | - |
+| 2. Contas, Verificação e Operações Governadas | 9/27 | In Progress | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |

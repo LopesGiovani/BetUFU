@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 3 tecnicamente concluída; 02-21 formalizado no worktree e aguardando integração Git"
-last_updated: "2026-08-21T19:06:58-03:00"
+stopped_at: "Fase 2: Wave 4 parcial; 02-15 implementado, revisado, testado e formalizado no worktree"
+last_updated: "2026-08-21T23:36:35-03:00"
 last_activity: 2026-08-21
-last_activity_desc: "Plano 02-21 implementado, revisado, testado e formalizado no worktree; Wave 3 tecnicamente concluída."
+last_activity_desc: "Plano 02-15 implementado, revisado, testado e formalizado; 02-11 e 02-22 permanecem pendentes na Wave 4."
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 56
-  completed_plans: 40
+  total_plans: 58
+  completed_plans: 41
 ---
 
 # Estado do Projeto
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 9 of 25 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09`, `02-14` e `02-21` concluídos)
-Status: In Progress — Waves 1, 2 e 3 tecnicamente concluídas; `02-21` está formalizado no worktree e aguarda integração Git.
-Last activity: 2026-08-21 — `02-21` entregou auditoria append-only, separação Flyway/runtime e procedimento operacional.
+Plan: 10 of 27 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09`, `02-14`, `02-15` e `02-21` concluídos)
+Status: In Progress — Waves 1, 2 e 3 tecnicamente concluídas; Wave 4 parcial com `02-15` formalizado e `02-11`/`02-22` pendentes.
+Last activity: 2026-08-21 — `02-15` entregou a superfície S2 do perfil, suas rotas e provas de privacidade/acessibilidade.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: `master` contém os Planos 02-03, 02-04, 02-05, 02-06, 02-09 e 02-14 integrados localmente e permanece sem push. O commit técnico do 02-05 é `41adbdc`; esta atualização administrativa forma o commit documental subsequente, cujo próprio hash não cabe dentro dele.
+Git: o worktree isolado `feat/02-15-profile-surfaces` contém o commit técnico `5671611` e permanece sem push; sua formalização documental ainda não foi preparada em stage nem commitada. O estado de integração de `master` não foi alterado neste bloco.
 
 | Commit | Conteúdo |
 |---|---|
@@ -41,13 +41,13 @@ Git: `master` contém os Planos 02-03, 02-04, 02-05, 02-06, 02-09 e 02-14 integr
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [████░░░░░░] 9/25 planos da Fase 2 (36%)
+Progress: [████░░░░░░] 10/27 planos da Fase 2 (37%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 40
+- Total de planos concluídos: 41
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -56,11 +56,11 @@ Progress: [████░░░░░░] 9/25 planos da Fase 2 (36%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 9 | não mensurado | não mensurada |
+| 2 | 10 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-21, 02-05, 02-09, 02-06, 02-04
+- Últimos 5 planos: 02-15, 02-21, 02-05, 02-09, 02-06
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -171,6 +171,6 @@ Progress: [████░░░░░░] 9/25 planos da Fase 2 (36%)
 
 ## Session Continuity
 
-Last session: 2026-08-21T19:06:58-03:00
-Stopped at: Wave 3 tecnicamente concluída; 02-21 formalizado no worktree e aguardando integração Git
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-21-SUMMARY.md
+Last session: 2026-08-21T23:36:35-03:00
+Stopped at: Wave 4 parcial; 02-15 implementado, revisado, testado e formalizado no worktree
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-15-SUMMARY.md
