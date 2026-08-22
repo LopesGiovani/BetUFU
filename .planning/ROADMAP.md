@@ -180,14 +180,46 @@ Plans:
   4. A plataforma usa um HMAC não público da matrícula para impedir vínculos duplicados e comunica decisões de elegibilidade sem expor informações privadas.
   5. Um administrador geral consegue conceder, revogar e delimitar papéis operacionais; cada papel enxerga somente seu trabalho autorizado, e ações sensíveis ficam auditáveis. MFA é opcional no MVP e não condiciona nenhum comando.
 
-**Plans**: 31 planos em 15 ondas
+**Plans**: 16/31 plans executed
+
+- [x] 02-01-PLAN.md
+- [x] 02-02-PLAN.md
+- [x] 02-03-PLAN.md
+- [x] 02-04-PLAN.md
+- [x] 02-05-PLAN.md
+- [x] 02-06-PLAN.md
+- [x] 02-07-PLAN.md
+- [x] 02-08-PLAN.md
+- [x] 02-09-PLAN.md
+- [ ] 02-10-PLAN.md
+- [x] 02-11-PLAN.md
+- [ ] 02-12-PLAN.md
+- [ ] 02-13-PLAN.md
+- [x] 02-14-PLAN.md
+- [x] 02-15-PLAN.md
+- [x] 02-16-PLAN.md
+- [ ] 02-17-PLAN.md
+- [ ] 02-18-PLAN.md
+- [ ] 02-19-PLAN.md
+- [ ] 02-20-PLAN.md
+- [x] 02-21-PLAN.md
+- [x] 02-22-PLAN.md
+- [ ] 02-23-PLAN.md
+- [x] 02-24-PLAN.md
+- [ ] 02-25-PLAN.md
+- [ ] 02-26-PLAN.md
+- [ ] 02-27-PLAN.md
+- [ ] 02-28-PLAN.md
+- [ ] 02-29-PLAN.md
+- [ ] 02-30-PLAN.md
+- [ ] 02-31-PLAN.md
 
 - **Wave 1** *(concluída: 02-01, 02-02 e 02-03 implementados, verificados e revisados)*: 02-01, 02-02, 02-03
 - **Wave 2** *(concluída: 02-04, 02-06 e 02-14 implementados, verificados, revisados e integrados)*: 02-04, 02-06, 02-14
 - **Wave 3** *(concluída no worktree: 02-05, 02-09 e 02-21 implementados, verificados e formalizados; 02-21 aguarda integração Git)*: 02-05, 02-09, 02-21
 - **Wave 4** *(concluída: 02-11, 02-15 e 02-22 implementados, verificados e formalizados)*: 02-11, 02-15, 02-22
 - **Wave 5** *(concluída: 02-07 implementado, verificado, revisado e formalizado)*: 02-07
-- **Wave 6** *(02-24 depende de 02-07 e 02-11; núcleo de origem Keycloak D-40, sem ativação de realm/compose)*: 02-08, 02-16, 02-24
+- **Wave 6** *(concluída: 02-08, 02-16 e 02-24 decididos ou implementados, verificados, revisados e formalizados; núcleo de origem Keycloak D-40 permanece sem ativação de realm/compose)*: 02-08, 02-16, 02-24
 - **Wave 7** *(02-28 e 02-30 dependem de 02-24; hardening da origem e núcleo/tracer hermético do destino, em arquivos disjuntos e sem ativação)*: 02-23, 02-28, 02-30
 - **Wave 8** *(02-31 depende de 02-28 e 02-30; hardening de inbox/operações, sem ativação e sem conflito com 02-17)*: 02-17, 02-31
 - **Wave 9** *(02-29 depende de 02-28 e 02-31; imagem, E2E hosted/admin e ativação final sob gate bloqueante)*: 02-10, 02-29
@@ -297,7 +329,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 17/29 | In Progress | - |
-| 2. Contas, Verificação e Operações Governadas | 13/31 | In Progress | - |
+| 2. Contas, Verificação e Operações Governadas | 16/31 | In Progress | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
