@@ -4,5 +4,7 @@ export * from './current-profile-response';
 export * from './diagnostic-component';
 export * from './diagnostic-response';
 export * from './diagnostic-status';
+export * from './enrollment-registration-request';
+export * from './enrollment-status-response';
 export * from './profile-update-request';
 export * from './session-state-response';

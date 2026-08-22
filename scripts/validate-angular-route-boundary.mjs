@@ -745,7 +745,7 @@ async function readGeneratedTypeScriptSources(projectRoot) {
   expect(
     isDeepStrictEqual(manifest.files, APPROVED_GENERATED_FILES),
     'GENERATED_MANIFEST_PATHS',
-    'a arvore gerada deve conter exatamente os 13 caminhos aprovados, na ordem canonica.',
+    `a arvore gerada deve conter exatamente os ${APPROVED_GENERATED_FILES.length} caminhos aprovados, na ordem canonica.`,
   );
   expect(
     manifest.digest === APPROVED_GENERATED_DIGEST,

@@ -1,9 +1,11 @@
 export * from './diagnostic.service';
 import { DiagnosticService } from './diagnostic.service';
+export * from './enrollment.service';
+import { EnrollmentService } from './enrollment.service';
 export * from './identity.service';
 import { IdentityService } from './identity.service';
 export * from './profile.service';
 import { ProfileService } from './profile.service';
 export * from './session.service';
 import { SessionService } from './session.service';
-export const APIS = [DiagnosticService, IdentityService, ProfileService, SessionService];
+export const APIS = [DiagnosticService, EnrollmentService, IdentityService, ProfileService, SessionService];

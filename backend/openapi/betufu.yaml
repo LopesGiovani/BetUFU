@@ -136,6 +136,72 @@ paths:
         "422":
           description: Violação da regra de negócio (ex. cooldown de 30 dias ativo).
 
+  /api/v1/enrollment/me:
+    get:
+      tags:
+        - Enrollment
+      operationId: getEnrollment
+      summary: Consultar o estado do vínculo de matrícula da conta autenticada atual
+      description: >-
+        Retorna o estado do vínculo voluntário da matrícula UFU da conta autenticada
+        atual (VERI-06, VERI-09, PRIV-01). Não expõe o número da matrícula, digest,
+        versão de chave, papéis, MFA, contadores ou janelas de limitação. Retorna
+        status NAO_REGISTRADA com createdAt nulo quando a conta ainda não possui
+        matrícula registrada.
+      responses:
+        "200":
+          description: Estado do vínculo de matrícula consultado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentStatusResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+    put:
+      tags:
+        - Enrollment
+      operationId: putEnrollment
+      summary: Registrar o vínculo de matrícula da conta autenticada atual
+      description: >-
+        Registra voluntariamente o vínculo da matrícula institucional UFU para a
+        conta autenticada atual (VERI-06, VERI-07, VERI-09, PRIV-01). A matrícula é
+        normalizada e protegida por HMAC versionado antes da persistência. Recusa
+        segundo registro na mesma conta (409 CONTA_JA_VINCULADA), duplicidade em
+        outra conta sob todas as versões de chave ativas (409 MATRICULA_DUPLICADA) e
+        excesso de tentativas por conta e origem (429 TOO_MANY_ATTEMPTS), utilizando
+        Problem Details (RFC 9457).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnrollmentRegistrationRequest"
+      responses:
+        "200":
+          description: Vínculo de matrícula registrado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentStatusResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "400":
+          description: Formato de matrícula inválido ou ausente (Problem Details).
+        "409":
+          description: "Conflito de negócio: conta já vinculada ou matrícula já registrada em outra conta (Problem Details)."
+        "429":
+          description: Limite de tentativas de registro excedido (Problem Details).
+
   /api/v1/diagnostic:
     get:
       tags:
@@ -223,6 +289,34 @@ components:
             Apelido desejado com 3 a 20 caracteres (ASCII letras, números,
             hífen ou sublinhado); caracteres de U+0000 a U+0020 nas pontas são
             removidos antes da validação, como em String.trim() no Java.
+
+    EnrollmentStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - createdAt
+      properties:
+        status:
+          type: string
+          description: Estado do vínculo de matrícula institucional (ex. NAO_REGISTRADA, ATIVO).
+        createdAt:
+          type: [string, "null"]
+          format: date-time
+          description: Instante em UTC do registro do vínculo, ou nulo se não registrado.
+
+    EnrollmentRegistrationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - matricula
+      properties:
+        matricula:
+          type: string
+          description: >-
+            Número de matrícula da UFU a ser vinculado à conta institucional
+            (5 a 20 caracteres alfanuméricos após normalização e remoção de
+            separadores).
 
     SessionStateResponse:
       type: object

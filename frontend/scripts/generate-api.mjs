@@ -86,6 +86,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api.module.ts',
   'api/api.ts',
   'api/diagnostic.service.ts',
+  'api/enrollment.service.ts',
   'api/identity.service.ts',
   'api/profile.service.ts',
   'api/session.service.ts',
@@ -98,6 +99,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/diagnostic-component.ts',
   'model/diagnostic-response.ts',
   'model/diagnostic-status.ts',
+  'model/enrollment-registration-request.ts',
+  'model/enrollment-status-response.ts',
   'model/models.ts',
   'model/profile-update-request.ts',
   'model/session-state-response.ts',
@@ -106,7 +109,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'query.params.ts',
   'variables.ts',
 ]);
-export const APPROVED_GENERATED_DIGEST = '0D73D00945E6E573441857114D43E08047C059BA91F380A06D08F4F7C080E220';
+export const APPROVED_GENERATED_DIGEST = '31070F37E8A2F8022A75492A13F06D14BC36DE6B04A69C4478C51EFBA673C330';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
