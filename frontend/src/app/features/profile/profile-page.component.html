@@ -1,0 +1,253 @@
+<section class="profile-container">
+  <h1 class="profile-title">Seu perfil</h1>
+
+  @if (store.isLoading() && !store.displayProfile()) {
+    <!-- Estado 1: Loading Inicial (Sem perfil prévio) -->
+    <div
+      class="status-feedback loading-state"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="spinner-large" aria-hidden="true"></div>
+      <h2>Carregando perfil…</h2>
+      <p>Aguarde enquanto consultamos seus dados.</p>
+    </div>
+  } @else if (store.isEmpty()) {
+    <!-- Estado 2: Empty (Resposta válida mas sem perfil criado) -->
+    <div
+      class="status-feedback empty-state"
+      role="status"
+      aria-live="polite"
+    >
+      <h2>Nenhum perfil encontrado</h2>
+      <p class="empty-text">Você precisa escolher um apelido para continuar.</p>
+      <div class="empty-actions">
+        <a routerLink="/conta/perfil/completar" class="btn-primary link-button">
+          Escolher apelido
+        </a>
+      </div>
+    </div>
+  } @else if (store.isError() && !store.displayProfile()) {
+    <!-- Estado 3: Error Bloqueante (Sem dados anteriores para exibir) -->
+    <div
+      class="status-feedback error-state"
+      role="alert"
+      aria-live="assertive"
+    >
+      <h2>Não foi possível carregar seu perfil</h2>
+      <p class="error-text">{{ store.errorMessage() }}</p>
+      @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
+        <div class="correlation-box">
+          <span>Código de referência:</span>
+          <span class="code-value" tabindex="0">{{ store.errorCorrelationId() }}</span>
+          <button
+            type="button"
+            class="btn-copy-small"
+            (click)="copyCorrelationId(store.errorCorrelationId()!)"
+            aria-label="Copiar código de referência"
+          >
+            <svg
+              class="btn-icon-small"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span class="btn-text">Copiar</span>
+          </button>
+        </div>
+      }
+      <div class="error-actions">
+        <button type="button" class="btn-primary" (click)="onRetry()">
+          Tentar novamente
+        </button>
+      </div>
+    </div>
+  } @else if (store.displayProfile()) {
+    <!-- Estado 4: Populated ou Partial (Perfil carregado ou preservado) -->
+
+    <!-- Recusa de negócio ou erro de transporte em bloco de alerta no topo -->
+    @if (store.isError() && store.errorMessage()) {
+      <div
+        class="alert-box"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div class="alert-content">
+          <p class="alert-message">{{ store.errorMessage() }}</p>
+          @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
+            <div class="correlation-box">
+              <span>Código de referência:</span>
+              <span class="code-value" tabindex="0">{{ store.errorCorrelationId() }}</span>
+              <button
+                type="button"
+                class="btn-copy-small"
+                (click)="copyCorrelationId(store.errorCorrelationId()!)"
+                aria-label="Copiar código de referência"
+              >
+                <svg
+                  class="btn-icon-small"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span class="btn-text">Copiar</span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Cartão Apelido -->
+    <article class="profile-card">
+      <h2 class="card-title">Apelido</h2>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="profile-form">
+        <div class="form-field-group">
+          <div class="label-row">
+            <label for="nickname-input" class="field-label">Apelido</label>
+            <span class="char-counter" aria-hidden="true">{{ nicknameLength }}/20</span>
+          </div>
+
+          <input
+            id="nickname-input"
+            #nicknameInput
+            type="text"
+            formControlName="nickname"
+            class="field-input"
+            [class.input-invalid]="hasFieldError"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="20"
+            [attr.aria-invalid]="hasFieldError"
+            [attr.aria-describedby]="hasFieldError ? 'nickname-error nickname-help' : 'nickname-help'"
+          />
+
+          <p id="nickname-help" class="help-text">
+            De 3 a 20 caracteres. Use letras sem acento, números, hífen (-) ou sublinhado (_).
+          </p>
+
+          @if (hasFieldError) {
+            <p
+              id="nickname-error"
+              class="field-error"
+              role="alert"
+            >
+              {{ fieldErrorMessage }}
+            </p>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn-primary"
+            [disabled]="isSubmitDisabled"
+          >
+            {{ store.isSaving() ? 'Salvando…' : 'Salvar alterações' }}
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <!-- Cartão Identificador público (D-43) -->
+    <article class="profile-card">
+      <h2 class="card-title">Identificador público</h2>
+      <div class="identity-content">
+        <div class="identity-display">
+          <span class="identity-label" id="identity-label">Identificador público</span>
+          <code
+            #identityValueRef
+            id="identity-value"
+            class="identity-value"
+            tabindex="0"
+            aria-labelledby="identity-label"
+          >{{ store.identityId() || '—' }}</code>
+        </div>
+        <p class="identity-explanation">
+          Apelidos podem se repetir na BETUFU. Este identificador é único e distingue seu perfil de qualquer outro com o mesmo apelido.
+        </p>
+        <div class="identity-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="copyIdentityId()"
+            [disabled]="!store.identityId()"
+            aria-label="Copiar identificador público"
+          >
+            <svg
+              class="btn-icon"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span class="btn-text">Copiar identificador</span>
+          </button>
+        </div>
+      </div>
+    </article>
+
+    <!-- Cartão Matrícula UFU -->
+    <article class="profile-card">
+      <h2 class="card-title">Matrícula UFU</h2>
+      <div class="matricula-content">
+        @if (isMatriculaRegistrada()) {
+          <div class="matricula-status-box">
+            <span class="status-chip chip-available">
+              <span class="chip-text">Matrícula registrada</span>
+            </span>
+          </div>
+        } @else {
+          <p class="matricula-empty-text">Nenhuma matrícula registrada.</p>
+          <div class="matricula-actions">
+            <a
+              routerLink="/conta/matricula"
+              class="link-primary"
+            >
+              Registrar matrícula
+            </a>
+          </div>
+        }
+      </div>
+    </article>
+  }
+</section>
+
+<!-- Live region para feedbacks de sucesso e cópia -->
+<div
+  id="profile-live-region"
+  class="visually-hidden"
+  role="status"
+  aria-live="polite"
+>
+  {{ successMessage() || copyFeedbackMessage() }}
+</div>

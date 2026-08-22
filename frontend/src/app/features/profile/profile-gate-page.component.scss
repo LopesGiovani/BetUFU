@@ -1,7 +1,5 @@
 @use '../../../styles/tokens';
 
-$form-max-width: 640px;
-
 :host {
   display: flex;
   width: 100%;
@@ -24,7 +22,7 @@ $form-max-width: 640px;
 .gate-card {
   box-sizing: border-box;
   width: 100%;
-  max-width: $form-max-width;
+  max-width: tokens.$form-max-width;
   background: tokens.$color-surface;
   border: 1px solid tokens.$color-border;
   border-radius: tokens.$radius-md;

@@ -13,6 +13,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ ProfileGatePageComponent }) => ProfileGatePageComponent,
           ),
       },
+      {
+        path: 'conta/perfil',
+        loadComponent: () =>
+          import('./features/profile/profile-page.component').then(
+            ({ ProfilePageComponent }) => ProfilePageComponent,
+          ),
+      },
     ],
   },
 ];
