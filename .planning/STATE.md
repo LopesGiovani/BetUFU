@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 4 parcial; 02-11 e 02-15 concluídos, 02-22 pendente"
-last_updated: "2026-08-22T13:29:43-03:00"
+stopped_at: "Fase 2: Wave 4 concluída; 02-07 é o próximo plano na Wave 5"
+last_updated: "2026-08-22T14:45:00-03:00"
 last_activity: 2026-08-22
-last_activity_desc: "Plano 02-11 mediu o reset de senha no Keycloak, registrou a decisão plugin-evento-keycloak e formalizou o replanejamento; 02-22 permanece pendente na Wave 4."
+last_activity_desc: "Plano 02-22 fechou a privacidade estrutural da matrícula e o procedimento governado da chave HMAC; Wave 4 concluída."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 42
+  completed_plans: 43
 ---
 
 # Estado do Projeto
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 11 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09`, `02-11`, `02-14`, `02-15` e `02-21` concluídos)
-Status: In Progress — Waves 1, 2 e 3 tecnicamente concluídas; Wave 4 parcial com `02-11` e `02-15` formalizados e `02-22` pendente.
-Last activity: 2026-08-22 — `02-11` provou que o reset hospedado preserva a sessão, escolheu o listener de evento e dividiu a implementação segura entre `02-24`, `02-28`, `02-30`, `02-31` e `02-29`.
+Plan: 12 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-09`, `02-11`, `02-14`, `02-15`, `02-21` e `02-22` concluídos)
+Status: In Progress — Waves 1, 2, 3 e 4 tecnicamente concluídas; `02-07` é o próximo plano na Wave 5.
+Last activity: 2026-08-22 — `02-22` criou quatro detectores estruturais de privacidade com provas de discriminação e documentou rotação e incidente da chave HMAC.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: o worktree isolado `feat/02-11-password-reset-trigger` permanece no HEAD `aa719f5`, com o spike e a formalização ainda não commitados; o índice está vazio e nenhum push foi realizado neste bloco.
+Git: o worktree isolado `feat/02-22-hmac-privacy` permanece no HEAD `36a190b`, com implementação e formalização ainda não commitadas; o índice está vazio e nenhum push foi realizado neste bloco.
 
 | Commit | Conteúdo |
 |---|---|
@@ -171,6 +171,6 @@ Progress: [████░░░░░░] 11/31 planos da Fase 2 (35%)
 
 ## Session Continuity
 
-Last session: 2026-08-22T13:29:43-03:00
-Stopped at: Wave 4 parcial; 02-11 e 02-15 concluídos, 02-22 pendente
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-11-SUMMARY.md
+Last session: 2026-08-22T14:45:00-03:00
+Stopped at: Wave 4 concluída; próximo plano 02-07 na Wave 5
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-22-SUMMARY.md

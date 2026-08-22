@@ -185,7 +185,7 @@ Plans:
 - **Wave 1** *(concluída: 02-01, 02-02 e 02-03 implementados, verificados e revisados)*: 02-01, 02-02, 02-03
 - **Wave 2** *(concluída: 02-04, 02-06 e 02-14 implementados, verificados, revisados e integrados)*: 02-04, 02-06, 02-14
 - **Wave 3** *(concluída no worktree: 02-05, 02-09 e 02-21 implementados, verificados e formalizados; 02-21 aguarda integração Git)*: 02-05, 02-09, 02-21
-- **Wave 4** *(parcial: 02-11 e 02-15 implementados, verificados e formalizados; 02-22 pendente)*: 02-11, 02-15, 02-22
+- **Wave 4** *(concluída: 02-11, 02-15 e 02-22 implementados, verificados e formalizados)*: 02-11, 02-15, 02-22
 - **Wave 5**: 02-07
 - **Wave 6** *(02-24 depende de 02-07 e 02-11; núcleo de origem Keycloak D-40, sem ativação de realm/compose)*: 02-08, 02-16, 02-24
 - **Wave 7** *(02-28 e 02-30 dependem de 02-24; hardening da origem e núcleo/tracer hermético do destino, em arquivos disjuntos e sem ativação)*: 02-23, 02-28, 02-30
