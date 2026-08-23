@@ -5,8 +5,8 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 6 concluída; Wave 7 é o próximo bloco (02-23, 02-28 e 02-30)"
-last_updated: "2026-08-22T19:48:00-03:00"
+stopped_at: "Fase 2: Wave 7 em preparação — três worktrees criados de a6f5f65; implementação ainda não despachada"
+last_updated: "2026-08-22T21:20:00-03:00"
 last_activity: 2026-08-22
 last_activity_desc: "Wave 6 concluiu a decisão de bootstrap administrativo por UUID público, a rotação HMAC da matrícula e a outbox transacional de redefinição de senha do Keycloak."
 progress:
@@ -34,6 +34,10 @@ Last activity: 2026-08-22 — a Wave 6 decidiu o bootstrap administrativo por UU
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git: os Planos 02-16 e 02-24 foram integrados linearmente pelos commits `89a4bd0`, `d6e0484`, `3f3d4be` e `d84f220`; a formalização do 02-08 e da Wave 6 compõe o commit de rastreamento atual. Nenhum push foi realizado.
+
+Git — Wave 7 (em execução, 2026-08-22): operação Git mutável autorizada e executada — `git worktree add` para os três planos da onda, todos a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`, em `C:\Users\giova\gsd-workspaces\phase-02\wave-07\{02-23,02-28,02-30}`. Os três nasceram limpos (`git status --porcelain -uall` vazio) e no SHA base. Nenhum stage, commit, integração ou push foi feito; `origin/master` permanece em `d1d18e6`, 22 commits atrás de `master`. Pendência de limpeza: os três worktrees e as três branches devem ser removidos após a integração da onda, junto com as branches residuais pré-rebase `feat/01-07`, `feat/01-21`, `feat/02-05`, `feat/02-06`, `feat/02-09` e `worktree-agent-02-14`, cujo conteúdo já está em `master` sob outros SHAs.
+
+Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para 15 paths por ratificação prévia do responsável, acrescentando `backend/src/test/java/br/com/betufu/platform/persistence/FlywayMigrationIT.java`. Causa: `V6` invalida as seis asserções que fixam o total de migrations em 5 — duas em cada um dos três testes do arquivo. A lane do 02-23 grava **6**; a subida para **7**, com a `V5_1` do 02-30, pertence à integração da onda. O 02-30 não toca o arquivo, porque seus comandos focais são todos filtrados por `-Dit.test` e nunca executam o `FlywayMigrationIT`.
 
 | Commit | Conteúdo |
 |---|---|
