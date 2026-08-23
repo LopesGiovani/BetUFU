@@ -1,0 +1,1067 @@
+package br.com.betufu.platform.session.passwordreset;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
+import static org.mockito.Mockito.mock;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.postgresql.util.PSQLException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
+
+import br.com.betufu.platform.security.OidcRevocationClient;
+import br.com.betufu.platform.session.IdentitySessionTerminationService;
+import br.com.betufu.platform.session.OidcSessionRevocationService;
+import br.com.betufu.platform.session.RedisContainerSupport;
+import br.com.betufu.platform.session.SelectiveTouchSessionRepository;
+import br.com.betufu.platform.session.SessionInvalidationListener;
+import br.com.betufu.platform.session.SessionSecurityConfiguration;
+import br.com.betufu.platform.session.SessionTerminationReason;
+
+/**
+ * Integration Test for Password Reset Event Inbox: entity, repository, idempotent service processing,
+ * and isolated endpoint security configuration.
+ *
+ * <p>Proves:
+ * <ul>
+ *   <li>Flyway migration V5_1 table contract and constraints in PostgreSQL 18;
+ *   <li>Database-level uniqueness and concurrency arbitration on {@code source_event_id};
+ *   <li>Single execution of session termination under heavy concurrent race conditions;
+ *   <li>Idempotent duplicate handling (no second termination);
+ *   <li>Recovery state preservation on failure (conserving FAILED status for 02-31 recovery);
+ *   <li>Dedicated stateless security filter chain for {@code /api/v1/internal/events/password-reset};
+ *   <li>Rejection of cookies/bearer tokens as HMAC substitutes (fail-closed without HMAC);
+ *   <li>Strict HMAC signature verification in constant time;
+ *   <li>Payload allowlist, body size limitation, and secret redaction.
+ * </ul>
+ */
+@SpringBootTest(
+        classes = {
+            SessionSecurityConfiguration.class,
+            IdentitySessionTerminationService.class,
+            SessionInvalidationListener.class,
+            OidcSessionRevocationService.class,
+            PasswordResetSignedEnvelopeVerifier.class,
+            PasswordResetEventInboxService.class,
+            PasswordResetEventEndpoint.class,
+            PasswordResetEventSecurityConfiguration.class,
+            PasswordResetEventInboxIT.TestApplication.class
+        },
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = {
+            "spring.docker.compose.enabled=false",
+            "BETUFU_OIDC_ISSUER_URI=https://idp.invalid",
+            "BETUFU_OIDC_CLIENT_ID=betufu-inbox-it",
+            "BETUFU_OIDC_CLIENT_SECRET=unused",
+            "BETUFU_PASSWORD_RESET_HMAC_KEY_V1=dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ=="
+        })
+@ActiveProfiles("integrated")
+@Testcontainers
+@Import(PasswordResetEventInboxIT.TestApplication.class)
+class PasswordResetEventInboxIT {
+
+    // Literais espelhados de SelectiveTouchSessionRepository, cujos campos sao package-private.
+    // O tracer irmao usa o mesmo padrao; nao ampliar a visibilidade da producao por causa de teste.
+    private static final String APPROVED_ACTIVITY_ATTRIBUTE =
+            "br.com.betufu.platform.session.SelectiveTouchSessionRepository.approvedActivity";
+    private static final String LAST_VALID_EPOCH_SECOND_ATTRIBUTE =
+            "betufu.session.lastValidActivityAt.epochSecond";
+    private static final String LAST_VALID_NANO_ATTRIBUTE =
+            "betufu.session.lastValidActivityAt.nano";
+
+    private static final String TARGET_SUBJECT_A = "inbox-target-user-alpha";
+    private static final String CONTROL_SUBJECT_B = "inbox-control-user-beta";
+    private static final String TEST_REALM = "betufu-local";
+    private static final String KEY_ID = "v1";
+    private static final byte[] RAW_SECRET_KEY = Base64.getDecoder().decode("dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ==");
+
+    private static final String POSTGRES_IMAGE_REFERENCE =
+            "docker.io/library/postgres:18.4-trixie@sha256:"
+                    + "a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636";
+
+    private static final DockerImageName POSTGRES_IMAGE =
+            DockerImageName.parse(POSTGRES_IMAGE_REFERENCE)
+                    .asCompatibleSubstituteFor("postgres");
+
+    @Container
+    @ServiceConnection(name = "postgres")
+    static final PostgreSQLContainer POSTGRESQL = new PostgreSQLContainer(POSTGRES_IMAGE)
+            .withDatabaseName("betufu_app")
+            .withUsername("betufu_app")
+            .withPassword("betufu-test-only")
+            .withInitScript("postgres-audit-runtime-role.sql");
+
+    @Container
+    static final GenericContainer<?> REDIS = RedisContainerSupport.REDIS;
+
+    @DynamicPropertySource
+    static void dynamicProperties(DynamicPropertyRegistry registry) {
+        RedisContainerSupport.registerProperties(registry);
+    }
+
+    @Autowired
+    private WebApplicationContext applicationContext;
+
+    @Autowired
+    private StringRedisTemplate redis;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private MutableTestClock clock;
+
+    @Autowired
+    private PasswordResetEventInboxRepository inboxRepository;
+
+    @Autowired
+    private PasswordResetEventInboxService inboxService;
+
+    @Autowired
+    private PasswordResetSignedEnvelopeVerifier verifier;
+
+    @Autowired
+    private PasswordResetEventProperties properties;
+
+    @Autowired
+    private PasswordResetEventEndpoint endpoint;
+
+    private SelectiveTouchSessionRepository sessionRepository;
+    private MockMvc mockMvc;
+
+    @BeforeEach
+    void setup() {
+        redis.execute((RedisCallback<Void>) connection -> {
+            connection.serverCommands().flushDb();
+            connection.serverCommands().setConfig("notify-keyspace-events", "KEA");
+            return null;
+        });
+        jdbcTemplate.execute("TRUNCATE TABLE public.password_reset_event_inbox");
+        clock.set(Instant.now());
+        sessionRepository = (SelectiveTouchSessionRepository) applicationContext.getBean("sessionRepository");
+        mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
+                .apply(SecurityMockMvcConfigurers.springSecurity())
+                .build();
+    }
+
+    @Test
+    @DisplayName("Migration V5_1 cria public.password_reset_event_inbox com colunas e constraints exatas no PostgreSQL 18")
+    void migrationV51CreatesTableAndConstraintsAsContracted() {
+        List<String> columns = jdbcTemplate.queryForList(
+                """
+                SELECT attribute.attname
+                FROM pg_catalog.pg_attribute attribute
+                JOIN pg_catalog.pg_class relation
+                  ON relation.oid = attribute.attrelid
+                JOIN pg_catalog.pg_namespace namespace
+                  ON namespace.oid = relation.relnamespace
+                WHERE namespace.nspname = 'public'
+                  AND relation.relname = 'password_reset_event_inbox'
+                  AND attribute.attnum > 0
+                  AND NOT attribute.attisdropped
+                ORDER BY attribute.attnum
+                """,
+                String.class);
+
+        assertThat(columns).containsExactly(
+                "inbox_id",
+                "source_event_id",
+                "subject",
+                "realm_id",
+                "event_type",
+                "status",
+                "created_at",
+                "updated_at",
+                "attempt_count",
+                "claimed_at",
+                "claim_instance_id",
+                "delivered_at",
+                "last_error");
+
+        List<String> constraints = jdbcTemplate.queryForList(
+                """
+                SELECT constraint_record.conname
+                FROM pg_catalog.pg_constraint constraint_record
+                WHERE constraint_record.conrelid = 'public.password_reset_event_inbox'::regclass
+                  AND constraint_record.contype IN ('p', 'u', 'c')
+                ORDER BY constraint_record.conname
+                """,
+                String.class);
+
+        assertThat(constraints).contains(
+                "pk_password_reset_event_inbox",
+                "uq_password_reset_event_inbox_source_event",
+                "ck_password_reset_event_inbox_source_event_not_empty",
+                "ck_password_reset_event_inbox_source_event_octets",
+                "ck_password_reset_event_inbox_subject_not_empty",
+                "ck_password_reset_event_inbox_subject_octets",
+                "ck_password_reset_event_inbox_realm_id_not_empty",
+                "ck_password_reset_event_inbox_realm_id_octets",
+                "ck_password_reset_event_inbox_status_not_empty",
+                "ck_password_reset_event_inbox_status_octets",
+                "ck_password_reset_event_inbox_status_values",
+                "ck_password_reset_event_inbox_timestamp_order");
+    }
+
+    @Test
+    @DisplayName("Check constraints rejeitam status inválido e campos vazios no PostgreSQL")
+    void checkConstraintsRejectInvalidStatusAndEmptyFields() {
+        // Status inválido
+        DataIntegrityViolationException invalidStatusEx = catchThrowableOfType(
+                () -> jdbcTemplate.update(
+                        """
+                        INSERT INTO public.password_reset_event_inbox (
+                            source_event_id, subject, realm_id, status
+                        ) VALUES (?, ?, ?, ?)
+                        """,
+                        "evt-check-1", "sub-1", "realm-1", "INVALID_STATUS"),
+                DataIntegrityViolationException.class);
+
+        assertSqlStateAndConstraint(invalidStatusEx, "23514", "ck_password_reset_event_inbox_status_values");
+
+        // source_event_id vazio
+        DataIntegrityViolationException emptySourceEventEx = catchThrowableOfType(
+                () -> jdbcTemplate.update(
+                        """
+                        INSERT INTO public.password_reset_event_inbox (
+                            source_event_id, subject, realm_id, status
+                        ) VALUES (?, ?, ?, ?)
+                        """,
+                        "", "sub-1", "realm-1", "PENDING"),
+                DataIntegrityViolationException.class);
+
+        assertSqlStateAndConstraint(emptySourceEventEx, "23514", "ck_password_reset_event_inbox_source_event_not_empty");
+
+        // subject vazio
+        DataIntegrityViolationException emptySubjectEx = catchThrowableOfType(
+                () -> jdbcTemplate.update(
+                        """
+                        INSERT INTO public.password_reset_event_inbox (
+                            source_event_id, subject, realm_id, status
+                        ) VALUES (?, ?, ?, ?)
+                        """,
+                        "evt-check-2", "", "realm-1", "PENDING"),
+                DataIntegrityViolationException.class);
+
+        assertSqlStateAndConstraint(emptySubjectEx, "23514", "ck_password_reset_event_inbox_subject_not_empty");
+
+        // realm_id vazio
+        DataIntegrityViolationException emptyRealmEx = catchThrowableOfType(
+                () -> jdbcTemplate.update(
+                        """
+                        INSERT INTO public.password_reset_event_inbox (
+                            source_event_id, subject, realm_id, status
+                        ) VALUES (?, ?, ?, ?)
+                        """,
+                        "evt-check-3", "sub-1", "", "PENDING"),
+                DataIntegrityViolationException.class);
+
+        assertSqlStateAndConstraint(emptyRealmEx, "23514", "ck_password_reset_event_inbox_realm_id_not_empty");
+    }
+
+    @Test
+    @DisplayName("PasswordResetEventInboxRepository executa insertIfAbsent, consultas tipadas e transições de estado")
+    void repositoryOperationsPerformInsertIfAbsentAndStateTransitions() {
+        String sourceEventId = "evt-repo-" + UUID.randomUUID();
+
+        // 1. insertIfAbsent com novo evento retorna 1
+        int insertedFirst = inboxRepository.insertIfAbsent(
+                sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL", PasswordResetEventInboxEntity.STATUS_PENDING);
+        assertThat(insertedFirst).isEqualTo(1);
+
+        // 2. insertIfAbsent com mesmo sourceEventId retorna 0 (ON CONFLICT DO NOTHING)
+        int insertedDuplicate = inboxRepository.insertIfAbsent(
+                sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL", PasswordResetEventInboxEntity.STATUS_PENDING);
+        assertThat(insertedDuplicate).isZero();
+
+        // 3. findBySourceEventId localiza a entidade com todos os campos
+        Optional<PasswordResetEventInboxEntity> foundOpt = inboxRepository.findBySourceEventId(sourceEventId);
+        assertThat(foundOpt).isPresent();
+        PasswordResetEventInboxEntity entity = foundOpt.get();
+        assertThat(entity.getSourceEventId()).isEqualTo(sourceEventId);
+        assertThat(entity.getSubject()).isEqualTo(TARGET_SUBJECT_A);
+        assertThat(entity.getRealmId()).isEqualTo(TEST_REALM);
+        assertThat(entity.getEventType()).isEqualTo("UPDATE_CREDENTIAL");
+        assertThat(entity.getStatus()).isEqualTo(PasswordResetEventInboxEntity.STATUS_PENDING);
+        assertThat(entity.getCreatedAt()).isNotNull();
+        assertThat(entity.getUpdatedAt()).isNotNull();
+        assertThat(entity.getAttemptCount()).isZero();
+        assertThat(entity.getDeliveredAt()).isNull();
+        assertThat(entity.getLastError()).isNull();
+
+        // 4. findById localiza a mesma entidade
+        Optional<PasswordResetEventInboxEntity> byIdOpt = inboxRepository.findById(entity.getInboxId());
+        assertThat(byIdOpt).isPresent();
+        assertThat(byIdOpt.get().getSourceEventId()).isEqualTo(sourceEventId);
+
+        // 5. markDelivered atualiza status para DELIVERED e registra delivered_at
+        int markedDelivered = inboxRepository.markDelivered(sourceEventId);
+        assertThat(markedDelivered).isEqualTo(1);
+
+        PasswordResetEventInboxEntity deliveredEntity = inboxRepository.findBySourceEventId(sourceEventId).orElseThrow();
+        assertThat(deliveredEntity.getStatus()).isEqualTo(PasswordResetEventInboxEntity.STATUS_DELIVERED);
+        assertThat(deliveredEntity.getDeliveredAt()).isNotNull();
+
+        // 6. findByStatus busca por status DELIVERED
+        List<PasswordResetEventInboxEntity> deliveredList = inboxRepository.findByStatus(PasswordResetEventInboxEntity.STATUS_DELIVERED);
+        assertThat(deliveredList).extracting(PasswordResetEventInboxEntity::getSourceEventId).contains(sourceEventId);
+
+        // 7. markFailed atualiza status para FAILED e registra last_error
+        int markedFailed = inboxRepository.markFailed(sourceEventId, "TestError: simulation");
+        assertThat(markedFailed).isEqualTo(1);
+
+        PasswordResetEventInboxEntity failedEntity = inboxRepository.findBySourceEventId(sourceEventId).orElseThrow();
+        assertThat(failedEntity.getStatus()).isEqualTo(PasswordResetEventInboxEntity.STATUS_FAILED);
+        assertThat(failedEntity.getLastError()).isEqualTo("TestError: simulation");
+    }
+
+    @Test
+    @DisplayName("processEvent encerra todas as sessões do subject e marca inbox como DELIVERED")
+    void processEventDeliversSuccessfullyAndTerminatesAllSubjectSessions() {
+        SelectiveTouchSessionRepository.SelectiveSession sessionA1 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(sessionA1);
+        SelectiveTouchSessionRepository.SelectiveSession sessionA2 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(sessionA2);
+
+        SelectiveTouchSessionRepository.SelectiveSession sessionB1 = createAuthenticatedSession(CONTROL_SUBJECT_B);
+        sessionRepository.save(sessionB1);
+
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(2);
+        assertThat(sessionRepository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
+
+        String sourceEventId = "evt-process-" + UUID.randomUUID();
+
+        PasswordResetEventInboxService.InboxProcessingResult result =
+                inboxService.processEvent(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL");
+
+        assertThat(result.sourceEventId()).isEqualTo(sourceEventId);
+        assertThat(result.status()).isEqualTo(PasswordResetEventInboxEntity.STATUS_DELIVERED);
+        assertThat(result.effectExecuted()).isTrue();
+        assertThat(result.terminatedSessionCount()).isEqualTo(2);
+
+        // Sessões de Target A foram destruídas
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+        assertThat(sessionRepository.findById(sessionA1.getId())).isNull();
+        assertThat(sessionRepository.findById(sessionA2.getId())).isNull();
+
+        // Sessão de Control B sobrevive intacta
+        assertThat(sessionRepository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
+        assertThat(sessionRepository.findById(sessionB1.getId())).isNotNull();
+
+        // Registro no PostgreSQL está DELIVERED
+        PasswordResetEventInboxEntity record = inboxRepository.findBySourceEventId(sourceEventId).orElseThrow();
+        assertThat(record.getStatus()).isEqualTo(PasswordResetEventInboxEntity.STATUS_DELIVERED);
+        assertThat(record.getDeliveredAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Replay idempotente: processEvent duplicado retorna effectExecuted=false e não encerra novas sessões")
+    void duplicateSourceEventIdIsIdempotentAndSkipsSessionTermination() {
+        SelectiveTouchSessionRepository.SelectiveSession session1 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(session1);
+
+        String sourceEventId = "evt-replay-" + UUID.randomUUID();
+
+        // 1ª execução
+        PasswordResetEventInboxService.InboxProcessingResult result1 =
+                inboxService.processEvent(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL");
+
+        assertThat(result1.effectExecuted()).isTrue();
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+
+        // Cria uma nova sessão para o usuário após o reset
+        SelectiveTouchSessionRepository.SelectiveSession session2 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(session2);
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+
+        // 2ª execução com mesmo sourceEventId (duplicata / replay)
+        PasswordResetEventInboxService.InboxProcessingResult result2 =
+                inboxService.processEvent(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL");
+
+        assertThat(result2.effectExecuted()).isFalse();
+        assertThat(result2.status()).isEqualTo(PasswordResetEventInboxEntity.STATUS_DELIVERED);
+        assertThat(result2.terminatedSessionCount()).isZero();
+
+        // A nova sessão sobrevive porque o efeito NÃO foi executado novamente
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+        assertThat(sessionRepository.findById(session2.getId())).isNotNull();
+
+        // Apenas 1 registro existe no banco
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
+                Long.class,
+                sourceEventId);
+        assertThat(count).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("Concorrência: Múltiplas threads simultâneas com o mesmo sourceEventId produzem exatamente 1 vencedor e 1 registro no banco")
+    void concurrentDeliveriesOfSameSourceEventIdResultInSingleWinnerAndSingleEffect() throws Exception {
+        SelectiveTouchSessionRepository.SelectiveSession session1 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(session1);
+
+        String sharedSourceEventId = "evt-race-" + UUID.randomUUID();
+        int threadCount = 8;
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch doneLatch = new CountDownLatch(threadCount);
+        List<PasswordResetEventInboxService.InboxProcessingResult> results = Collections.synchronizedList(new ArrayList<>());
+        List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                try {
+                    startLatch.await();
+                    PasswordResetEventInboxService.InboxProcessingResult res =
+                            inboxService.processEvent(sharedSourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL");
+                    results.add(res);
+                } catch (Throwable t) {
+                    errors.add(t);
+                } finally {
+                    doneLatch.countDown();
+                }
+            });
+        }
+
+        startLatch.countDown();
+        boolean completed = doneLatch.await(15, TimeUnit.SECONDS);
+        executor.shutdown();
+
+        assertThat(completed).isTrue();
+        assertThat(errors).isEmpty();
+        assertThat(results).hasSize(threadCount);
+
+        long winnersCount = results.stream().filter(PasswordResetEventInboxService.InboxProcessingResult::effectExecuted).count();
+        long losersCount = results.stream().filter(r -> !r.effectExecuted()).count();
+
+        // Exatamente 1 vencedor executou o efeito
+        assertThat(winnersCount).isEqualTo(1L);
+        assertThat(losersCount).isEqualTo(threadCount - 1);
+
+        // Banco de dados possui exatamente 1 registro
+        Long totalRows = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
+                Long.class,
+                sharedSourceEventId);
+        assertThat(totalRows).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("Falha no efeito de terminação propaga exceção e conserva status FAILED para recuperação em 02-31")
+    void sessionTerminationFailurePreservesFailedStatusForRecovery() {
+        String sourceEventId = "evt-failure-" + UUID.randomUUID();
+
+        // Cria serviço com stub de falha
+        IdentitySessionTerminationService failingTerminationService = mock(IdentitySessionTerminationService.class);
+        org.mockito.Mockito.when(failingTerminationService.terminateAllSessionsFor(
+                        TARGET_SUBJECT_A, SessionTerminationReason.SECURITY))
+                .thenThrow(new IllegalStateException("Simulated downstream Redis failure"));
+
+        PasswordResetEventInboxService failingInboxService =
+                new PasswordResetEventInboxService(inboxRepository, failingTerminationService);
+
+        // Execução falha com IllegalStateException
+        assertThatThrownBy(() -> failingInboxService.processEvent(
+                sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL"))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Simulated downstream Redis failure");
+
+        // O registro no PostgreSQL permanece com status FAILED e last_error preenchido
+        Optional<PasswordResetEventInboxEntity> recordOpt = inboxRepository.findBySourceEventId(sourceEventId);
+        assertThat(recordOpt).isPresent();
+        PasswordResetEventInboxEntity record = recordOpt.get();
+        assertThat(record.getStatus()).isEqualTo(PasswordResetEventInboxEntity.STATUS_FAILED);
+        assertThat(record.getLastError())
+                .as("o inbox grava código estável, nunca a classe nem a mensagem cruas da exceção")
+                .isEqualTo(PasswordResetEventInboxService.ERROR_CODE_TERMINATION_FAILED)
+                .doesNotContain("IllegalStateException")
+                .doesNotContain("Simulated downstream Redis failure");
+
+        // Nova chamada detecta o registro existente e não relata sucesso indevido
+        PasswordResetEventInboxService.InboxProcessingResult retryResult =
+                inboxService.processEvent(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL");
+
+        assertThat(retryResult.effectExecuted()).isFalse();
+        assertThat(retryResult.status()).isEqualTo(PasswordResetEventInboxEntity.STATUS_FAILED);
+    }
+
+    @Test
+    @DisplayName("Validação de entrada: Parâmetros nulos ou em branco falham fechados antes do banco")
+    void blankAndNullParametersFailClosed() {
+        assertThatThrownBy(() -> inboxService.processEvent(null, "sub", "realm", "UPDATE_CREDENTIAL"))
+                .isInstanceOf(NullPointerException.class);
+
+        assertThatThrownBy(() -> inboxService.processEvent("evt", null, "realm", "UPDATE_CREDENTIAL"))
+                .isInstanceOf(NullPointerException.class);
+
+        assertThatThrownBy(() -> inboxService.processEvent("evt", "sub", null, "UPDATE_CREDENTIAL"))
+                .isInstanceOf(NullPointerException.class);
+
+        assertThatThrownBy(() -> inboxService.processEvent("   ", "sub", "realm", "UPDATE_CREDENTIAL"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> inboxService.processEvent("evt", "   ", "realm", "UPDATE_CREDENTIAL"))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThatThrownBy(() -> inboxService.processEvent("evt", "sub", "   ", "UPDATE_CREDENTIAL"))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Task 02-30-03: Endpoint Security, Statelessness, HMAC Isolation and Configuration Tests
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Task 02-30-03: Endpoint exige envelope HMAC exato e rejeita requisições sem assinatura ou com assinatura adulterada")
+    void endpointRequiresExactHmacAndRejectsMissingOrInvalidSignature() throws Exception {
+        SelectiveTouchSessionRepository.SelectiveSession sessionA = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(sessionA);
+
+        String sourceEventId = "evt-sec-hmac-" + UUID.randomUUID();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+
+        // 1. Requisição sem cabeçalhos HMAC é rejeitada com 401 Unauthorized
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyBytes))
+                .andExpect(status().isUnauthorized());
+
+        // 2. Requisição com assinatura inválida é rejeitada com 401 Unauthorized
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, "bad-signature-00000000000000000000000000000000000000000000000000")
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(bodyBytes))
+                .andExpect(status().isUnauthorized());
+
+        // Sessão permanece ativa no Redis e nenhum registro é criado no banco
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
+                Long.class,
+                sourceEventId);
+        assertThat(count).isZero();
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Endpoint é stateless e não aceita cookie de sessão ou bearer token como substituto do HMAC")
+    void endpointIgnoresCookiesAndBearerTokensAndRequiresHmac() throws Exception {
+        SelectiveTouchSessionRepository.SelectiveSession sessionA = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(sessionA);
+
+        String sourceEventId = "evt-sec-stateless-" + UUID.randomUUID();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+
+        // Requisição contendo Bearer token e Cookie de sessão, mas sem HMAC
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiJ9.invalid.token")
+                        .header("Cookie", "SESSION=" + sessionA.getId())
+                        .content(bodyBytes))
+                .andExpect(status().isUnauthorized());
+
+        // Sessão permanece intacta
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Endpoint falha fechado (401) quando o keyId é desconhecido ou não configurado")
+    void endpointFailsClosedWhenKeyIdIsUnknownOrKeyMissing() throws Exception {
+        SelectiveTouchSessionRepository.SelectiveSession sessionA = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(sessionA);
+
+        String sourceEventId = "evt-sec-unknown-key-" + UUID.randomUUID();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String timestampHeader = "123456789";
+
+        // Assinatura gerada para keyId desconhecido
+        String signature = verifier.sign(
+                RAW_SECRET_KEY, "unknown-key-id", timestampHeader, "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, "unknown-key-id")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(bodyBytes))
+                .andExpect(status().isUnauthorized());
+
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Cabeçalhos extras não alteram a canonicalização assinada e requisição válida tem sucesso")
+    void endpointAcceptsValidHmacWithExtraHeadersWithoutCanonicalizationTampering() throws Exception {
+        SelectiveTouchSessionRepository.SelectiveSession sessionA = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(sessionA);
+        SelectiveTouchSessionRepository.SelectiveSession sessionB = createAuthenticatedSession(CONTROL_SUBJECT_B);
+        sessionRepository.save(sessionB);
+
+        String sourceEventId = "evt-sec-extra-headers-" + UUID.randomUUID();
+        Instant now = clock.instant();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, now.toString());
+
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String timestampHeader = String.valueOf(now.toEpochMilli());
+        String signature = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .header("X-Forwarded-For", "192.168.1.100")
+                        .header("X-Custom-Trace-Id", "trace-abc-123")
+                        .header("Cookie", "untrusted-cookie=123")
+                        .header("Authorization", "Bearer untrusted-token")
+                        .content(bodyBytes))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DELIVERED"))
+                .andExpect(jsonPath("$.sourceEventId").value(sourceEventId))
+                .andExpect(jsonPath("$.effectExecuted").value(true));
+
+        // Sessões de Target A foram encerradas; Control B intacto
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+        assertThat(sessionRepository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Body que excede o tamanho limite configurado é rejeitado com 413 Payload Too Large")
+    void endpointRejectsPayloadExceedingMaxBodySize() throws Exception {
+        String sourceEventId = "evt-sec-body-limit-" + UUID.randomUUID();
+        // Cria um payload com padding gigante que excede o limite default de 64KB
+        String hugePadding = " ".repeat(70000);
+        String hugePayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"%s
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString(), hugePadding);
+
+        byte[] bodyBytes = hugePayload.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String timestampHeader = "123456789";
+        String signature = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(bodyBytes))
+                .andExpect(status().isPayloadTooLarge());
+
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
+                Long.class,
+                sourceEventId);
+        assertThat(count).isZero();
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Payload que não é objeto JSON ou contém campos proibidos é rejeitado com 400 Bad Request")
+    void endpointRejectsNonJsonObjectAndProhibitedFields() throws Exception {
+        String sourceEventId = "evt-sec-prohibited-" + UUID.randomUUID();
+
+        // 1. JSON Array é rejeitado
+        byte[] arrayBytes = "[{\"sourceEventId\":\"evt-1\"}]".getBytes(StandardCharsets.UTF_8);
+        String arraySha256 = verifier.computeBodySha256(arrayBytes);
+        String arraySig = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, "123456789", "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH, "evt-1", arraySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, arraySig)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, "evt-1")
+                        .content(arrayBytes))
+                .andExpect(status().isBadRequest());
+
+        // 2. Campo proibido ("email" ou "password") é rejeitado
+        String payloadWithEmail = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "email": "user@ufu.br",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+
+        byte[] emailBytes = payloadWithEmail.getBytes(StandardCharsets.UTF_8);
+        String emailSha256 = verifier.computeBodySha256(emailBytes);
+        String emailSig = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, "123456789", "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, emailSha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, emailSig)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(emailBytes))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: PasswordResetEventProperties protege segredos em toString e resolve chaves válidas")
+    void propertiesRedactsSecretsInToStringAndResolvesValidKeys() {
+        PasswordResetEventProperties testProps = new PasswordResetEventProperties();
+        testProps.setCurrentVersion("v1");
+        testProps.setKeys(Map.of(
+                "v1", "dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ==",
+                "short", "dG9vLXNob3J0"
+        ));
+
+        // Segredos nunca aparecem em toString (PRIV-01)
+        assertThat(testProps.toString())
+                .doesNotContain("dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ==")
+                .doesNotContain("dG9vLXNob3J0")
+                .contains("currentVersion='v1'")
+                .contains("configuredKeyIds");
+
+        // Chave de 31 bytes decodifica com sucesso (>= 16 bytes)
+        byte[] v1Key = testProps.resolveKey("v1");
+        assertThat(v1Key).isNotNull().hasSize(31);
+
+        // Chave curta (< 16 bytes) falha fechada retornando null
+        byte[] shortKey = testProps.resolveKey("short");
+        assertThat(shortKey).isNull();
+
+        // Chave desconhecida ou nula retorna null
+        assertThat(testProps.resolveKey("v2")).isNull();
+        assertThat(testProps.resolveKey(null)).isNull();
+        assertThat(testProps.resolveKey("   ")).isNull();
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: PasswordResetEventProperties exige Base64 válido e não faz fallback para UTF-8")
+    void propertiesRequiresStrictBase64WithoutUtf8Fallback() {
+        PasswordResetEventProperties props = new PasswordResetEventProperties();
+        props.setKeys(Map.of(
+                "non-base64", "this-is-not-valid-base64!@#$",
+                "valid-base64", "dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ=="
+        ));
+
+        // String não-Base64 retorna null (sem fallback para bytes UTF-8)
+        assertThat(props.resolveKey("non-base64")).isNull();
+
+        // Base64 válido retorna os bytes decodificados
+        assertThat(props.resolveKey("valid-base64")).isNotNull().hasSize(31);
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Verifier canonicaliza literalmente sem normalizar maiúsculas/minúsculas ou trim")
+    void verifierCanonicalizesLiterallyWithoutNormalization() {
+        String canonical1 = verifier.canonicalize("v1", "123", "POST", "/api/v1/internal/events/password-reset", "evt-1", "abcd");
+        String canonicalWithSpaces = verifier.canonicalize("v1 ", "123", "POST", "/api/v1/internal/events/password-reset", "evt-1", "abcd");
+        String canonicalLowerMethod = verifier.canonicalize("v1", "123", "post", "/api/v1/internal/events/password-reset", "evt-1", "abcd");
+        String canonicalUpperHash = verifier.canonicalize("v1", "123", "POST", "/api/v1/internal/events/password-reset", "evt-1", "ABCD");
+
+        assertThat(canonical1).isEqualTo("v1\n123\nPOST\n/api/v1/internal/events/password-reset\nevt-1\nabcd");
+        assertThat(canonicalWithSpaces).isNotEqualTo(canonical1);
+        assertThat(canonicalLowerMethod).isNotEqualTo(canonical1);
+        assertThat(canonicalUpperHash).isNotEqualTo(canonical1);
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Endpoint rejeita payload com campos duplicados com 400 Bad Request")
+    void endpointRejectsDuplicateJsonFields() throws Exception {
+        String sourceEventId = "evt-sec-dup-" + UUID.randomUUID();
+        String jsonPayloadWithDuplicate = """
+                {
+                    "sourceEventId": "%s",
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+
+        byte[] bodyBytes = jsonPayloadWithDuplicate.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String timestampHeader = "123456789";
+        String signature = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(bodyBytes))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Task 02-30-03: Endpoint rejeita grafias alternativas/aliases como realm_id, issuer ou created_at com 400")
+    void endpointRejectsFieldAliases() throws Exception {
+        String sourceEventId = "evt-sec-alias-" + UUID.randomUUID();
+        String jsonWithRealmIdUnderscore = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realm_id": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+
+        byte[] bodyBytes = jsonWithRealmIdUnderscore.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String timestampHeader = "123456789";
+        String signature = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(bodyBytes))
+                .andExpect(status().isBadRequest());
+    }
+
+    private static void assertSqlStateAndConstraint(
+            DataIntegrityViolationException failure,
+            String expectedSqlState,
+            String expectedConstraint) {
+        assertThat(failure).isNotNull();
+        assertThat(failure.getMostSpecificCause()).isInstanceOf(PSQLException.class);
+
+        PSQLException postgresFailure = (PSQLException) failure.getMostSpecificCause();
+        assertThat(postgresFailure.getSQLState()).isEqualTo(expectedSqlState);
+        assertThat(postgresFailure.getServerErrorMessage()).isNotNull();
+        assertThat(postgresFailure.getServerErrorMessage().getConstraint())
+                .isEqualTo(expectedConstraint);
+    }
+
+    private SelectiveTouchSessionRepository.SelectiveSession createAuthenticatedSession(String subject) {
+        SelectiveTouchSessionRepository.SelectiveSession session = sessionRepository.createSession();
+        Instant now = clock.instant();
+
+        OidcIdToken idToken = OidcIdToken.withTokenValue("inbox-token-" + subject)
+                .issuer("https://idp.invalid")
+                .subject(subject)
+                .claim("preferred_username", "user-" + subject)
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(3600))
+                .build();
+
+        DefaultOidcUser oidcUser = new DefaultOidcUser(
+                AuthorityUtils.createAuthorityList("ROLE_USER"),
+                idToken,
+                IdTokenClaimNames.SUB);
+
+        OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(
+                oidcUser,
+                oidcUser.getAuthorities(),
+                "keycloak");
+
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+
+        session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
+        session.setAttribute(
+                LAST_VALID_EPOCH_SECOND_ATTRIBUTE,
+                now.getEpochSecond());
+        session.setAttribute(
+                LAST_VALID_NANO_ATTRIBUTE,
+                now.getNano());
+        session.setAttribute(
+                APPROVED_ACTIVITY_ATTRIBUTE,
+                now);
+
+        return session;
+    }
+
+    @TestConfiguration(proxyBeanMethods = false)
+    @EnableAutoConfiguration
+    static class TestApplication {
+
+        @Bean
+        @Primary
+        MutableTestClock mutableTestClock() {
+            return new MutableTestClock(Instant.EPOCH, ZoneOffset.UTC);
+        }
+
+        @Bean
+        @Primary
+        OidcRevocationClient mockOidcRevocationClient() {
+            return mock(OidcRevocationClient.class);
+        }
+
+        @Bean
+        ClientRegistrationRepository clientRegistrationRepository() {
+            ClientRegistration registration = ClientRegistration.withRegistrationId("keycloak")
+                    .clientId("betufu-inbox-it")
+                    .clientSecret("unused")
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                    .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                    .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                    .scope("openid")
+                    .authorizationUri("https://idp.invalid/authorize")
+                    .tokenUri("https://idp.invalid/token")
+                    .jwkSetUri("https://idp.invalid/jwks")
+                    .issuerUri("https://idp.invalid")
+                    .userNameAttributeName(IdTokenClaimNames.SUB)
+                    .clientName("BETUFU Password Reset Event Inbox IT")
+                    .build();
+            return new InMemoryClientRegistrationRepository(registration);
+        }
+    }
+
+    static final class MutableTestClock extends Clock {
+
+        private final AtomicReference<Instant> instant;
+        private final ZoneId zone;
+
+        private MutableTestClock(Instant instant, ZoneId zone) {
+            this(new AtomicReference<>(Objects.requireNonNull(instant)), zone);
+        }
+
+        private MutableTestClock(AtomicReference<Instant> instant, ZoneId zone) {
+            this.instant = instant;
+            this.zone = Objects.requireNonNull(zone);
+        }
+
+        void set(Instant newInstant) {
+            instant.set(Objects.requireNonNull(newInstant));
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return zone;
+        }
+
+        @Override
+        public Clock withZone(ZoneId newZone) {
+            return new MutableTestClock(instant, newZone);
+        }
+
+        @Override
+        public Instant instant() {
+            return instant.get();
+        }
+    }
+}

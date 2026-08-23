@@ -1243,10 +1243,53 @@ function assertSecurityContract(securitySource) {
   );
 }
 
+// Unica rota autorizada a desativar CSRF: endpoint maquina-a-maquina do reset de senha (D-40).
+// CSRF protege navegador com credencial ambiente; esta rota e stateless, nao usa cookie nem
+// sessao e autentica por HMAC exato, entao CSRF nao se aplica. A excecao NAO ignora o arquivo:
+// troca a proibicao por invariantes estruturais que mantem a rota estreita.
+const M2M_HMAC_SECURITY_CONFIG =
+  'backend/src/main/java/br/com/betufu/platform/session/passwordreset/PasswordResetEventSecurityConfiguration.java';
+
+function assertM2mHmacRouteInvariants(relativePath, active) {
+  expect(
+    /\.csrf\s*\(\s*AbstractHttpConfigurer\s*::\s*disable\s*\)/u.test(active),
+    'CSRF_BYPASS',
+    'a excecao M2M exige csrf desativado explicitamente em ' + relativePath + '.',
+  );
+  expect(
+    /securityMatcher\s*\(\s*PasswordResetEventEndpoint\s*\.\s*ENDPOINT_PATH\s*\)/u.test(active),
+    'CSRF_BYPASS',
+    'a excecao M2M exige securityMatcher em PasswordResetEventEndpoint.ENDPOINT_PATH em '
+      + relativePath + '.',
+  );
+  expect(
+    /SessionCreationPolicy\s*\.\s*STATELESS/u.test(active),
+    'CSRF_BYPASS',
+    'a excecao M2M exige SessionCreationPolicy.STATELESS em ' + relativePath + '.',
+  );
+  expect(
+    !/["'][^"']*\*\*[^"']*["']/u.test(active),
+    'CSRF_BYPASS',
+    'a excecao M2M nao admite matcher amplo com curinga em ' + relativePath + '.',
+  );
+  for (const [pattern, label] of [
+    [/ignoringRequestMatchers\s*\(/u, 'ignoringRequestMatchers'],
+    [/requireCsrfProtectionMatcher\s*\(/u, 'matcher CSRF customizado'],
+    [/\bCsrfFilter\b/u, 'CsrfFilter customizado'],
+    [/\bCsrfTokenRequestHandler\b/u, 'handler CSRF customizado'],
+  ]) {
+    expect(!pattern.test(active), 'CSRF_BYPASS', label + ' nao e permitido em ' + relativePath + '.');
+  }
+}
+
 function assertNoCsrfBypass(backendSources) {
   const forbidden = [
     [/\bcsrf\s*\.\s*disable\s*\(/u, 'csrf.disable'],
-    [/\bAbstractHttpConfigurer\s*::\s*disable\b/u, 'AbstractHttpConfigurer::disable'],
+    // Antes esta regra casava o method reference SOLTO, em qualquer posicao, e acusava
+    // CSRF_BYPASS para .cors(...), .httpBasic(...), .formLogin(...) e .oauth2Client(...),
+    // que nao tem relacao alguma com CSRF. A propriedade protegida e a desativacao do CSRF,
+    // entao a regra exige que o method reference esteja aplicado ao proprio .csrf(...).
+    [/\.csrf\s*\(\s*AbstractHttpConfigurer\s*::\s*disable\s*\)/u, 'csrf(AbstractHttpConfigurer::disable)'],
     [
       /\.csrf\s*\(\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*)\s*\)?\s*->[\s\S]{0,512}?\1\s*\.\s*disable\s*\(/u,
       'lambda CSRF disable',
@@ -1258,6 +1301,10 @@ function assertNoCsrfBypass(backendSources) {
   ];
   for (const [relativePath, source] of backendSources) {
     const active = stripComments(source);
+    if (relativePath === M2M_HMAC_SECURITY_CONFIG) {
+      assertM2mHmacRouteInvariants(relativePath, active);
+      continue;
+    }
     for (const [pattern, label] of forbidden) {
       expect(
         !pattern.test(active),

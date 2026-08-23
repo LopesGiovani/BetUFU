@@ -3011,3 +3011,52 @@ test('falha de cleanup prevalece e nao identifica segredo', async () => {
     'stopRedisSentinel',
   ]);
 });
+
+// ── Excecao estrutural M2M: a rota HMAC do reset de senha (D-40) pode desativar CSRF ─────
+// A regra antiga acusava qualquer AbstractHttpConfigurer::disable, inclusive cors e
+// httpBasic, que nada tem a ver com CSRF. A excecao nao ignora o arquivo: troca a
+// proibicao por invariantes que mantem a rota estreita, stateless e sem cookie.
+
+test('aceita a configuracao M2M aprovada da rota HMAC de reset de senha', async () => {
+  const root = await createFixture();
+  await validateStaticContract(root);
+});
+
+test('rejeita csrf disable no mesmo padrao fora da rota M2M aprovada', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
+    (source) => source.replace(
+      '.oauth2Login(',
+      '.csrf(AbstractHttpConfigurer::disable).oauth2Login(',
+    ),
+  );
+  await expectRule(root, 'CSRF_BYPASS');
+});
+
+test('rejeita a rota M2M quando o matcher vira curinga amplo', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/java/br/com/betufu/platform/session/passwordreset/PasswordResetEventSecurityConfiguration.java',
+    (source) => source.replace(
+      '.securityMatcher(PasswordResetEventEndpoint.ENDPOINT_PATH)',
+      '.securityMatcher("/api/v1/**")',
+    ),
+  );
+  await expectRule(root, 'CSRF_BYPASS');
+});
+
+test('rejeita a rota M2M quando o modo stateless e removido', async () => {
+  const root = await createFixture();
+  await mutate(
+    root,
+    'backend/src/main/java/br/com/betufu/platform/session/passwordreset/PasswordResetEventSecurityConfiguration.java',
+    (source) => source.replace(
+      'SessionCreationPolicy.STATELESS',
+      'SessionCreationPolicy.IF_REQUIRED',
+    ),
+  );
+  await expectRule(root, 'CSRF_BYPASS');
+});
