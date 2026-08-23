@@ -138,7 +138,7 @@ class LocalIdentityTracerIT {
     @BeforeEach
     void prepareTest() {
         jdbcTemplate.execute(
-                "TRUNCATE TABLE public.audit_event, public.betufu_profile, public.ufu_enrollment, public.local_identity");
+                "TRUNCATE TABLE public.audit_event, public.operational_role_grant, public.betufu_profile, public.ufu_enrollment, public.local_identity CASCADE");
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
                 .addFilters(springSecurityFilterChain)
                 .build();

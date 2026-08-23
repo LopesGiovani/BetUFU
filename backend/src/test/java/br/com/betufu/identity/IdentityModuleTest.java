@@ -5,8 +5,10 @@ import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
+import br.com.betufu.audit.AuditRecorder;
 import br.com.betufu.identity.internal.LocalIdentityController;
 import br.com.betufu.identity.internal.LocalIdentityRepository;
+import br.com.betufu.identity.internal.OperationalRoleGrantRepository;
 import br.com.betufu.identity.internal.LocalIdentityService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,11 @@ import org.springframework.test.context.TestPropertySource;
 @Import(IdentityModuleTest.TestIdentityInfrastructureConfiguration.class)
 class IdentityModuleTest {
 
+    // `audit` saiu desta lista no Plano 02-23, por ratificação do responsável. A lista nasceu no
+    // commit 8725992 (Plano 01-23), quando o módulo de auditoria ainda não existia e era, de fato,
+    // futuro. Ele foi entregue pelos Planos 02-04 e 02-21, e `verification/internal/EnrollmentService`
+    // já o consome sem que nenhuma guarda o impeça. Manter `audit` aqui bloquearia a trilha de
+    // auditoria de concessões e recusas de papel exigida por D-30 e D-48.
     private static final List<String> FUTURE_BUSINESS_MODULES = List.of(
             "verification",
             "sports",
@@ -55,8 +62,7 @@ class IdentityModuleTest {
             "ledger",
             "settlement",
             "ranking",
-            "chat",
-            "audit");
+            "chat");
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -98,6 +104,16 @@ class IdentityModuleTest {
         @Bean
         LocalIdentityRepository localIdentityRepository() {
             return mock(LocalIdentityRepository.class);
+        }
+
+        @Bean
+        OperationalRoleGrantRepository operationalRoleGrantRepository() {
+            return mock(OperationalRoleGrantRepository.class);
+        }
+
+        @Bean
+        AuditRecorder auditRecorder() {
+            return mock(AuditRecorder.class);
         }
 
         @Bean

@@ -2,6 +2,7 @@ package br.com.betufu.platform.persistence;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +79,7 @@ class FlywayMigrationIT {
     }
 
     @Test
-    @DisplayName("Aplica V1 a V5 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
+    @DisplayName("Aplica V1 a V6 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
     void appliesV1AndV2MigrationsSequentially() {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
@@ -87,10 +88,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(6);
+        assertThat(result.migrationsExecuted).isEqualTo(8);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(6);
+        assertThat(applied).hasSize(8);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -110,6 +111,12 @@ class FlywayMigrationIT {
         assertThat(applied[5].getVersion().getVersion()).isEqualTo("5.1");
         assertThat(applied[5].getState()).isEqualTo(MigrationState.SUCCESS);
 
+        assertThat(applied[6].getVersion().getVersion()).isEqualTo("6");
+        assertThat(applied[6].getState()).isEqualTo(MigrationState.SUCCESS);
+
+        assertThat(applied[7].getVersion().getVersion()).isEqualTo("7");
+        assertThat(applied[7].getState()).isEqualTo(MigrationState.SUCCESS);
+
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
                 Integer.class);
@@ -125,7 +132,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(6);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(8);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -134,7 +141,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(6);
+        assertThat(applied).hasSize(8);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -172,7 +179,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(6);
+            assertThat(totalExecuted).isEqualTo(8);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -180,12 +187,54 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(6);
+            assertThat(applied).hasSize(8);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();
             executor.shutdownNow();
             assertThat(executor.awaitTermination(10, SECONDS)).isTrue();
         }
+    }
+
+    @Test
+    @DisplayName("V7 impede papel escopado sem escopo e papel global com escopo no proprio banco")
+    void v7EnforcesRoleScopeConsistencyAtDatabaseLevel() {
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        java.util.UUID identityId = jdbcTemplate.queryForObject(
+                "INSERT INTO public.local_identity (issuer, subject) VALUES (?, ?) RETURNING identity_id",
+                java.util.UUID.class,
+                "https://example.invalid/realms/betufu-check",
+                "subject-scope-check");
+
+        // Papel escopado sem escopo: recusado pelo banco, nao apenas pelo servico
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.operational_role_grant (identity_id, role_name, scope_ref, status)"
+                        + " VALUES (?, 'MODERADOR', NULL, 'VIGENTE')",
+                identityId))
+                .as("MODERADOR sem scope_ref deve violar ck_operational_role_grant_scope")
+                .hasMessageContaining("ck_operational_role_grant_scope");
+
+        // Papel global com escopo: igualmente recusado
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.operational_role_grant (identity_id, role_name, scope_ref, status)"
+                        + " VALUES (?, 'ADMINISTRADOR_GERAL', gen_random_uuid(), 'VIGENTE')",
+                identityId))
+                .as("ADMINISTRADOR_GERAL com scope_ref deve violar ck_operational_role_grant_scope")
+                .hasMessageContaining("ck_operational_role_grant_scope");
+
+        // Controle positivo: as duas combinacoes validas passam, senao a CHECK estaria proibindo tudo
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.operational_role_grant (identity_id, role_name, scope_ref, status)"
+                        + " VALUES (?, 'MODERADOR', gen_random_uuid(), 'VIGENTE')",
+                identityId)).isEqualTo(1);
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.operational_role_grant (identity_id, role_name, scope_ref, status)"
+                        + " VALUES (?, 'ADMINISTRADOR_GERAL', NULL, 'VIGENTE')",
+                identityId)).isEqualTo(1);
     }
 }
