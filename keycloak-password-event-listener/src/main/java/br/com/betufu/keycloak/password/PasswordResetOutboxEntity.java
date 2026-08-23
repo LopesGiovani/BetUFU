@@ -28,7 +28,16 @@ import java.util.UUID;
             query = "SELECT o FROM PasswordResetOutboxEntity o WHERE o.sourceEventId = :sourceEventId"),
     @NamedQuery(
             name = "findPendingPasswordResetOutbox",
-            query = "SELECT o FROM PasswordResetOutboxEntity o WHERE o.status = 'PENDING' ORDER BY o.createdAt ASC")
+            query = "SELECT o FROM PasswordResetOutboxEntity o WHERE o.status = 'PENDING' ORDER BY o.createdAt ASC"),
+    @NamedQuery(
+            name = "findEligibleForClaim",
+            query = "SELECT o FROM PasswordResetOutboxEntity o WHERE (o.status = 'PENDING' AND (o.nextAttemptAt IS NULL OR o.nextAttemptAt <= :now)) OR (o.status = 'CLAIMED' AND o.claimedAt < :leaseCutoff) ORDER BY o.createdAt ASC"),
+    @NamedQuery(
+            name = "findFailedPasswordResetOutbox",
+            query = "SELECT o FROM PasswordResetOutboxEntity o WHERE o.status = 'FAILED' ORDER BY o.createdAt ASC"),
+    @NamedQuery(
+            name = "findDeliveredOlderThan",
+            query = "SELECT o FROM PasswordResetOutboxEntity o WHERE o.status = 'DELIVERED' AND o.deliveredAt < :cutoff")
 })
 public class PasswordResetOutboxEntity {
 
@@ -76,6 +85,9 @@ public class PasswordResetOutboxEntity {
 
     @Column(name = "last_error", length = 1024)
     private String lastError;
+
+    @Column(name = "next_attempt_at")
+    private Instant nextAttemptAt;
 
     protected PasswordResetOutboxEntity() {}
 
@@ -142,6 +154,11 @@ public class PasswordResetOutboxEntity {
         this.updatedAt = Instant.now();
     }
 
+    public void resetAttemptCount() {
+        this.attemptCount = 0;
+        this.updatedAt = Instant.now();
+    }
+
     public Instant getClaimedAt() {
         return claimedAt;
     }
@@ -172,6 +189,14 @@ public class PasswordResetOutboxEntity {
 
     public void setLastError(String lastError) {
         this.lastError = lastError;
+    }
+
+    public Instant getNextAttemptAt() {
+        return nextAttemptAt;
+    }
+
+    public void setNextAttemptAt(Instant nextAttemptAt) {
+        this.nextAttemptAt = nextAttemptAt;
     }
 
     @Override

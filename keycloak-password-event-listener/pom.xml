@@ -53,6 +53,18 @@
       <version>${keycloak.version}</version>
       <scope>provided</scope>
     </dependency>
+    <!--
+      Declarado explicitamente porque o provider importa AppAuthManager diretamente. A classe já
+      chegava por transitividade de keycloak-model-jpa, mas compilar contra uma dependência que
+      nenhum pom declara quebraria sem aviso numa troca de versão daquele artefato. Escopo provided:
+      o runtime é o próprio Keycloak, que já fornece o JAR.
+    -->
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-services</artifactId>
+      <version>${keycloak.version}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
