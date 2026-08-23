@@ -204,14 +204,14 @@ Plans:
 - [ ] 02-20-PLAN.md
 - [x] 02-21-PLAN.md
 - [x] 02-22-PLAN.md
-- [ ] 02-23-PLAN.md
+- [x] 02-23-PLAN.md
 - [x] 02-24-PLAN.md
 - [ ] 02-25-PLAN.md
 - [ ] 02-26-PLAN.md
 - [ ] 02-27-PLAN.md
-- [ ] 02-28-PLAN.md
+- [x] 02-28-PLAN.md
 - [ ] 02-29-PLAN.md
-- [ ] 02-30-PLAN.md
+- [x] 02-30-PLAN.md
 - [ ] 02-31-PLAN.md
 
 - **Wave 1** *(concluída: 02-01, 02-02 e 02-03 implementados, verificados e revisados)*: 02-01, 02-02, 02-03
@@ -220,7 +220,7 @@ Plans:
 - **Wave 4** *(concluída: 02-11, 02-15 e 02-22 implementados, verificados e formalizados)*: 02-11, 02-15, 02-22
 - **Wave 5** *(concluída: 02-07 implementado, verificado, revisado e formalizado)*: 02-07
 - **Wave 6** *(concluída: 02-08, 02-16 e 02-24 decididos ou implementados, verificados, revisados e formalizados; núcleo de origem Keycloak D-40 permanece sem ativação de realm/compose)*: 02-08, 02-16, 02-24
-- **Wave 7** *(02-28 e 02-30 dependem de 02-24; hardening da origem e núcleo/tracer hermético do destino, em arquivos disjuntos e sem ativação)*: 02-23, 02-28, 02-30
+- **Wave 7** *(concluída em 2026-08-23 com PASS externo; 02-28 e 02-30 dependem de 02-24; hardening da origem e núcleo/tracer hermético do destino, em arquivos disjuntos e sem ativação)*: 02-23, 02-28, 02-30
 - **Wave 8** *(02-31 depende de 02-28 e 02-30; hardening de inbox/operações, sem ativação e sem conflito com 02-17)*: 02-17, 02-31
 - **Wave 9** *(02-29 depende de 02-28 e 02-31; imagem, E2E hosted/admin e ativação final sob gate bloqueante)*: 02-10, 02-29
 - **Wave 10**: 02-18

@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 7 em preparação — três worktrees criados de a6f5f65; implementação ainda não despachada"
-last_updated: "2026-08-22T21:20:00-03:00"
-last_activity: 2026-08-22
-last_activity_desc: "Wave 6 concluiu a decisão de bootstrap administrativo por UUID público, a rotação HMAC da matrícula e a outbox transacional de redefinição de senha do Keycloak."
+stopped_at: "Fase 2: Wave 7 integrada na master com PASS externo; formalizada e pendente de limpeza e push"
+last_updated: "2026-08-23T04:10:00-03:00"
+last_activity: 2026-08-23
+last_activity_desc: "Wave 7 concluiu papéis operacionais com invariante de escopo, entrega e recuperação da outbox de reset e inbox assinado, após cinco rodadas de revisão externa até PASS."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 47
+  completed_plans: 50
 ---
 
 # Estado do Projeto
@@ -28,16 +28,28 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 16 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-11`, `02-14`, `02-15`, `02-16`, `02-21`, `02-22` e `02-24` concluídos)
-Status: In Progress — Waves 1 a 6 tecnicamente concluídas; a Wave 7 contém `02-23`, `02-28` e `02-30`.
-Last activity: 2026-08-22 — a Wave 6 decidiu o bootstrap administrativo por UUID público, governou a rotação HMAC da matrícula e criou a outbox transacional de redefinição de senha na origem Keycloak.
+Plan: 19 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-11`, `02-14`, `02-15`, `02-16`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28` e `02-30` concluídos)
+Status: In Progress — Waves 1 a 7 tecnicamente concluídas. A Wave 7 entregou `02-23`, `02-28` e `02-30`, com `PASS` externo sem P0–P2 na quinta rodada de revisão.
+Last activity: 2026-08-23 — a Wave 7 fechou o invariante papel/escopo com CHECK no banco, endureceu a origem Keycloak da D-40 e entregou o inbox assinado com encerramento de sessões.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git: os Planos 02-16 e 02-24 foram integrados linearmente pelos commits `89a4bd0`, `d6e0484`, `3f3d4be` e `d84f220`; a formalização do 02-08 e da Wave 6 compõe o commit de rastreamento atual. Nenhum push foi realizado.
 
-Git — Wave 7 (em execução, 2026-08-22): operação Git mutável autorizada e executada — `git worktree add` para os três planos da onda, todos a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`, em `C:\Users\giova\gsd-workspaces\phase-02\wave-07\{02-23,02-28,02-30}`. Os três nasceram limpos (`git status --porcelain -uall` vazio) e no SHA base. Nenhum stage, commit, integração ou push foi feito; `origin/master` permanece em `d1d18e6`, 22 commits atrás de `master`. Pendência de limpeza: os três worktrees e as três branches devem ser removidos após a integração da onda, junto com as branches residuais pré-rebase `feat/01-07`, `feat/01-21`, `feat/02-05`, `feat/02-06`, `feat/02-09` e `worktree-agent-02-14`, cujo conteúdo já está em `master` sob outros SHAs.
+Git — Wave 7 (concluída e integrada, 2026-08-23): operações Git mutáveis autorizadas e executadas, na ordem. (1) `git worktree add` para os três planos, a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`; os três nasceram limpos. (2) Um quarto worktree temporário e destacado, `wave-07/integration`, montou a árvore combinada sem commit para as suítes agregadas e para cada rodada de revisão. (3) **Rebase de dobra**: as correções das cinco rodadas de revisão foram dobradas nos commits existentes por cherry-pick encadeado com `--amend`, sem criar commit de correção. Os SHAs `eb4e79f`, `e63e313` e `a9b68de` deixaram de existir. (4) **Normalização de mensagens**: uma segunda passada reescreveu as mensagens dos cinco commits da onda para uma linha, no padrão dos vinte commits anteriores do projeto, e removeu os rodapés `Co-Authored-By` e `Claude-Session`, que nenhum commit do repositório usa. Os corpos longos foram auditados item a item antes de descartados: nove itens que existiam somente neles foram acrescentados aos SUMMARY, e as árvores dos três commits de código permaneceram idênticas antes e depois, provando que só a mensagem mudou.
 
-Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para 15 paths por ratificação prévia do responsável, acrescentando `backend/src/test/java/br/com/betufu/platform/persistence/FlywayMigrationIT.java`. Causa: `V6` invalida as seis asserções que fixam o total de migrations em 5 — duas em cada um dos três testes do arquivo. A lane do 02-23 grava **6**; a subida para **7**, com a `V5_1` do 02-30, pertence à integração da onda. O 02-30 não toca o arquivo, porque seus comandos focais são todos filtrados por `-Dit.test` e nunca executam o `FlywayMigrationIT`.
+| Commit | Conteúdo | Prova na própria árvore |
+|---|---|---|
+| `35deeaa` | `feat(02-28)` origem Keycloak endurecida | módulo `56/56` |
+| `d9b6f52` | `feat(02-30)` inbox assinado e encerramento de sessões | Surefire `187/187`, Failsafe `229/229`, Node `540/540` |
+| `e4900a0` | `feat(02-23)` papéis operacionais, escopo e `V7` | Surefire `201/201`, Failsafe `241/241` |
+
+O commit documental de emendas da onda, `41b17eb`, permanece imediatamente acima da base `a6f5f65`. A `master` termina no commit documental desta formalização, cujo hash não cabe dentro dele próprio. A árvore final foi verificada por hash de blob contra o snapshot que recebeu `PASS`: 19 paths, 19 idênticos. Suítes na `master` final, com `clean`: Surefire `201/201`, Failsafe `241/241`, módulo Keycloak `56/56`, Node `540/540`.
+
+**`origin/master` permanece em `a6f5f65`; nenhum push foi feito.** Pendência de limpeza, ainda não executada: os quatro worktrees da onda, as três branches `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`, e as seis residuais pré-rebase `feat/01-07`, `feat/01-21`, `feat/02-05`, `feat/02-06`, `feat/02-09` e `worktree-agent-02-14`, cujo conteúdo já está em `master` sob outros SHAs.
+
+Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
+
+Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para 15 paths por ratificação prévia do responsável, acrescentando `backend/src/test/java/br/com/betufu/platform/persistence/FlywayMigrationIT.java`. Causa: `V6` invalida as seis asserções que fixam o total de migrations em 5 — duas em cada um dos três testes do arquivo. A lane do 02-23 gravou **6**. **Corrigido no fechamento da onda:** a premissa de que o 02-30 não precisava tocar o arquivo estava errada. O commit do 02-30 cria a `V5_1` e, sem reconciliar a contagem, ficava vermelho isoladamente — qualquer `git bisect` entre ele e o 02-23 daria falso positivo. O arquivo entrou também na allowlist do 02-30, que grava **6** com a `V5_1`, e o 02-23 leva a **8** com a `V6` e a `V7`. O defeito não constava de nenhum achado de revisão; apareceu porque o rebase de dobra obrigou a medir cada commit individualmente.
 
 | Commit | Conteúdo |
 |---|---|
@@ -45,7 +57,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [█████░░░░░] 16/31 planos da Fase 2 (52%)
+Progress: [██████░░░░] 19/31 planos da Fase 2 (61%)
 
 ## Métricas de desempenho
 
@@ -129,6 +141,12 @@ Progress: [█████░░░░░] 16/31 planos da Fase 2 (52%)
 - Logout voluntário remove o authorized client mas **não revoga o grant**, coerente com `OidcSessionRevocationService`, que revoga só em `ADMINISTRATIVE` e `SECURITY`.
 - A ordem do logout é contrato de segurança: authorized client, sessão HTTP e SecurityContext caem **antes** de a coordenação com o provedor ser computada, espelhando o 01-07.
 - Uma mutação só conta como prova depois de observada vermelha. A M3a do 01-22 foi especificada, aprovada e executou verde: ela mediu que a guarda do caminho anônimo mora no short-circuit do controller, não em `currentState`.
+- **Papel operacional escopado exige escopo; o global o proíbe.** A regra vive no DTO, no serviço e como `CHECK` da `V7`, porque o serviço não é a única porta para a tabela. `hasRole` de papel global só aceita concessão com `scopeRef` nulo, senão um `ADMINISTRADOR_GERAL` "escopado" aparentaria autoridade limitada enquanto a concessão é irrestrita.
+- **Migration aplicada não se edita.** A `V6` recebeu uma `V7` em vez de alteração: mudar migration aplicada invalida o checksum do Flyway, garantia que o próprio `FlywayChecksumIT` testa. O mesmo princípio governou a coluna `next_attempt_at`, que entrou por changeset Liquibase novo.
+- **A ativação da integração de reset é conjunção fail-closed**, não flag: habilitação explícita, HTTPS com host presente e sem `userInfo`, path exato do contrato sem query nem fragment, key-id e chave Base64 com ao menos 32 bytes. Três rodadas de revisão foram necessárias porque cada correção fechava uma borda e revelava a seguinte.
+- **A autorização da recuperação usa a API suportada do Keycloak.** `AppAuthManager.BearerTokenAuthenticator` é o único caminho, e a autoridade é o papel `manage-realm` do cliente `realm-management` — papel de realm homônimo não concede nada, porque qualquer realm pode declarar um papel com esse nome.
+- **Medido por execução, não deduzido:** `TokenVerifier.create(t, AccessToken.class).withChecks(IS_ACTIVE).verify()`, sem `SignatureVerifierContext`, lança `VerificationException("Secret key not set")`. O fallback removido nunca aceitou token forjado; era código morto que se lia como autenticação.
+- **Alerta e DTO operacional carregam correlação e estado, nunca dado do titular.** Sujeito, realm, tipo do evento e mensagem crua de exceção ficam fora; o erro persistido é um código estável.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
@@ -163,6 +181,8 @@ Progress: [█████░░░░░] 16/31 planos da Fase 2 (52%)
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam de decisão explícita ou configuração.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
+- **A Wave 7 da Fase 2 está integrada com `PASS` externo, mas o 02-29 permanece gate bloqueante.** A validação criptográfica real do Bearer — assinatura forjada, token expirado, issuer incorreto, audience incorreta, papel global homônimo recusado e `realm-management/manage-realm` aceito — não foi comprovada na Wave 7 e foi formalmente transferida para lá, junto com a prova E2E da cadeia D-40 já deferida antes. Realm, compose e imagem de produção permanecem desabilitados até essa prova passar.
+- **Prova de recurso desatualizado no classpath.** Durante o rebase, um `verify` acusou 3 falhas e 41 erros que não vinham do commit: `backend/target/classes/db/migration` guardava a `V6` de um build anterior, e o Flyway lê migrations do classpath, não de `src`. É a irmã da armadilha do `.class` desatualizado, um nível acima. Use `clean` ao medir árvores diferentes no mesmo diretório.
 - A Wave 19 foi concluída com o 01-24, único plano da onda; a Wave 20 está liberada e começa pelo 01-12.
 - **A suíte Node está integralmente verde: 481/481.** O gate agregado do 01-16 não é mais bloqueado por nenhum detector Node — `validate-keycloak-realm` foi destravado pelo 01-30 e a última falha, de CRLF, pelo 01-31.
 - A allowlist do 01-24 declarava 4 paths; `STATE.md` e `ROADMAP.md` foram ratificados pelo responsável no fechamento, para que o registro do projeto não continuasse descrevendo o 01-11. Ampliação registrada aqui, e não no SUMMARY, porque o SUMMARY estava sob `PASS` externo e editá-lo o invalidaria.
@@ -175,6 +195,6 @@ Progress: [█████░░░░░] 16/31 planos da Fase 2 (52%)
 
 ## Session Continuity
 
-Last session: 2026-08-22T19:48:00-03:00
-Stopped at: Wave 6 concluída; próxima execução começa pela Wave 7
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-24-SUMMARY.md
+Last session: 2026-08-23T04:10:00-03:00
+Stopped at: Wave 7 integrada até `e4900a0` e formalizada no commit seguinte, com `PASS` externo e formalizada; pendentes a limpeza de worktrees e branches e o push, cada um com aprovação própria
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-28-SUMMARY.md
