@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 8 concluída, revisada, integrada linearmente e limpa; sem push"
-last_updated: "2026-08-23T23:55:00-03:00"
-last_activity: 2026-08-23
-last_activity_desc: "Wave 8 concluiu authorities e semente operacionais, hardening/recovery do inbox e contrato público, com PASS externo."
+stopped_at: "Fase 2: Wave 9 concluída, revisada e integrada linearmente; limpeza e push pendentes"
+last_updated: "2026-08-24T19:40:00-03:00"
+last_activity: 2026-08-24
+last_activity_desc: "Wave 9 concluiu o painel operacional e ativou a cadeia D-40 após os gates humano, E2E e criptográfico."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 52
+  completed_plans: 54
 ---
 
 # Estado do Projeto
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 21 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-11`, `02-14`, `02-15`, `02-16`, `02-17`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28`, `02-30` e `02-31` concluídos)
-Status: In Progress — Waves 1 a 8 concluídas. A Wave 8 recebeu `PASS` externo sem P0–P2.
-Last activity: 2026-08-23 — authorities, semente, recovery do inbox, retenção e contrato público foram integrados sem ativar produção.
+Plan: 23 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-14`, `02-15`, `02-16`, `02-17`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
+Status: In Progress — Waves 1 a 9 concluídas. A Wave 9 recebeu revisão final sem P0–P2.
+Last activity: 2026-08-24 — painel operacional e rollout governado D-40 foram verificados na árvore combinada.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: a Wave 7 já está sincronizada em `c2277a9` entre `master` e `origin/master`. A Wave 8 foi integrada localmente em quatro commits lineares; nenhum push da Wave 8 foi realizado.
+Git: a Wave 8 está sincronizada em `022869d` entre `master` e `origin/master`. A Wave 9 foi normalizada em quatro commits lineares e será integrada localmente por fast-forward; o push da Wave 9 permanece fora deste bloco.
 
 Git — Wave 7 (concluída e integrada, 2026-08-23): operações Git mutáveis autorizadas e executadas, na ordem. (1) `git worktree add` para os três planos, a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`; os três nasceram limpos. (2) Um quarto worktree temporário e destacado, `wave-07/integration`, montou a árvore combinada sem commit para as suítes agregadas e para cada rodada de revisão. (3) **Rebase de dobra**: as correções das cinco rodadas de revisão foram dobradas nos commits existentes por cherry-pick encadeado com `--amend`, sem criar commit de correção. Os SHAs `eb4e79f`, `e63e313` e `a9b68de` deixaram de existir. (4) **Normalização de mensagens**: uma segunda passada reescreveu as mensagens dos cinco commits da onda para uma linha, no padrão dos vinte commits anteriores do projeto, e removeu os rodapés `Co-Authored-By` e `Claude-Session`, que nenhum commit do repositório usa. Os corpos longos foram auditados item a item antes de descartados: nove itens que existiam somente neles foram acrescentados aos SUMMARY, e as árvores dos três commits de código permaneceram idênticas antes e depois, provando que só a mensagem mudou.
 
@@ -47,7 +47,9 @@ O commit documental de emendas da onda, `41b17eb`, permanece imediatamente acima
 
 **Reconciliação posterior confirmada:** a Wave 7 foi enviada; `master` e `origin/master` chegaram juntas a `c2277a9`. Seus worktrees e branches residuais foram removidos. Antes da Wave 8 existiam somente a worktree principal e a branch `master`.
 
-Git — Wave 8 (concluída localmente, 2026-08-23): o histórico foi normalizado em quatro commits, dois por plano: `81c663d` (`feat(02-17)`), `25c9951` (`docs(02-17)`), `8ddaeff` (`feat(02-31)`) e o commit documental final que contém este registro. O OpenAPI e o cliente de recovery acompanham `feat(02-31)`, enquanto o contrato de papéis permanece em `feat(02-17)`; assim cada commit preserva paridade código ↔ contrato e pode ser investigado por `git bisect`. Os 48 caminhos não documentais terminam idênticos por blob ao snapshot revisado. A branch foi integrada por fast-forward e as branches/worktrees temporárias foram removidas. `AGENTS.md` permaneceu fora dos commits. `origin/master` continua em `c2277a9`; não houve push da Wave 8.
+Git — Wave 8 (concluída e enviada, 2026-08-23): o histórico foi normalizado em quatro commits, dois por plano: `81c663d` (`feat(02-17)`), `25c9951` (`docs(02-17)`), `8ddaeff` (`feat(02-31)`) e o commit documental final `022869d`. O OpenAPI e o cliente de recovery acompanham `feat(02-31)`, enquanto o contrato de papéis permanece em `feat(02-17)`; assim cada commit preserva paridade código ↔ contrato e pode ser investigado por `git bisect`. Os 48 caminhos não documentais terminam idênticos por blob ao snapshot revisado. A branch foi integrada por fast-forward, as branches/worktrees temporárias foram removidas e `master`/`origin/master` chegaram juntas a `022869d`. `AGENTS.md` permaneceu fora dos commits.
+
+Git — Wave 9 (concluída localmente, 2026-08-24): quatro commits lineares, dois por plano: `8b3b632` (`feat(02-10)`), `a79e8b2` (`docs(02-10)`), `46b85fe` (`feat(02-29)`) e o commit documental final que contém este registro. A árvore combinada passou Surefire `235/235`, Failsafe `303/303`, módulo Keycloak `59/59` e Node `615/615`; os validadores de realm, runtime e recovery e `docker compose config --quiet` também passaram. O primeiro `clean verify` do backend falhou corretamente sem as variáveis HMAC obrigatórias; a execução canônica seguinte usou chaves descartáveis somente no processo e terminou verde, sem persistir segredo. O snapshot final recebeu revisão sem P0–P2. A integração local é por fast-forward; worktrees/branches e push ficam para aprovações separadas. `AGENTS.md` permanece fora dos commits e `origin/master` continua em `022869d` até o push ser autorizado.
 
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 
@@ -59,13 +61,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [███████░░░] 21/31 planos da Fase 2 (68%)
+Progress: [███████░░░] 23/31 planos da Fase 2 (74%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 52
+- Total de planos concluídos: 54
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -183,7 +185,7 @@ Progress: [███████░░░] 21/31 planos da Fase 2 (68%)
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam de decisão explícita ou configuração.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
-- **A Wave 7 da Fase 2 está integrada com `PASS` externo, mas o 02-29 permanece gate bloqueante.** A validação criptográfica real do Bearer — assinatura forjada, token expirado, issuer incorreto, audience incorreta, papel global homônimo recusado e `realm-management/manage-realm` aceito — não foi comprovada na Wave 7 e foi formalmente transferida para lá, junto com a prova E2E da cadeia D-40 já deferida antes. Realm, compose e imagem de produção permanecem desabilitados até essa prova passar.
+- **Os gates herdados da Wave 7 para o 02-29 foram concluídos na Wave 9.** A cadeia D-40 real foi exercitada de ponta a ponta, e a validação criptográfica do Bearer cobriu assinatura forjada, token expirado, issuer incorreto, audience incorreta, papel global homônimo recusado e `realm-management/manage-realm` aceito. O rollout só ocorreu depois do sinal literal `ativar rollout D-40 02-29`, seguido da reconciliação idempotente do realm e das suítes agregadas.
 - **Prova de recurso desatualizado no classpath.** Durante o rebase, um `verify` acusou 3 falhas e 41 erros que não vinham do commit: `backend/target/classes/db/migration` guardava a `V6` de um build anterior, e o Flyway lê migrations do classpath, não de `src`. É a irmã da armadilha do `.class` desatualizado, um nível acima. Use `clean` ao medir árvores diferentes no mesmo diretório.
 - A Wave 19 foi concluída com o 01-24, único plano da onda; a Wave 20 está liberada e começa pelo 01-12.
 - **A suíte Node está integralmente verde: 481/481.** O gate agregado do 01-16 não é mais bloqueado por nenhum detector Node — `validate-keycloak-realm` foi destravado pelo 01-30 e a última falha, de CRLF, pelo 01-31.
@@ -197,6 +199,6 @@ Progress: [███████░░░] 21/31 planos da Fase 2 (68%)
 
 ## Session Continuity
 
-Last session: 2026-08-23T23:55:00-03:00
-Stopped at: Wave 8 concluída, revisada, integrada linearmente e limpa; push não executado
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-31-SUMMARY.md
+Last session: 2026-08-24T19:40:00-03:00
+Stopped at: Wave 9 concluída, revisada e integrada linearmente; limpeza e push pendentes
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-29-SUMMARY.md
