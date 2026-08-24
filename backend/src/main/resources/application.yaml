@@ -29,6 +29,8 @@ management:
         enabled: true
 
 betufu:
+  bootstrap:
+    admin-identifier: "${BETUFU_BOOTSTRAP_ADMIN_IDENTIFIER:}"
   verification:
     matricula-hmac:
       current-version: "${BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION}"

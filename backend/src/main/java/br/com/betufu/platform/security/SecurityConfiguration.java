@@ -1,6 +1,7 @@
 package br.com.betufu.platform.security;
 
 import br.com.betufu.platform.api.ApiErrorCode;
+import br.com.betufu.platform.identity.OperationalIdentityLookup;
 import br.com.betufu.platform.session.OidcLogoutSuccessHandler;
 import br.com.betufu.platform.session.SessionLifecycleService;
 import br.com.betufu.platform.session.ValidActivityFilter;
@@ -139,16 +140,18 @@ public class SecurityConfiguration {
     }
 
     /**
-     * Handoff Keycloak para Spring, declarado como bean e fiado explicitamente abaixo.
+     * Contribuidor de autoridade de papéis (técnico e operacionais), declarado como o único bean
+     * {@code GrantedAuthoritiesMapper}. O Spring Security o instala automaticamente no provider
+     * OIDC usado por {@code oauth2Login}.
      *
-     * <p>A fiacao e explicita, e nao por deteccao implicita de bean, pelo mesmo motivo que levou o
-     * Plano 01-07 a declarar {@link #oidcUserService()}: um opt-in implicito e silenciosamente
-     * reversivel. Se o mapeamento de autoridade dependesse de o Spring encontrar o bean sozinho,
-     * uma mudanca de configuracao poderia desligar o handoff sem que nenhum teste percebesse.
+     * <p>Consome exclusivamente o contrato consumidor {@link OperationalIdentityLookup} pertencente
+     * ao platform. A resolução pelo bean preserva a autoridade técnica e acrescenta autoridades
+     * operacionais independentemente de os serviços opcionais de sessão estarem presentes.
      */
     @Bean
-    OidcTechnicalAuthorityMapper oidcTechnicalAuthorityMapper() {
-        return new OidcTechnicalAuthorityMapper();
+    BetufuRoleAuthorityContributor betufuRoleAuthorityContributor(
+            ObjectProvider<OperationalIdentityLookup> identityLookupProvider) {
+        return new BetufuRoleAuthorityContributor(identityLookupProvider);
     }
 
     @Bean
@@ -157,7 +160,6 @@ public class SecurityConfiguration {
             ObjectMapper objectMapper,
             CookieCsrfTokenRepository csrfTokenRepository,
             CorsConfigurationSource corsConfigurationSource,
-            OidcTechnicalAuthorityMapper oidcTechnicalAuthorityMapper,
             ObjectProvider<SessionLifecycleService> sessionLifecycleServiceProvider,
             ObjectProvider<ValidActivityFilter> validActivityFilterProvider) throws Exception {
         SessionLifecycleService sessionLifecycleService =
@@ -237,6 +239,12 @@ public class SecurityConfiguration {
                         // por engano, ele ja nasce exigindo TECHNICAL em vez de apenas sessao.
                         .requestMatchers(HttpMethod.GET, "/api/v1/diagnostic")
                         .hasRole("TECHNICAL")
+                        // Recovery de reset de senha exige ADMINISTRADOR_GERAL, e o matcher precisa vir
+                        // ANTES de /api/v1/** — senao aquele matcher mais largo o engoliria e bastaria
+                        // estar autenticado. O controller correspondente chega no Plano 02-31, entao este
+                        // matcher nasce temporariamente sem alvo, exatamente como /api/v1/diagnostic acima.
+                        .requestMatchers("/api/v1/operations/password-reset-events/**")
+                        .hasRole("ADMINISTRADOR_GERAL")
                         .requestMatchers("/api/v1/**")
                         .authenticated()
                         .anyRequest()
@@ -247,21 +255,16 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session
                         .sessionFixation(fixation -> fixation.changeSessionId()));
 
-        // O mapper de autoridade e fiado nos DOIS ramos. Ligar apenas no ramo completo deixaria
-        // os contextos focais de teste sem o handoff, e um teste que passasse ali estaria
-        // provando um pipeline diferente do de producao.
-        if (sessionLifecycleService == null) {
-            http.oauth2Login(oauth2 -> oauth2
-                    .userInfoEndpoint(userInfo -> userInfo
-                            .userAuthoritiesMapper(oidcTechnicalAuthorityMapper)));
-        } else {
-            http
-                    .addFilterAfter(validActivityFilter, AuthorizationFilter.class)
-                    .oauth2Login(oauth2 -> oauth2
-                            .userInfoEndpoint(userInfo -> userInfo
-                                    .userAuthoritiesMapper(oidcTechnicalAuthorityMapper))
-                            .successHandler(sessionLifecycleService));
+        // O Spring Security aplica automaticamente o unico GrantedAuthoritiesMapper do contexto
+        // ao provider OIDC. A configuracao de sessao abaixo e opcional; ela nao governa o mapper.
+        if (sessionLifecycleService != null) {
+            http.addFilterAfter(validActivityFilter, AuthorizationFilter.class);
         }
+        http.oauth2Login(oauth2 -> {
+            if (sessionLifecycleService != null) {
+                oauth2.successHandler(sessionLifecycleService);
+            }
+        });
 
         return http.build();
     }

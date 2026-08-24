@@ -1259,7 +1259,10 @@ test('rejeita oauth2Login sem configurador na SecurityConfiguration canonica', a
   await mutate(
     root,
     'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
-    (source) => source.replaceAll('.oauth2Login(oauth2 -> oauth2', '.oauth2Login('),
+    (source) => source.replace(
+      /http\.oauth2Login\(oauth2 -> \{[\s\S]*?\n\s*\}\);/u,
+      'http.oauth2Login();',
+    ),
   );
   await expectRule(root, 'OIDC_BOUNDARY');
 });

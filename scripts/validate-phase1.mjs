@@ -75,11 +75,135 @@ async function modeInfra() {
 }
 
 /**
- * Percorre os fontes Java e devolve todo path /api/v1 declarado em anotacao de mapping.
+ * Prefixo reservado a canais maquina-a-maquina. Fica FORA do contrato publico consumido pelo
+ * cliente Angular: publicar o endpoint interno no OpenAPI geraria metodo no SPA para uma rota
+ * que so aceita envelope HMAC. Sua seguranca continua governada pelos validadores dedicados
+ * (validate-runtime-prerequisites) e pela cadeia stateless propria.
+ */
+const INTERNAL_PATH_PREFIX = '/api/v1/internal/';
+
+const MAPPING_ANNOTATION = /@(?:Get|Post|Put|Patch|Delete|Request)Mapping\s*\(/gu;
+
+/** Le o bloco entre parenteses balanceados a partir do indice de abertura. */
+export function readBalanced(source, openIndex) {
+  let depth = 0;
+  for (let i = openIndex; i < source.length; i += 1) {
+    const ch = source[i];
+    if (ch === '"') {
+      i += 1;
+      while (i < source.length && source[i] !== '"') {
+        if (source[i] === '\\') i += 1;
+        i += 1;
+      }
+      continue;
+    }
+    if (ch === '(') depth += 1;
+    else if (ch === ')') {
+      depth -= 1;
+      if (depth === 0) return source.slice(openIndex + 1, i);
+    }
+  }
+  return '';
+}
+
+/** Divide por virgulas de topo, ignorando virgulas dentro de chaves, parenteses ou strings. */
+function splitTopLevel(text) {
+  const parts = [];
+  let depth = 0;
+  let current = '';
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === '"') {
+      current += ch;
+      i += 1;
+      while (i < text.length && text[i] !== '"') {
+        if (text[i] === '\\') { current += text[i]; i += 1; }
+        current += text[i];
+        i += 1;
+      }
+      current += '"';
+      continue;
+    }
+    if (ch === '{' || ch === '(') depth += 1;
+    if (ch === '}' || ch === ')') depth -= 1;
+    if (ch === ',' && depth === 0) { parts.push(current); current = ''; continue; }
+    current += ch;
+  }
+  if (current.trim()) parts.push(current);
+  return parts.map((part) => part.trim()).filter(Boolean);
+}
+
+/**
+ * Resolve uma expressao de path para o texto final.
+ *
+ * Aceita literal, constante `static final String` do proprio arquivo e concatenacao simples
+ * dessas duas formas. Devolve null quando algum termo nao for resolvivel, para que uma
+ * expressao dinamica nunca vire um path inventado.
+ */
+export function resolvePathExpression(expression, constants) {
+  let result = '';
+  for (const term of expression.split('+').map((item) => item.trim())) {
+    const literal = term.match(/^"([^"]*)"$/u);
+    if (literal) { result += literal[1]; continue; }
+    if (Object.hasOwn(constants, term)) { result += constants[term]; continue; }
+    return null;
+  }
+  return result;
+}
+
+/**
+ * Extrai de um fonte Java os paths publicados por anotacao de mapping.
+ *
+ * Somente anotacao conta. Constante de prefixo, matcher de seguranca e literal solto em filtro
+ * NAO sao mappings: a versao anterior coletava qualquer literal "/api/v1..." e por isso acusava
+ * ROLES_BASE_PATH (prefixo), o endpoint interno M2M e literais do ValidActivityFilter como se
+ * fossem endpoints sem contrato.
+ */
+export function extractMappedPaths(source) {
+  const constants = {};
+  for (const match of source.matchAll(
+    /static\s+final\s+String\s+(\w+)\s*=\s*"([^"]*)"/gu,
+  )) {
+    constants[match[1]] = match[2];
+  }
+
+  const found = new Set();
+  MAPPING_ANNOTATION.lastIndex = 0;
+  for (const match of source.matchAll(MAPPING_ANNOTATION)) {
+    const block = readBalanced(source, match.index + match[0].length - 1);
+    if (!block.trim()) continue;
+
+    const attributes = splitTopLevel(block);
+    let expression = null;
+    for (const attribute of attributes) {
+      const named = attribute.match(/^(?:path|value)\s*=\s*([\s\S]+)$/u);
+      if (named) { expression = named[1].trim(); break; }
+    }
+    // Forma posicional: @PostMapping("/api/v1/x") — o unico atributo e o proprio path.
+    if (expression === null && attributes.length === 1 && !attributes[0].includes('=')) {
+      expression = attributes[0];
+    }
+    if (expression === null) continue;
+
+    const array = expression.match(/^\{([\s\S]*)\}$/u);
+    const items = array ? splitTopLevel(array[1]) : [expression];
+    for (const item of items) {
+      const resolved = resolvePathExpression(item, constants);
+      if (resolved === null || !resolved.startsWith('/api/v1')) continue;
+      if (resolved.startsWith(INTERNAL_PATH_PREFIX)) continue;
+      found.add(resolved);
+    }
+  }
+  return found;
+}
+
+/**
+ * Percorre os fontes Java e devolve todo path /api/v1 publicado por anotacao de mapping.
  *
  * A leitura e textual de proposito: o objetivo e comparar o que o codigo publica com o que o
  * contrato documenta, sem subir contexto Spring. Um mapping novo que ninguem documentou aparece
- * aqui mesmo que nenhum teste o exercite.
+ * aqui mesmo que nenhum teste o exercite. Rotas parametrizadas sao preservadas, porque o
+ * contrato OpenAPI as declara com a mesma grafia `{param}`.
  */
 async function declaredApiPaths(directory) {
   const found = new Set();
@@ -94,15 +218,26 @@ async function declaredApiPaths(directory) {
     if (!entry.name.endsWith('.java')) continue;
 
     const source = await readFile(full, 'utf8');
-    for (const match of source.matchAll(/"(\/api\/v1[^"]*)"/gu)) {
-      const path = match[1];
-      // Padroes com curinga sao matchers de seguranca, nao mappings publicados.
-      // /api/v1/** existe em SecurityConfiguration e nao corresponde a nenhum path OpenAPI.
-      if (path.includes('*') || path.includes('{')) continue;
-      found.add(path);
-    }
+    for (const path of extractMappedPaths(source)) found.add(path);
   }
   return found;
+}
+
+export function extractOpenApiPaths(spec) {
+  const found = new Set();
+  for (const match of spec.matchAll(/^  (\/api\/v1[^:]*):\s*$/gmu)) {
+    found.add(match[1]);
+  }
+  return found;
+}
+
+export function compareApiPaths(declaredPaths, publishedPaths) {
+  const declared = new Set(declaredPaths);
+  const published = new Set(publishedPaths);
+  return {
+    missingFromContract: [...declared].filter((path) => !published.has(path)).sort(),
+    missingFromRuntime: [...published].filter((path) => !declared.has(path)).sort(),
+  };
 }
 
 async function modeContract() {
@@ -111,16 +246,18 @@ async function modeContract() {
 
   const spec = await readFile(specPath, 'utf8');
   const declared = [...await declaredApiPaths(backendSources)].sort();
-  const missing = declared.filter((path) => !spec.includes(`
-  ${path}:`));
+  const published = [...extractOpenApiPaths(spec)].sort();
+  const parity = compareApiPaths(declared, published);
 
   for (const path of declared) {
-    console.log(`[validate-phase1]   ${missing.includes(path) ? 'AUSENTE ' : 'ok      '} ${path}`);
+    console.log(`[validate-phase1]   ${parity.missingFromContract.includes(path) ? 'AUSENTE ' : 'ok      '} ${path}`);
   }
 
-  if (missing.length > 0) {
+  if (parity.missingFromContract.length > 0 || parity.missingFromRuntime.length > 0) {
     console.error(
-      `[validate-phase1] FALHA: ${missing.length} mapping(s) sem path no contrato: ${missing.join(', ')}`,
+      `[validate-phase1] FALHA: paridade bidirecional quebrada; `
+        + `sem contrato=[${parity.missingFromContract.join(', ')}]; `
+        + `sem runtime=[${parity.missingFromRuntime.join(', ')}]`,
     );
     return false;
   }
@@ -478,4 +615,3 @@ const isMain = process.argv[1] && pathToFileURL(resolve(process.argv[1])).href =
 if (isMain) {
   void main();
 }
-

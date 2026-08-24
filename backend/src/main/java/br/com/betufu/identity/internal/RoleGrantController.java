@@ -52,7 +52,7 @@ public class RoleGrantController {
     }
 
     @PostMapping(
-            path = {ROLES_GRANTS_PATH, ROLES_BASE_PATH + "/grant"},
+            path = ROLES_GRANTS_PATH,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleGrantResponse> grantRole(
@@ -72,7 +72,7 @@ public class RoleGrantController {
     }
 
     @PostMapping(
-            path = {ROLES_REVOCATIONS_PATH, ROLES_BASE_PATH + "/revoke"},
+            path = ROLES_REVOCATIONS_PATH,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<RoleGrantResponse> revokeRole(

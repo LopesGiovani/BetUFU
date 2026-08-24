@@ -214,6 +214,15 @@ test('aceita uma fixture canonica isolada', async () => {
   });
 });
 
+test('aceita password somente como segmento de rota relativa gerada', async () => {
+  await withFixture('password-reset-relative-path', async (fixtureRoot) => {
+    const result = runValidator(fixtureRoot);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+  });
+});
+
 test('recusa development sem o subconjunto de producao', async () => {
   await withFixture('explicit-empty-development-routes', async (fixtureRoot) => {
     await overwriteText(
@@ -1641,6 +1650,26 @@ const generatedSourceMutations = [
     name: 'credencial ativa no servico gerado',
     rule: 'GENERATED_AUTH_CONFIGURATION',
     mutate: (source) => `${source}\nconst accessToken = 'manual';\n`,
+  },
+  {
+    name: 'password ativo no servico gerado',
+    rule: 'GENERATED_AUTH_CONFIGURATION',
+    mutate: (source) => `${source}\nconst password = 'manual';\n`,
+  },
+  {
+    name: 'apiKeys acessado por chave literal no servico gerado',
+    rule: 'GENERATED_AUTH_CONFIGURATION',
+    mutate: (source) => `${source}\nconst manual = configuration['apiKeys'];\n`,
+  },
+  {
+    name: 'credentials acessado por chave literal no servico gerado',
+    rule: 'GENERATED_AUTH_CONFIGURATION',
+    mutate: (source) => `${source}\nconst manual = configuration['credentials'];\n`,
+  },
+  {
+    name: 'password acessado por chave literal no servico gerado',
+    rule: 'GENERATED_AUTH_CONFIGURATION',
+    mutate: (source) => `${source}\nconst manual = configuration['password'];\n`,
   },
   {
     name: 'Cookie manual no servico gerado',

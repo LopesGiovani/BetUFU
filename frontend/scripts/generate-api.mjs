@@ -89,6 +89,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/enrollment.service.ts',
   'api/identity.service.ts',
   'api/profile.service.ts',
+  'api/role.service.ts',
   'api/session.service.ts',
   'configuration.ts',
   'encoder.ts',
@@ -102,14 +103,27 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/enrollment-registration-request.ts',
   'model/enrollment-status-response.ts',
   'model/models.ts',
+  'model/operational-role.ts',
   'model/profile-update-request.ts',
+  'model/role-grant-request.ts',
+  'model/role-grant-response.ts',
+  'model/role-status-dto.ts',
   'model/session-state-response.ts',
   'param.ts',
   'provide-api.ts',
   'query.params.ts',
   'variables.ts',
 ]);
-export const APPROVED_GENERATED_DIGEST = '31070F37E8A2F8022A75492A13F06D14BC36DE6B04A69C4478C51EFBA673C330';
+// Inventario de 26 -> 31 caminhos e digest aprovados pelo responsavel em 2026-08-23, no
+// checkpoint humano da Task 3 do Plano 02-17. Os cinco arquivos novos sao o servico de papeis
+// e seus quatro modelos; nenhum caminho anterior foi removido.
+//
+// Este digest e da saida do gerador fixado. Uma primeira aprovacao, do digest
+// 2ADD3701DD3665CD139778079DC0FE9EDC9A404CFEAC484DFB5E30A61C38770D, foi descartada: aquela
+// arvore havia sido escrita a mao porque o motor 7.24.0 nao existe dentro da worktree
+// (ele mora em frontend/tmp/, ignorado pelo Git). ENGINE_MISSING numa worktree significa que
+// qualquer "regeneracao" feita ali foi manual.
+export const APPROVED_GENERATED_DIGEST = 'B112196AE1F024DD4D28CF7EDCA1EFB7D236617EB5505EE9057937DCBD3C73E5';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

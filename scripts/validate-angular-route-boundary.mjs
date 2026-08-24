@@ -1189,9 +1189,22 @@ function validateGeneratedClient(generatedSources) {
     }
 
     const activeSource = stripScriptComments(source);
+    const executableSource = maskScriptStrings(activeSource);
+    expect(
+      !/\[\s*(['"])(?:accessToken|apiKeys|credentials|username|password)\1\s*\]/u.test(activeSource),
+      'GENERATED_AUTH_CONFIGURATION',
+      `${relativePath} nao pode acessar credencial manual por chave literal computada.`,
+    );
     for (const forbiddenPattern of GENERATED_ACTIVE_AUTH_PATTERNS) {
+      // Nomes de credencial sao proibidos como identificadores executaveis, mas podem fazer
+      // parte de um path relativo legitimo, como /password-reset-events. Authorization,
+      // Bearer e Cookie continuam sendo procurados tambem em strings, pois sao nomes/valores
+      // de header cuja ativacao manual precisa ser recusada.
+      const inspectedSource = forbiddenPattern.rule === 'GENERATED_AUTH_CONFIGURATION'
+        ? executableSource
+        : activeSource;
       expect(
-        !forbiddenPattern.pattern.test(activeSource),
+        !forbiddenPattern.pattern.test(inspectedSource),
         forbiddenPattern.rule,
         `${forbiddenPattern.label} nao pode ficar ativa no cliente gerado (${relativePath}).`,
       );

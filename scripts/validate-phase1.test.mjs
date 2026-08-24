@@ -4,7 +4,22 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateSessionUiContract, validateDiagnosticUiContract, resolveBackendMavenArgs } from './validate-phase1.mjs';
+import {
+  validateSessionUiContract,
+  validateDiagnosticUiContract,
+  resolveBackendMavenArgs,
+  extractMappedPaths,
+  extractOpenApiPaths,
+  compareApiPaths,
+} from './validate-phase1.mjs';
+
+test('paridade OpenAPI detecta path publicado sem mapping Java', () => {
+  const published = extractOpenApiPaths(`paths:\n  /api/v1/identity/current:\n    get: {}\n  /api/v1/stale:\n    get: {}\n`);
+  const parity = compareApiPaths(new Set(['/api/v1/identity/current']), published);
+
+  assert.deepEqual(parity.missingFromContract, []);
+  assert.deepEqual(parity.missingFromRuntime, ['/api/v1/stale']);
+});
 
 const scriptsDir = resolve(fileURLToPath(import.meta.url), '..');
 const projectRoot = resolve(scriptsDir, '..');
@@ -343,6 +358,115 @@ test('resolveBackendMavenArgs: recusa outros goals incompletos como "compile" ou
   assert.throws(
     () => resolveBackendMavenArgs('package'),
     /Goal Maven inválido para o Gate da Fase 1: "package"/,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// extractMappedPaths — paridade de contrato
+//
+// A versao anterior coletava qualquer literal "/api/v1..." do fonte Java. Com isso, uma
+// constante de prefixo, um matcher de seguranca e o endpoint interno M2M eram acusados como
+// mappings sem contrato, enquanto a rota parametrizada real ficava invisivel por conter '{'.
+// Estas provas fixam a propriedade certa: so anotacao de mapping publica endpoint.
+// ---------------------------------------------------------------------------
+
+test('extractMappedPaths: constante de prefixo NAO e endpoint', () => {
+  const source = `
+    class RoleGrantController {
+      private static final String ROLES_BASE_PATH = "/api/v1/operations/roles";
+      private static final String ROLES_GRANTS_PATH = "/api/v1/operations/roles/grants";
+
+      @PostMapping(path = ROLES_GRANTS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+      public void grant() {}
+    }`;
+
+  const paths = [...extractMappedPaths(source)].sort();
+  assert.deepEqual(paths, ['/api/v1/operations/roles/grants']);
+  assert.ok(
+    !paths.includes('/api/v1/operations/roles'),
+    'o prefixo ROLES_BASE_PATH nao pode ser reportado como endpoint',
+  );
+});
+
+test('extractMappedPaths: rota parametrizada E endpoint e preserva a grafia {param}', () => {
+  const source = `
+    class RoleGrantController {
+      private static final String ROLES_BASE_PATH = "/api/v1/operations/roles";
+
+      @GetMapping(path = ROLES_BASE_PATH + "/{targetIdentityId}", produces = X)
+      public void get() {}
+    }`;
+
+  assert.deepEqual(
+    [...extractMappedPaths(source)],
+    ['/api/v1/operations/roles/{targetIdentityId}'],
+  );
+});
+
+test('extractMappedPaths: aliases nao contratados reaparecendo sao detectados', () => {
+  const source = `
+    class RoleGrantController {
+      private static final String ROLES_BASE_PATH = "/api/v1/operations/roles";
+      private static final String ROLES_GRANTS_PATH = "/api/v1/operations/roles/grants";
+
+      @PostMapping(path = {ROLES_GRANTS_PATH, ROLES_BASE_PATH + "/grant"}, produces = X)
+      public void grant() {}
+    }`;
+
+  const paths = [...extractMappedPaths(source)].sort();
+  assert.deepEqual(paths, [
+    '/api/v1/operations/roles/grant',
+    '/api/v1/operations/roles/grants',
+  ]);
+  assert.ok(
+    paths.includes('/api/v1/operations/roles/grant'),
+    'o alias precisa aparecer para que a paridade o cobre e o contrato o recuse',
+  );
+});
+
+test('extractMappedPaths: endpoint interno M2M fica fora do contrato publico', () => {
+  const source = `
+    class PasswordResetEventEndpoint {
+      public static final String ENDPOINT_PATH = "/api/v1/internal/events/password-reset";
+
+      @PostMapping(path = ENDPOINT_PATH, consumes = X, produces = Y)
+      public void receive() {}
+    }`;
+
+  assert.deepEqual([...extractMappedPaths(source)], []);
+});
+
+test('extractMappedPaths: matcher de seguranca e literal solto de filtro nao sao mappings', () => {
+  const source = `
+    class SecurityConfiguration {
+      void chain(HttpSecurity http) {
+        http.authorizeHttpRequests(a -> a
+            .requestMatchers("/api/v1/operations/password-reset-events/**").hasRole("X")
+            .requestMatchers("/api/v1/**").authenticated());
+      }
+    }
+    class ValidActivityFilter {
+      static final List<RequestMatcher> M = List.of(
+          matcher(HttpMethod.PUT, "/api/v1/profile/me"),
+          matcher(HttpMethod.POST, "/api/v1/operations/roles/grants"));
+    }`;
+
+  assert.deepEqual([...extractMappedPaths(source)], []);
+});
+
+test('extractMappedPaths: aceita literal direto e forma posicional', () => {
+  const source = `
+    class LocalIdentityController {
+      @PutMapping(path = "/api/v1/tracer/identity/current", produces = X)
+      public void put() {}
+
+      @GetMapping("/api/v1/session")
+      public void get() {}
+    }`;
+
+  assert.deepEqual(
+    [...extractMappedPaths(source)].sort(),
+    ['/api/v1/session', '/api/v1/tracer/identity/current'],
   );
 });
 

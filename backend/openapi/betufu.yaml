@@ -202,6 +202,124 @@ paths:
         "429":
           description: Limite de tentativas de registro excedido (Problem Details).
 
+  /api/v1/operations/roles/{targetIdentityId}:
+    get:
+      tags:
+        - Role
+      operationId: getRoles
+      summary: Consultar o estado dos papéis operacionais de uma identidade
+      description: >-
+        Retorna o estado de concessão dos papéis operacionais (ADMINISTRADOR_GERAL,
+        ADMINISTRADOR_COMPETICAO, MODERADOR) e o apelido associado à identidade alvo
+        (OPER-01, OPER-02, OPER-04, PRIV-01). Exige papel ADMINISTRADOR_GERAL na sessão
+        autenticada. Não expõe e-mail, matrícula, digest ou MFA.
+      parameters:
+        - name: targetIdentityId
+          in: path
+          required: true
+          description: Identificador opaco da conta alvo da consulta.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Papéis e apelido da identidade consultados com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleGrantResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Autenticado sem o papel ADMINISTRADOR_GERAL (Problem Details).
+
+  /api/v1/operations/roles/grants:
+    post:
+      tags:
+        - Role
+      operationId: grantRole
+      summary: Conceder um papel operacional a uma conta
+      description: >-
+        Concede um papel operacional a uma identidade alvo (OPER-01, OPER-02, OPER-06,
+        PRIV-01). A concessão é idempotente e auditada. Recusa autoconcessão (403
+        SELF_GRANT_BLOCKED), papel escopado sem escopo (400) e papel global com escopo (400).
+        Exige papel ADMINISTRADOR_GERAL na sessão autenticada. Encerra as sessões da
+        identidade afetada (D-49).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleGrantRequest"
+      responses:
+        "200":
+          description: Papel concedido ou já vigente com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleGrantResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "400":
+          description: Requisição inválida ou inconsistência entre papel e escopo (Problem Details).
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Autenticado sem permissão ou autoconcessão bloqueada (Problem Details).
+
+  /api/v1/operations/roles/revocations:
+    post:
+      tags:
+        - Role
+      operationId: revokeRole
+      summary: Revogar um papel operacional de uma conta
+      description: >-
+        Revoga um papel operacional de uma identidade alvo (OPER-01, OPER-02, OPER-06,
+        PRIV-01). A revogação é auditada e encerra as sessões da identidade afetada (D-49).
+        Recusa a revogação do próprio papel de ADMINISTRADOR_GERAL quando for o último
+        administrador geral vigente (409 LAST_ADMIN). Exige papel ADMINISTRADOR_GERAL na
+        sessão autenticada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoleGrantRequest"
+      responses:
+        "200":
+          description: Papel revogado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoleGrantResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "400":
+          description: Requisição inválida ou inconsistência entre papel e escopo (Problem Details).
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Autenticado sem permissão (Problem Details).
+        "409":
+          description: Conflito ao revogar o último administrador geral vigente (Problem Details).
+
   /api/v1/diagnostic:
     get:
       tags:
@@ -415,3 +533,66 @@ components:
         - UP
         - DEGRADED
         - DOWN
+
+    OperationalRole:
+      type: string
+      enum:
+        - ADMINISTRADOR_GERAL
+        - ADMINISTRADOR_COMPETICAO
+        - MODERADOR
+      description: Vocabulário fechado de papéis operacionais da BETUFU (D-46).
+
+    RoleGrantRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - targetIdentityId
+        - role
+      properties:
+        targetIdentityId:
+          type: string
+          format: uuid
+          description: Identificador opaco da conta alvo da concessão ou revogação.
+        role:
+          $ref: "#/components/schemas/OperationalRole"
+        scopeRef:
+          type: [string, "null"]
+          format: uuid
+          description: Identificador do escopo obrigatório para papéis escopados e proibido para global.
+
+    RoleGrantResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - identityId
+        - roles
+      properties:
+        identityId:
+          type: string
+          format: uuid
+          description: Identificador opaco da identidade BETUFU.
+        nickname:
+          type: [string, "null"]
+          description: Apelido público do usuário, ou nulo se ainda não configurado.
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleStatusDto"
+          description: Lista de estados dos papéis operacionais da conta.
+
+    RoleStatusDto:
+      type: object
+      additionalProperties: false
+      required:
+        - role
+        - status
+      properties:
+        role:
+          $ref: "#/components/schemas/OperationalRole"
+        status:
+          type: string
+          description: Estado do papel (ex. VIGENTE, NAO_CONCEDIDO).
+        scopeRef:
+          type: [string, "null"]
+          format: uuid
+          description: Identificador do escopo para concessões escopadas, ou nulo se global.
