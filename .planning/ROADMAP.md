@@ -180,7 +180,7 @@ Plans:
   4. A plataforma usa um HMAC não público da matrícula para impedir vínculos duplicados e comunica decisões de elegibilidade sem expor informações privadas.
   5. Um administrador geral consegue conceder, revogar e delimitar papéis operacionais; cada papel enxerga somente seu trabalho autorizado, e ações sensíveis ficam auditáveis. MFA é opcional no MVP e não condiciona nenhum comando.
 
-**Plans**: 16/31 plans executed
+**Plans**: 20/31 plans executed
 
 - [x] 02-01-PLAN.md
 - [x] 02-02-PLAN.md
@@ -198,7 +198,7 @@ Plans:
 - [x] 02-14-PLAN.md
 - [x] 02-15-PLAN.md
 - [x] 02-16-PLAN.md
-- [ ] 02-17-PLAN.md
+- [x] 02-17-PLAN.md
 - [ ] 02-18-PLAN.md
 - [ ] 02-19-PLAN.md
 - [ ] 02-20-PLAN.md
@@ -221,7 +221,7 @@ Plans:
 - **Wave 5** *(concluída: 02-07 implementado, verificado, revisado e formalizado)*: 02-07
 - **Wave 6** *(concluída: 02-08, 02-16 e 02-24 decididos ou implementados, verificados, revisados e formalizados; núcleo de origem Keycloak D-40 permanece sem ativação de realm/compose)*: 02-08, 02-16, 02-24
 - **Wave 7** *(concluída em 2026-08-23 com PASS externo; 02-28 e 02-30 dependem de 02-24; hardening da origem e núcleo/tracer hermético do destino, em arquivos disjuntos e sem ativação)*: 02-23, 02-28, 02-30
-- **Wave 8** *(02-31 depende de 02-28 e 02-30; hardening de inbox/operações, sem ativação e sem conflito com 02-17)*: 02-17, 02-31
+- **Wave 8** *(parcial: 02-17 concluído; 02-31 depende dele e fecha o hardening de inbox/operações, sem ativação)*: 02-17, 02-31
 - **Wave 9** *(02-29 depende de 02-28 e 02-31; imagem, E2E hosted/admin e ativação final sob gate bloqueante)*: 02-10, 02-29
 - **Wave 10**: 02-18
 - **Wave 11**: 02-12

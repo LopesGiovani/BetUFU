@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 7 integrada na master com PASS externo; formalizada e pendente de limpeza e push"
-last_updated: "2026-08-23T04:10:00-03:00"
+stopped_at: "Fase 2: Wave 8 parcial; Plano 02-17 implementado, verificado e formalizado; 02-31 em fechamento"
+last_updated: "2026-08-23T23:40:00-03:00"
 last_activity: 2026-08-23
-last_activity_desc: "Wave 7 concluiu papéis operacionais com invariante de escopo, entrega e recuperação da outbox de reset e inbox assinado, após cinco rodadas de revisão externa até PASS."
+last_activity_desc: "Plano 02-17 concluiu authorities operacionais, semente idempotente e contrato de papéis; Wave 8 aguarda formalização do 02-31."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Estado do Projeto
@@ -28,9 +28,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 19 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-11`, `02-14`, `02-15`, `02-16`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28` e `02-30` concluídos)
-Status: In Progress — Waves 1 a 7 tecnicamente concluídas. A Wave 7 entregou `02-23`, `02-28` e `02-30`, com `PASS` externo sem P0–P2 na quinta rodada de revisão.
-Last activity: 2026-08-23 — a Wave 7 fechou o invariante papel/escopo com CHECK no banco, endureceu a origem Keycloak da D-40 e entregou o inbox assinado com encerramento de sessões.
+Plan: 20 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-11`, `02-14`, `02-15`, `02-16`, `02-17`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28` e `02-30` concluídos)
+Status: In Progress — Wave 8 parcial. O `02-17` está implementado, verificado e formalizado; o `02-31` permanece em fechamento.
+Last activity: 2026-08-23 — authorities operacionais, semente do primeiro administrador e contrato de papéis foram fechados sem ciclo entre `identity` e `platform`.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git: os Planos 02-16 e 02-24 foram integrados linearmente pelos commits `89a4bd0`, `d6e0484`, `3f3d4be` e `d84f220`; a formalização do 02-08 e da Wave 6 compõe o commit de rastreamento atual. Nenhum push foi realizado.
@@ -57,13 +57,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [██████░░░░] 19/31 planos da Fase 2 (61%)
+Progress: [██████░░░░] 20/31 planos da Fase 2 (65%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 47
+- Total de planos concluídos: 51
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -72,7 +72,7 @@ Progress: [██████░░░░] 19/31 planos da Fase 2 (61%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 16 | não mensurado | não mensurada |
+| 2 | 20 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
@@ -195,6 +195,6 @@ Progress: [██████░░░░] 19/31 planos da Fase 2 (61%)
 
 ## Session Continuity
 
-Last session: 2026-08-23T04:10:00-03:00
-Stopped at: Wave 7 integrada até `e4900a0` e formalizada no commit seguinte, com `PASS` externo e formalizada; pendentes a limpeza de worktrees e branches e o push, cada um com aprovação própria
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-28-SUMMARY.md
+Last session: 2026-08-23T23:40:00-03:00
+Stopped at: Wave 8 parcial; 02-17 formalizado e 02-31 em fechamento, sem push
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-17-SUMMARY.md
