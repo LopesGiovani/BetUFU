@@ -81,7 +81,7 @@ coverage:
 
 ## Verification Evidence
 
-- Commit técnico `037f018`: Surefire focal `36/36`, Failsafe focal `22/22` e Node `552/552`, todos sem falhas.
+- Commit técnico `81c663d`: Surefire focal `36/36`, Failsafe focal `22/22` e Node `552/552`, todos sem falhas.
 - Snapshot final combinado da Wave 8: Surefire `217/217`, Failsafe `276/276`, módulo Keycloak `56/56` e Node `580/580`.
 - Mutações M1 (ordem do matcher), M3 (idempotência da semente) e M4 (mapper concorrente) ficaram vermelhas; restaurações foram conferidas por SHA-256.
 - A ausência de ciclo foi comprovada por `ApplicationModules.verify()` e pela regra que mantém zero imports `platform -> identity`.
