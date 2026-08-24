@@ -32,7 +32,7 @@ public class BetufuPasswordEventListenerFactory implements EventListenerProvider
 
     @Override
     public EventListenerProvider create(KeycloakSession session) {
-        return new BetufuPasswordEventListener(session);
+        return new BetufuPasswordEventListener(session, activationAllowed());
     }
 
     @Override

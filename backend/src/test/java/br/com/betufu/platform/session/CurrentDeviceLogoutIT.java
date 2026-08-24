@@ -64,6 +64,7 @@ import br.com.betufu.platform.security.SecurityConfiguration;
             SessionSecurityConfiguration.class,
             SessionController.class,
             CurrentDeviceLogoutController.class,
+            OidcSessionRevocationService.AtomicAuthorizedClientServiceConfiguration.class,
             CurrentDeviceLogoutIT.TestApplication.class
         },
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
@@ -162,6 +163,18 @@ class CurrentDeviceLogoutIT {
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
                 .addFilters(springSessionRepositoryFilter, springSecurityFilterChain)
                 .build();
+    }
+
+    @Test
+    void applicationUsesOneAtomicAuthorizedClientService() {
+        Map<String, OAuth2AuthorizedClientService> beans =
+                applicationContext.getBeansOfType(OAuth2AuthorizedClientService.class);
+
+        assertThat(beans).hasSize(1);
+        assertThat(authorizedClientService)
+                .isSameAs(beans.values().iterator().next())
+                .isInstanceOf(
+                        OidcSessionRevocationService.AtomicOAuth2AuthorizedClientService.class);
     }
 
     /** D-08 and D-09: only the current device ends. */

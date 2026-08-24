@@ -48,6 +48,7 @@ const COPY_PATHS = Object.freeze([
   'backend/src/test/java/br/com/betufu/platform/security/CsrfSpaIT.java',
   'frontend/src',
   'infra/.env.example',
+  'infra/compose.yaml',
   'infra/keycloak/realm-betufu.json',
 ]);
 
@@ -394,6 +395,117 @@ test('aceita o contrato canonico da Task 4', async () => {
 test('aceita uma fixture isolada equivalente ao checkout', async () => {
   const root = await createFixture();
   await validateStaticContract(root);
+});
+
+test('rejeita imagem Keycloak sem o digest candidato aprovado', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    'betufu/keycloak:26.7.1-password-listener@sha256:165f3d4f0c102bdfc7ab9adb1e726fe30734c5833107efd04571f1b3615e62c8',
+    'betufu/keycloak:26.7.1-password-listener',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_IMAGE');
+});
+
+test('rejeita enable do listener fixado em true', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    '--spi-events-listener--betufu-password-event-listener--enabled=${BETUFU_PASSWORD_RESET_ENABLED:-false}',
+    '--spi-events-listener--betufu-password-event-listener--enabled=true',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_FACTORY');
+});
+
+test('rejeita fallback silencioso do key-id para v1', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    '--spi-events-listener--betufu-password-event-listener--key-id=${BETUFU_PASSWORD_RESET_KEY_ID:-__disabled__}',
+    '--spi-events-listener--betufu-password-event-listener--key-id=${BETUFU_PASSWORD_RESET_KEY_ID:-v1}',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_FACTORY');
+});
+
+test('rejeita configuracao SPI alternativa no ambiente do Keycloak', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    '      JAVA_OPTS_APPEND: "${BETUFU_KEYCLOAK_JAVA_OPTS_APPEND:-}"',
+    '      KC_SPI_EVENTS_LISTENER__BETUFU_PASSWORD_EVENT_LISTENER__HMAC_KEY: SENSITIVE_CANARY\n'
+      + '      JAVA_OPTS_APPEND: "${BETUFU_KEYCLOAK_JAVA_OPTS_APPEND:-}"',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_SECRET');
+});
+
+test('rejeita JAVA_TOOL_OPTIONS como caminho alternativo de segredo', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    '      JAVA_OPTS_APPEND: "${BETUFU_KEYCLOAK_JAVA_OPTS_APPEND:-}"',
+    '      JAVA_TOOL_OPTIONS: -Dbetufu.password.reset.hmacKey=SENSITIVE_CANARY\n'
+      + '      JAVA_OPTS_APPEND: "${BETUFU_KEYCLOAK_JAVA_OPTS_APPEND:-}"',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_SECRET');
+});
+
+test('rejeita grafia alternativa de password-reset no ambiente backend', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    '      BETUFU_PASSWORD_RESET_KEY_V2: "${BETUFU_PASSWORD_RESET_KEY_V2:-}"',
+    '      BETUFU_PASSWORD_RESET_KEY_V2: "${BETUFU_PASSWORD_RESET_KEY_V2:-}"\n'
+      + '      betufu-password-reset-key-v3: SENSITIVE_CANARY',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_SECRET');
+});
+
+test('rejeita truststore sem bind somente leitura', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    '${BETUFU_TLS_TRUSTSTORE_DIR:-./keycloak}:/run/secrets/tls:ro',
+    '${BETUFU_TLS_TRUSTSTORE_DIR:-./keycloak}:/run/secrets/tls',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_TLS');
+});
+
+test('rejeita healthcheck que mascara falha com true', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => source.replace(
+    'grep \'HTTP/1.0 200\'; } 0<>/dev/tcp/127.0.0.1/9000',
+    'grep \'HTTP/1.0 200\'; } 0<>/dev/tcp/127.0.0.1/9000; true',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_HEALTH');
+});
+
+test('rejeita backend iniciando antes de Keycloak saudavel', async () => {
+  const root = await createFixture();
+  await mutate(root, 'infra/compose.yaml', (source) => replaceAcrossLines(
+    source,
+    '      keycloak:\n        condition: service_healthy',
+    '      keycloak:\n        condition: service_started',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_HEALTH');
+});
+
+test('rejeita segundo mapping betufu no documento base', async () => {
+  const root = await createFixture();
+  await mutate(root, 'backend/src/main/resources/application.yaml', (source) => replaceAcrossLines(
+    source,
+    'betufu:\n  bootstrap:',
+    'betufu:\n  unexpected: true\nbetufu:\n  bootstrap:',
+  ));
+  await expectRule(root, 'PASSWORD_RESET_BINDING');
+});
+
+test('rejeita eventsEnabled que ampliaria a persistencia geral do Keycloak', async () => {
+  const root = await createFixture();
+  await mutateJson(root, 'infra/keycloak/realm-betufu.json', (realm) => {
+    realm.eventsEnabled = true;
+  });
+  await expectRule(root, 'PASSWORD_RESET_REALM');
+});
+
+test('rejeita segredo password-reset aninhado no realm', async () => {
+  const root = await createFixture();
+  await mutateJson(root, 'infra/keycloak/realm-betufu.json', (realm) => {
+    realm.components.passwordReset = { hmacKey: 'SENSITIVE_CANARY' };
+  });
+  await expectRule(root, 'PASSWORD_RESET_SECRET');
 });
 
 for (const relativePath of [

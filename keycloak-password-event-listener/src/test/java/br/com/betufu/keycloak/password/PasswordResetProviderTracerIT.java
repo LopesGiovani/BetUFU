@@ -14,10 +14,12 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.UUID;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
@@ -37,11 +39,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.keycloak.Config;
 import org.keycloak.connections.jpa.JpaConnectionProvider;
 import org.keycloak.connections.jpa.entityprovider.JpaEntityProvider;
 import org.keycloak.connections.jpa.entityprovider.JpaEntityProviderFactory;
 import org.keycloak.events.Details;
 import org.keycloak.events.Event;
+import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerProviderFactory;
 import org.keycloak.events.EventType;
 import org.keycloak.events.admin.AdminEvent;
@@ -387,6 +391,192 @@ class PasswordResetProviderTracerIT {
         BetufuPasswordEventListenerFactory factory = new BetufuPasswordEventListenerFactory();
         assertThat(factory.getId()).isEqualTo("betufu-password-event-listener");
         assertThat(factory.getId()).isEqualTo(BetufuPasswordEventListenerFactory.ID);
+    }
+
+    @Test
+    @DisplayName("Factory com enabled=false nao persiste eventos de usuario nem administrativos na outbox real")
+    void factoryCreate_withDisabledActivation_doesNotPersistAnyOutboxRow() {
+        BetufuPasswordEventListenerFactory factory = configuredFactory(
+                "https://backend.betufu.local/api/v1/internal/events/password-reset",
+                validHmacKey(),
+                "v1",
+                false);
+        assertThat(factory.activationAllowed()).isFalse();
+
+        Event userEvent = passwordUpdateEvent("evt-disabled-" + UUID.randomUUID());
+        AdminEvent adminEvent = adminPasswordResetEvent("admin-disabled-" + UUID.randomUUID());
+        EventListenerProvider provider = factory.create(sessionProxy);
+
+        EntityTransaction tx = entityManager.getTransaction();
+        tx.begin();
+        provider.onEvent(userEvent);
+        provider.onEvent(adminEvent, false);
+        tx.commit();
+
+        provider.close();
+        factory.close();
+        assertThat(store.findPending(10)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Factory com configuracao invalida nao persiste evento na outbox real")
+    void factoryCreate_withInvalidActivation_doesNotPersistOutboxRow() {
+        BetufuPasswordEventListenerFactory factory = configuredFactory(
+                "https://backend.betufu.local/api/v1/internal/events/password-reset",
+                "not-valid-base64!",
+                "v1",
+                true);
+        assertThat(factory.activationAllowed()).isFalse();
+
+        Event event = passwordUpdateEvent("evt-invalid-" + UUID.randomUUID());
+        EventListenerProvider provider = factory.create(sessionProxy);
+
+        EntityTransaction tx = entityManager.getTransaction();
+        tx.begin();
+        provider.onEvent(event);
+        tx.commit();
+
+        provider.close();
+        factory.close();
+        assertThat(store.findPending(10)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Factory com configuracao valida persiste exatamente um evento na outbox real")
+    void factoryCreate_withValidActivation_persistsExactlyOneOutboxRow() {
+        BetufuPasswordEventListenerFactory factory = configuredFactory(
+                "https://backend.betufu.local/api/v1/internal/events/password-reset",
+                validHmacKey(),
+                "v1",
+                true);
+        assertThat(factory.activationAllowed()).isTrue();
+
+        String eventId = "evt-enabled-" + UUID.randomUUID();
+        EventListenerProvider provider = factory.create(sessionProxy);
+
+        EntityTransaction tx = entityManager.getTransaction();
+        tx.begin();
+        provider.onEvent(passwordUpdateEvent(eventId));
+        tx.commit();
+
+        provider.close();
+        factory.close();
+        assertThat(store.findPending(10))
+                .singleElement()
+                .extracting(PasswordResetOutboxEntity::getSourceEventId)
+                .isEqualTo(eventId);
+    }
+
+    private BetufuPasswordEventListenerFactory configuredFactory(
+            String endpoint,
+            String hmacKey,
+            String keyId,
+            boolean enabled) {
+        BetufuPasswordEventListenerFactory factory = new BetufuPasswordEventListenerFactory();
+        factory.init(factoryConfig(endpoint, hmacKey, keyId, enabled));
+        return factory;
+    }
+
+    private String validHmacKey() {
+        return Base64.getEncoder().encodeToString(
+                "01234567890123456789012345678901".getBytes(StandardCharsets.UTF_8));
+    }
+
+    private Event passwordUpdateEvent(String eventId) {
+        Event event = new Event();
+        event.setId(eventId);
+        event.setType(EventType.UPDATE_CREDENTIAL);
+        event.setUserId("usr-factory-tracer");
+        event.setRealmId("betufu-local");
+        event.setTime(1724345678000L);
+        event.setDetails(Map.of(Details.CREDENTIAL_TYPE, BetufuPasswordEventListener.CREDENTIAL_TYPE_PASSWORD));
+        return event;
+    }
+
+    private AdminEvent adminPasswordResetEvent(String eventId) {
+        AdminEvent event = new AdminEvent();
+        event.setId(eventId);
+        event.setResourceType(ResourceType.USER);
+        event.setOperationType(OperationType.ACTION);
+        event.setResourcePath("users/usr-factory-admin/reset-password");
+        event.setRealmId("betufu-local");
+        event.setTime(1724345678000L);
+        return event;
+    }
+
+    private Config.Scope factoryConfig(String endpoint, String hmacKey, String keyId, boolean enabled) {
+        return new Config.Scope() {
+            @Override
+            public String get(String key) {
+                if ("endpoint".equals(key)) {
+                    return endpoint;
+                }
+                if ("hmacKey".equals(key)) {
+                    return hmacKey;
+                }
+                if ("keyId".equals(key)) {
+                    return keyId;
+                }
+                return null;
+            }
+
+            @Override
+            public String get(String key, String defaultValue) {
+                String value = get(key);
+                return value != null ? value : defaultValue;
+            }
+
+            @Override
+            public String[] getArray(String key) {
+                return null;
+            }
+
+            @Override
+            public Integer getInt(String key) {
+                return null;
+            }
+
+            @Override
+            public Integer getInt(String key, Integer defaultValue) {
+                return defaultValue;
+            }
+
+            @Override
+            public Long getLong(String key) {
+                return null;
+            }
+
+            @Override
+            public Long getLong(String key, Long defaultValue) {
+                return defaultValue;
+            }
+
+            @Override
+            public Boolean getBoolean(String key) {
+                return "enabled".equals(key) ? enabled : null;
+            }
+
+            @Override
+            public Boolean getBoolean(String key, Boolean defaultValue) {
+                Boolean value = getBoolean(key);
+                return value != null ? value : defaultValue;
+            }
+
+            @Override
+            public Config.Scope scope(String... scope) {
+                return this;
+            }
+
+            @Override
+            public Set<String> getPropertyNames() {
+                return Set.of("endpoint", "hmacKey", "keyId", "enabled");
+            }
+
+            @Override
+            public Config.Scope root() {
+                return this;
+            }
+        };
     }
 
     @Test

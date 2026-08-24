@@ -26,18 +26,33 @@ public class BetufuPasswordEventListener implements EventListenerProvider {
 
     private final KeycloakSession session;
     private final PasswordResetOutboxStore store;
+    private final boolean eventCaptureEnabled;
 
     public BetufuPasswordEventListener(KeycloakSession session, PasswordResetOutboxStore store) {
         this.session = session;
         this.store = Objects.requireNonNull(store, "store must not be null");
+        this.eventCaptureEnabled = true;
     }
 
     public BetufuPasswordEventListener(KeycloakSession session) {
         this(session, new PasswordResetOutboxStore(session));
     }
 
+    /**
+     * Construtor usado pela factory para manter o listener realmente inerte quando a ativacao
+     * fail-closed estiver bloqueada. Nesse estado nem o provider JPA e consultado.
+     */
+    BetufuPasswordEventListener(KeycloakSession session, boolean eventCaptureEnabled) {
+        this.session = session;
+        this.eventCaptureEnabled = eventCaptureEnabled;
+        this.store = eventCaptureEnabled ? new PasswordResetOutboxStore(session) : null;
+    }
+
     @Override
     public void onEvent(Event event) {
+        if (!eventCaptureEnabled) {
+            return;
+        }
         if (event == null) {
             return;
         }
@@ -67,6 +82,9 @@ public class BetufuPasswordEventListener implements EventListenerProvider {
 
     @Override
     public void onEvent(AdminEvent adminEvent, boolean includeRepresentation) {
+        if (!eventCaptureEnabled) {
+            return;
+        }
         if (adminEvent == null) {
             return;
         }

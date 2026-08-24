@@ -41,8 +41,8 @@ A integração de encerramento compulsório de sessões após redefinição de s
 - **Método HTTP:** `POST`
 - **Cabeçalhos Obrigatórios:**
   - `X-Key-Id`: Identificador da versão de chave HMAC utilizada (ex.: `v1`, `v2`);
-  - `X-Timestamp`: Instante ISO-8601 UTC da assinatura (ex.: `2026-08-23T19:00:00Z`);
-  - `X-Signature`: Digest HMAC-SHA256 codificado em Base64;
+  - `X-Timestamp`: instante em **epoch-millis decimal** (milissegundos desde 1970-01-01T00:00:00Z), sem espaços nem sinal (ex.: `1787511600000`); ISO-8601 textual não pertence ao contrato assinado;
+  - `X-Signature`: Digest HMAC-SHA256 codificado como **64 caracteres hexadecimais minúsculos** (`[0-9a-f]{64}`); Base64 é usado somente para transportar o material secreto da chave;
   - `X-Source-Event-Id`: Identificador único de correlação do evento emitido pela outbox.
 - **Corpo da Mensagem:** JSON canônico contendo `sourceEventId`, `subject`, `realmId`, `eventType` e `timestamp`.
 - **Cadeia de Segurança do Endpoint M2M:** Implementada em `PasswordResetEventSecurityConfiguration.java`. Permanece com matcher restrito e exato, `SessionCreationPolicy.STATELESS`, sem CSRF (não se aplica a M2M sem credenciais de navegador), e recusa terminantemente qualquer autenticação por sessão ou cookie.
@@ -53,8 +53,9 @@ A integração de encerramento compulsório de sessões após redefinição de s
 
 ### 3.1 Especificação e Guarda das Chaves
 - **Algoritmo:** HMAC-SHA256 (`HmacSHA256`).
-- **Entropia Mínima:** 32 bytes (256 bits) decodificados em Base64.
-- **Guarda:** Injetadas exclusivamente via variáveis de ambiente (`BETUFU_SESSION_PASSWORD_RESET_KEYS_*`), nunca persistidas no PostgreSQL e nunca rastreadas no Git.
+- **Entropia Mínima:** 32 bytes (256 bits) no material secreto, transportado em Base64 nas variáveis de ambiente e decodificado antes do uso.
+- **Guarda no destino:** injetadas exclusivamente pelas variáveis `BETUFU_PASSWORD_RESET_KEY_V1` e `BETUFU_PASSWORD_RESET_KEY_V2`, nunca persistidas no PostgreSQL e nunca rastreadas no Git. `BETUFU_PASSWORD_RESET_CURRENT_VERSION` e `BETUFU_PASSWORD_RESET_PREVIOUS_VERSION` selecionam, respectivamente, a versão corrente e a anterior.
+- **Guarda na origem:** cada execução do Keycloak assina com uma única chave, recebida em `BETUFU_PASSWORD_RESET_HMAC_KEY`, e identifica sua versão por `BETUFU_PASSWORD_RESET_KEY_ID`. A sobreposição current+previous é capacidade de aceitação do destino durante a rotação.
 - **Suporte Multi-Versão Estrito:** O destino aceita exatamente duas versões ativas: **chave corrente (`current`)** e **chave anterior (`previous`)**. Qualquer requisição com `keyId` não mapeado é rejeitada de imediato (*fail-closed*).
 
 ### 3.2 Janela de Tolerância Temporal (Anti-Replay)
@@ -68,8 +69,8 @@ A integração de encerramento compulsório de sessões após redefinição de s
    - Realizar deploy; a aplicação valida e carrega ambas as chaves.
 2. **Etapa 2 (Promoção da Nova Chave):**
    - No Keycloak e no Backend, promover a versão corrente para `v2` e a anterior para `v1`:
-     - `BETUFU_SESSION_PASSWORD_RESET_CURRENT_VERSION=v2`
-     - `BETUFU_SESSION_PASSWORD_RESET_PREVIOUS_VERSION=v1`
+     - `BETUFU_PASSWORD_RESET_CURRENT_VERSION=v2`
+     - `BETUFU_PASSWORD_RESET_PREVIOUS_VERSION=v1`
    - Reiniciar os serviços e verificar resposta HTTP 200 nos healthchecks.
 
 ---
@@ -161,3 +162,4 @@ Quando um alerta de evento `FAILED` for recebido pelo operador:
 
 - **Estado Atual:** A integração D-40, o dispatcher do Keycloak e as propriedades de runtime permanecem **estritamente desabilitados por padrão** em ambientes produtivos.
 - **Gate de Ativação (Plano 02-29):** A ativação final em produção ocorrerá exclusivamente após a conclusão do Plano 02-29, que submeterá a integração a uma suíte abrangente de testes de integração com Keycloak real (incluindo validação de assinatura com chaves reais, expiração forçada, issuer inválido e autorização via cliente `realm-management`).
+- **Gate pós-health obrigatório:** depois que o novo Keycloak estiver `healthy` e **antes de liberar tráfego**, o operador deve reconciliar o realm persistido com `scripts/reconcile-keycloak-event-listeners.mjs`. As credenciais administrativas ficam somente em `KC_BOOTSTRAP_ADMIN_USERNAME` e `KC_BOOTSTRAP_ADMIN_PASSWORD` no ambiente; usuário, senha e token nunca são argumentos ou saída. A primeira aplicação deve terminar em `APPLIED` (ou `UNCHANGED` se o estado já estiver correto) e a repetição imediata deve terminar em `UNCHANGED`. Qualquer outro resultado mantém o tráfego bloqueado.

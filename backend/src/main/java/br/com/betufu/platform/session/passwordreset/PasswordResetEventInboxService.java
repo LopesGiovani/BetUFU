@@ -171,7 +171,9 @@ public class PasswordResetEventInboxService {
             afterClaimCommitted(entity.getSourceEventId());
             try {
                 IdentitySessionTerminationService.TerminationSummary summary = terminate(entity.getSubject());
-                if (!summary.isFullyRevoked()) {
+                // A recovered claim may run in a new process after the volatile OIDC retry state
+                // disappeared. An empty retry cannot prove the remote grant was revoked.
+                if (!summary.isFullyRevoked() || !summary.oidcGrantRevocationConfirmed()) {
                     markFailed(entity.getSourceEventId(), ERROR_CODE_TERMINATION_FAILED);
                     results.add(failedResult(entity.getSourceEventId(), true, summary.totalTerminated()));
                 } else {
@@ -225,7 +227,10 @@ public class PasswordResetEventInboxService {
             finishReplay(claim, STATUS_FAILED, ERROR_CODE_TERMINATION_FAILED);
             return Optional.of(failedResult(sourceEventId, false, 0));
         }
-        if (!summary.isFullyRevoked()) {
+        // A FAILED replay is different from a first delivery: after a backend restart, an empty
+        // in-memory OIDC state cannot prove that the earlier remote grant was revoked. Only an
+        // execution that observes REVOKED may close the durable FAILED record as DELIVERED.
+        if (!summary.isFullyRevoked() || !summary.oidcGrantRevocationConfirmed()) {
             finishReplay(claim, STATUS_FAILED, ERROR_CODE_TERMINATION_FAILED);
             return Optional.of(failedResult(sourceEventId, true, summary.totalTerminated()));
         }

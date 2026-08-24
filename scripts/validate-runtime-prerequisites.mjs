@@ -8,6 +8,7 @@ import { createServer, request as httpRequest } from 'node:http';
 import { connect, createServer as createNetServer } from 'node:net';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const defaultProjectRoot = resolve(scriptsDirectory, '..');
@@ -20,6 +21,7 @@ const PATHS = Object.freeze({
   resources: 'backend/src/main/resources',
   backend: 'backend',
   backendConfig: 'backend/config',
+  compose: 'infra/compose.yaml',
   environment: 'infra/.env.example',
   keycloakRealm: 'infra/keycloak/realm-betufu.json',
   pom: 'backend/pom.xml',
@@ -60,6 +62,9 @@ const PROCESS_KILL_GRACE_MILLISECONDS = 4_000;
 const REDIS_SENTINEL_HOST = '127.0.0.1';
 const REDIS_SENTINEL_PORT = 6379;
 const XSRF_TOMBSTONE_EXPIRES = 'Thu, 01 Jan 1970 00:00:10 GMT';
+const PASSWORD_RESET_KEYCLOAK_IMAGE =
+  'betufu/keycloak:26.7.1-password-listener@sha256:'
+  + '165f3d4f0c102bdfc7ab9adb1e726fe30734c5833107efd04571f1b3615e62c8';
 
 const REQUIRED_RUNTIME_ENV = Object.freeze([
   'BETUFU_DB_JDBC_URL',
@@ -518,6 +523,11 @@ const PROTECTED_APPLICATION_YAML_PATHS = Object.freeze([
   'server.servlet.session.cookie.http-only',
   'server.servlet.session.cookie.secure',
   'server.servlet.session.cookie.same-site',
+  'betufu.session.password-reset.current-version',
+  'betufu.session.password-reset.previous-version',
+  'betufu.session.password-reset.maintenance-enabled',
+  'betufu.session.password-reset.keys.v1',
+  'betufu.session.password-reset.keys.v2',
 ]);
 
 const APPROVED_BLOCK_SEQUENCE_PATHS = Object.freeze([
@@ -661,6 +671,103 @@ function parseApplicationYamlDocuments(source) {
   return documents;
 }
 
+function parseComposeYaml(source) {
+  const document = { entries: new Map() };
+  const stack = [];
+  const lines = source.split('\n');
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+    const rawLine = lines[lineIndex];
+    if (/^\s*(?:#.*)?$/u.test(rawLine)) {
+      continue;
+    }
+    const indentation = rawLine.match(/^ */u)[0].length;
+    const content = yamlContentWithoutComment(rawLine.slice(indentation));
+    if (content === '') {
+      continue;
+    }
+    expect(
+      !/^\s*(?:---|\.\.\.)(?=\s|$)/u.test(content)
+        && !hasYamlIndirectSyntax(content),
+      'PASSWORD_RESET_COMPOSE',
+      'documentos, anchors, aliases, merge keys, tags ou chaves indiretas nao sao permitidos no Compose.',
+    );
+    if (content.startsWith('-')) {
+      const parentPath = stack.length === 0 ? '' : stack.at(-1).segments.join('.');
+      expect(parentPath !== '', 'PASSWORD_RESET_COMPOSE', 'sequencia YAML sem pai no Compose.');
+      const values = document.entries.get(parentPath) ?? [];
+      let item = yamlScalar(content.slice(1).trim());
+      if (item === '>-' || item === '>' || item === '|-' || item === '|') {
+        const folded = item.startsWith('>');
+        const blockLines = [];
+        let nextIndex = lineIndex + 1;
+        while (nextIndex < lines.length) {
+          const nextLine = lines[nextIndex];
+          const nextIndentation = nextLine.match(/^ */u)[0].length;
+          if (!/^\s*$/u.test(nextLine) && nextIndentation <= indentation) {
+            break;
+          }
+          const blockContent = yamlContentWithoutComment(nextLine.slice(nextIndentation));
+          if (blockContent !== '') {
+            blockLines.push(blockContent);
+          }
+          nextIndex += 1;
+        }
+        item = blockLines.join(folded ? ' ' : '\n');
+        lineIndex = nextIndex - 1;
+      }
+      values.push(item);
+      document.entries.set(parentPath, values);
+      continue;
+    }
+
+    const separator = yamlMappingSeparator(content);
+    if (separator <= 0) {
+      // Linhas de continuacao de scalar folded/literal pertencem ao valor anterior.
+      continue;
+    }
+    const key = yamlScalar(content.slice(0, separator));
+    expect(
+      /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/u.test(key),
+      'PASSWORD_RESET_COMPOSE',
+      'chave YAML fora do subset estrutural aceito no Compose.',
+    );
+    while (stack.length > 0 && stack.at(-1).indentation >= indentation) {
+      stack.pop();
+    }
+    const parentSegments = stack.length === 0 ? [] : stack.at(-1).segments;
+    const segments = [...parentSegments, key];
+    const path = segments.join('.');
+    const rawValue = content.slice(separator + 1).trim();
+    const values = document.entries.get(path) ?? [];
+    if (rawValue.startsWith('[') && rawValue.endsWith(']')) {
+      let flowSequence;
+      try {
+        flowSequence = JSON.parse(rawValue);
+      } catch {
+        flowSequence = null;
+      }
+      if (Array.isArray(flowSequence) && flowSequence.every((value) => typeof value === 'string')) {
+        values.push(null, ...flowSequence);
+      } else {
+        values.push(yamlScalar(rawValue));
+      }
+    } else {
+      values.push(rawValue === '' ? null : yamlScalar(rawValue));
+    }
+    document.entries.set(path, values);
+    if (rawValue === '') {
+      stack.push({ indentation, segments });
+    }
+  }
+
+  return document;
+}
+
+function composeValues(document, path) {
+  return document.entries.get(path) ?? [];
+}
+
 function yamlValues(document, path) {
   return document.entries.get(normalizeYamlPath(path)) ?? [];
 }
@@ -740,6 +847,336 @@ function assertYamlSubtreeAllowlist(documents, root, allowedPaths) {
       }
     }
   }
+}
+
+function assertSingleComposeValue(document, path, expected, rule) {
+  const values = composeValues(document, path);
+  expect(
+    values.length === 1 && values[0] === expected,
+    rule,
+    path + ' deve aparecer exatamente uma vez com o valor aprovado.',
+  );
+}
+
+function assertComposeSequence(document, path, expectedItems, rule) {
+  const values = composeValues(document, path);
+  expect(
+    values.length === expectedItems.length + 1
+      && values[0] === null
+      && expectedItems.every((expected, index) => values[index + 1] === expected),
+    rule,
+    path + ' deve conter somente a sequencia aprovada.',
+  );
+}
+
+function assertComposeMappingKeys(document, path, expectedKeys, rule) {
+  const prefix = path + '.';
+  const actualKeys = Array.from(document.entries.keys())
+    .filter((candidate) => candidate.startsWith(prefix))
+    .map((candidate) => candidate.slice(prefix.length))
+    .filter((candidate) => !candidate.includes('.'))
+    .sort();
+  const approvedKeys = [...expectedKeys].sort();
+  expect(
+    isDeepStrictEqual(actualKeys, approvedKeys),
+    rule,
+    path + ' deve conter exatamente as chaves aprovadas.',
+  );
+}
+
+function assertNoPasswordResetSecretNames(value, path = []) {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertNoPasswordResetSecretNames(item, [...path, String(index)]));
+    return;
+  }
+  if (value === null || typeof value !== 'object') {
+    return;
+  }
+  for (const [key, nested] of Object.entries(value)) {
+    const nestedPath = [...path, key];
+    const normalizedPath = normalizeYamlPath(nestedPath.join('.'));
+    expect(
+      !(
+        normalizedPath.includes('passwordreset')
+        && /(?:hmac|key|secret)/u.test(normalizedPath)
+      ),
+      'PASSWORD_RESET_SECRET',
+      'realm nao pode conter material de configuracao criptografica do password-reset.',
+    );
+    assertNoPasswordResetSecretNames(nested, nestedPath);
+  }
+}
+
+function assertPasswordResetRolloutContract(
+  applicationConfigurations,
+  composeSource,
+  realmSource,
+) {
+  const documentsByPath = new Map();
+  for (const [relativePath, source] of applicationConfigurations) {
+    documentsByPath.set(relativePath, parseApplicationYamlDocuments(source));
+  }
+  const applicationDocuments = documentsByPath.get(PATHS.application);
+  const baseDocument = applicationDocuments[0];
+  const allApplicationDocuments = Array.from(documentsByPath.values()).flat();
+
+  assertSingleYamlValue(
+    baseDocument,
+    'betufu',
+    null,
+    'PASSWORD_RESET_BINDING',
+  );
+
+  for (const path of [
+    'betufu.session',
+    'betufu.session.password-reset',
+    'betufu.session.password-reset.keys',
+  ]) {
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      baseDocument,
+      path,
+      null,
+      'PASSWORD_RESET_BINDING',
+    );
+  }
+
+  assertYamlSubtreeAllowlist(
+    allApplicationDocuments,
+    'betufu.session.password-reset',
+    [
+      'betufu.session.password-reset',
+      'betufu.session.password-reset.current-version',
+      'betufu.session.password-reset.previous-version',
+      'betufu.session.password-reset.maintenance-enabled',
+      'betufu.session.password-reset.keys',
+      'betufu.session.password-reset.keys.v1',
+      'betufu.session.password-reset.keys.v2',
+    ],
+  );
+
+  for (const [path, expected] of [
+    [
+      'betufu.session.password-reset.current-version',
+      '${BETUFU_PASSWORD_RESET_CURRENT_VERSION:}',
+    ],
+    [
+      'betufu.session.password-reset.previous-version',
+      '${BETUFU_PASSWORD_RESET_PREVIOUS_VERSION:}',
+    ],
+    [
+      'betufu.session.password-reset.maintenance-enabled',
+      '${BETUFU_PASSWORD_RESET_MAINTENANCE_ENABLED:false}',
+    ],
+    [
+      'betufu.session.password-reset.keys.v1',
+      '${BETUFU_PASSWORD_RESET_KEY_V1:}',
+    ],
+    [
+      'betufu.session.password-reset.keys.v2',
+      '${BETUFU_PASSWORD_RESET_KEY_V2:}',
+    ],
+  ]) {
+    assertUniqueApprovedYamlValue(
+      allApplicationDocuments,
+      baseDocument,
+      path,
+      expected,
+      'PASSWORD_RESET_BINDING',
+    );
+  }
+
+  const compose = parseComposeYaml(composeSource);
+  for (const path of [
+    'services',
+    'services.keycloak',
+    'services.keycloak.environment',
+    'services.keycloak.healthcheck',
+    'services.backend',
+    'services.backend.environment',
+    'services.backend.depends_on',
+    'services.backend.depends_on.keycloak',
+  ]) {
+    assertSingleComposeValue(
+      compose,
+      path,
+      null,
+      'PASSWORD_RESET_COMPOSE',
+    );
+  }
+  assertSingleComposeValue(
+    compose,
+    'services.keycloak.image',
+    PASSWORD_RESET_KEYCLOAK_IMAGE,
+    'PASSWORD_RESET_IMAGE',
+  );
+  assertComposeSequence(
+    compose,
+    'services.keycloak.command',
+    [
+      'start-dev',
+      '--import-realm',
+      '--spi-events-listener--betufu-password-event-listener--enabled=${BETUFU_PASSWORD_RESET_ENABLED:-false}',
+      '--spi-events-listener--betufu-password-event-listener--key-id=${BETUFU_PASSWORD_RESET_KEY_ID:-__disabled__}',
+    ],
+    'PASSWORD_RESET_FACTORY',
+  );
+
+  assertComposeMappingKeys(
+    compose,
+    'services.keycloak.environment',
+    [
+      'KC_DB',
+      'KC_DB_URL_HOST',
+      'KC_DB_URL_PORT',
+      'KC_DB_URL_DATABASE',
+      'KC_DB_USERNAME',
+      'KC_DB_PASSWORD',
+      'KC_BOOTSTRAP_ADMIN_USERNAME',
+      'KC_BOOTSTRAP_ADMIN_PASSWORD',
+      'BETUFU_OIDC_CLIENT_SECRET',
+      'BETUFU_TECHNICAL_PASSWORD',
+      'BETUFU_PASSWORD_RESET_ENDPOINT',
+      'BETUFU_PASSWORD_RESET_HMAC_KEY',
+      'BETUFU_PASSWORD_RESET_KEY_ID',
+      'BETUFU_PASSWORD_RESET_ENABLED',
+      'JAVA_OPTS_APPEND',
+      'KC_HOSTNAME',
+      'KC_HOSTNAME_STRICT',
+      'KC_HEALTH_ENABLED',
+      'KC_METRICS_ENABLED',
+    ],
+    'PASSWORD_RESET_SECRET',
+  );
+
+  for (const [path, expected] of [
+    [
+      'services.keycloak.environment.BETUFU_PASSWORD_RESET_ENDPOINT',
+      '${BETUFU_PASSWORD_RESET_ENDPOINT:-}',
+    ],
+    [
+      'services.keycloak.environment.BETUFU_PASSWORD_RESET_HMAC_KEY',
+      '${BETUFU_PASSWORD_RESET_HMAC_KEY:-}',
+    ],
+    [
+      'services.keycloak.environment.BETUFU_PASSWORD_RESET_KEY_ID',
+      '${BETUFU_PASSWORD_RESET_KEY_ID:-}',
+    ],
+    [
+      'services.keycloak.environment.BETUFU_PASSWORD_RESET_ENABLED',
+      '${BETUFU_PASSWORD_RESET_ENABLED:-false}',
+    ],
+    [
+      'services.keycloak.environment.JAVA_OPTS_APPEND',
+      '${BETUFU_KEYCLOAK_JAVA_OPTS_APPEND:-}',
+    ],
+    [
+      'services.backend.environment.BETUFU_PASSWORD_RESET_CURRENT_VERSION',
+      '${BETUFU_PASSWORD_RESET_CURRENT_VERSION:-}',
+    ],
+    [
+      'services.backend.environment.BETUFU_PASSWORD_RESET_PREVIOUS_VERSION',
+      '${BETUFU_PASSWORD_RESET_PREVIOUS_VERSION:-}',
+    ],
+    [
+      'services.backend.environment.BETUFU_PASSWORD_RESET_KEY_V1',
+      '${BETUFU_PASSWORD_RESET_KEY_V1:-}',
+    ],
+    [
+      'services.backend.environment.BETUFU_PASSWORD_RESET_KEY_V2',
+      '${BETUFU_PASSWORD_RESET_KEY_V2:-}',
+    ],
+    [
+      'services.backend.environment.BETUFU_PASSWORD_RESET_MAINTENANCE_ENABLED',
+      '${BETUFU_PASSWORD_RESET_MAINTENANCE_ENABLED:-false}',
+    ],
+  ]) {
+    assertSingleComposeValue(compose, path, expected, 'PASSWORD_RESET_SECRET');
+  }
+
+  assertComposeSequence(
+    compose,
+    'services.keycloak.volumes',
+    [
+      './keycloak/realm-betufu.json:/opt/keycloak/data/import/betufu-local-realm.json:ro',
+      './keycloak/themes/betufu:/opt/keycloak/themes/betufu:ro',
+      '${BETUFU_TLS_TRUSTSTORE_DIR:-./keycloak}:/run/secrets/tls:ro',
+    ],
+    'PASSWORD_RESET_TLS',
+  );
+  assertSingleComposeValue(
+    compose,
+    'services.keycloak.environment.KC_HEALTH_ENABLED',
+    'true',
+    'PASSWORD_RESET_HEALTH',
+  );
+  assertSingleComposeValue(
+    compose,
+    'services.backend.depends_on.keycloak.condition',
+    'service_healthy',
+    'PASSWORD_RESET_HEALTH',
+  );
+  for (const [path, expected] of [
+    ['services.keycloak.healthcheck.interval', '10s'],
+    ['services.keycloak.healthcheck.timeout', '5s'],
+    ['services.keycloak.healthcheck.retries', '30'],
+    ['services.keycloak.healthcheck.start_period', '30s'],
+  ]) {
+    assertSingleComposeValue(compose, path, expected, 'PASSWORD_RESET_HEALTH');
+  }
+  const healthTest = composeValues(compose, 'services.keycloak.healthcheck.test');
+  const approvedHealthCommand =
+    "{ printf 'HEAD /health/ready HTTP/1.0\\r\\n\\r\\n' >&0; "
+    + "grep 'HTTP/1.0 200'; } 0<>/dev/tcp/127.0.0.1/9000";
+  expect(
+    healthTest.length === 5
+      && healthTest[0] === null
+      && healthTest[1] === 'CMD'
+      && healthTest[2] === '/bin/bash'
+      && healthTest[3] === '-ec'
+      && healthTest[4] === approvedHealthCommand,
+    'PASSWORD_RESET_HEALTH',
+    'healthcheck do Keycloak deve continuar estrito na porta de management.',
+  );
+
+  const allowedPasswordResetComposePaths = new Set([
+    'services.keycloak.environment.BETUFU_PASSWORD_RESET_ENDPOINT',
+    'services.keycloak.environment.BETUFU_PASSWORD_RESET_HMAC_KEY',
+    'services.keycloak.environment.BETUFU_PASSWORD_RESET_KEY_ID',
+    'services.keycloak.environment.BETUFU_PASSWORD_RESET_ENABLED',
+    'services.backend.environment.BETUFU_PASSWORD_RESET_CURRENT_VERSION',
+    'services.backend.environment.BETUFU_PASSWORD_RESET_PREVIOUS_VERSION',
+    'services.backend.environment.BETUFU_PASSWORD_RESET_KEY_V1',
+    'services.backend.environment.BETUFU_PASSWORD_RESET_KEY_V2',
+    'services.backend.environment.BETUFU_PASSWORD_RESET_MAINTENANCE_ENABLED',
+  ]);
+  for (const path of compose.entries.keys()) {
+    if (normalizeYamlPath(path).includes('betufupasswordreset')) {
+      expect(
+        allowedPasswordResetComposePaths.has(path)
+          || path === 'services.keycloak.command',
+        'PASSWORD_RESET_SECRET',
+        'Compose contem configuracao password-reset fora da allowlist canonica.',
+      );
+    }
+  }
+
+  let realm;
+  try {
+    realm = JSON.parse(realmSource);
+  } catch (error) {
+    fail('PASSWORD_RESET_REALM', 'realm Keycloak deve ser JSON valido.');
+  }
+  expect(
+    !Object.hasOwn(realm, 'eventsEnabled')
+      && isDeepStrictEqual(
+      realm.eventsListeners,
+      ['jboss-logging', 'betufu-password-event-listener'],
+    ),
+    'PASSWORD_RESET_REALM',
+    'realm deve habilitar somente os listeners aprovados, preservando jboss-logging.',
+  );
+  assertNoPasswordResetSecretNames(realm);
 }
 
 function assertDatasourceContract(application, environment) {
@@ -1454,6 +1891,7 @@ export async function validateStaticContract(projectRoot = defaultProjectRoot) {
     propertiesResources,
     externalSpringConfigurationPaths,
     environment,
+    compose,
     keycloakRealm,
     pom,
     security,
@@ -1468,6 +1906,7 @@ export async function validateStaticContract(projectRoot = defaultProjectRoot) {
     readSourceTree(resolvedRoot, PATHS.resources, '.properties'),
     listExternalSpringConfigurationPaths(resolvedRoot),
     readRequiredText(resolvedRoot, PATHS.environment),
+    readRequiredText(resolvedRoot, PATHS.compose),
     readRequiredText(resolvedRoot, PATHS.keycloakRealm),
     readRequiredText(resolvedRoot, PATHS.pom),
     readRequiredText(resolvedRoot, PATHS.security),
@@ -1512,6 +1951,11 @@ export async function validateStaticContract(projectRoot = defaultProjectRoot) {
 
   assertDatasourceContract(application, environment);
   assertRedisSessionContract(applicationConfigurations, environment, pom);
+  assertPasswordResetRolloutContract(
+    applicationConfigurations,
+    compose,
+    keycloakRealm,
+  );
   assertKeycloakTechnicalUserContract(keycloakRealm);
   assertNoCsrfBypass(backendSources);
   assertSecurityContract(security);

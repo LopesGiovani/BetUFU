@@ -187,14 +187,35 @@ public class PasswordResetEventEndpoint {
         }
 
         // 7. Persist and apply security effect
-        PasswordResetEventInboxService.InboxProcessingResult result =
-                inboxService.processEvent(sourceEventId, subject, realmId, eventType);
+        PasswordResetEventInboxService.InboxProcessingResult result;
+        try {
+            result = inboxService.processEvent(sourceEventId, subject, realmId, eventType);
+        } catch (RuntimeException processingFailure) {
+            // The inbox service persists a stable FAILED marker before rethrowing effect failures.
+            // Do not acknowledge those failures with 2xx and do not expose exception details to
+            // the origin. A sanitized 503 keeps the source outbox eligible for retry.
+            EventResponse retryableFailure = new EventResponse(
+                    PasswordResetEventInboxService.STATUS_FAILED,
+                    sourceEventId,
+                    false);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(retryableFailure);
+        }
 
-        return ResponseEntity.ok(new EventResponse(
+        EventResponse response = new EventResponse(
                 result.status(),
                 result.sourceEventId(),
                 result.effectExecuted()
-        ));
+        );
+
+        if (isTerminallyDelivered(result.status())) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+    }
+
+    private static boolean isTerminallyDelivered(String status) {
+        return PasswordResetEventInboxService.STATUS_DELIVERED.equals(status)
+                || PasswordResetEventInboxService.STATUS_PROCESSED.equals(status);
     }
 
     /**

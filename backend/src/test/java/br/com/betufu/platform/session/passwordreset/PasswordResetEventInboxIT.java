@@ -586,6 +586,69 @@ class PasswordResetEventInboxIT {
     }
 
     @Test
+    @DisplayName("Endpoint converte a primeira falha persistida em 503 sanitizado para permitir retry da origem")
+    void endpointReturnsSanitized503WhenInitialProcessingThrowsAfterPersistingFailure() {
+        String sourceEventId = "evt-endpoint-failure-" + UUID.randomUUID();
+        IdentitySessionTerminationService failingTerminationService = mock(IdentitySessionTerminationService.class);
+        org.mockito.Mockito.when(failingTerminationService.terminateAllSessionsFor(
+                        TARGET_SUBJECT_A, SessionTerminationReason.SECURITY))
+                .thenThrow(new IllegalStateException("sensitive Redis topology detail"));
+
+        PasswordResetEventInboxService failingInboxService =
+                new PasswordResetEventInboxService(inboxRepository, failingTerminationService);
+        org.springframework.beans.factory.ObjectProvider<PasswordResetEventProperties> propertiesProvider =
+                mock(org.springframework.beans.factory.ObjectProvider.class);
+        org.mockito.Mockito.when(propertiesProvider.getIfAvailable()).thenReturn(properties);
+        PasswordResetEventEndpoint failingEndpoint = new PasswordResetEventEndpoint(
+                verifier, failingInboxService, propertiesProvider);
+
+        Instant now = clock.instant();
+        String timestamp = String.valueOf(now.toEpochMilli());
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, timestamp);
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String signature = verifier.sign(
+                RAW_SECRET_KEY,
+                KEY_ID,
+                timestamp,
+                "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH,
+                sourceEventId,
+                verifier.computeBodySha256(bodyBytes));
+        org.springframework.mock.web.MockHttpServletRequest request =
+                new org.springframework.mock.web.MockHttpServletRequest();
+        request.setMethod("POST");
+        request.setRequestURI(PasswordResetEventEndpoint.ENDPOINT_PATH);
+
+        org.springframework.http.ResponseEntity<PasswordResetEventEndpoint.EventResponse> response =
+                failingEndpoint.handlePasswordResetEvent(
+                        KEY_ID, timestamp, signature, sourceEventId, bodyBytes, request);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(503);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().status()).isEqualTo(PasswordResetEventInboxEntity.STATUS_FAILED);
+        assertThat(response.getBody().sourceEventId()).isEqualTo(sourceEventId);
+        assertThat(response.getBody().effectExecuted()).isFalse();
+        assertThat(response.toString())
+                .doesNotContain("sensitive Redis topology detail")
+                .doesNotContain("IllegalStateException");
+
+        PasswordResetEventInboxEntity persisted =
+                inboxRepository.findBySourceEventId(sourceEventId).orElseThrow();
+        assertThat(persisted.getStatus()).isEqualTo(PasswordResetEventInboxEntity.STATUS_FAILED);
+        assertThat(persisted.getLastError())
+                .isEqualTo(PasswordResetEventInboxService.ERROR_CODE_TERMINATION_FAILED)
+                .doesNotContain("sensitive Redis topology detail");
+    }
+
+    @Test
     @DisplayName("Validação de entrada: Parâmetros nulos ou em branco falham fechados antes do banco")
     void blankAndNullParametersFailClosed() {
         assertThatThrownBy(() -> inboxService.processEvent(null, "sub", "realm", "UPDATE_CREDENTIAL"))
@@ -771,6 +834,54 @@ class PasswordResetEventInboxIT {
         // Sessões de Target A foram encerradas; Control B intacto
         assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
         assertThat(sessionRepository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Endpoint confirma somente estados terminais e devolve 503 para estados que exigem retry")
+    void endpointAcknowledgesOnlyTerminallyDeliveredInboxStates() throws Exception {
+        for (String terminalStatus : List.of(
+                PasswordResetEventInboxEntity.STATUS_DELIVERED,
+                PasswordResetEventInboxEntity.STATUS_PROCESSED)) {
+            String sourceEventId = "evt-terminal-" + terminalStatus + "-" + UUID.randomUUID();
+            int inserted = inboxRepository.insertIfAbsent(
+                    sourceEventId,
+                    TARGET_SUBJECT_A,
+                    TEST_REALM,
+                    "UPDATE_CREDENTIAL",
+                    terminalStatus);
+            assertThat(inserted).isEqualTo(1);
+
+            performSignedEndpointRequest(sourceEventId)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value(terminalStatus))
+                    .andExpect(jsonPath("$.sourceEventId").value(sourceEventId))
+                    .andExpect(jsonPath("$.effectExecuted").value(false))
+                    .andExpect(jsonPath("$.lastError").doesNotExist());
+        }
+
+        for (String retryableStatus : List.of(
+                PasswordResetEventInboxEntity.STATUS_PENDING,
+                PasswordResetEventInboxEntity.STATUS_CLAIMED,
+                PasswordResetEventInboxEntity.STATUS_FAILED)) {
+            String sourceEventId = "evt-retryable-" + retryableStatus + "-" + UUID.randomUUID();
+            int inserted = inboxRepository.insertIfAbsent(
+                    sourceEventId,
+                    TARGET_SUBJECT_A,
+                    TEST_REALM,
+                    "UPDATE_CREDENTIAL",
+                    retryableStatus);
+            assertThat(inserted).isEqualTo(1);
+            if (PasswordResetEventInboxEntity.STATUS_FAILED.equals(retryableStatus)) {
+                inboxRepository.markFailed(sourceEventId, "sensitive downstream detail must stay private");
+            }
+
+            performSignedEndpointRequest(sourceEventId)
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.status").value(retryableStatus))
+                    .andExpect(jsonPath("$.sourceEventId").value(sourceEventId))
+                    .andExpect(jsonPath("$.effectExecuted").value(false))
+                    .andExpect(jsonPath("$.lastError").doesNotExist());
+        }
     }
 
     @Test
@@ -1297,6 +1408,38 @@ class PasswordResetEventInboxIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DELIVERED"))
                 .andExpect(jsonPath("$.effectExecuted").value(true));
+    }
+
+    private org.springframework.test.web.servlet.ResultActions performSignedEndpointRequest(
+            String sourceEventId) throws Exception {
+        Instant now = clock.instant();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, now.toString());
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String timestampHeader = String.valueOf(now.toEpochMilli());
+        String signature = verifier.sign(
+                RAW_SECRET_KEY,
+                KEY_ID,
+                timestampHeader,
+                "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH,
+                sourceEventId,
+                verifier.computeBodySha256(bodyBytes));
+
+        return mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                .content(bodyBytes));
     }
 
     private void assertEndpointTimestampRejected(Instant eventInstant, String prefix) throws Exception {

@@ -44,9 +44,13 @@ services:
       start_period: 5s
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7.1@sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6
+    image: betufu/keycloak:26.7.1-password-listener@sha256:165f3d4f0c102bdfc7ab9adb1e726fe30734c5833107efd04571f1b3615e62c8
     profiles: [daily, full]
-    command: ["start-dev", "--import-realm"]
+    command:
+      - start-dev
+      - --import-realm
+      - --spi-events-listener--betufu-password-event-listener--enabled=${BETUFU_PASSWORD_RESET_ENABLED:-false}
+      - --spi-events-listener--betufu-password-event-listener--key-id=${BETUFU_PASSWORD_RESET_KEY_ID:-__disabled__}
     environment:
       KC_DB: postgres
       KC_DB_URL_HOST: postgres
@@ -58,6 +62,11 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?KC_BOOTSTRAP_ADMIN_PASSWORD obrigatória}
       BETUFU_OIDC_CLIENT_SECRET: ${BETUFU_OIDC_CLIENT_SECRET:?BETUFU_OIDC_CLIENT_SECRET obrigatório}
       BETUFU_TECHNICAL_PASSWORD: ${BETUFU_TECHNICAL_PASSWORD:?BETUFU_TECHNICAL_PASSWORD obrigatória}
+      BETUFU_PASSWORD_RESET_ENDPOINT: "${BETUFU_PASSWORD_RESET_ENDPOINT:-}"
+      BETUFU_PASSWORD_RESET_HMAC_KEY: "${BETUFU_PASSWORD_RESET_HMAC_KEY:-}"
+      BETUFU_PASSWORD_RESET_KEY_ID: "${BETUFU_PASSWORD_RESET_KEY_ID:-}"
+      BETUFU_PASSWORD_RESET_ENABLED: "${BETUFU_PASSWORD_RESET_ENABLED:-false}"
+      JAVA_OPTS_APPEND: "${BETUFU_KEYCLOAK_JAVA_OPTS_APPEND:-}"
       KC_HOSTNAME: "http://localhost:8081"
       KC_HOSTNAME_STRICT: "false"
       KC_HEALTH_ENABLED: "true"
@@ -67,6 +76,7 @@ services:
     volumes:
       - ./keycloak/realm-betufu.json:/opt/keycloak/data/import/betufu-local-realm.json:ro
       - ./keycloak/themes/betufu:/opt/keycloak/themes/betufu:ro
+      - ${BETUFU_TLS_TRUSTSTORE_DIR:-./keycloak}:/run/secrets/tls:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -144,6 +154,11 @@ services:
       BETUFU_TECHNICAL_PASSWORD: ${BETUFU_TECHNICAL_PASSWORD:?BETUFU_TECHNICAL_PASSWORD obrigatória}
       BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION: ${BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION:?BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION obrigatória}
       BETUFU_MATRICULA_HMAC_KEY_V1: ${BETUFU_MATRICULA_HMAC_KEY_V1:?BETUFU_MATRICULA_HMAC_KEY_V1 obrigatória}
+      BETUFU_PASSWORD_RESET_CURRENT_VERSION: "${BETUFU_PASSWORD_RESET_CURRENT_VERSION:-}"
+      BETUFU_PASSWORD_RESET_PREVIOUS_VERSION: "${BETUFU_PASSWORD_RESET_PREVIOUS_VERSION:-}"
+      BETUFU_PASSWORD_RESET_KEY_V1: "${BETUFU_PASSWORD_RESET_KEY_V1:-}"
+      BETUFU_PASSWORD_RESET_KEY_V2: "${BETUFU_PASSWORD_RESET_KEY_V2:-}"
+      BETUFU_PASSWORD_RESET_MAINTENANCE_ENABLED: "${BETUFU_PASSWORD_RESET_MAINTENANCE_ENABLED:-false}"
       BETUFU_PUBLIC_ORIGIN: http://localhost:4200
       BETUFU_BACKEND_ORIGIN: http://backend:8080
       BETUFU_TRUSTED_PROXIES: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.1/32"

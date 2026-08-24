@@ -51,6 +51,30 @@ test('nao expoe conteudo de JSON malformado', async () => {
 
 const unsafeMutations = [
   {
+    name: 'listener BETUFU ausente',
+    mutate: (realm) => {
+      realm.eventsListeners = ['jboss-logging'];
+    },
+  },
+  {
+    name: 'listener BETUFU com identificador divergente',
+    mutate: (realm) => {
+      realm.eventsListeners[1] = 'betufu-password-listener';
+    },
+  },
+  {
+    name: 'listener padrao removido',
+    mutate: (realm) => {
+      realm.eventsListeners = ['betufu-password-event-listener'];
+    },
+  },
+  {
+    name: 'listener duplicado ou adicional',
+    mutate: (realm) => {
+      realm.eventsListeners.push('betufu-password-event-listener');
+    },
+  },
+  {
     name: 'redirect com wildcard',
     mutate: (realm) => {
       realm.clients[0].redirectUris = ['http://localhost:4200/*'];

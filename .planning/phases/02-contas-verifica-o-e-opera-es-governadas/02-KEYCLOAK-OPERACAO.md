@@ -12,7 +12,7 @@ No arquivo `infra/compose.yaml`, o serviço do Keycloak (versão 26.7.1) é inic
 
 - **Primeira Inicialização (Banco Ausente/Vazio):** Quando o container sobe e o banco de dados PostgreSQL ainda não possui o realm cadastrado, o parâmetro `--import-realm` lê o arquivo JSON (`infra/keycloak/realm-betufu.json`) e cria o realm `betufu-local` diretamente no PostgreSQL.
 - **Inicializações Seguintes (Banco Já Populado):** Como `KC_DB=postgres` mantém o estado persistido no volume Docker `betufu-local-postgres-data`, o Keycloak **não sobrescreve** o realm persistido com o conteúdo do arquivo JSON.
-- **Conceito Fundamental:** Editar o arquivo `infra/keycloak/realm-betufu.json` **não altera** o realm que já foi gravado no banco de dados. Para que modificações no JSON tenham efeito no ambiente local, é necessário recriar o volume do PostgreSQL para forçar uma nova importação limpa.
+- **Conceito Fundamental:** Editar o arquivo `infra/keycloak/realm-betufu.json` **não altera** o realm que já foi gravado no banco de dados. Para uma atualização pontual dos listeners de eventos, use a reconciliação não destrutiva da Seção 12. Recriar o volume do PostgreSQL só é necessário quando o objetivo explícito for um rebootstrap completo do realm; não é o procedimento normal de rollout do listener.
 
 ---
 
@@ -159,3 +159,60 @@ Se o cadastro de usuários não estiver disponível após o bootstrap:
 - [ ] Fazer um cadastro local e confirmar no Mailpit a ordem e-mail → confirmação → criação de senha
 - [ ] Confirmar que a regressão Java `SelfRegistrationKeycloakIT` permanece verde
 - [ ] Programar teste de runtime de logout e atualização do `.planning/STATE.md` para o fechamento da fase
+
+---
+
+## 12. Reconciliação Não Destrutiva dos Event Listeners
+
+O realm persistido precisa receber o listener mesmo quando `--import-realm` é ignorado porque o banco já contém `betufu-local`. O script `scripts/reconcile-keycloak-event-listeners.mjs` usa a Admin API do Keycloak e segue o ciclo seguro **GET completo → união estável → PUT completo → GET de confirmação**. Ele preserva todos os campos e listeners existentes, acrescenta somente `jboss-logging` e `betufu-password-event-listener`, e não altera `eventsEnabled`.
+
+### 12.1 Credenciais e dry-run
+
+Forneça `KC_BOOTSTRAP_ADMIN_USERNAME` e `KC_BOOTSTRAP_ADMIN_PASSWORD` exclusivamente pelo ambiente protegido do processo (secret manager, variável protegida do job ou terminal local controlado). Não coloque usuário, senha ou token na linha de comando, em arquivo versionado ou em log.
+
+Depois que o healthcheck do novo Keycloak estiver `healthy`, execute primeiro o dry-run:
+
+```bash
+node scripts/reconcile-keycloak-event-listeners.mjs --base-url http://127.0.0.1:8081 --realm betufu-local
+```
+
+Saída esperada quando falta algum listener:
+
+```text
+[reconcile-keycloak-event-listeners] DRY_RUN realm=betufu-local action=ADD_REQUIRED_LISTENERS
+```
+
+O dry-run não executa `PUT`. Falha HTTP, timeout ou JSON inválido encerra o comando com código diferente de zero e mantém o rollout bloqueado.
+
+### 12.2 Aplicação e prova de idempotência
+
+Ainda com o Keycloak saudável e **antes de liberar qualquer tráfego**, aplique a reconciliação:
+
+```bash
+node scripts/reconcile-keycloak-event-listeners.mjs --apply --base-url http://127.0.0.1:8081 --realm betufu-local
+```
+
+Na primeira mudança, a saída esperada é:
+
+```text
+[reconcile-keycloak-event-listeners] APPLIED realm=betufu-local
+```
+
+Repita imediatamente o mesmo comando. A segunda execução não pode emitir outro `PUT` e deve responder:
+
+```text
+[reconcile-keycloak-event-listeners] UNCHANGED realm=betufu-local
+```
+
+Somente depois desse `UNCHANGED` o tráfego pode ser liberado. Se a leitura pós-escrita divergir, o script tenta restaurar o documento anterior e termina em erro; o operador deve manter o tráfego bloqueado, guardar a saída não sensível e escalar o incidente.
+
+### 12.3 Checklist pós-health do rollout D-40
+
+- [ ] Confirmar o serviço Keycloak como `healthy`.
+- [ ] Injetar `KC_BOOTSTRAP_ADMIN_USERNAME` e `KC_BOOTSTRAP_ADMIN_PASSWORD` apenas no ambiente protegido.
+- [ ] Executar o dry-run e revisar `DRY_RUN` ou `UNCHANGED`.
+- [ ] Executar `--apply` e exigir `APPLIED` ou `UNCHANGED`.
+- [ ] Repetir `--apply` e exigir exatamente `UNCHANGED`.
+- [ ] Confirmar pela Admin API que listeners anteriores continuam presentes e `eventsEnabled` não mudou.
+- [ ] Remover as credenciais administrativas do ambiente do processo.
+- [ ] Só então liberar tráfego para o Keycloak atualizado.

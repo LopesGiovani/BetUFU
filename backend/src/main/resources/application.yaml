@@ -36,6 +36,14 @@ betufu:
       current-version: "${BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION}"
       keys:
         v1: "${BETUFU_MATRICULA_HMAC_KEY_V1}"
+  session:
+    password-reset:
+      current-version: "${BETUFU_PASSWORD_RESET_CURRENT_VERSION:}"
+      previous-version: "${BETUFU_PASSWORD_RESET_PREVIOUS_VERSION:}"
+      maintenance-enabled: "${BETUFU_PASSWORD_RESET_MAINTENANCE_ENABLED:false}"
+      keys:
+        v1: "${BETUFU_PASSWORD_RESET_KEY_V1:}"
+        v2: "${BETUFU_PASSWORD_RESET_KEY_V2:}"
 
 ---
 spring:

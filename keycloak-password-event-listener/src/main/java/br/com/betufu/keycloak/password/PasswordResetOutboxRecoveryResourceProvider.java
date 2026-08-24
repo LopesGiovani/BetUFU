@@ -139,7 +139,9 @@ public class PasswordResetOutboxRecoveryResourceProvider
      */
     protected UserModel authenticatedUser() {
         AuthenticationManager.AuthResult auth =
-                new AppAuthManager.BearerTokenAuthenticator(session).authenticate();
+                new AppAuthManager.BearerTokenAuthenticator(session)
+                        .setAudience(REALM_MANAGEMENT_CLIENT)
+                        .authenticate();
         return auth != null ? auth.getUser() : null;
     }
 

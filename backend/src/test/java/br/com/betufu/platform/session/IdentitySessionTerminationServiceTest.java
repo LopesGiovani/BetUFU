@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,7 @@ class IdentitySessionTerminationServiceTest {
     private FindByIndexNameSessionRepository<Session> sessionRepository;
     private ObjectProvider<FindByIndexNameSessionRepository<? extends Session>> sessionRepositoryProvider;
     private SessionInvalidationListener invalidationListener;
+    private OidcSessionRevocationService revocationService;
     private IdentitySessionTerminationService service;
 
     @BeforeEach
@@ -40,7 +42,9 @@ class IdentitySessionTerminationServiceTest {
         sessionRepositoryProvider = mock(ObjectProvider.class);
         doReturn(sessionRepository).when(sessionRepositoryProvider).getIfAvailable();
         invalidationListener = mock(SessionInvalidationListener.class);
-        service = new IdentitySessionTerminationService(sessionRepositoryProvider, invalidationListener);
+        revocationService = mock(OidcSessionRevocationService.class);
+        service = new IdentitySessionTerminationService(
+                sessionRepositoryProvider, invalidationListener, revocationService);
     }
 
     @Test
@@ -64,11 +68,12 @@ class IdentitySessionTerminationServiceTest {
         assertThat(summary.totalTerminated()).isEqualTo(1);
         assertThat(summary.unrevokedOutcomes()).isEmpty();
         assertThat(summary.isFullyRevoked()).isTrue();
+        assertThat(summary.oidcGrantRevocationConfirmed()).isTrue();
     }
 
     @Test
-    @DisplayName("Terminates multiple sessions for same principal and collects non-revoked outcomes")
-    void handlesMultipleSessionsAndCollectsNonRevokedOutcomes() {
+    @DisplayName("Deletes two local sessions but revokes their single identity grant only once")
+    void multipleSessionsShareOneIdentityGrantRevocation() {
         MapSession s1 = new MapSession("session-1");
         MapSession s2 = new MapSession("session-2");
         Map<String, Session> sessions = new LinkedHashMap<>();
@@ -77,14 +82,8 @@ class IdentitySessionTerminationServiceTest {
 
         when(sessionRepository.findByPrincipalName(PRINCIPAL_NAME))
                 .thenReturn(sessions);
-        when(invalidationListener.onSessionInvalidated(
-                new SessionInvalidationListener.SessionInvalidation(
-                        "session-1", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY)))
+        when(invalidationListener.onSessionInvalidated(any()))
                 .thenReturn(OidcSessionRevocationService.Outcome.REVOKED);
-        when(invalidationListener.onSessionInvalidated(
-                new SessionInvalidationListener.SessionInvalidation(
-                        "session-2", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY)))
-                .thenReturn(OidcSessionRevocationService.Outcome.REMOTE_FAILURE);
 
         IdentitySessionTerminationService.TerminationSummary summary =
                 service.terminateAllSessionsFor(PRINCIPAL_NAME, SessionTerminationReason.SECURITY);
@@ -95,19 +94,18 @@ class IdentitySessionTerminationServiceTest {
         inOrder.verify(invalidationListener).onSessionInvalidated(
                 new SessionInvalidationListener.SessionInvalidation(
                         "session-1", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY));
-        inOrder.verify(invalidationListener).onSessionInvalidated(
-                new SessionInvalidationListener.SessionInvalidation(
-                        "session-2", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY));
+        verify(invalidationListener).onSessionInvalidated(any());
 
         assertThat(summary.totalTerminated()).isEqualTo(2);
-        assertThat(summary.unrevokedOutcomes())
-                .containsExactly(OidcSessionRevocationService.Outcome.REMOTE_FAILURE);
-        assertThat(summary.isFullyRevoked()).isFalse();
+        assertThat(summary.unrevokedOutcomes()).isEmpty();
+        assertThat(summary.revocationFailures()).isEmpty();
+        assertThat(summary.isFullyRevoked()).isTrue();
+        assertThat(summary.oidcGrantRevocationConfirmed()).isTrue();
     }
 
     @Test
-    @DisplayName("Local listener RuntimeException does not abort deletion of other sessions or subsequent revocation attempts")
-    void localListenerExceptionDoesNotAbortOtherDeletionsOrRevocations() {
+    @DisplayName("Local listener RuntimeException is recorded after every local session deletion")
+    void localListenerExceptionIsRecordedAfterAllLocalDeletions() {
         MapSession s1 = new MapSession("session-1");
         MapSession s2 = new MapSession("session-2");
         Map<String, Session> sessions = new LinkedHashMap<>();
@@ -120,11 +118,6 @@ class IdentitySessionTerminationServiceTest {
                 new SessionInvalidationListener.SessionInvalidation(
                         "session-1", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE)))
                 .thenThrow(new RuntimeException("Local OAuth2AuthorizedClientService failure"));
-        when(invalidationListener.onSessionInvalidated(
-                new SessionInvalidationListener.SessionInvalidation(
-                        "session-2", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE)))
-                .thenReturn(OidcSessionRevocationService.Outcome.REVOKED);
-
         IdentitySessionTerminationService.TerminationSummary summary =
                 service.terminateAllSessionsFor(PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE);
 
@@ -134,9 +127,7 @@ class IdentitySessionTerminationServiceTest {
         inOrder.verify(invalidationListener).onSessionInvalidated(
                 new SessionInvalidationListener.SessionInvalidation(
                         "session-1", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE));
-        inOrder.verify(invalidationListener).onSessionInvalidated(
-                new SessionInvalidationListener.SessionInvalidation(
-                        "session-2", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE));
+        verify(invalidationListener).onSessionInvalidated(any());
 
         assertThat(summary.totalTerminated()).isEqualTo(2);
         assertThat(summary.unrevokedOutcomes()).isEmpty();
@@ -152,16 +143,92 @@ class IdentitySessionTerminationServiceTest {
     void identityWithoutActiveSessionsIsNoOp() {
         when(sessionRepository.findByPrincipalName(PRINCIPAL_NAME))
                 .thenReturn(Map.of());
+        when(revocationService.retryPendingGrant(
+                        REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE))
+                .thenReturn(Optional.empty());
 
         IdentitySessionTerminationService.TerminationSummary summary =
                 service.terminateAllSessionsFor(PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE);
 
         verify(sessionRepository, never()).deleteById(any());
         verify(invalidationListener, never()).onSessionInvalidated(any());
+        verify(revocationService).retryPendingGrant(
+                REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.ADMINISTRATIVE);
 
         assertThat(summary.totalTerminated()).isZero();
         assertThat(summary.unrevokedOutcomes()).isEmpty();
         assertThat(summary.isFullyRevoked()).isTrue();
+        assertThat(summary.oidcGrantRevocationConfirmed()).isFalse();
+    }
+
+    @Test
+    @DisplayName("A later pass with no local sessions retries the retained grant revocation")
+    void noLocalSessionsRetriesPendingGrantRevocation() {
+        when(sessionRepository.findByPrincipalName(PRINCIPAL_NAME))
+                .thenReturn(Map.of());
+        when(revocationService.retryPendingGrant(
+                        REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY))
+                .thenReturn(Optional.of(OidcSessionRevocationService.Outcome.REVOKED));
+
+        IdentitySessionTerminationService.TerminationSummary summary =
+                service.terminateAllSessionsFor(PRINCIPAL_NAME, SessionTerminationReason.SECURITY);
+
+        verify(sessionRepository, never()).deleteById(any());
+        verify(invalidationListener, never()).onSessionInvalidated(any());
+        verify(revocationService).retryPendingGrant(
+                REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY);
+        assertThat(summary.totalTerminated()).isZero();
+        assertThat(summary.unrevokedOutcomes()).isEmpty();
+        assertThat(summary.isFullyRevoked()).isTrue();
+        assertThat(summary.oidcGrantRevocationConfirmed()).isTrue();
+    }
+
+    @Test
+    @DisplayName("A pending grant that still fails remotely remains explicitly non-terminal")
+    void noLocalSessionsKeepsRemoteFailureNonTerminal() {
+        when(sessionRepository.findByPrincipalName(PRINCIPAL_NAME))
+                .thenReturn(Map.of());
+        when(revocationService.retryPendingGrant(
+                        REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY))
+                .thenReturn(Optional.of(OidcSessionRevocationService.Outcome.REMOTE_FAILURE));
+
+        IdentitySessionTerminationService.TerminationSummary summary =
+                service.terminateAllSessionsFor(PRINCIPAL_NAME, SessionTerminationReason.SECURITY);
+
+        assertThat(summary.unrevokedOutcomes())
+                .containsExactly(OidcSessionRevocationService.Outcome.REMOTE_FAILURE);
+        assertThat(summary.isFullyRevoked()).isFalse();
+        assertThat(summary.oidcGrantRevocationConfirmed()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Every local delete may fail, but the shared provider grant is still revoked once")
+    void allLocalDeletionFailuresStillRevokeSharedGrantOnce() {
+        MapSession first = new MapSession("session-1");
+        MapSession second = new MapSession("session-2");
+        Map<String, Session> sessions = new LinkedHashMap<>();
+        sessions.put("session-1", first);
+        sessions.put("session-2", second);
+        when(sessionRepository.findByPrincipalName(PRINCIPAL_NAME)).thenReturn(sessions);
+        org.mockito.Mockito.doThrow(new RuntimeException("Redis unavailable"))
+                .when(sessionRepository).deleteById(any());
+        when(invalidationListener.onSessionInvalidated(any()))
+                .thenReturn(OidcSessionRevocationService.Outcome.REVOKED);
+
+        IdentitySessionTerminationService.TerminationSummary summary =
+                service.terminateAllSessionsFor(PRINCIPAL_NAME, SessionTerminationReason.SECURITY);
+
+        InOrder inOrder = inOrder(sessionRepository, invalidationListener);
+        inOrder.verify(sessionRepository).deleteById("session-1");
+        inOrder.verify(sessionRepository).deleteById("session-2");
+        inOrder.verify(invalidationListener).onSessionInvalidated(
+                new SessionInvalidationListener.SessionInvalidation(
+                        "session-1", REGISTRATION_ID, PRINCIPAL_NAME, SessionTerminationReason.SECURITY));
+        verify(invalidationListener).onSessionInvalidated(any());
+        assertThat(summary.totalTerminated()).isZero();
+        assertThat(summary.unrevokedOutcomes()).isEmpty();
+        assertThat(summary.revocationFailures()).hasSize(2);
+        assertThat(summary.isFullyRevoked()).isFalse();
     }
 
     @Test
@@ -181,6 +248,7 @@ class IdentitySessionTerminationServiceTest {
         assertThat(summary.unrevokedOutcomes())
                 .containsExactly(OidcSessionRevocationService.Outcome.REMOTE_FAILURE);
         assertThat(summary.isFullyRevoked()).isFalse();
+        assertThat(summary.oidcGrantRevocationConfirmed()).isFalse();
     }
 
     @Test
@@ -240,9 +308,14 @@ class IdentitySessionTerminationServiceTest {
     @Test
     @DisplayName("Validates non-null and non-blank arguments")
     void validatesArguments() {
-        assertThatThrownBy(() -> new IdentitySessionTerminationService(null, invalidationListener))
+        assertThatThrownBy(() -> new IdentitySessionTerminationService(
+                        null, invalidationListener, revocationService))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> new IdentitySessionTerminationService(sessionRepositoryProvider, null))
+        assertThatThrownBy(() -> new IdentitySessionTerminationService(
+                        sessionRepositoryProvider, null, revocationService))
+                .isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new IdentitySessionTerminationService(
+                        sessionRepositoryProvider, invalidationListener, null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> service.terminateAllSessionsFor(null, SessionTerminationReason.ADMINISTRATIVE))
                 .isInstanceOf(NullPointerException.class);

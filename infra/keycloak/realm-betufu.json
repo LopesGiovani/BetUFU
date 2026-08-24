@@ -1,6 +1,10 @@
 {
   "realm": "betufu-local",
   "enabled": true,
+  "eventsListeners": [
+    "jboss-logging",
+    "betufu-password-event-listener"
+  ],
   "registrationAllowed": true,
   "registrationEmailAsUsername": true,
   "resetPasswordAllowed": true,

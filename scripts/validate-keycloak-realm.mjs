@@ -19,6 +19,7 @@ const EXPECTED = Object.freeze({
   // campos: detectar drift, nao apenas presenca.
   technicalFirstName: 'BETUFU',
   technicalLastName: 'Technical',
+  eventsListeners: ['jboss-logging', 'betufu-password-event-listener'],
   redirectUris: ['http://localhost:4200/login/oauth2/code/keycloak'],
   postLogoutRedirectUris: 'http://localhost:4200/',
   webOrigins: ['http://localhost:4200'],
@@ -85,6 +86,7 @@ export function validateRealmDocument(realm) {
     [
       'realm',
       'enabled',
+      'eventsListeners',
       'registrationAllowed',
       'registrationEmailAsUsername',
       'resetPasswordAllowed',
@@ -102,6 +104,11 @@ export function validateRealmDocument(realm) {
 
   expectExact(realm.realm, EXPECTED.realm, 'realm.realm');
   expectExact(realm.enabled, true, 'realm.enabled');
+  expectExact(
+    realm.eventsListeners,
+    EXPECTED.eventsListeners,
+    'realm.eventsListeners',
+  );
   expectExact(realm.registrationAllowed, true, 'realm.registrationAllowed');
   expectExact(realm.registrationEmailAsUsername, true, 'realm.registrationEmailAsUsername');
   expectExact(realm.resetPasswordAllowed, true, 'realm.resetPasswordAllowed');

@@ -50,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -82,6 +83,8 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.Session;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -202,7 +205,14 @@ class PasswordResetDeliveryRecoveryIT {
     private IdentitySessionTerminationService sessionTerminationService;
 
     @Autowired
+    private ObjectProvider<FindByIndexNameSessionRepository<? extends Session>>
+            sessionRepositoryProvider;
+
+    @Autowired
     private OAuth2AuthorizedClientService authorizedClientService;
+
+    @Autowired
+    private OidcRevocationClient oidcRevocationClient;
 
     @Autowired
     private ClientRegistrationRepository clientRegistrationRepository;
@@ -240,6 +250,7 @@ class PasswordResetDeliveryRecoveryIT {
 
         testIdentityLookup.clear();
         testAuditRecorder.clear();
+        org.mockito.Mockito.reset(oidcRevocationClient);
     }
 
     // -------------------------------------------------------------------------
@@ -761,6 +772,62 @@ class PasswordResetDeliveryRecoveryIT {
     }
 
     @Test
+    @DisplayName("Crash depois de remover o cliente OAuth nunca vira DELIVERED sem confirmacao remota")
+    void crashAfterAuthorizedClientRemovalRequiresPositiveRevocationEvidenceAfterRestart() {
+        String sourceEventId = "evt-crash-after-client-removal-" + UUID.randomUUID();
+        Instant now = clock.instant();
+        insertFixture(sourceEventId, "PENDING", now.minusSeconds(30), null, null);
+        sessionRepository.save(createAuthenticatedSession(TARGET_SUBJECT_A));
+
+        org.mockito.Mockito.doThrow(new SimulatedProcessCrash())
+                .when(oidcRevocationClient)
+                .revokeRefreshToken(
+                        org.mockito.ArgumentMatchers.any(),
+                        org.mockito.ArgumentMatchers.anyString());
+
+        assertThatThrownBy(() -> inboxService.recoverPendingEvents(
+                        "worker-crashes-after-client-removal", Duration.ofMinutes(5), now))
+                .isInstanceOf(SimulatedProcessCrash.class);
+
+        PasswordResetEventInboxEntity claimed =
+                inboxRepository.findBySourceEventId(sourceEventId).orElseThrow();
+        assertThat(claimed.getStatus()).isEqualTo("CLAIMED");
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+        OAuth2AuthorizedClient removedClient = authorizedClientService.loadAuthorizedClient(
+                IdentitySessionTerminationService.DEFAULT_REGISTRATION_ID,
+                TARGET_SUBJECT_A);
+        assertThat(removedClient).isNull();
+
+        org.mockito.Mockito.reset(oidcRevocationClient);
+        OidcSessionRevocationService restartedRevocation = applicationContext
+                .getAutowireCapableBeanFactory()
+                .createBean(OidcSessionRevocationService.class);
+        IdentitySessionTerminationService restartedTermination =
+                new IdentitySessionTerminationService(
+                        sessionRepositoryProvider,
+                        new SessionInvalidationListener(restartedRevocation),
+                        restartedRevocation);
+        PasswordResetEventInboxService restartedService = new PasswordResetEventInboxService(
+                inboxRepository, restartedTermination, testAuditRecorder, transactionManager);
+
+        assertThat(restartedService.recoverPendingEvents(
+                        "replacement-after-process-restart",
+                        Duration.ofMinutes(5),
+                        now.plus(Duration.ofMinutes(6))))
+                .singleElement()
+                .satisfies(result -> {
+                    assertThat(result.status()).isEqualTo("FAILED");
+                    assertThat(result.terminatedSessionCount()).isZero();
+                });
+
+        PasswordResetEventInboxEntity retained =
+                inboxRepository.findBySourceEventId(sourceEventId).orElseThrow();
+        assertThat(retained.getStatus()).isEqualTo("FAILED");
+        assertThat(retained.getLastError()).isEqualTo("TERMINATION_FAILED");
+        assertThat(retained.getDeliveredAt()).isNull();
+    }
+
+    @Test
     @DisplayName("Summary parcial permanece FAILED em entrega, recovery e replay administrativo")
     void partialTerminationSummaryNeverBecomesDelivered() {
         IdentitySessionTerminationService partialTermination = mock(IdentitySessionTerminationService.class);
@@ -794,6 +861,44 @@ class PasswordResetDeliveryRecoveryIT {
             assertThat(entity.getStatus()).isEqualTo("FAILED");
             assertThat(entity.getLastError()).isEqualTo("TERMINATION_FAILED");
         });
+    }
+
+    @Test
+    @DisplayName("Replay FAILED sem evidencia positiva de revogacao permanece FAILED apos restart")
+    void failedReplayWithoutPositiveGrantEvidenceRemainsFailedAfterBackendRestart() {
+        authorizedClientService.removeAuthorizedClient(
+                IdentitySessionTerminationService.DEFAULT_REGISTRATION_ID,
+                TARGET_SUBJECT_A);
+        OidcSessionRevocationService restartedRevocation = applicationContext
+                .getAutowireCapableBeanFactory()
+                .createBean(OidcSessionRevocationService.class);
+        IdentitySessionTerminationService restartedTermination =
+                new IdentitySessionTerminationService(
+                        sessionRepositoryProvider,
+                        new SessionInvalidationListener(restartedRevocation),
+                        restartedRevocation);
+        PasswordResetEventInboxService restartedService = new PasswordResetEventInboxService(
+                inboxRepository, restartedTermination, testAuditRecorder, transactionManager);
+        String sourceEventId = "evt-restart-without-proof-" + UUID.randomUUID();
+        Instant now = clock.instant();
+        insertFixture(
+                sourceEventId,
+                "FAILED",
+                now.minus(Duration.ofMinutes(10)),
+                null,
+                "TERMINATION_FAILED");
+
+        assertThat(restartedService.reprocessFailedEvent(sourceEventId, UUID.randomUUID(), now))
+                .hasValueSatisfying(result -> {
+                    assertThat(result.status()).isEqualTo("FAILED");
+                    assertThat(result.effectExecuted()).isTrue();
+                    assertThat(result.terminatedSessionCount()).isZero();
+                });
+
+        PasswordResetEventInboxEntity retained =
+                inboxRepository.findBySourceEventId(sourceEventId).orElseThrow();
+        assertThat(retained.getStatus()).isEqualTo("FAILED");
+        assertThat(retained.getLastError()).isEqualTo("TERMINATION_FAILED");
     }
 
     @Test
@@ -1071,6 +1176,10 @@ class PasswordResetDeliveryRecoveryIT {
             }
             return Optional.ofNullable(identities.get(issuer + ":" + subject));
         }
+    }
+
+    private static final class SimulatedProcessCrash extends Error {
+        private static final long serialVersionUID = 1L;
     }
 
     static final class TestAuditRecorder implements AuditRecorder {
