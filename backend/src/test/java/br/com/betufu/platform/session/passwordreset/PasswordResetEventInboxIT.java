@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,14 +47,19 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -70,6 +77,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import br.com.betufu.platform.security.OidcRevocationClient;
+import br.com.betufu.audit.AuditRecorder;
 import br.com.betufu.platform.session.IdentitySessionTerminationService;
 import br.com.betufu.platform.session.OidcSessionRevocationService;
 import br.com.betufu.platform.session.RedisContainerSupport;
@@ -113,7 +121,13 @@ import br.com.betufu.platform.session.SessionTerminationReason;
             "BETUFU_OIDC_ISSUER_URI=https://idp.invalid",
             "BETUFU_OIDC_CLIENT_ID=betufu-inbox-it",
             "BETUFU_OIDC_CLIENT_SECRET=unused",
-            "BETUFU_PASSWORD_RESET_HMAC_KEY_V1=dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ=="
+            // A chave chega pelo modelo de propriedades, nao por campo proprio do endpoint.
+            // Antes ela vinha de BETUFU_PASSWORD_RESET_HMAC_KEY_V1 ligada a um @Value no
+            // PasswordResetEventEndpoint; esse caminho foi removido na Task 02-31-01, porque
+            // D-40 exige exatamente duas chaves resolvidas por current/previous e nenhum
+            // segredo default fora desse modelo.
+            "betufu.session.password-reset.current-version=v1",
+            "betufu.session.password-reset.keys.v1=MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
         })
 @ActiveProfiles("integrated")
 @Testcontainers
@@ -133,7 +147,8 @@ class PasswordResetEventInboxIT {
     private static final String CONTROL_SUBJECT_B = "inbox-control-user-beta";
     private static final String TEST_REALM = "betufu-local";
     private static final String KEY_ID = "v1";
-    private static final byte[] RAW_SECRET_KEY = Base64.getDecoder().decode("dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ==");
+    private static final String RAW_SECRET_KEY_BASE64 = "MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
+    private static final byte[] RAW_SECRET_KEY = Base64.getDecoder().decode(RAW_SECRET_KEY_BASE64);
 
     private static final String POSTGRES_IMAGE_REFERENCE =
             "docker.io/library/postgres:18.4-trixie@sha256:"
@@ -178,6 +193,12 @@ class PasswordResetEventInboxIT {
     private PasswordResetEventInboxService inboxService;
 
     @Autowired
+    private OAuth2AuthorizedClientService authorizedClientService;
+
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
+
+    @Autowired
     private PasswordResetSignedEnvelopeVerifier verifier;
 
     @Autowired
@@ -197,11 +218,33 @@ class PasswordResetEventInboxIT {
             return null;
         });
         jdbcTemplate.execute("TRUNCATE TABLE public.password_reset_event_inbox");
-        clock.set(Instant.now());
+        // Alinhado a milissegundo de proposito. O envelope transporta o timestamp como epoch
+        // em millis, entao um relogio com precisao de microssegundo faz now.minusSeconds(300)
+        // voltar do transporte como 300s MAIS a fracao truncada — e a fronteira exata da janela
+        // passa a falhar por menos de um milissegundo, sem que nada esteja errado na regra.
+        clock.set(Instant.now().truncatedTo(ChronoUnit.MILLIS));
         sessionRepository = (SelectiveTouchSessionRepository) applicationContext.getBean("sessionRepository");
         mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
                 .apply(SecurityMockMvcConfigurers.springSecurity())
                 .build();
+        restoreCanonicalKeyConfiguration();
+    }
+
+    @AfterEach
+    void restoreProperties() {
+        restoreCanonicalKeyConfiguration();
+    }
+
+    /**
+     * PasswordResetEventProperties e um bean singleton, e as provas de rotacao mutam
+     * currentVersion, previousVersion e o mapa de chaves. Sem restaurar, o estado vaza para as
+     * provas seguintes e o resultado passa a depender da ordem de execucao — uma prova que so
+     * passa quando roda primeiro nao prova nada.
+     */
+    private void restoreCanonicalKeyConfiguration() {
+        properties.setCurrentVersion(KEY_ID);
+        properties.setPreviousVersion(null);
+        properties.setKeys(Map.of(KEY_ID, RAW_SECRET_KEY_BASE64));
     }
 
     @Test
@@ -380,13 +423,10 @@ class PasswordResetEventInboxIT {
     void processEventDeliversSuccessfullyAndTerminatesAllSubjectSessions() {
         SelectiveTouchSessionRepository.SelectiveSession sessionA1 = createAuthenticatedSession(TARGET_SUBJECT_A);
         sessionRepository.save(sessionA1);
-        SelectiveTouchSessionRepository.SelectiveSession sessionA2 = createAuthenticatedSession(TARGET_SUBJECT_A);
-        sessionRepository.save(sessionA2);
-
         SelectiveTouchSessionRepository.SelectiveSession sessionB1 = createAuthenticatedSession(CONTROL_SUBJECT_B);
         sessionRepository.save(sessionB1);
 
-        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(2);
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
         assertThat(sessionRepository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
 
         String sourceEventId = "evt-process-" + UUID.randomUUID();
@@ -397,12 +437,11 @@ class PasswordResetEventInboxIT {
         assertThat(result.sourceEventId()).isEqualTo(sourceEventId);
         assertThat(result.status()).isEqualTo(PasswordResetEventInboxEntity.STATUS_DELIVERED);
         assertThat(result.effectExecuted()).isTrue();
-        assertThat(result.terminatedSessionCount()).isEqualTo(2);
+        assertThat(result.terminatedSessionCount()).isEqualTo(1);
 
         // Sessões de Target A foram destruídas
         assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
         assertThat(sessionRepository.findById(sessionA1.getId())).isNull();
-        assertThat(sessionRepository.findById(sessionA2.getId())).isNull();
 
         // Sessão de Control B sobrevive intacta
         assertThat(sessionRepository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
@@ -590,6 +629,7 @@ class PasswordResetEventInboxIT {
                 """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
 
         byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String timestampHeader = String.valueOf(clock.instant().toEpochMilli());
 
         // 1. Requisição sem cabeçalhos HMAC é rejeitada com 401 Unauthorized
         mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
@@ -601,7 +641,7 @@ class PasswordResetEventInboxIT {
         mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
                         .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, "bad-signature-00000000000000000000000000000000000000000000000000")
                         .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
                         .content(bodyBytes))
@@ -666,7 +706,7 @@ class PasswordResetEventInboxIT {
 
         byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
         String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        String timestampHeader = "123456789";
+        String timestampHeader = String.valueOf(clock.instant().toEpochMilli());
 
         // Assinatura gerada para keyId desconhecido
         String signature = verifier.sign(
@@ -751,7 +791,7 @@ class PasswordResetEventInboxIT {
 
         byte[] bodyBytes = hugePayload.getBytes(StandardCharsets.UTF_8);
         String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        String timestampHeader = "123456789";
+        String timestampHeader = String.valueOf(clock.instant().toEpochMilli());
         String signature = verifier.sign(
                 RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST",
                 PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
@@ -776,18 +816,19 @@ class PasswordResetEventInboxIT {
     @DisplayName("Task 02-30-03: Payload que não é objeto JSON ou contém campos proibidos é rejeitado com 400 Bad Request")
     void endpointRejectsNonJsonObjectAndProhibitedFields() throws Exception {
         String sourceEventId = "evt-sec-prohibited-" + UUID.randomUUID();
+        String timestampHeader = String.valueOf(clock.instant().toEpochMilli());
 
         // 1. JSON Array é rejeitado
         byte[] arrayBytes = "[{\"sourceEventId\":\"evt-1\"}]".getBytes(StandardCharsets.UTF_8);
         String arraySha256 = verifier.computeBodySha256(arrayBytes);
         String arraySig = verifier.sign(
-                RAW_SECRET_KEY, KEY_ID, "123456789", "POST",
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST",
                 PasswordResetEventEndpoint.ENDPOINT_PATH, "evt-1", arraySha256);
 
         mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
                         .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, arraySig)
                         .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, "evt-1")
                         .content(arrayBytes))
@@ -807,13 +848,13 @@ class PasswordResetEventInboxIT {
         byte[] emailBytes = payloadWithEmail.getBytes(StandardCharsets.UTF_8);
         String emailSha256 = verifier.computeBodySha256(emailBytes);
         String emailSig = verifier.sign(
-                RAW_SECRET_KEY, KEY_ID, "123456789", "POST",
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST",
                 PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, emailSha256);
 
         mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
                         .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, emailSig)
                         .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
                         .content(emailBytes))
@@ -821,32 +862,44 @@ class PasswordResetEventInboxIT {
     }
 
     @Test
-    @DisplayName("Task 02-30-03: PasswordResetEventProperties protege segredos em toString e resolve chaves válidas")
+    @DisplayName("Task 02-30-03 & 02-31-01: PasswordResetEventProperties protege segredos em toString e resolve apenas current e previous")
     void propertiesRedactsSecretsInToStringAndResolvesValidKeys() {
         PasswordResetEventProperties testProps = new PasswordResetEventProperties();
-        testProps.setCurrentVersion("v1");
+        testProps.setCurrentVersion("v2");
+        testProps.setPreviousVersion("v1");
         testProps.setKeys(Map.of(
-                "v1", "dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ==",
+                "v2", "MjEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+                "v1", "MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+                "v3", "MzEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
                 "short", "dG9vLXNob3J0"
         ));
 
         // Segredos nunca aparecem em toString (PRIV-01)
         assertThat(testProps.toString())
-                .doesNotContain("dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ==")
+                .doesNotContain("MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
+                .doesNotContain("MjEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
+                .doesNotContain("MzEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
                 .doesNotContain("dG9vLXNob3J0")
-                .contains("currentVersion='v1'")
+                .contains("currentVersion='v2'")
+                .contains("previousVersion='v1'")
                 .contains("configuredKeyIds");
 
-        // Chave de 31 bytes decodifica com sucesso (>= 16 bytes)
-        byte[] v1Key = testProps.resolveKey("v1");
-        assertThat(v1Key).isNotNull().hasSize(31);
+        // Chave corrente v2 decodifica com sucesso
+        byte[] v2Key = testProps.resolveKey("v2");
+        assertThat(v2Key).isNotNull().hasSize(32);
 
-        // Chave curta (< 16 bytes) falha fechada retornando null
-        byte[] shortKey = testProps.resolveKey("short");
-        assertThat(shortKey).isNull();
+        // Chave anterior v1 decodifica com sucesso
+        byte[] v1Key = testProps.resolveKey("v1");
+        assertThat(v1Key).isNotNull().hasSize(32);
+
+        // Chave v3 presente no mapa mas que NÃO é current nem previous retorna null (D-40)
+        assertThat(testProps.resolveKey("v3")).isNull();
+
+        // Chave curta (< 32 bytes) falha fechada retornando null
+        assertThat(testProps.resolveKey("short")).isNull();
 
         // Chave desconhecida ou nula retorna null
-        assertThat(testProps.resolveKey("v2")).isNull();
+        assertThat(testProps.resolveKey("v4")).isNull();
         assertThat(testProps.resolveKey(null)).isNull();
         assertThat(testProps.resolveKey("   ")).isNull();
     }
@@ -855,16 +908,36 @@ class PasswordResetEventInboxIT {
     @DisplayName("Task 02-30-03: PasswordResetEventProperties exige Base64 válido e não faz fallback para UTF-8")
     void propertiesRequiresStrictBase64WithoutUtf8Fallback() {
         PasswordResetEventProperties props = new PasswordResetEventProperties();
+        props.setCurrentVersion("valid-base64");
+        props.setPreviousVersion("non-base64");
         props.setKeys(Map.of(
                 "non-base64", "this-is-not-valid-base64!@#$",
-                "valid-base64", "dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ=="
+                "valid-base64", "MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
         ));
 
         // String não-Base64 retorna null (sem fallback para bytes UTF-8)
         assertThat(props.resolveKey("non-base64")).isNull();
 
         // Base64 válido retorna os bytes decodificados
-        assertThat(props.resolveKey("valid-base64")).isNotNull().hasSize(31);
+        assertThat(props.resolveKey("valid-base64")).isNotNull().hasSize(32);
+    }
+
+    @Test
+    @DisplayName("D-40: chave HMAC de 31 bytes e recusada, e a fronteira de 32 bytes e aceita")
+    void hmacKeyMinimumIsExactlyThirtyTwoBytes() {
+        PasswordResetEventProperties props = new PasswordResetEventProperties();
+        props.setCurrentVersion("v1");
+        props.setKeys(Map.of(
+                "v1", Base64.getEncoder().encodeToString(new byte[31])));
+        assertThat(props.resolveKey("v1")).isNull();
+        assertThatThrownBy(() -> verifier.sign(
+                new byte[31], "v1", "1", "POST", "/path", "event", "hash"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("32 bytes");
+
+        props.setKeys(Map.of(
+                "v1", Base64.getEncoder().encodeToString(new byte[32])));
+        assertThat(props.resolveKey("v1")).hasSize(32);
     }
 
     @Test
@@ -898,7 +971,7 @@ class PasswordResetEventInboxIT {
 
         byte[] bodyBytes = jsonPayloadWithDuplicate.getBytes(StandardCharsets.UTF_8);
         String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        String timestampHeader = "123456789";
+        String timestampHeader = String.valueOf(clock.instant().toEpochMilli());
         String signature = verifier.sign(
                 RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
 
@@ -928,7 +1001,7 @@ class PasswordResetEventInboxIT {
 
         byte[] bodyBytes = jsonWithRealmIdUnderscore.getBytes(StandardCharsets.UTF_8);
         String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        String timestampHeader = "123456789";
+        String timestampHeader = String.valueOf(clock.instant().toEpochMilli());
         String signature = verifier.sign(
                 RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
 
@@ -940,6 +1013,318 @@ class PasswordResetEventInboxIT {
                         .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
                         .content(bodyBytes))
                 .andExpect(status().isBadRequest());
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Task 02-31-01: Key Rotation, Replay Window Boundaries and Idempotency Tests
+    // ---------------------------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("Task 02-31-01: Endpoint aceita chaves current e previous, e rejeita outras chaves configuradas ou desconhecidas (D-40)")
+    void endpointAcceptsCurrentAndPreviousKeyVersionsAndRejectsOtherConfiguredKeys() throws Exception {
+        byte[] keyV1Bytes = Base64.getDecoder().decode("MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
+        byte[] keyV2Bytes = Base64.getDecoder().decode("MjEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
+        byte[] keyV3Bytes = Base64.getDecoder().decode("MzEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
+
+        properties.setCurrentVersion("v2");
+        properties.setPreviousVersion("v1");
+        properties.setKeys(Map.of(
+                "v1", "MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+                "v2", "MjEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+                "v3", "MzEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+        ));
+
+        // 1. Chave corrente v2 é aceita
+        SelectiveTouchSessionRepository.SelectiveSession session1 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(session1);
+
+        String sourceEventIdV2 = "evt-key-v2-" + UUID.randomUUID();
+        Instant now = clock.instant();
+        String jsonPayloadV2 = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventIdV2, TARGET_SUBJECT_A, TEST_REALM, now.toString());
+        byte[] bodyV2 = jsonPayloadV2.getBytes(StandardCharsets.UTF_8);
+        String timestampHeader = String.valueOf(now.toEpochMilli());
+        String sigV2 = verifier.sign(keyV2Bytes, "v2", timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventIdV2, verifier.computeBodySha256(bodyV2));
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, "v2")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, sigV2)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventIdV2)
+                        .content(bodyV2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DELIVERED"))
+                .andExpect(jsonPath("$.effectExecuted").value(true));
+
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+
+        // 2. Chave anterior v1 é aceita
+        SelectiveTouchSessionRepository.SelectiveSession session2 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(session2);
+
+        String sourceEventIdV1 = "evt-key-v1-" + UUID.randomUUID();
+        String jsonPayloadV1 = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventIdV1, TARGET_SUBJECT_A, TEST_REALM, now.toString());
+        byte[] bodyV1 = jsonPayloadV1.getBytes(StandardCharsets.UTF_8);
+        String sigV1 = verifier.sign(keyV1Bytes, "v1", timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventIdV1, verifier.computeBodySha256(bodyV1));
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, "v1")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, sigV1)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventIdV1)
+                        .content(bodyV1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DELIVERED"))
+                .andExpect(jsonPath("$.effectExecuted").value(true));
+
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+
+        // 3. Chave v3 configurada no properties mas que NÃO é current nem previous é REJEITADA com 401
+        SelectiveTouchSessionRepository.SelectiveSession session3 = createAuthenticatedSession(TARGET_SUBJECT_A);
+        sessionRepository.save(session3);
+
+        String sourceEventIdV3 = "evt-key-v3-" + UUID.randomUUID();
+        String jsonPayloadV3 = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventIdV3, TARGET_SUBJECT_A, TEST_REALM, now.toString());
+        byte[] bodyV3 = jsonPayloadV3.getBytes(StandardCharsets.UTF_8);
+        String sigV3 = verifier.sign(keyV3Bytes, "v3", timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventIdV3, verifier.computeBodySha256(bodyV3));
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, "v3")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, sigV3)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventIdV3)
+                        .content(bodyV3))
+                .andExpect(status().isUnauthorized());
+
+        // Sessão sobrevive intacta porque chave v3 foi rejeitada
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+
+        // 4. Chave desconhecida v4 é REJEITADA com 401
+        String sourceEventIdV4 = "evt-key-v4-" + UUID.randomUUID();
+        String jsonPayloadV4 = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventIdV4, TARGET_SUBJECT_A, TEST_REALM, now.toString());
+        byte[] bodyV4 = jsonPayloadV4.getBytes(StandardCharsets.UTF_8);
+        String sigV4 = verifier.sign(keyV1Bytes, "v4", timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventIdV4, verifier.computeBodySha256(bodyV4));
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, "v4")
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, sigV4)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventIdV4)
+                        .content(bodyV4))
+                .andExpect(status().isUnauthorized());
+
+        assertThat(sessionRepository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Task 02-31-01: Endpoint aplica janela exata de ±5 minutos (300s) e rejeita timestamp fora da janela ou malformado (D-40)")
+    void endpointEnforcesFiveMinuteReplayWindowBoundaries() throws Exception {
+        properties.setCurrentVersion("v1");
+        properties.setPreviousVersion(null);
+        properties.setKeys(Map.of("v1", "MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="));
+
+        Instant now = clock.instant();
+
+        // 1. Timestamp no presente (now) -> 200 OK
+        assertEndpointTimestampAccepted(now, "evt-time-now-");
+
+        // 2. Limite exato no passado: now - 5 minutos (300 segundos) -> 200 OK
+        assertEndpointTimestampAccepted(now.minusSeconds(300), "evt-time-minus-5m-");
+
+        // 3. Limite exato no futuro: now + 5 minutos (300 segundos) -> 200 OK
+        assertEndpointTimestampAccepted(now.plusSeconds(300), "evt-time-plus-5m-");
+
+        // 4. Fora da janela no passado: now - 301 segundos -> 401 Unauthorized
+        assertEndpointTimestampRejected(now.minusSeconds(301), "evt-time-past-301s-");
+
+        // 5. Fora da janela no futuro: now + 301 segundos -> 401 Unauthorized
+        assertEndpointTimestampRejected(now.plusSeconds(301), "evt-time-future-301s-");
+
+        // 6. Timestamp malformado / não numérico -> 401 Unauthorized
+        String sourceEventIdMalformed = "evt-time-malformed-" + UUID.randomUUID();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventIdMalformed, TARGET_SUBJECT_A, TEST_REALM, now.toString());
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String malformedTimestamp = "not-a-valid-timestamp";
+        String sig = verifier.sign(RAW_SECRET_KEY, KEY_ID, malformedTimestamp, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventIdMalformed, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, malformedTimestamp)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, sig)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventIdMalformed)
+                        .content(bodyBytes))
+                .andExpect(status().isUnauthorized());
+
+        // 7. Long.MIN_VALUE must be rejected as 401 instead of overflowing into HTTP 500.
+        String extremeTimestamp = Long.toString(Long.MIN_VALUE);
+        String extremeEventId = "evt-time-extreme-" + UUID.randomUUID();
+        String extremePayload = jsonPayload.replace(sourceEventIdMalformed, extremeEventId);
+        byte[] extremeBody = extremePayload.getBytes(StandardCharsets.UTF_8);
+        String extremeSignature = verifier.sign(
+                RAW_SECRET_KEY,
+                KEY_ID,
+                extremeTimestamp,
+                "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH,
+                extremeEventId,
+                verifier.computeBodySha256(extremeBody));
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, extremeTimestamp)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, extremeSignature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, extremeEventId)
+                        .content(extremeBody))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Task 02-31-01: Verifier valida parsing de timestamps (millis, seconds, ISO-8601) e tolerância de 5 minutos")
+    void verifierEnforcesTimestampParsingAndToleranceWindow() {
+        // A janela so e verificavel se o verificador usar o relogio injetado. Se ele cair no
+        // Clock.systemUTC() do construtor sem argumento, as fronteiras exatas (+-300s) passam a
+        // depender do tempo real decorrido entre montar a requisicao e avaliar o envelope, e a
+        // prova vira instavel em vez de discriminante.
+        assertThat(verifier.getClock())
+                .as("o verificador precisa usar o Clock injetado, nao Clock.systemUTC()")
+                .isSameAs(clock);
+
+        Instant now = clock.instant();
+
+        // 1. Parsing epoch millis
+        String epochMillisStr = String.valueOf(now.toEpochMilli());
+        Optional<Instant> parsedMillis = verifier.parseTimestamp(epochMillisStr);
+        assertThat(parsedMillis).isPresent();
+        assertThat(parsedMillis.get().toEpochMilli()).isEqualTo(now.toEpochMilli());
+
+        // 2. Parsing epoch seconds
+        String epochSecStr = String.valueOf(now.getEpochSecond());
+        Optional<Instant> parsedSec = verifier.parseTimestamp(epochSecStr);
+        assertThat(parsedSec).isPresent();
+        assertThat(parsedSec.get().getEpochSecond()).isEqualTo(now.getEpochSecond());
+
+        // 3. Parsing ISO-8601
+        String isoStr = now.toString();
+        Optional<Instant> parsedIso = verifier.parseTimestamp(isoStr);
+        assertThat(parsedIso).isPresent();
+        assertThat(parsedIso.get()).isEqualTo(now);
+
+        // 4. Invalid timestamp string returns empty
+        assertThat(verifier.parseTimestamp(null)).isEmpty();
+        assertThat(verifier.parseTimestamp("")).isEmpty();
+        assertThat(verifier.parseTimestamp("   ")).isEmpty();
+        assertThat(verifier.parseTimestamp("invalid-timestamp-format")).isEmpty();
+
+        // 5. isTimestampValid tolerance check against now
+        assertThat(verifier.isTimestampValid(epochMillisStr)).isTrue();
+        assertThat(verifier.isTimestampValid(String.valueOf(now.minusSeconds(300).toEpochMilli()))).isTrue();
+        assertThat(verifier.isTimestampValid(String.valueOf(now.plusSeconds(300).toEpochMilli()))).isTrue();
+        assertThat(verifier.isTimestampValid(String.valueOf(now.minusSeconds(301).toEpochMilli()))).isFalse();
+        assertThat(verifier.isTimestampValid(String.valueOf(now.plusSeconds(301).toEpochMilli()))).isFalse();
+        assertThat(verifier.isTimestampValid("invalid")).isFalse();
+    }
+
+    private void assertEndpointTimestampAccepted(Instant eventInstant, String prefix) throws Exception {
+        String sourceEventId = prefix + UUID.randomUUID();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, eventInstant.toString());
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String timestampHeader = String.valueOf(eventInstant.toEpochMilli());
+        String signature = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(bodyBytes))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DELIVERED"))
+                .andExpect(jsonPath("$.effectExecuted").value(true));
+    }
+
+    private void assertEndpointTimestampRejected(Instant eventInstant, String prefix) throws Exception {
+        String sourceEventId = prefix + UUID.randomUUID();
+        String jsonPayload = """
+                {
+                    "sourceEventId": "%s",
+                    "subject": "%s",
+                    "realmId": "%s",
+                    "eventType": "UPDATE_CREDENTIAL",
+                    "timestamp": "%s"
+                }
+                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, eventInstant.toString());
+        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+        String bodySha256 = verifier.computeBodySha256(bodyBytes);
+        String timestampHeader = String.valueOf(eventInstant.toEpochMilli());
+        String signature = verifier.sign(
+                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST",
+                PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+
+        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                        .content(bodyBytes))
+                .andExpect(status().isUnauthorized());
     }
 
     private static void assertSqlStateAndConstraint(
@@ -957,6 +1342,7 @@ class PasswordResetEventInboxIT {
     }
 
     private SelectiveTouchSessionRepository.SelectiveSession createAuthenticatedSession(String subject) {
+        saveAuthorizedClient(subject);
         SelectiveTouchSessionRepository.SelectiveSession session = sessionRepository.createSession();
         Instant now = clock.instant();
 
@@ -995,6 +1381,23 @@ class PasswordResetEventInboxIT {
         return session;
     }
 
+    private void saveAuthorizedClient(String principalName) {
+        ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("keycloak");
+        Instant issuedAt = clock.instant();
+        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(
+                registration,
+                principalName,
+                new OAuth2AccessToken(
+                        OAuth2AccessToken.TokenType.BEARER,
+                        "test-access-token",
+                        issuedAt,
+                        issuedAt.plusSeconds(300)),
+                new OAuth2RefreshToken("test-refresh-token", issuedAt));
+        authorizedClientService.saveAuthorizedClient(
+                client,
+                new TestingAuthenticationToken(principalName, "not-used", "ROLE_USER"));
+    }
+
     @TestConfiguration(proxyBeanMethods = false)
     @EnableAutoConfiguration
     static class TestApplication {
@@ -1009,6 +1412,11 @@ class PasswordResetEventInboxIT {
         @Primary
         OidcRevocationClient mockOidcRevocationClient() {
             return mock(OidcRevocationClient.class);
+        }
+
+        @Bean
+        AuditRecorder testAuditRecorder() {
+            return entry -> { };
         }
 
         @Bean

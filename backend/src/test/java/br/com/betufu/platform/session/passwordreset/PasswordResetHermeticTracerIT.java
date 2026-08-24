@@ -31,15 +31,20 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -55,6 +60,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import br.com.betufu.audit.AuditRecorder;
 import br.com.betufu.platform.security.OidcRevocationClient;
 import br.com.betufu.platform.session.IdentitySessionTerminationService;
 import br.com.betufu.platform.session.OidcSessionRevocationService;
@@ -83,6 +89,11 @@ import br.com.betufu.platform.session.SessionSecurityConfiguration;
             PasswordResetSignedEnvelopeVerifier.class,
             PasswordResetEventInboxService.class,
             PasswordResetEventEndpoint.class,
+            // Necessario desde a Task 02-31-01: a chave passou a vir exclusivamente das
+            // propriedades. Este contexto nao importa a configuracao de seguranca dedicada, que
+            // e quem declara @EnableConfigurationProperties, entao o bean precisa ser registrado
+            // aqui — senao o endpoint recebe properties nulo e falha fechado com 401.
+            PasswordResetEventProperties.class,
             PasswordResetHermeticTracerIT.TestApplication.class
         },
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
@@ -91,7 +102,11 @@ import br.com.betufu.platform.session.SessionSecurityConfiguration;
             "BETUFU_OIDC_ISSUER_URI=https://idp.invalid",
             "BETUFU_OIDC_CLIENT_ID=betufu-hermetic-tracer-it",
             "BETUFU_OIDC_CLIENT_SECRET=unused",
-            "BETUFU_PASSWORD_RESET_HMAC_KEY_V1=dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ=="
+            // Consequencia direta da Task 02-31-01: a chave passou a ser resolvida somente pelo
+            // modelo current/previous das propriedades. O @Value do endpoint que lia
+            // BETUFU_PASSWORD_RESET_HMAC_KEY_V1 foi removido por exigir segredo fora desse modelo.
+            "betufu.session.password-reset.current-version=v1",
+            "betufu.session.password-reset.keys.v1=MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
         })
 @ActiveProfiles("integrated")
 @Testcontainers
@@ -102,7 +117,7 @@ class PasswordResetHermeticTracerIT {
     private static final String CONTROL_SUBJECT_B = "tracer-control-user-beta";
     private static final String TEST_REALM = "betufu-local";
     private static final String KEY_ID = "v1";
-    private static final byte[] RAW_SECRET_KEY = Base64.getDecoder().decode("dGVzdC1vbmx5LXBhc3N3b3JkLXJlc2V0LWtleS0wMQ==");
+    private static final byte[] RAW_SECRET_KEY = Base64.getDecoder().decode("MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
 
     private static final String APPROVED_ACTIVITY_ATTRIBUTE =
             SelectiveTouchSessionRepository.class.getName() + ".approvedActivity";
@@ -153,6 +168,12 @@ class PasswordResetHermeticTracerIT {
     @Autowired
     private PasswordResetEventEndpoint endpoint;
 
+    @Autowired
+    private OAuth2AuthorizedClientService authorizedClientService;
+
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
+
     private SelectiveTouchSessionRepository repository;
     private MockMvc mockMvc;
 
@@ -170,18 +191,18 @@ class PasswordResetHermeticTracerIT {
     }
 
     @Test
-    @DisplayName("Valid signed envelope from 02-24 outbox persists inbox and terminates all sessions of target subject while control user survives")
+    @DisplayName("Valid signed envelope from 02-24 outbox persists inbox and terminates target session while control user survives")
     void validEnvelopePersistsInboxAndTerminatesTargetSessionsLeavingControlIntact() throws Exception {
-        // 1. Create 2 active sessions for Target A and 1 for Control B
+        // 1. Create 1 active session for Target A and 1 for Control B. The authorized-client
+        // store is principal-scoped, while multi-session deletion is covered by the session
+        // termination integration tests.
         SelectiveTouchSessionRepository.SelectiveSession sessionA1 = createAuthenticatedSession(TARGET_SUBJECT_A);
         repository.save(sessionA1);
-        SelectiveTouchSessionRepository.SelectiveSession sessionA2 = createAuthenticatedSession(TARGET_SUBJECT_A);
-        repository.save(sessionA2);
 
         SelectiveTouchSessionRepository.SelectiveSession sessionB1 = createAuthenticatedSession(CONTROL_SUBJECT_B);
         repository.save(sessionB1);
 
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(2);
+        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
         assertThat(repository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
 
         // 2. Build 02-24 outbox event contract representation
@@ -241,7 +262,6 @@ class PasswordResetHermeticTracerIT {
         // 6. Verify Target A sessions are terminated in Redis
         assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
         assertThat(repository.findById(sessionA1.getId())).isNull();
-        assertThat(repository.findById(sessionA2.getId())).isNull();
 
         // 7. Verify Control B session survives intact
         assertThat(repository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
@@ -341,7 +361,9 @@ class PasswordResetHermeticTracerIT {
 
         byte[] bodyBytes = jsonPayloadWithPassword.getBytes(StandardCharsets.UTF_8);
         String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        String timestampHeader = "123456789";
+        // Instante real, nao epoch fixo: a Task 02-31-01 introduziu a janela de +-5 minutos, e
+        // o valor literal "123456789" corresponde a 1973 — corretamente recusado com 401.
+        String timestampHeader = String.valueOf(Instant.now().toEpochMilli());
         String signature = verifier.sign(
                 RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
 
@@ -383,7 +405,9 @@ class PasswordResetHermeticTracerIT {
 
         byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
         String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        String timestampHeader = "123456789";
+        // Instante real, nao epoch fixo: a Task 02-31-01 introduziu a janela de +-5 minutos, e
+        // o valor literal "123456789" corresponde a 1973 — corretamente recusado com 401.
+        String timestampHeader = String.valueOf(Instant.now().toEpochMilli());
         String signature = verifier.sign(
                 RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
 
@@ -422,6 +446,7 @@ class PasswordResetHermeticTracerIT {
     }
 
     private SelectiveTouchSessionRepository.SelectiveSession createAuthenticatedSession(String subject) {
+        saveAuthorizedClient(subject);
         SelectiveTouchSessionRepository.SelectiveSession session = repository.createSession();
         Instant now = clock.instant();
 
@@ -454,6 +479,23 @@ class PasswordResetHermeticTracerIT {
         return session;
     }
 
+    private void saveAuthorizedClient(String principalName) {
+        ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("keycloak");
+        Instant issuedAt = clock.instant();
+        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(
+                registration,
+                principalName,
+                new OAuth2AccessToken(
+                        OAuth2AccessToken.TokenType.BEARER,
+                        "test-access-token",
+                        issuedAt,
+                        issuedAt.plusSeconds(300)),
+                new OAuth2RefreshToken("test-refresh-token", issuedAt));
+        authorizedClientService.saveAuthorizedClient(
+                client,
+                new TestingAuthenticationToken(principalName, "not-used", "ROLE_USER"));
+    }
+
     @TestConfiguration(proxyBeanMethods = false)
     @EnableAutoConfiguration
     static class TestApplication {
@@ -468,6 +510,11 @@ class PasswordResetHermeticTracerIT {
         @Primary
         OidcRevocationClient mockOidcRevocationClient() {
             return mock(OidcRevocationClient.class);
+        }
+
+        @Bean
+        AuditRecorder testAuditRecorder() {
+            return entry -> { };
         }
 
         @Bean

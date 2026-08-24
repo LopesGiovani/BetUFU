@@ -7,6 +7,8 @@ export * from './diagnostic-status';
 export * from './enrollment-registration-request';
 export * from './enrollment-status-response';
 export * from './operational-role';
+export * from './password-reset-event-recovery-page-response';
+export * from './password-reset-event-recovery-response';
 export * from './profile-update-request';
 export * from './role-grant-request';
 export * from './role-grant-response';

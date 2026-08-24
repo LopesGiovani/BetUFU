@@ -320,6 +320,112 @@ paths:
         "409":
           description: Conflito ao revogar o último administrador geral vigente (Problem Details).
 
+  /api/v1/operations/password-reset-events/failed:
+    get:
+      tags:
+        - PasswordResetRecovery
+      operationId: listFailedPasswordResetEvents
+      summary: Listar eventos de redefinicao de senha com falha
+      description: >-
+        Lista metadados operacionais dos eventos FAILED disponiveis para recuperacao.
+        Exige sessao OIDC com papel ADMINISTRADOR_GERAL global e nao expoe payload,
+        subject, realm, segredo HMAC ou token.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        "200":
+          description: Eventos com falha consultados com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordResetEventRecoveryPageResponse"
+        "302":
+          description: Requisicao anonima redirecionada ao fluxo OIDC do BFF.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Ator sem concessao global de ADMINISTRADOR_GERAL.
+
+  /api/v1/operations/password-reset-events/{sourceEventId}:
+    get:
+      tags:
+        - PasswordResetRecovery
+      operationId: getPasswordResetEvent
+      summary: Consultar um evento de redefinicao de senha
+      description: >-
+        Consulta o estado operacional de um evento pelo identificador opaco da origem.
+        Exige sessao OIDC com papel ADMINISTRADOR_GERAL global.
+      parameters:
+        - name: sourceEventId
+          in: path
+          required: true
+          description: Identificador opaco e idempotente atribuido pela origem.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Evento consultado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordResetEventRecoveryResponse"
+        "302":
+          description: Requisicao anonima redirecionada ao fluxo OIDC do BFF.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Ator sem concessao global de ADMINISTRADOR_GERAL.
+        "404":
+          description: Evento nao encontrado.
+
+  /api/v1/operations/password-reset-events/{sourceEventId}/reprocess:
+    post:
+      tags:
+        - PasswordResetRecovery
+      operationId: reprocessPasswordResetEvent
+      summary: Reprocessar um evento de redefinicao de senha
+      description: >-
+        Reprocessa de forma idempotente um evento FAILED. A operacao exige CSRF e
+        sessao OIDC com papel ADMINISTRADOR_GERAL global, e registra auditoria.
+      parameters:
+        - name: sourceEventId
+          in: path
+          required: true
+          description: Identificador opaco e idempotente atribuido pela origem.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Evento reprocessado ou ja entregue de forma idempotente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordResetEventRecoveryResponse"
+        "302":
+          description: Requisicao anonima redirecionada ao fluxo OIDC do BFF.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Ator sem concessao global de ADMINISTRADOR_GERAL.
+        "404":
+          description: Evento nao encontrado.
+
   /api/v1/diagnostic:
     get:
       tags:
@@ -579,6 +685,84 @@ components:
           items:
             $ref: "#/components/schemas/RoleStatusDto"
           description: Lista de estados dos papéis operacionais da conta.
+
+    PasswordResetEventRecoveryResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - sourceEventId
+        - status
+        - effectExecuted
+        - terminatedSessionCount
+        - actorIdentityId
+        - processedAt
+        - lastError
+      properties:
+        sourceEventId:
+          type: string
+          description: Identificador opaco e idempotente atribuido pela origem.
+        status:
+          type: string
+          enum:
+            - PENDING
+            - CLAIMED
+            - DELIVERED
+            - FAILED
+            - PROCESSED
+        effectExecuted:
+          type: boolean
+          description: Indica se esta chamada executou o efeito de encerramento de sessoes.
+        terminatedSessionCount:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Quantidade de sessoes encerradas por esta chamada.
+        actorIdentityId:
+          type: [string, "null"]
+          format: uuid
+          description: Identificador opaco do administrador que executou o reprocessamento.
+        processedAt:
+          type: [string, "null"]
+          format: date-time
+          description: Instante UTC da ultima transicao observada ou executada.
+        lastError:
+          type: [string, "null"]
+          description: Codigo operacional sanitizado da ultima falha, nunca detalhe bruto.
+
+    PasswordResetEventRecoveryPageResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - items
+        - page
+        - size
+        - totalElements
+        - totalPages
+        - hasNext
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PasswordResetEventRecoveryResponse"
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        totalElements:
+          type: integer
+          format: int64
+          minimum: 0
+        totalPages:
+          type: integer
+          format: int32
+          minimum: 0
+        hasNext:
+          type: boolean
 
     RoleStatusDto:
       type: object

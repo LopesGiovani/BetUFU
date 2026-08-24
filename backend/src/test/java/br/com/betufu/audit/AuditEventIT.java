@@ -325,6 +325,29 @@ class AuditEventIT {
         assertThat(persisted.getAction()).isEqualTo("SEMENTE_ADMINISTRADOR_INICIAL");
     }
 
+    @Test
+    @DisplayName("AUDT-01: replay de reset usa acao especifica do vocabulario fechado")
+    void recordsPasswordResetReplayActionFromClosedVocabulary() {
+        UUID actorId = createLocalIdentity("https://idp.invalid", "password-reset-replay-admin");
+        String idempotencyKey = "password-reset-replay-test-" + UUID.randomUUID();
+
+        auditRecorder.record(AuditEntry.builder()
+                .actorIdentityId(actorId)
+                .actorRole("ADMINISTRADOR_GERAL")
+                .action(AuditEntry.ACTION_REPROCESSAMENTO_RESET_SENHA)
+                .outcome(AuditEntry.OUTCOME_PERMITTED)
+                .previousValue("FAILED")
+                .newValue("CLAIMED")
+                .reason("Password reset replay INTENT: sourceEventId=opaque-test-event")
+                .idempotencyKey(idempotencyKey)
+                .build());
+
+        AuditEvent persisted = auditEventRepository.findByIdempotencyKey(idempotencyKey).orElseThrow();
+        assertThat(persisted.getAction()).isEqualTo("REPROCESSAMENTO_RESET_SENHA");
+        assertThat(persisted.getPreviousValue()).isEqualTo("FAILED");
+        assertThat(persisted.getNewValue()).isEqualTo("CLAIMED");
+    }
+
     private UUID createLocalIdentity(String issuer, String subject) {
         UUID id = UUID.randomUUID();
         jdbcTemplate.update(

@@ -167,15 +167,34 @@ public class PasswordResetEventInboxEntity {
         return lastError;
     }
 
+    public void markClaimed(String instanceId, Instant claimedAt) {
+        this.status = STATUS_CLAIMED;
+        this.claimInstanceId = Objects.requireNonNull(instanceId, "instanceId must not be null");
+        this.claimedAt = Objects.requireNonNull(claimedAt, "claimedAt must not be null");
+        this.attemptCount++;
+        this.updatedAt = claimedAt;
+    }
+
     public void markDelivered(Instant deliveredAt) {
         this.status = STATUS_DELIVERED;
         this.deliveredAt = Objects.requireNonNull(deliveredAt, "deliveredAt must not be null");
+        this.claimInstanceId = null;
+        this.lastError = null;
         this.updatedAt = deliveredAt;
     }
 
     public void markFailed(String errorSummary, Instant failedAt) {
         this.status = STATUS_FAILED;
         this.lastError = errorSummary;
+        this.claimInstanceId = null;
         this.updatedAt = Objects.requireNonNull(failedAt, "failedAt must not be null");
+    }
+
+    public void resetForReplay(Instant now) {
+        this.status = STATUS_PENDING;
+        this.claimInstanceId = null;
+        this.claimedAt = null;
+        this.lastError = null;
+        this.updatedAt = Objects.requireNonNull(now, "now must not be null");
     }
 }

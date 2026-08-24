@@ -4,15 +4,22 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Canonicalizes and verifies HMAC-signed password reset event envelopes in constant time.
+ * Canonicalizes and verifies HMAC-signed password reset event envelopes in constant time,
+ * and enforces a ±5 minute timestamp replay window against an injectable clock.
  *
  * <p>Canonical envelope format:
  * <pre>
@@ -29,6 +36,22 @@ public class PasswordResetSignedEnvelopeVerifier {
 
     public static final String HMAC_ALGORITHM = "HmacSHA256";
     public static final String HASH_ALGORITHM = "SHA-256";
+    public static final Duration TIMESTAMP_WINDOW = Duration.ofMinutes(5);
+
+    private final Clock clock;
+
+    @Autowired
+    public PasswordResetSignedEnvelopeVerifier(@Autowired(required = false) Clock clock) {
+        this.clock = clock != null ? clock : Clock.systemUTC();
+    }
+
+    public PasswordResetSignedEnvelopeVerifier() {
+        this(Clock.systemUTC());
+    }
+
+    public Clock getClock() {
+        return clock;
+    }
 
     /**
      * Builds the canonical string representation of the signed envelope.
@@ -87,8 +110,9 @@ public class PasswordResetSignedEnvelopeVerifier {
             String sourceEventId,
             String bodySha256) {
         Objects.requireNonNull(secretKey, "secretKey must not be null");
-        if (secretKey.length < 16) {
-            throw new IllegalArgumentException("Secret key must have at least 16 bytes");
+        if (secretKey.length < PasswordResetEventProperties.MIN_KEY_BYTES) {
+            throw new IllegalArgumentException("Secret key must have at least "
+                    + PasswordResetEventProperties.MIN_KEY_BYTES + " bytes");
         }
         String canonical = canonicalize(keyId, timestamp, method, path, sourceEventId, bodySha256);
         return computeHmacHex(secretKey, canonical);
@@ -131,6 +155,62 @@ public class PasswordResetSignedEnvelopeVerifier {
             byte[] computedBytes = HexFormat.of().parseHex(computed);
             return MessageDigest.isEqual(expectedBytes, computedBytes);
         } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Parses a timestamp string into an Instant.
+     * Supports epoch milliseconds (numeric with 12+ digits or >= 100_000_000_000L),
+     * epoch seconds (numeric with <= 10 digits), and ISO-8601 string representations.
+     */
+    public Optional<Instant> parseTimestamp(String timestampStr) {
+        if (timestampStr == null || timestampStr.isBlank()) {
+            return Optional.empty();
+        }
+        String trimmed = timestampStr.trim();
+        try {
+            long epochVal = Long.parseLong(trimmed);
+            String digits = trimmed.startsWith("-") || trimmed.startsWith("+")
+                    ? trimmed.substring(1)
+                    : trimmed;
+            if (digits.length() >= 12) {
+                return Optional.of(Instant.ofEpochMilli(epochVal));
+            } else {
+                return Optional.of(Instant.ofEpochSecond(epochVal));
+            }
+        } catch (NumberFormatException | java.time.DateTimeException ignored) {
+            try {
+                return Optional.of(Instant.parse(trimmed));
+            } catch (DateTimeParseException ignoredIso) {
+                return Optional.empty();
+            }
+        }
+    }
+
+    /**
+     * Verifies that the given timestamp string is within ±5 minutes of the current clock instant.
+     */
+    public boolean isTimestampValid(String timestampStr) {
+        return isTimestampValid(timestampStr, clock.instant(), TIMESTAMP_WINDOW);
+    }
+
+    /**
+     * Verifies that the given timestamp string is within the specified window of the reference instant.
+     */
+    public boolean isTimestampValid(String timestampStr, Instant referenceInstant, Duration window) {
+        Optional<Instant> parsed = parseTimestamp(timestampStr);
+        if (parsed.isEmpty()) {
+            return false;
+        }
+        Instant eventInstant = parsed.get();
+        Instant now = (referenceInstant != null) ? referenceInstant : clock.instant();
+        Duration tolerance = (window != null) ? window : TIMESTAMP_WINDOW;
+
+        try {
+            Duration diff = Duration.between(eventInstant, now).abs();
+            return diff.compareTo(tolerance) <= 0;
+        } catch (ArithmeticException | java.time.DateTimeException ignored) {
             return false;
         }
     }

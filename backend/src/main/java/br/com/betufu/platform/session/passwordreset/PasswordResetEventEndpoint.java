@@ -56,9 +56,6 @@ public class PasswordResetEventEndpoint {
     private final PasswordResetEventProperties properties;
     private final ObjectMapper objectMapper;
 
-    @Value("${betufu.session.password-reset.keys.v1:${BETUFU_PASSWORD_RESET_HMAC_KEY_V1:}}")
-    private String keyV1;
-
     @Autowired
     public PasswordResetEventEndpoint(
             PasswordResetSignedEnvelopeVerifier envelopeVerifier,
@@ -164,7 +161,12 @@ public class PasswordResetEventEndpoint {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 5. Verify envelope HMAC signature
+        // 5. Enforce strict ±5 minute timestamp replay window (D-40)
+        if (!envelopeVerifier.isTimestampValid(timestamp)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 6. Verify envelope HMAC signature in constant time
         String method = request.getMethod();
         String path = request.getRequestURI();
         String bodySha256 = envelopeVerifier.computeBodySha256(bodyBytes);
@@ -184,7 +186,7 @@ public class PasswordResetEventEndpoint {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // 6. Persist and apply security effect
+        // 7. Persist and apply security effect
         PasswordResetEventInboxService.InboxProcessingResult result =
                 inboxService.processEvent(sourceEventId, subject, realmId, eventType);
 
@@ -195,31 +197,23 @@ public class PasswordResetEventEndpoint {
         ));
     }
 
-    public void setKeyV1(String keyV1) {
-        this.keyV1 = keyV1;
-    }
-
+    /**
+     * Resolve a chave HMAC exclusivamente pelas propriedades, que aceitam apenas a versao
+     * corrente e a anterior (D-40).
+     *
+     * <p>Nao existe segundo caminho. Havia aqui um fallback que aceitava os apelidos literais
+     * {@code "v1"} e {@code "current"} sobre um campo proprio; ele ficou inalcancavel quando a
+     * resolucao por propriedades passou a falhar fechada, e foi removido pelo mesmo motivo que
+     * o fallback de Bearer do Plano 02-28: codigo morto que se le como caminho de autenticacao
+     * e uma armadilha para quem for auditar depois.
+     */
     private byte[] resolveSecretKey(String keyId) {
-        if (keyId == null || keyId.isBlank()) {
+        if (keyId == null || keyId.isBlank() || properties == null) {
             return null;
         }
-        if (properties != null) {
-            byte[] resolved = properties.resolveKey(keyId);
-            if (resolved != null && resolved.length >= PasswordResetEventProperties.MIN_KEY_BYTES) {
-                return resolved;
-            }
-        }
-        if ("v1".equals(keyId) || "current".equals(keyId)) {
-            if (keyV1 != null && !keyV1.isBlank()) {
-                try {
-                    byte[] decoded = Base64.getDecoder().decode(keyV1.trim());
-                    if (decoded.length >= PasswordResetEventProperties.MIN_KEY_BYTES) {
-                        return decoded;
-                    }
-                } catch (IllegalArgumentException ignored) {
-                    // Base64 obrigatório; sem fallback
-                }
-            }
+        byte[] resolved = properties.resolveKey(keyId);
+        if (resolved != null && resolved.length >= PasswordResetEventProperties.MIN_KEY_BYTES) {
+            return resolved;
         }
         return null;
     }
