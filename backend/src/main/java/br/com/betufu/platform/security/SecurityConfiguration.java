@@ -245,6 +245,12 @@ public class SecurityConfiguration {
                         // matcher nasce temporariamente sem alvo, exatamente como /api/v1/diagnostic acima.
                         .requestMatchers("/api/v1/operations/password-reset-events/**")
                         .hasRole("ADMINISTRADOR_GERAL")
+                        // Painel operacional permite qualquer um dos três papéis operacionais (ADMINISTRADOR_GERAL,
+                        // ADMINISTRADOR_COMPETICAO, MODERADOR). A autorização e a filtragem de blocos são decididas
+                        // no serviço do painel, garantindo que moderadores recebam resposta com estado vazio em vez de 403.
+                        // O matcher precede /api/v1/** na cadeia única para barrar usuários sem papel operacional.
+                        .requestMatchers(HttpMethod.GET, "/api/v1/operations/panel")
+                        .hasAnyRole("ADMINISTRADOR_GERAL", "ADMINISTRADOR_COMPETICAO", "MODERADOR")
                         .requestMatchers("/api/v1/**")
                         .authenticated()
                         .anyRequest()
