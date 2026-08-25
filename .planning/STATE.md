@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 12 implementada, verificada, revisada e formalizada; pendente de autorização Git para commits, integração, limpeza e push"
-last_updated: "2026-08-25T16:52:00-03:00"
+stopped_at: "Fase 2: Wave 13 concluida; Wave 14 liberada para os Planos 02-20 e 02-26"
+last_updated: "2026-08-25T20:15:00-03:00"
 last_activity: 2026-08-25
-last_activity_desc: "Wave 12 aprovada: S3 responsiva sem persistência da matrícula e contrato final da correção com 47 arquivos gerados e digest 9C8D3FF3…."
+last_activity_desc: "Wave 13 aprovada: S5 governa o papel global, mantem papeis escopados deferidos e passou revisao final P0=P1=P2=0."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 58
+  completed_plans: 59
 ---
 
 # Estado do Projeto
@@ -28,9 +28,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 27 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
-Status: In Progress — Waves 1 a 12 concluídas tecnicamente. A Wave 12 recebeu revisão final sem P0–P2 e está formalizada; commits, integração, limpeza e push ainda não foram autorizados.
-Last activity: 2026-08-25 — S3 e contrato/cliente da correção foram verificados no snapshot combinado, inclusive em navegador real.
+Plan: 28 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-19`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
+Status: In Progress — Waves 1 a 13 concluídas. A Wave 14 esta liberada para `02-20` e `02-26`.
+Last activity: 2026-08-25 — S5 foi verificada por testes, build, validadores, navegador real e revisao final sem P0–P2.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git: a Wave 9 permanece como base em `ffac2ea`. A Wave 10 está integrada linearmente na `master` em exatamente dois commits acima dessa base: `027f5f7` (`feat(02-18)`) e este commit documental, cujo hash não cabe dentro dele próprio. Existe somente a worktree principal e a branch `master`; a branch/worktree temporária do 02-18 foi removida. No instante em que este commit foi criado, `origin/master` apontava para `ffac2ea`; a sincronização posterior não pode ser autorreferenciada dentro do próprio commit e deve ser confirmada com `git rev-parse master refs/remotes/origin/master`. `AGENTS.md` e caches Angular permanecem alheios e fora dos commits.
@@ -56,6 +56,8 @@ Git — Wave 11 (snapshot técnico revisado, 2026-08-25): o commit `32ea355` (`f
 Git — Wave 12 (preflight aprovado, 2026-08-25): o dry-run do adaptador confirmou duas lanes sem sobreposição, `02-13` e `02-25`. Antes de criar worktrees, o responsável ratificou três correções documentais: a fatia S3 possui oito arquivos; o manifesto governado do cliente vive em `frontend/scripts/generate-api.mjs`; e a aprovação do inventário/digest passou a ser o checkpoint explícito `02-25-T2`, elevando a matriz para 68 Task IDs. O commit que transporta essas emendas para as worktrees não pode citar o próprio hash; confirme-o ao vivo por `git log -1`. Nenhuma worktree, branch temporária, chamada externa ou teste material havia sido iniciado neste ponto. `AGENTS.md`, `CLAUDE.md` e os caches Angular permanecem fora do commit.
 
 Git — Wave 12 (snapshot final aprovado, 2026-08-25): as lanes `02-13` e `02-25` foram montadas sobre `d4cc1099` num worktree de integração destacado, totalizando 21 paths e SHA-256 composto `8023A1881DCCE314757C722C0655AC939C7C703A4CEE32C178A6A7EFE1DF5543`. A árvore terminou Angular `136/136`, Node `617/617`, Surefire `246/246`, Failsafe `317/317`, build produtivo e gates de contrato/fronteira verdes. O cliente final possui 47 arquivos e digest aprovado `9C8D3FF3BF4D40B20FEC58E4C44DF7F4189D15CE36ADF23AB63614C6E06E4071`. A inspeção final em Chrome real provou 320px/1280px, teclado, PUT único, mensagem persistente e ausência da matrícula no DOM/storage. A revisão retornou `PASS`, P0=P1=P2=0. Nenhum stage, commit, integração, limpeza ou push desta onda ocorreu até este registro.
+
+Git — Wave 13 (concluida em 2026-08-25): o Plano `02-19` entregou S5 em 12 paths de implementacao, com Angular `157/157`, Node `617/617`, Surefire `246/246`, Failsafe `317/317`, build produtivo e smoke em navegador real. O snapshot final reconciliou 15/15 paths e recebeu `PASS`, P0=P1=P2=0. O historico preserva a emenda de decisao, o commit tecnico e este commit documental; refs finais de integracao e sincronizacao devem ser confirmados ao vivo porque o documento nao pode autorreferenciar seu proprio hash.
 
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 

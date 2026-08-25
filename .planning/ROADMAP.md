@@ -200,7 +200,7 @@ Plans:
 - [x] 02-16-PLAN.md
 - [x] 02-17-PLAN.md
 - [x] 02-18-PLAN.md
-- [ ] 02-19-PLAN.md
+- [x] 02-19-PLAN.md
 - [ ] 02-20-PLAN.md
 - [x] 02-21-PLAN.md
 - [x] 02-22-PLAN.md
@@ -226,7 +226,7 @@ Plans:
 - **Wave 10** *(concluída em 2026-08-25 com contrato, cliente gerado e S4 verificados; revisão final P0=P1=P2=0)*: 02-18
 - **Wave 11** *(concluída em 2026-08-25: correção D-32 transacional, autorização exclusiva do Administrador Geral e revisão final P0=P1=P2=0)*: 02-12
 - **Wave 12** *(concluída em 2026-08-25: S3 e contrato/cliente da correção verificados; inventário final 47, digest aprovado e revisão P0=P1=P2=0)*: 02-13, 02-25
-- **Wave 13**: 02-19
+- **Wave 13** *(concluida em 2026-08-25: S5 global governada, papeis escopados deferidos, navegador real e revisao final P0=P1=P2=0)*: 02-19
 - **Wave 14**: 02-20, 02-26
 - **Wave 15**: 02-27
 
