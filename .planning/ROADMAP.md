@@ -193,7 +193,7 @@ Plans:
 - [x] 02-09-PLAN.md
 - [x] 02-10-PLAN.md
 - [x] 02-11-PLAN.md
-- [ ] 02-12-PLAN.md
+- [x] 02-12-PLAN.md
 - [ ] 02-13-PLAN.md
 - [x] 02-14-PLAN.md
 - [x] 02-15-PLAN.md
@@ -224,7 +224,7 @@ Plans:
 - **Wave 8** *(concluída em 2026-08-23 com PASS externo: authorities/seed, hardening e operação do inbox; nenhuma ativação produtiva)*: 02-17, 02-31
 - **Wave 9** *(concluída em 2026-08-24: painel operacional e rollout D-40 verificados, revisados e integrados após o gate humano literal)*: 02-10, 02-29
 - **Wave 10** *(concluída em 2026-08-25 com contrato, cliente gerado e S4 verificados; revisão final P0=P1=P2=0)*: 02-18
-- **Wave 11**: 02-12
+- **Wave 11** *(concluída em 2026-08-25: correção D-32 transacional, autorização exclusiva do Administrador Geral e revisão final P0=P1=P2=0)*: 02-12
 - **Wave 12**: 02-13, 02-25
 - **Wave 13**: 02-19
 - **Wave 14**: 02-20, 02-26
