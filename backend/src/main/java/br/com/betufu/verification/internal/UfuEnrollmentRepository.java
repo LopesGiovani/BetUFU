@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -63,4 +65,53 @@ public interface UfuEnrollmentRepository extends Repository<UfuEnrollment, UUID>
             ORDER BY enrollment.createdAt DESC
             """)
     List<UfuEnrollment> findAllByIdentityId(@Param("identityId") UUID identityId);
+
+    /**
+     * Lê o vínculo ativo da conta com bloqueio pessimista de linha, para que duas correções
+     * simultâneas sobre a mesma conta sejam serializadas pelo PostgreSQL em vez de disputarem
+     * o índice único parcial no último instante.
+     *
+     * <p>Exige transação ativa. O índice parcial continua sendo o árbitro final; este bloqueio
+     * apenas reduz a janela entre ler o vínculo antigo e substituí-lo.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT enrollment
+            FROM UfuEnrollment enrollment
+            WHERE enrollment.identityId = :identityId
+              AND enrollment.status = 'ATIVO'
+            """)
+    Optional<UfuEnrollment> findActiveByIdentityIdForUpdate(@Param("identityId") UUID identityId);
+
+    /**
+     * Muda o estado do vínculo ativo da conta para {@code LIBERADO}, devolvendo o digest antigo
+     * ao conjunto registrável — o índice único parcial só vale para {@code ATIVO} (D-32).
+     *
+     * <p>Nenhuma linha é removida: o histórico permanece na tabela. O predicado
+     * {@code status = 'ATIVO'} torna a liberação idempotente e sem efeito quando outra
+     * transação já liberou o mesmo vínculo.
+     *
+     * @return quantidade de linhas liberadas (0 ou 1)
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+            value = """
+                    UPDATE public.ufu_enrollment
+                    SET status = 'LIBERADO',
+                        updated_at = CURRENT_TIMESTAMP(6)
+                    WHERE identity_id = :identityId
+                      AND status = 'ATIVO'
+                    """,
+            nativeQuery = true)
+    int releaseActiveByIdentityId(@Param("identityId") UUID identityId);
+
+    /**
+     * Confirma que o identificador público corresponde a uma conta existente antes de qualquer
+     * escrita. Sem esta conferência, um identificador inexistente só falharia na chave estrangeira
+     * — como erro interno cru, e depois de a trilha já não poder referenciar o alvo.
+     */
+    @Query(
+            value = "SELECT count(*) > 0 FROM public.local_identity WHERE identity_id = :identityId",
+            nativeQuery = true)
+    boolean existsIdentityById(@Param("identityId") UUID identityId);
 }

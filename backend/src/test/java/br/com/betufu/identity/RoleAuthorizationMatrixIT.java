@@ -299,6 +299,35 @@ class RoleAuthorizationMatrixIT {
     }
 
     @Test
+    @DisplayName("Matriz: POST /api/v1/operations/enrollments/correction permite somente ADMINISTRADOR_GERAL")
+    void enrollmentCorrectionRequiresAdminGeral() throws Exception {
+        String correctionBody = "{\"targetIdentityId\":\"" + targetIdentityId
+                + "\",\"matricula\":\"20242BCC909\","
+                + "\"reason\":\"Correcao administrativa comprovada\"}";
+
+        mockMvc.perform(post("/api/v1/operations/enrollments/correction")
+                        .with(oidcPrincipal(ISSUER, "comp-admin-sub", null))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(correctionBody))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/v1/operations/enrollments/correction")
+                        .with(oidcPrincipal(ISSUER, "moderator-sub", null))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(correctionBody))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/v1/operations/enrollments/correction")
+                        .with(oidcPrincipal(ISSUER, "admin-sub", null))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(correctionBody))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     @DisplayName("Matriz: Matcher /api/v1/operations/password-reset-events/** precede /api/v1/** e exige ADMINISTRADOR_GERAL")
     void passwordResetEventsRecoveryMatcherPrecedesBroadApiMatcherAndRequiresAdminGeral() throws Exception {
         String recoveryPath = "/api/v1/operations/password-reset-events/failed";

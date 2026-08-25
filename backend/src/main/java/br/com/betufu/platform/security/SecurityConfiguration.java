@@ -251,6 +251,11 @@ public class SecurityConfiguration {
                         // O matcher precede /api/v1/** na cadeia única para barrar usuários sem papel operacional.
                         .requestMatchers(HttpMethod.GET, "/api/v1/operations/panel")
                         .hasAnyRole("ADMINISTRADOR_GERAL", "ADMINISTRADOR_COMPETICAO", "MODERADOR")
+                        // Administrative enrollment correction is the most invasive command in
+                        // this phase. Keep the exact POST matcher before /api/v1/** so merely
+                        // being authenticated can never authorize it.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/operations/enrollments/correction")
+                        .hasRole("ADMINISTRADOR_GERAL")
                         .requestMatchers("/api/v1/**")
                         .authenticated()
                         .anyRequest()

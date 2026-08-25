@@ -28,7 +28,9 @@ public final class ValidActivityFilter extends OncePerRequestFilter {
             PathPatternRequestMatcher.withDefaults().matcher(
                     HttpMethod.POST, "/api/v1/operations/roles/grants"),
             PathPatternRequestMatcher.withDefaults().matcher(
-                    HttpMethod.POST, "/api/v1/operations/roles/revocations"));
+                    HttpMethod.POST, "/api/v1/operations/roles/revocations"),
+            PathPatternRequestMatcher.withDefaults().matcher(
+                    HttpMethod.POST, "/api/v1/operations/enrollments/correction"));
 
     private final SessionLifecycleService sessionLifecycleService;
 
