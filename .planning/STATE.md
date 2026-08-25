@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 9 concluída, revisada e integrada linearmente; limpeza e push pendentes"
-last_updated: "2026-08-24T19:40:00-03:00"
-last_activity: 2026-08-24
-last_activity_desc: "Wave 9 concluiu o painel operacional e ativou a cadeia D-40 após os gates humano, E2E e criptográfico."
+stopped_at: "Fase 2: Wave 10 integrada e limpa; sincronização remota é operação posterior ao registro e deve ser conferida pelos refs atuais do Git"
+last_updated: "2026-08-25T00:32:56-03:00"
+last_activity: 2026-08-25
+last_activity_desc: "Plano 02-18 integrado em dois commits padronizados; worktree e branch temporárias removidas, push pendente."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 54
+  completed_plans: 55
 ---
 
 # Estado do Projeto
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 23 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-14`, `02-15`, `02-16`, `02-17`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
-Status: In Progress — Waves 1 a 9 concluídas. A Wave 9 recebeu revisão final sem P0–P2.
-Last activity: 2026-08-24 — painel operacional e rollout governado D-40 foram verificados na árvore combinada.
+Plan: 24 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
+Status: In Progress — Waves 1 a 10 concluídas. A Wave 10 recebeu revisão final sem P0–P2, foi integrada e limpa; a sincronização remota é verificada pelos refs atuais do Git.
+Last activity: 2026-08-25 — contrato, cliente gerado e superfície S4 do painel operacional foram verificados no snapshot congelado.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: a Wave 8 está sincronizada em `022869d` entre `master` e `origin/master`. A Wave 9 foi normalizada em quatro commits lineares e será integrada localmente por fast-forward; o push da Wave 9 permanece fora deste bloco.
+Git: a Wave 9 permanece como base em `ffac2ea`. A Wave 10 está integrada linearmente na `master` em exatamente dois commits acima dessa base: `027f5f7` (`feat(02-18)`) e este commit documental, cujo hash não cabe dentro dele próprio. Existe somente a worktree principal e a branch `master`; a branch/worktree temporária do 02-18 foi removida. No instante em que este commit foi criado, `origin/master` apontava para `ffac2ea`; a sincronização posterior não pode ser autorreferenciada dentro do próprio commit e deve ser confirmada com `git rev-parse master refs/remotes/origin/master`. `AGENTS.md` e caches Angular permanecem alheios e fora dos commits.
 
 Git — Wave 7 (concluída e integrada, 2026-08-23): operações Git mutáveis autorizadas e executadas, na ordem. (1) `git worktree add` para os três planos, a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`; os três nasceram limpos. (2) Um quarto worktree temporário e destacado, `wave-07/integration`, montou a árvore combinada sem commit para as suítes agregadas e para cada rodada de revisão. (3) **Rebase de dobra**: as correções das cinco rodadas de revisão foram dobradas nos commits existentes por cherry-pick encadeado com `--amend`, sem criar commit de correção. Os SHAs `eb4e79f`, `e63e313` e `a9b68de` deixaram de existir. (4) **Normalização de mensagens**: uma segunda passada reescreveu as mensagens dos cinco commits da onda para uma linha, no padrão dos vinte commits anteriores do projeto, e removeu os rodapés `Co-Authored-By` e `Claude-Session`, que nenhum commit do repositório usa. Os corpos longos foram auditados item a item antes de descartados: nove itens que existiam somente neles foram acrescentados aos SUMMARY, e as árvores dos três commits de código permaneceram idênticas antes e depois, provando que só a mensagem mudou.
 
@@ -49,7 +49,7 @@ O commit documental de emendas da onda, `41b17eb`, permanece imediatamente acima
 
 Git — Wave 8 (concluída e enviada, 2026-08-23): o histórico foi normalizado em quatro commits, dois por plano: `81c663d` (`feat(02-17)`), `25c9951` (`docs(02-17)`), `8ddaeff` (`feat(02-31)`) e o commit documental final `022869d`. O OpenAPI e o cliente de recovery acompanham `feat(02-31)`, enquanto o contrato de papéis permanece em `feat(02-17)`; assim cada commit preserva paridade código ↔ contrato e pode ser investigado por `git bisect`. Os 48 caminhos não documentais terminam idênticos por blob ao snapshot revisado. A branch foi integrada por fast-forward, as branches/worktrees temporárias foram removidas e `master`/`origin/master` chegaram juntas a `022869d`. `AGENTS.md` permaneceu fora dos commits.
 
-Git — Wave 9 (concluída localmente, 2026-08-24): quatro commits lineares, dois por plano: `8b3b632` (`feat(02-10)`), `a79e8b2` (`docs(02-10)`), `46b85fe` (`feat(02-29)`) e o commit documental final que contém este registro. A árvore combinada passou Surefire `235/235`, Failsafe `303/303`, módulo Keycloak `59/59` e Node `615/615`; os validadores de realm, runtime e recovery e `docker compose config --quiet` também passaram. O primeiro `clean verify` do backend falhou corretamente sem as variáveis HMAC obrigatórias; a execução canônica seguinte usou chaves descartáveis somente no processo e terminou verde, sem persistir segredo. O snapshot final recebeu revisão sem P0–P2. A integração local é por fast-forward; worktrees/branches e push ficam para aprovações separadas. `AGENTS.md` permanece fora dos commits e `origin/master` continua em `022869d` até o push ser autorizado.
+Git — Wave 9 (concluída e enviada, 2026-08-24): quatro commits lineares, dois por plano: `8b3b632` (`feat(02-10)`), `a79e8b2` (`docs(02-10)`), `46b85fe` (`feat(02-29)`) e `ffac2ea` (`docs(02-29)`). A árvore combinada passou Surefire `235/235`, Failsafe `303/303`, módulo Keycloak `59/59` e Node `615/615`; os validadores de realm, runtime e recovery e `docker compose config --quiet` também passaram. O primeiro `clean verify` do backend falhou corretamente sem as variáveis HMAC obrigatórias; a execução canônica seguinte usou chaves descartáveis somente no processo e terminou verde, sem persistir segredo. O snapshot final recebeu revisão sem P0–P2. A integração ocorreu por fast-forward, as branches e worktrees temporários exatos foram removidos e `master`/`origin/master` chegaram juntos a `ffac2ea`. `AGENTS.md` permaneceu fora dos commits.
 
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 
@@ -61,13 +61,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [███████░░░] 23/31 planos da Fase 2 (74%)
+Progress: [████████░░] 24/31 planos da Fase 2 (77%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 54
+- Total de planos concluídos: 55
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -76,11 +76,11 @@ Progress: [███████░░░] 23/31 planos da Fase 2 (74%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 21 | não mensurado | não mensurada |
+| 2 | 24 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-22, 02-07, 02-08, 02-16, 02-24
+- Últimos 5 planos: 02-17, 02-31, 02-10, 02-29, 02-18
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -151,11 +151,18 @@ Progress: [███████░░░] 23/31 planos da Fase 2 (74%)
 - **A autorização da recuperação usa a API suportada do Keycloak.** `AppAuthManager.BearerTokenAuthenticator` é o único caminho, e a autoridade é o papel `manage-realm` do cliente `realm-management` — papel de realm homônimo não concede nada, porque qualquer realm pode declarar um papel com esse nome.
 - **Medido por execução, não deduzido:** `TokenVerifier.create(t, AccessToken.class).withChecks(IS_ACTIVE).verify()`, sem `SignatureVerifierContext`, lança `VerificationException("Secret key not set")`. O fallback removido nunca aceitou token forjado; era código morto que se lia como autenticação.
 - **Alerta e DTO operacional carregam correlação e estado, nunca dado do titular.** Sujeito, realm, tipo do evento e mensagem crua de exceção ficam fora; o erro persistido é um código estável.
+- **O painel S4 consome contrato antes de UI.** O OpenAPI e o cliente gerado são aprovados por inventário e digest antes do adapter; nenhum consumidor Angular interpreta um contrato ainda não fixado.
+- **A presença dos blocos operacionais é decisão do servidor.** O frontend não reconstrói papéis nem revela bloco ausente; falha parcial nomeia somente bloco que o ator já podia consultar.
+- **401/403 limpam o estado privilegiado e não recebem retry.** Somente falhas transitórias preservam o último snapshot válido e admitem até duas novas tentativas.
+- **A auditoria da S4 mantém identidade e tempo explícitos.** A janela de sete dias é inclusiva em ambos os limites, e o UUID do ator permanece visível mesmo quando existe papel complementar.
+- **As 27 mutações do cliente gerado agora são semânticas.** Cada caso falha pela regra declarada antes do digest; o digest continua como barreira final para alterações sem regra específica.
 - Decisões de produto ainda em aberto continuam sem resolução implícita; a tabela Key Decisions de PROJECT.md permanece a fonte consolidada.
 
 ### Pendências
 
-- **27 regras semânticas de `validate-angular-route-boundary` nunca tiveram prova negativa, e não há controle válido.** O loop de `generatedSourceMutations` asserta sempre `GENERATED_MANIFEST_DIGEST` e ignora o campo `rule` de cada entrada; o digest muda a cada mutação e dispara antes de qualquer regra semântica. Medido: substituindo a constante pelo `rule` declarado, 25 das 27 falham. As duas que passam são as únicas cujo `rule` já é `GENERATED_MANIFEST_DIGEST` — passam por tautologia, e semanticamente pertencem à família `origem absoluta`, cujas outras quatro irmãs declaram `GENERATED_ABSOLUTE_URL`. **São 27 alvos e zero controles.** Entre as regras sem prova está toda a superfície de credencial do cliente gerado. Defeito pré-existente; exige plano próprio e **precede o gate do 01-16**, que consome este validador como prova.
+- ~~As 27 regras semânticas de `validate-angular-route-boundary` não tinham controle válido.~~ **Resolvido pelo Plano 02-18.** As 27 mutações agora exigem sua regra declarada e são avaliadas antes do digest final; as duas mutações de URL absoluta também receberam rótulos semânticos. O digest permanece ativo como controle de integridade residual.
+- **P3 da Wave 10 — vocabulário dos exemplos OpenAPI.** Dois exemplos ainda usam `PERMITTED`/`BLOCKED`, enquanto o runtime usa `PERMITIDO`/`BLOQUEADO`. Tipos e comportamento estão corretos; falta alinhar apenas os exemplos documentais.
+- **P3 da Wave 10 — orçamento de estilo.** O build passa, mas o SCSS do painel excede o orçamento de 4 kB em 2,67 kB; o perfil já excedia em 1,94 kB. Tratar antes de ampliar a S4 para evitar crescimento silencioso do bundle.
 - **Varrer os demais validadores atrás de guards que pinam artefato em vez de propriedade.** Dois apareceram no 01-26 e ambos foram escritos quando existia um único artefato do tipo.
 - **O adiamento do contrato OpenAPI tem custo medido.** A dívida aberta no 01-22 e repetida no 01-12 custou **4 dos 7 arquivos novos** do cliente regenerado no 01-26. Paga na época, o 01-26 teria acrescentado 3. Registrar como custo real de adiamento, não como observação.
 - ~~Dois validadores em contradição sobre o usuário técnico do Keycloak.~~ **Resolvido pelo Plano 01-30.** `validate-keycloak-realm.mjs` exigia exatamente 9 chaves em `realm.users[0]` e rejeitava `firstName`/`lastName`, que `016390b` (01-29) acrescentou ao realm para destravar o provider `VERIFY_PROFILE`, e que `validate-runtime-prerequisites.mjs:1290-1297` já exigia. O contrato foi ampliado para 11 chaves com valores pinados; o realm não foi alterado, porque o defeito estava no validador. Qual lado cedia não dependeu de julgamento: `01-03-PLAN.md:203` proíbe required action na conta técnica, e `VERIFY_PROFILE` é required action de provider, então o 01-29 respeitou o contrato de origem.
@@ -199,6 +206,6 @@ Progress: [███████░░░] 23/31 planos da Fase 2 (74%)
 
 ## Session Continuity
 
-Last session: 2026-08-24T19:40:00-03:00
-Stopped at: Wave 9 concluída, revisada e integrada linearmente; limpeza e push pendentes
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-29-SUMMARY.md
+Last session: 2026-08-25T00:07:44-03:00
+Stopped at: Wave 10 concluída, integrada e limpa; sincronização remota tratada como operação posterior e verificável pelos refs atuais do Git
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-18-SUMMARY.md

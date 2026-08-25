@@ -1,17 +1,17 @@
 ---
 phase: 02
 slug: contas-verifica-o-e-opera-es-governadas
-status: ready-for-execution
+status: in-progress
 nyquist_compliant: true
 wave_0_complete: false
-evidence_state: planned-not-run
+evidence_state: partial-executed
 created: 2026-08-19
-updated: 2026-08-22
+updated: 2026-08-25
 ---
 
 # Phase 02 — Validation Strategy
 
-> `nyquist_compliant: true` significa que todas as 67 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. Não significa que os testes já foram escritos ou passaram. `wave_0_complete: false` e `evidence_state: planned-not-run` são intencionais: esta revisão altera somente planejamento.
+> `nyquist_compliant: true` significa que todas as 67 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. As linhas `PASS` abaixo registram evidência já executada; as linhas `PLANNED — NOT RUN` continuam futuras. `wave_0_complete: false` permanece intencional enquanto ainda houver scaffolds da fase não executados.
 
 ## Test Infrastructure
 
@@ -94,9 +94,9 @@ updated: 2026-08-22
 | 02-17-T1 | OPER-01; OPER-02; OPER-03; OPER-04; AUDT-01; D-01..D-21, D-49, D-51 | `RoleScopeTest`, `RoleAuthorizationMatrixIT`, `AdminSeedIdempotencyIT`, `RoleGrantControllerIT` e `OidcTechnicalAuthorityMapperTest` cobrem escopos, seed e autoridade técnica | remover escopo, aceitar papel desconhecido ou quebrar idempotência do seed deve falhar | PASS — 2026-08-23; Surefire focal 36/36, Failsafe focal 22/22; M1, M3 e M4 vermelhas e restauradas |
 | 02-17-T2 | OPER-01; OPER-02; OPER-03; OPER-04; AUDT-01 | validadores de contrato/rota cobrem endpoints, DTOs mínimos e cliente gerado de papéis | endpoint sem regra, campo extra ou digest divergente deve falhar | PASS — 2026-08-23; Node 552/552 no commit isolado e paridade de contrato verde |
 | 02-17-T3 | OPER-01; OPER-02; OPER-03; OPER-04; AUDT-01 | validador de contrato/digest GREEN é pré-condição da aprovação humana | digest não aprovado bloqueia painel e guards | PASS — 2026-08-23; inventário e digest `B112196A…` aprovados pelo responsável |
-| 02-18-T1 | OPER-06; OPER-01; OPER-02; OPER-04; D-01..D-11 | validadores de contrato/rota provam OpenAPI e cliente gerado do painel antes do adapter | contrato ou digest divergente bloqueia o início da UI | PLANNED — NOT RUN |
-| 02-18-T2 | OPER-06; OPER-01; OPER-02; OPER-04 | validador de contrato/digest GREEN é pré-condição da aprovação humana | mudança não compreendida ou digest não aprovado bloqueia a task seguinte | PLANNED — NOT RUN |
-| 02-18-T3 | OPER-06; OPER-01; OPER-02; OPER-04; UI S4 | `operations-api.adapter.spec.ts`, `operations-panel-page.component.spec.ts`, build e validador de rota cobrem painel e estados vazios | renderizar para papel errado, expor PII ou quebrar retry/estado vazio deve falhar | PLANNED — NOT RUN |
+| 02-18-T1 | OPER-06; OPER-01; OPER-02; OPER-04; D-01..D-11 | as 27 mutações de fonte gerada precisam falhar pela regra semântica declarada antes do digest; testes do serviço provam falha isolada de bloco autorizado, preservação dos demais e ausência de divulgação de bloco fora do papel; depois, validadores de contrato/rota provam OpenAPI e cliente gerado do painel antes do adapter | mutação capturada apenas pelo digest, falha de um agregado derrubando a resposta inteira, nome de bloco não autorizado no payload, contrato divergente ou digest inesperado bloqueia o início da UI | PASS — 2026-08-25; 27/27 mutações alcançaram as regras semânticas, contrato/rota passaram e os testes do serviço provaram isolamento, janela inclusiva e não divulgação; backend final 246/303 |
+| 02-18-T2 | OPER-06; OPER-01; OPER-02; OPER-04 | checkpoint `blocking-human`: inventário, schemas e digest são comparados antes de alterar somente `APPROVED_GENERATED_DIGEST` | mudança não compreendida, arquivo extra ou digest não aprovado bloqueia a task seguinte | PASS — 2026-08-25; responsável aprovou inventário 34→43 e digest `74172C925F10EA4196021520D72AC386831278155842F582329FDAA5727C0571` antes do consumo pela UI |
+| 02-18-T3 | OPER-06; OPER-01; OPER-02; OPER-04; UI S4 | `operations-api.adapter.spec.ts`, `operations-panel-page.component.spec.ts`, prova Playwright em Chromium a 320px, build e validador de rota cobrem estado parcial real, motivo literal, limpeza pós-401/403, responsividade e a primeira rota operacional de produção | renderizar para papel errado, manter cartões privilegiados após 401/403, repetir esses status, remover trecho entre `<` e `>` do motivo, ocultar falha de bloco autorizado, criar rolagem horizontal, reintroduzir tracer/diagnóstico em produção ou perder prova semântica deve falhar | PASS — 2026-08-25; Angular 108/108, Node 617/617, Playwright Chrome 1/1 a 320px, build produtivo e mutações de filtro temporal/UUID discriminantes; revisão final P0=P1=P2=0 |
 | 02-19-T1 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05; UI S5 | `role-admin-page.component.spec.ts`, `confirm-dialog.component.spec.ts`, build e validador de rota cobrem membro e operador | remover razões do guard, revelar matrícula ou alterar sem confirmação deve falhar | PLANNED — NOT RUN |
 | 02-19-T2 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05; UI S5 | suíte frontend GREEN é pré-condição da jornada humana membro/operador | cópia, teclado ou privacidade divergente bloqueia aprovação | PLANNED — NOT RUN |
 | 02-20-T1 | VERI-06; VERI-07; OPER-01; PRIV-01; AUDT-01; D-32; UI S6 | `enrollment-admin-page.component.spec.ts`, build, validador de rota e suíte completa cobrem nova matrícula somente em memória, motivo integral e correção governada | persistir matrícula, exibir a anterior, truncar motivo, aceitar motivo vazio/curto ou repetir mutação deve falhar | PLANNED — NOT RUN |
@@ -105,7 +105,7 @@ updated: 2026-08-22
 
 ### Handoff de cobertura S7
 
-`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem agora é 67 Task IDs únicos: D-40 possui 14 tasks distribuídas entre `02-24-T1..T3`, `02-28-T1..T2`, `02-30-T1..T3`, `02-31-T1..T3` e `02-29-T1..T3`, incluindo o checkpoint final `02-29-T2`; os gates materiais internos anteriores às tasks continuam sem Task ID. `02-15-T1` está `PASS`, enquanto as 14 tasks D-40, `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
+`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem agora é 67 Task IDs únicos: D-40 possui 14 tasks distribuídas entre `02-24-T1..T3`, `02-28-T1..T2`, `02-30-T1..T3`, `02-31-T1..T3` e `02-29-T1..T3`, incluindo o checkpoint final `02-29-T2`; os gates materiais internos anteriores às tasks continuam sem Task ID. `02-15-T1`, as 14 tasks D-40 e `02-18-T1..T3` estão `PASS`; `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
 
 ## Wave 0 Requirements and Dependencies
 
@@ -143,7 +143,7 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 8 | 02-17, 02-31 | autoridades/seed e hardening de inbox/operações sem ativação |
 | 9 | 02-10, 02-29 | painel operacional e rollout D-40 final sob gate bloqueante |
 | 9 | 02-10 | backend completo do painel |
-| 10 | 02-18 | contrato aprovado antes do adapter e S4 validada |
+| 10 | 02-18 | CONCLUÍDA em 2026-08-25 — contrato/digest aprovados, 27 mutações semânticas, S4 validada e revisão final PASS |
 | 11 | 02-12 | correção D-32 e autorização administrativa |
 | 12 | 02-13, 02-25 | S3 validada e contrato/digest da correção aprovados |
 | 13 | 02-19 | S5 validada |
@@ -179,4 +179,4 @@ Cada onda pausa para aprovação explícita conforme `AGENTS.md`; nenhuma aprova
 
 ## Approval
 
-Esta estratégia está pronta para execução interativa, mas contém somente evidência planejada. A execução de cada plano/onda, qualquer alteração de código, dependência, banco, infraestrutura, serviço externo e qualquer operação Git exige a aprovação separada definida em `AGENTS.md`.
+Esta estratégia permanece em execução interativa. As linhas `PASS` contêm evidência já executada e as demais continuam planejadas. A execução de cada plano/onda, qualquer alteração de código, dependência, banco, infraestrutura, serviço externo e qualquer operação Git exige a aprovação separada definida em `AGENTS.md`.
