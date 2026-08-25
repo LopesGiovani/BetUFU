@@ -32,3 +32,15 @@ O responsável é um desenvolvedor Java júnior e usa a construção da BETUFU t
 - Não usar `--auto`, `--all`, `--force` nem execução autônoma sem autorização explícita para aquele uso.
 - No modo interativo, a regra de aprovação deste arquivo prevalece inclusive sobre commits automáticos previstos pelo workflow.
 
+## Orquestração de implementação e revisão
+
+- Antes de retomar, ler `CLAUDE.md`, `.planning/STATE.md`, o `PLAN.md` atual, seus predecessores e a validação da fase. `STATE.md` é a fonte do ponto corrente; handoffs cujo HEAD, plano ou timestamp divergirem devem ser tratados como obsoletos.
+- O Codex/GSD atua como plano de controle: apresenta o briefing, cria isolamento, coordena verificações, congela o snapshot e conduz a revisão. Gemini via Antigravity ou Claude em modo EXECUTOR podem implementar somente o plano e a allowlist atribuídos.
+- Usar uma worktree e uma branch neutra por plano, nunca por task. Tasks do mesmo plano são sequenciais; até três planos independentes da mesma onda podem executar em paralelo. Nunca permitir dois executores no mesmo checkout.
+- Quando Antigravity for usado, seguir `.agents/antigravity-wave-orchestration.md`. O worker não executa Git, instalações, rede, Docker, Testcontainers nem suítes agregadas. Testes focais rápidos podem ser liberados somente por comando literal do `<verify>`, com aprovação específica por chamada, limite curto e registro em `tests_executed`; sem essa liberação, terminal e testes continuam proibidos.
+- Teste executado pelo worker serve apenas ao ciclo de desenvolvimento. O orquestrador deve repeti-lo independentemente e continua sendo o único responsável pelos testes materiais, pela certificação focal e pelas suítes completas.
+- Após a implementação, reconciliar os paths alterados com a allowlist, executar testes focais e as suítes completas exigidas, e então congelar HEAD, status e hashes para revisão Codex somente leitura. Qualquer correção invalida o parecer anterior.
+- Um plano com código produz normalmente dois commits locais: implementação e formalização. Plano apenas decisório pode produzir somente o documental. Stage, cada commit, integração, limpeza e push respeitam o escopo Git explicitamente aprovado.
+- Integrar planos aprovados linearmente na `master`, preservar alterações alheias e limpar apenas as branches/worktrees exatas já integradas. Nunca fazer push por inferência.
+- Somente depois de toda a onda estar integrada, verificada e limpa, entregar um parecer final em linguagem acessível a desenvolvedor Java júnior: o que foi construído, como funciona, provas executadas, riscos resolvidos e pendências.
+

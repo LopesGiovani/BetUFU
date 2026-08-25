@@ -11,7 +11,7 @@ updated: 2026-08-25
 
 # Phase 02 — Validation Strategy
 
-> `nyquist_compliant: true` significa que todas as 67 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. As linhas `PASS` abaixo registram evidência já executada; as linhas `PLANNED — NOT RUN` continuam futuras. `wave_0_complete: false` permanece intencional enquanto ainda houver scaffolds da fase não executados.
+> `nyquist_compliant: true` significa que todas as 68 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. As linhas `PASS` abaixo registram evidência já executada; as linhas `PLANNED — NOT RUN` continuam futuras. `wave_0_complete: false` permanece intencional enquanto ainda houver scaffolds da fase não executados.
 
 ## Test Infrastructure
 
@@ -81,7 +81,8 @@ updated: 2026-08-25
 | 02-29-T3 | AUTH-04; IDEN-05; OPER-06; PRIV-01; D-40 | validators realm/runtime, compose config, E2E e gates completos cobrem a única ativação produtiva. **Gates bloqueantes herdados da revisão externa da Wave 7**, ambos formalizados no fechamento daquela onda: (a) teste integrado com dispatcher e endpoint verdadeiros, provando entrega única, recusa de credencial não assinada e encerramento das sessões pela cadeia real; (b) **validação criptográfica real do Bearer da recuperação, com Keycloak real** — `setAudience(\"realm-management\")`, assinatura forjada, token expirado, issuer incorreto, audience incorreta, papel global homônimo recusado e `realm-management/manage-realm` aceito, cada negativa isolada por token realmente assinado. O C3 acrescenta duas provas obrigatórias: disabled retorna antes da outbox; realm já persistido recebe listeners por reconciliador GET/PUT/GET, preserva o documento, não altera `eventsEnabled`, confirma APPLIED/UNCHANGED e a segunda execução não faz PUT | listener/digest/secrets divergentes, captura de outbox com disabled, perda de campo/listener preexistente, alteração de `eventsEnabled`, credencial em argumento/log, segundo PUT, divergência sem tentativa de rollback, qualquer gate vermelho, token expirado/issuer/audience provado por assinatura inválida, ou **ausência da prova E2E real ou da prova criptográfica** deve falhar | PASS — 2026-08-24; sinal literal registrado, reconciliador APPLIED/UNCHANGED, gates realm/runtime/recovery/compose verdes e árvore combinada 235/303/59/615; revisão final P0=P1=P2=0 |
 | 02-12-T1 | VERI-07; OPER-01; AUDT-01; D-32 | `EnrollmentCorrectionIT` troca o vínculo, libera o anterior e preserva histórico/auditoria | liberar antes da confirmação, apagar histórico ou manter o anterior ativo deve falhar | PASS — 2026-08-25; PostgreSQL real cobre troca, rotação, colisão, corrida, rollback, operação inócua, histórico e auditoria; mutação liberar-antes-de-verificar vermelha com 6/11 falhas |
 | 02-12-T2 | VERI-07; OPER-01; AUDT-01; D-32 | `EnrollmentCorrectionAuthorizationIT`, `RoleAuthorizationMatrixIT` e testes de contrato de erro provam exclusividade do administrador geral | colocar matcher depois de regra ampla ou permitir membro/operador deve falhar | PASS — 2026-08-25; matcher exato antes de `/api/v1/**`, três papéis e recusa genérica provados; mutação de ordem vermelha com 1/2 falha; árvore final 246/317/617 e revisão PASS |
-| 02-25-T1 | VERI-07; OPER-01; AUDT-01 | validadores de contrato/rota, cliente gerado e suítes completas mantêm a correção sincronizada | drift de endpoint, DTO ou digest deve falhar | PLANNED — NOT RUN |
+| 02-25-T1 | VERI-07; OPER-01; AUDT-01 | paridade OpenAPI e cliente candidato gerado pelo motor fixado mantêm a correção sincronizada antes do checkpoint | drift de endpoint/DTO, edição manual ou falha além de `GENERATED_MANIFEST_PATHS` e `GENERATED_MANIFEST_DIGEST` deve bloquear | PLANNED — NOT RUN |
+| 02-25-T2 | VERI-07; OPER-01; AUDT-01 | checkpoint `blocking-human`: schemas, inventário e digest candidatos são aprovados antes de atualizar `APPROVED_GENERATED_FILES` e `APPROVED_GENERATED_DIGEST` | mudança anterior à aprovação, path inesperado, campo sensível ou gate final vermelho bloqueia | PLANNED — NOT RUN |
 | 02-13-T1 | VERI-06; VERI-07; PRIV-01; UI S3 | `enrollment-api.adapter.spec.ts`, `enrollment-page.component.spec.ts`, build e validador de rota cobrem registro opcional sem persistir a matrícula | usar storage/retry automático, deixar matrícula no DOM ou perder foco no erro deve falhar | PLANNED — NOT RUN |
 | 02-13-T2 | VERI-06; VERI-07; PRIV-01; UI S3 | suíte frontend verde é pré-condição da jornada humana/axe S3 | teclado, estados ou privacidade divergentes bloqueiam aprovação | PLANNED — NOT RUN |
 | 02-14-T1 | PROF-01; PROF-02; PRIV-01; D-34..D-39 | validadores de contrato/rota provam OpenAPI e cliente gerado do perfil | somente o digest deve falhar imediatamente após regenerar o cliente | PLANNED — NOT RUN |
@@ -105,7 +106,7 @@ updated: 2026-08-25
 
 ### Handoff de cobertura S7
 
-`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem agora é 67 Task IDs únicos: D-40 possui 14 tasks distribuídas entre `02-24-T1..T3`, `02-28-T1..T2`, `02-30-T1..T3`, `02-31-T1..T3` e `02-29-T1..T3`, incluindo o checkpoint final `02-29-T2`; os gates materiais internos anteriores às tasks continuam sem Task ID. `02-15-T1`, as 14 tasks D-40 e `02-18-T1..T3` estão `PASS`; `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
+`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem agora é 68 Task IDs únicos: D-40 possui 14 tasks distribuídas entre `02-24-T1..T3`, `02-28-T1..T2`, `02-30-T1..T3`, `02-31-T1..T3` e `02-29-T1..T3`, incluindo o checkpoint final `02-29-T2`; o 02-25 possui agora o checkpoint humano explícito `02-25-T2` para aprovar inventário e digest. Os gates materiais internos anteriores às tasks continuam sem Task ID. `02-15-T1`, as 14 tasks D-40 e `02-18-T1..T3` estão `PASS`; `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
 
 ## Wave 0 Requirements and Dependencies
 
@@ -169,7 +170,7 @@ Cada onda pausa para aprovação explícita conforme `AGENTS.md`; nenhuma aprova
 
 ## Phase Exit Gate
 
-- Os 67 Task IDs acima precisam de evidência no SUMMARY proprietário; não há marcador pendente nem tarefa sem mapa.
+- Os 68 Task IDs acima precisam de evidência no SUMMARY proprietário; não há marcador pendente nem tarefa sem mapa.
 - Todo comportamento produtivo precisa de RED, GREEN e controle negativo/mutação registrado; checkpoints precisam da pré-condição automatizada e da decisão/aprovação humana.
 - Todos os testes focados passam, a suíte de regressão passa e nenhum artefato sensível aparece em logs, erros, cache, DTO ou UI.
 - Nenhuma ameaça `critical` ou `high` permanece aberta sob ASVS L1.

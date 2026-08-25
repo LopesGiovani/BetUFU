@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 11 concluída tecnicamente e formalizada; próxima execução planejada é a Wave 12 (02-13 e 02-25)"
-last_updated: "2026-08-25T11:10:27-03:00"
+stopped_at: "Fase 2: preflight da Wave 12 aprovado; planos 02-13/02-25 e validação reconciliados antes da criação das worktrees"
+last_updated: "2026-08-25T11:55:15-03:00"
 last_activity: 2026-08-25
-last_activity_desc: "Plano 02-12 implementado e revisado: correção administrativa de matrícula, autorização exclusiva e provas agregadas 246/317/617."
+last_activity_desc: "Wave 12 preparada: S3 usa oito arquivos e o 02-25 separa geração candidata da aprovação humana de inventário/digest."
 progress:
   total_phases: 7
   completed_phases: 1
@@ -52,6 +52,8 @@ Git — Wave 8 (concluída e enviada, 2026-08-23): o histórico foi normalizado 
 Git — Wave 9 (concluída e enviada, 2026-08-24): quatro commits lineares, dois por plano: `8b3b632` (`feat(02-10)`), `a79e8b2` (`docs(02-10)`), `46b85fe` (`feat(02-29)`) e `ffac2ea` (`docs(02-29)`). A árvore combinada passou Surefire `235/235`, Failsafe `303/303`, módulo Keycloak `59/59` e Node `615/615`; os validadores de realm, runtime e recovery e `docker compose config --quiet` também passaram. O primeiro `clean verify` do backend falhou corretamente sem as variáveis HMAC obrigatórias; a execução canônica seguinte usou chaves descartáveis somente no processo e terminou verde, sem persistir segredo. O snapshot final recebeu revisão sem P0–P2. A integração ocorreu por fast-forward, as branches e worktrees temporários exatos foram removidos e `master`/`origin/master` chegaram juntos a `ffac2ea`. `AGENTS.md` permaneceu fora dos commits.
 
 Git — Wave 11 (snapshot técnico revisado, 2026-08-25): o commit `32ea355` (`feat(02-12)`) contém exatamente os dez paths da allowlist certificados por hash. A árvore passou Surefire `246/246`, Failsafe `317/317` e Node `617/617`; as mutações de ordem transacional e de matcher ficaram vermelhas e foram restauradas por hash. Os refs finais de integração e sincronização não são autorreferenciados neste documento e devem ser confirmados ao vivo. `AGENTS.md` e caches Angular permanecem alheios e fora dos commits.
+
+Git — Wave 12 (preflight aprovado, 2026-08-25): o dry-run do adaptador confirmou duas lanes sem sobreposição, `02-13` e `02-25`. Antes de criar worktrees, o responsável ratificou três correções documentais: a fatia S3 possui oito arquivos; o manifesto governado do cliente vive em `frontend/scripts/generate-api.mjs`; e a aprovação do inventário/digest passou a ser o checkpoint explícito `02-25-T2`, elevando a matriz para 68 Task IDs. O commit que transporta essas emendas para as worktrees não pode citar o próprio hash; confirme-o ao vivo por `git log -1`. Nenhuma worktree, branch temporária, chamada externa ou teste material havia sido iniciado neste ponto. `AGENTS.md`, `CLAUDE.md` e os caches Angular permanecem fora do commit.
 
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 
