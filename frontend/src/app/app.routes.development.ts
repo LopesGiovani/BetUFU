@@ -35,6 +35,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
           ),
       },
       {
+        path: 'conta/matricula',
+        loadComponent: () =>
+          import('./features/enrollment/enrollment-page.component').then(
+            ({ EnrollmentPageComponent }) => EnrollmentPageComponent,
+          ),
+      },
+      {
         path: 'operacao/painel',
         loadComponent: () =>
           import('./features/operations/operations-panel-page.component').then(
