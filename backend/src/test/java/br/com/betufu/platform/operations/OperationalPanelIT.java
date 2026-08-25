@@ -239,6 +239,8 @@ class OperationalPanelIT {
                 .andExpect(jsonPath("$.queriedAt").isNotEmpty())
                 .andExpect(jsonPath("$.timeWindow.since").isNotEmpty())
                 .andExpect(jsonPath("$.timeWindow.until").isNotEmpty())
+                .andExpect(jsonPath("$.unavailableBlocks").isArray())
+                .andExpect(jsonPath("$.unavailableBlocks").isEmpty())
                 // Bloco 1: Alterações de papel
                 .andExpect(jsonPath("$.roleChanges").exists())
                 .andExpect(jsonPath("$.roleChanges.recentEvents").isArray())
@@ -304,6 +306,8 @@ class OperationalPanelIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.queriedAt").isNotEmpty())
                 .andExpect(jsonPath("$.timeWindow").exists())
+                .andExpect(jsonPath("$.unavailableBlocks").isArray())
+                .andExpect(jsonPath("$.unavailableBlocks").isEmpty())
                 // Apenas bloco de contas sem matrícula
                 .andExpect(jsonPath("$.unregisteredEnrollmentsCount").exists())
                 .andExpect(jsonPath("$.unregisteredEnrollmentsCount.count").value(5))
@@ -330,6 +334,8 @@ class OperationalPanelIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.queriedAt").isNotEmpty())
                 .andExpect(jsonPath("$.timeWindow").exists())
+                .andExpect(jsonPath("$.unavailableBlocks").isArray())
+                .andExpect(jsonPath("$.unavailableBlocks").isEmpty())
                 .andExpect(jsonPath("$.roleChanges").doesNotExist())
                 .andExpect(jsonPath("$.rejectedEnrollmentsCount").doesNotExist())
                 .andExpect(jsonPath("$.administrativeCorrections").doesNotExist())

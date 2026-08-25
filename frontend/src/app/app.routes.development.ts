@@ -34,6 +34,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ ProfilePageComponent }) => ProfilePageComponent,
           ),
       },
+      {
+        path: 'operacao/painel',
+        loadComponent: () =>
+          import('./features/operations/operations-panel-page.component').then(
+            ({ OperationsPanelPageComponent }) => OperationsPanelPageComponent,
+          ),
+      },
     ],
   },
 ];

@@ -1,0 +1,432 @@
+<section class="operations-container" aria-labelledby="operations-panel-title">
+  <!-- Região de Anúncio Dinâmico Acessível (WCAG 2.2 AA) -->
+  <div
+    class="visually-hidden"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    id="operations-live-region"
+  >
+    @if (copyFeedbackMessage()) {
+      <p>{{ copyFeedbackMessage() }}</p>
+    }
+    @if (store.isLoading()) {
+      <p>Atualizando dados do painel operacional…</p>
+    }
+  </div>
+
+  <!-- Cabeçalho da Página -->
+  <header class="page-header">
+    <div class="header-titles">
+      <h1 id="operations-panel-title" class="page-title">Painel operacional</h1>
+      <p class="page-subtitle">
+        Pendências e falhas da edição piloto, dentro do que seu papel autoriza.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      @if (store.displaySnapshot(); as snapshot) {
+        <span class="queried-at-label">
+          Consultado às {{ formatTime(snapshot.queriedAt) }}
+        </span>
+      }
+
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="onRefresh()"
+        [disabled]="store.isLoading()"
+        aria-label="Atualizar dados do painel operacional"
+      >
+        @if (store.isLoading()) {
+          <span class="btn-spinner" aria-hidden="true"></span>
+        }
+        <span>{{ store.isLoading() ? 'Atualizando…' : 'Atualizar painel' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Estado 1: Loading Inicial (Sem dados prévios) -->
+  @if (store.isLoading() && !store.displaySnapshot()) {
+    <div
+      class="status-feedback loading-state"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="spinner-large" aria-hidden="true"></div>
+      <h2>Consultando painel operacional…</h2>
+      <p>Aguarde enquanto verificamos os registros da plataforma.</p>
+    </div>
+  }
+
+  <!-- Estado 2: Error Bloqueante (Sem dados anteriores para preservar) -->
+  @if (store.isError() && !store.displaySnapshot()) {
+    <div
+      class="status-feedback error-state"
+      role="alert"
+      aria-live="assertive"
+    >
+      <span class="material-symbols-rounded status-icon" aria-hidden="true">error_outline</span>
+      <h2>Falha ao carregar o painel</h2>
+      <p class="error-text">{{ store.errorMessage() }}</p>
+
+      @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
+        <div class="correlation-box">
+          <span class="label">Código de referência:</span>
+          <code class="code-value">{{ store.errorCorrelationId() }}</code>
+          <button
+            type="button"
+            class="btn-copy"
+            (click)="copyCorrelationId(store.errorCorrelationId()!)"
+            aria-label="Copiar código de referência"
+          >
+            {{ copyStatus() === 'copied' ? 'Copiado!' : 'Copiar' }}
+          </button>
+        </div>
+      }
+
+      <button type="button" class="btn-primary" (click)="onRefresh()">
+        Tentar novamente
+      </button>
+    </div>
+  }
+
+  <!-- Estado 3: Empty - Escopo sem blocos autorizados (ex. Moderador) -->
+  @if (store.hasNoScope() && !store.isLoading()) {
+    <div
+      class="status-feedback empty-state"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="material-symbols-rounded status-icon" aria-hidden="true">info</span>
+      <h2>Nenhum item no seu escopo</h2>
+      <p>Seu papel não tem pendências abertas nesta etapa.</p>
+    </div>
+  }
+
+  <!-- Estado 4: Empty - Sem pendências no escopo autorizado -->
+  @if (store.hasNoPending() && !store.isLoading() && !store.isError()) {
+    <div
+      class="status-feedback empty-pending-state"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="material-symbols-rounded status-icon available-icon" aria-hidden="true">check_circle</span>
+      <h2>Nada pendente agora</h2>
+      <p>Nenhuma pendência ou falha aberta no seu escopo. Selecione “Atualizar painel” para consultar novamente.</p>
+    </div>
+  }
+
+  <!-- Estado 5: Populated / Partial / Dados Operacionais Disponíveis -->
+  @if (store.displaySnapshot(); as snapshot) {
+    <!-- Aviso de falha na recarga (dados anteriores preservados per D-04, D-17 e S4) -->
+    @if (store.isStale() || store.isError()) {
+      <div class="stale-warning" role="alert">
+        <div class="stale-header">
+          <span class="material-symbols-rounded stale-icon" aria-hidden="true">warning_amber</span>
+          <span class="stale-message">Não foi possível atualizar o painel. Verifique a conexão e tente novamente.</span>
+        </div>
+        <p class="stale-note">Dados da última consulta; atualização não concluída.</p>
+        @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
+          <div class="stale-correlation">
+            <span class="label">Código de referência:</span>
+            <code class="code-inline">{{ store.errorCorrelationId() }}</code>
+            <button
+              type="button"
+              class="btn-copy-small"
+              (click)="copyCorrelationId(store.errorCorrelationId()!)"
+              aria-label="Copiar código de referência"
+            >
+              {{ copyStatus() === 'copied' ? 'Copiado!' : 'Copiar' }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Grade Responsiva de Blocos Operacionais -->
+    <div class="operations-grid" role="region" aria-label="Blocos do painel operacional">
+      <!-- Bloco 1: Registros de matrícula recusados (Administrador geral) -->
+      @if (snapshot.rejectedEnrollments; as rejected) {
+        <article
+          class="panel-card rejected-card"
+          [ngClass]="{ 'has-pending': rejected.hasPending }"
+          aria-labelledby="card-rejected-title"
+        >
+          <header class="card-header">
+            <h2 id="card-rejected-title" class="card-title">Registros de matrícula recusados</h2>
+            @if (rejected.hasPending) {
+              <span
+                class="pending-chip"
+                aria-label="Estado: Pendência aberta"
+              >
+                <span class="material-symbols-rounded chip-icon" aria-hidden="true">warning_amber</span>
+                <span>Pendência</span>
+              </span>
+            }
+          </header>
+
+          <div class="card-body">
+            <div class="aggregate-number">{{ rejected.totalCount }}</div>
+            <p class="aggregate-label">{{ rejected.label }}</p>
+
+            <div class="breakdown-list">
+              <span class="breakdown-item">{{ rejected.duplicateLabel }}</span>
+              <span class="breakdown-divider" aria-hidden="true">·</span>
+              <span class="breakdown-item">{{ rejected.attemptLimitLabel }}</span>
+            </div>
+          </div>
+
+          @if (snapshot.timeWindow.since) {
+            <footer class="card-footer">
+              <span class="time-window-label">
+                Recorte de {{ formatDate(snapshot.timeWindow.since) }} a {{ formatDate(snapshot.timeWindow.until) }}
+              </span>
+            </footer>
+          }
+        </article>
+      } @else if (snapshot.isRejectedEnrollmentsUnavailable) {
+        <article
+          class="panel-card rejected-card card-unavailable"
+          role="alert"
+          aria-labelledby="card-rejected-title"
+        >
+          <header class="card-header">
+            <h2 id="card-rejected-title" class="card-title">Registros de matrícula recusados</h2>
+            <span class="unavailable-chip" aria-label="Estado: Bloco indisponível">
+              <span class="material-symbols-rounded chip-icon" aria-hidden="true">warning_amber</span>
+              <span>Indisponível</span>
+            </span>
+          </header>
+          <div class="card-body">
+            <p class="unavailable-message">{{ snapshot.unavailableBlockMessage }}</p>
+          </div>
+        </article>
+      }
+
+      <!-- Bloco 2: Correções administrativas de matrícula (Administrador geral) -->
+      @if (snapshot.administrativeCorrections; as corrections) {
+        <article
+          class="panel-card corrections-card"
+          [ngClass]="{ 'has-pending': corrections.totalCount > 0 }"
+          aria-labelledby="card-corrections-title"
+        >
+          <header class="card-header">
+            <h2 id="card-corrections-title" class="card-title">Correções administrativas de matrícula</h2>
+            <span class="count-badge">{{ corrections.label }}</span>
+          </header>
+
+          <div class="card-body">
+            @if (corrections.events.length === 0) {
+              <div class="empty-events">
+                <p>Nenhuma correção recente registrada no período.</p>
+              </div>
+            }
+
+            @if (corrections.events.length > 0) {
+              <div class="audit-list">
+                @for (event of corrections.events; track event.eventId) {
+                  <div class="audit-item">
+                    <div class="audit-header">
+                      <span class="target-nickname">{{ event.targetNickname || 'Identidade sem apelido' }}</span>
+                      @if (event.targetIdentityId) {
+                        <code class="target-identity-id">{{ event.targetIdentityId }}</code>
+                      }
+                    </div>
+
+                    <div class="audit-meta">
+                      <span class="audit-actor">
+                        Administrador:
+                        <code class="actor-identity-id">{{ event.actorIdentityId || 'Sistema' }}</code>
+                        @if (event.actorRole) {
+                          <span class="actor-role">({{ event.actorRole }})</span>
+                        }
+                      </span>
+                      <span class="audit-time">{{ formatDate(event.occurredAt) }}</span>
+                    </div>
+
+                    @if (event.reason) {
+                      <div class="audit-reason">
+                        <strong class="reason-label">Motivo da correção:</strong>
+                        <p class="reason-text">{{ event.reason }}</p>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (snapshot.timeWindow.since) {
+            <footer class="card-footer">
+              <span class="time-window-label">
+                Recorte de {{ formatDate(snapshot.timeWindow.since) }} a {{ formatDate(snapshot.timeWindow.until) }}
+              </span>
+            </footer>
+          }
+        </article>
+      } @else if (snapshot.isAdministrativeCorrectionsUnavailable) {
+        <article
+          class="panel-card corrections-card card-unavailable"
+          role="alert"
+          aria-labelledby="card-corrections-title"
+        >
+          <header class="card-header">
+            <h2 id="card-corrections-title" class="card-title">Correções administrativas de matrícula</h2>
+            <span class="unavailable-chip" aria-label="Estado: Bloco indisponível">
+              <span class="material-symbols-rounded chip-icon" aria-hidden="true">warning_amber</span>
+              <span>Indisponível</span>
+            </span>
+          </header>
+          <div class="card-body">
+            <p class="unavailable-message">{{ snapshot.unavailableBlockMessage }}</p>
+          </div>
+        </article>
+      }
+
+      <!-- Bloco 3: Alterações de papel (Administrador geral) -->
+      @if (snapshot.roleChanges; as roles) {
+        <article
+          class="panel-card roles-card"
+          [ngClass]="{ 'has-pending': roles.hasPending }"
+          aria-labelledby="card-roles-title"
+        >
+          <header class="card-header">
+            <h2 id="card-roles-title" class="card-title">Alterações de papel</h2>
+            @if (roles.hasPending) {
+              <span
+                class="pending-chip"
+                aria-label="Estado: Pendência aberta"
+              >
+                <span class="material-symbols-rounded chip-icon" aria-hidden="true">warning_amber</span>
+                <span>Pendência</span>
+              </span>
+            }
+            @if (!roles.hasPending) {
+              <span class="count-badge">{{ roles.label }}</span>
+            }
+          </header>
+
+          <div class="card-body">
+            @if (roles.events.length === 0) {
+              <div class="empty-events">
+                <p>Nenhuma alteração recente registrada no período.</p>
+              </div>
+            }
+
+            @if (roles.events.length > 0) {
+              <div class="audit-list">
+                @for (event of roles.events; track event.eventId) {
+                  <div
+                    class="audit-item"
+                    [ngClass]="{ 'event-blocked': event.isBlocked }"
+                  >
+                    <div class="audit-header">
+                      <span
+                        class="role-event-badge"
+                        [ngClass]="event.isBlocked ? 'badge-blocked' : 'badge-permitted'"
+                      >
+                        <span class="material-symbols-rounded event-icon" aria-hidden="true">
+                          {{ event.isBlocked ? 'error_outline' : 'check_circle' }}
+                        </span>
+                        <span>{{ event.isBlocked ? 'Tentativa bloqueada' : event.actionLabel }}</span>
+                      </span>
+                      <span class="target-nickname">{{ event.targetNickname || 'Identidade' }}</span>
+                      @if (event.targetIdentityId) {
+                        <code class="target-identity-id">{{ event.targetIdentityId }}</code>
+                      }
+                    </div>
+
+                    <div class="audit-meta">
+                      <span class="audit-actor">
+                        Autor:
+                        <code class="actor-identity-id">{{ event.actorIdentityId || 'Sistema' }}</code>
+                        @if (event.actorRole) {
+                          <span class="actor-role">({{ event.actorRole }})</span>
+                        }
+                      </span>
+                      <span class="audit-time">{{ formatDate(event.occurredAt) }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (snapshot.timeWindow.since) {
+            <footer class="card-footer">
+              <span class="time-window-label">
+                Recorte de {{ formatDate(snapshot.timeWindow.since) }} a {{ formatDate(snapshot.timeWindow.until) }}
+              </span>
+            </footer>
+          }
+        </article>
+      } @else if (snapshot.isRoleChangesUnavailable) {
+        <article
+          class="panel-card roles-card card-unavailable"
+          role="alert"
+          aria-labelledby="card-roles-title"
+        >
+          <header class="card-header">
+            <h2 id="card-roles-title" class="card-title">Alterações de papel</h2>
+            <span class="unavailable-chip" aria-label="Estado: Bloco indisponível">
+              <span class="material-symbols-rounded chip-icon" aria-hidden="true">warning_amber</span>
+              <span>Indisponível</span>
+            </span>
+          </header>
+          <div class="card-body">
+            <p class="unavailable-message">{{ snapshot.unavailableBlockMessage }}</p>
+          </div>
+        </article>
+      }
+
+      <!-- Bloco 4: Contas sem matrícula registrada (Administrador geral e de competição) -->
+      @if (snapshot.unregisteredEnrollments; as unregistered) {
+        <article
+          class="panel-card unregistered-card"
+          [ngClass]="{ 'has-pending': unregistered.hasPending }"
+          aria-labelledby="card-unregistered-title"
+        >
+          <header class="card-header">
+            <h2 id="card-unregistered-title" class="card-title">Contas sem matrícula registrada</h2>
+            @if (unregistered.hasPending) {
+              <span
+                class="pending-chip"
+                aria-label="Estado: Pendência aberta"
+              >
+                <span class="material-symbols-rounded chip-icon" aria-hidden="true">warning_amber</span>
+                <span>Pendência</span>
+              </span>
+            }
+          </header>
+
+          <div class="card-body">
+            <div class="aggregate-number">{{ unregistered.count }}</div>
+            <p class="aggregate-label">{{ unregistered.label }}</p>
+          </div>
+
+          <footer class="card-footer">
+            <span class="time-window-label">Total acumulado na plataforma</span>
+          </footer>
+        </article>
+      } @else if (snapshot.isUnregisteredEnrollmentsUnavailable) {
+        <article
+          class="panel-card unregistered-card card-unavailable"
+          role="alert"
+          aria-labelledby="card-unregistered-title"
+        >
+          <header class="card-header">
+            <h2 id="card-unregistered-title" class="card-title">Contas sem matrícula registrada</h2>
+            <span class="unavailable-chip" aria-label="Estado: Bloco indisponível">
+              <span class="material-symbols-rounded chip-icon" aria-hidden="true">warning_amber</span>
+              <span>Indisponível</span>
+            </span>
+          </header>
+          <div class="card-body">
+            <p class="unavailable-message">{{ snapshot.unavailableBlockMessage }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

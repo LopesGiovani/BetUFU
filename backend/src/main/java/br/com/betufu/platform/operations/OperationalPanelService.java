@@ -3,6 +3,7 @@ package br.com.betufu.platform.operations;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -18,11 +19,14 @@ import br.com.betufu.platform.identity.OperationalIdentityLookup.GrantedRole;
 import br.com.betufu.platform.identity.OperationalIdentityLookup.OperationalIdentity;
 import br.com.betufu.platform.operations.OperationalPanelResponse.AdministrativeCorrectionEventDto;
 import br.com.betufu.platform.operations.OperationalPanelResponse.AdministrativeCorrectionsBlock;
+import br.com.betufu.platform.operations.OperationalPanelResponse.OperationalBlock;
 import br.com.betufu.platform.operations.OperationalPanelResponse.RejectedEnrollmentsBlock;
 import br.com.betufu.platform.operations.OperationalPanelResponse.RoleChangeEventDto;
 import br.com.betufu.platform.operations.OperationalPanelResponse.RoleChangesBlock;
 import br.com.betufu.platform.operations.OperationalPanelResponse.TimeWindow;
 import br.com.betufu.platform.operations.OperationalPanelResponse.UnregisteredEnrollmentsBlock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -37,10 +41,15 @@ import org.springframework.stereotype.Service;
  *
  * <p>Garante que blocos não autorizados pelo papel vigente fiquem {@code null} no servidor,
  * sem vazar a existência do escopo ao cliente (OPER-02, OPER-04).
+ *
+ * <p>Falhas parciais em blocos autorizados são capturadas de forma isolada, preservando os demais
+ * blocos e enumerando somente os blocos autorizados que falharam em {@code unavailableBlocks}.
  */
 @Service
 @Profile("runtime | integrated")
 public class OperationalPanelService {
+
+    private static final Logger log = LoggerFactory.getLogger(OperationalPanelService.class);
 
     public static final Duration DEFAULT_TIME_WINDOW = Duration.ofDays(7);
     public static final int RECENT_EVENTS_LIMIT = 20;
@@ -93,12 +102,12 @@ public class OperationalPanelService {
         TimeWindow timeWindow = new TimeWindow(since, now);
 
         if (issuer == null || subject == null || issuer.isBlank() || subject.isBlank()) {
-            return new OperationalPanelResponse(now, timeWindow, null, null, null, null);
+            return new OperationalPanelResponse(now, timeWindow, null, null, null, null, List.of());
         }
 
         Optional<OperationalIdentity> identityOpt = identityLookup.lookupIdentity(issuer, subject);
         if (identityOpt.isEmpty()) {
-            return new OperationalPanelResponse(now, timeWindow, null, null, null, null);
+            return new OperationalPanelResponse(now, timeWindow, null, null, null, null, List.of());
         }
 
         Set<GrantedRole> roles = identityOpt.get().roles();
@@ -111,69 +120,92 @@ public class OperationalPanelService {
         RejectedEnrollmentsBlock rejectedEnrollments = null;
         AdministrativeCorrectionsBlock administrativeCorrections = null;
         UnregisteredEnrollmentsBlock unregisteredEnrollments = null;
+        List<OperationalBlock> unavailableBlocks = new ArrayList<>();
 
         if (isGlobalAdmin) {
             // 1. Bloco de alterações de papel
-            List<RecentRoleChangeEvent> recentRoleEvents =
-                    auditAggregateQuery.findRecentRoleChangeEvents(ROLE_CHANGE_ACTIONS, RECENT_EVENTS_LIMIT);
+            try {
+                List<RecentRoleChangeEvent> recentRoleEvents =
+                        auditAggregateQuery.findRecentRoleChangeEvents(ROLE_CHANGE_ACTIONS, RECENT_EVENTS_LIMIT);
 
-            List<RoleChangeEventDto> roleDtos = recentRoleEvents.stream()
-                    .map(e -> new RoleChangeEventDto(
-                            e.eventId(),
-                            e.occurredAt(),
-                            e.actorIdentityId(),
-                            e.actorRole(),
-                            e.targetIdentityId(),
-                            e.targetNickname(),
-                            e.action(),
-                            e.outcome(),
-                            e.hasReason()))
-                    .toList();
-            roleChanges = new RoleChangesBlock(roleDtos);
+                List<RoleChangeEventDto> roleDtos = recentRoleEvents.stream()
+                        .filter(event -> isWithinTimeWindow(event.occurredAt(), since, now))
+                        .map(e -> new RoleChangeEventDto(
+                                e.eventId(),
+                                e.occurredAt(),
+                                e.actorIdentityId(),
+                                e.actorRole(),
+                                e.targetIdentityId(),
+                                e.targetNickname(),
+                                e.action(),
+                                e.outcome(),
+                                e.hasReason()))
+                        .toList();
+                roleChanges = new RoleChangesBlock(roleDtos);
+            } catch (RuntimeException e) {
+                log.warn("Falha ao consultar bloco ROLE_CHANGES do painel operacional");
+                unavailableBlocks.add(OperationalBlock.ROLE_CHANGES);
+            }
 
             // 2. Bloco de registros de matrícula recusados
-            List<RejectionReasonCount> rejections =
-                    auditAggregateQuery.countRejectionsByReason(AuditEntry.ACTION_REGISTRO_MATRICULA, since, now);
+            try {
+                List<RejectionReasonCount> rejections =
+                        auditAggregateQuery.countRejectionsByReason(AuditEntry.ACTION_REGISTRO_MATRICULA, since, now);
 
-            long duplicateCount = 0;
-            long attemptLimitCount = 0;
-            for (RejectionReasonCount rrc : rejections) {
-                String reason = rrc.reason() != null ? rrc.reason() : "";
-                if (DUPLICATE_REJECTION_REASONS.contains(reason)) {
-                    duplicateCount += rrc.count();
-                } else if (ATTEMPT_LIMIT_REJECTION_REASON.equals(reason)) {
-                    attemptLimitCount += rrc.count();
+                long duplicateCount = 0;
+                long attemptLimitCount = 0;
+                for (RejectionReasonCount rrc : rejections) {
+                    String reason = rrc.reason() != null ? rrc.reason() : "";
+                    if (DUPLICATE_REJECTION_REASONS.contains(reason)) {
+                        duplicateCount += rrc.count();
+                    } else if (ATTEMPT_LIMIT_REJECTION_REASON.equals(reason)) {
+                        attemptLimitCount += rrc.count();
+                    }
                 }
+                long totalCount = duplicateCount + attemptLimitCount;
+                rejectedEnrollments = new RejectedEnrollmentsBlock(duplicateCount, attemptLimitCount, totalCount);
+            } catch (RuntimeException e) {
+                log.warn("Falha ao consultar bloco REJECTED_ENROLLMENTS_COUNT do painel operacional");
+                unavailableBlocks.add(OperationalBlock.REJECTED_ENROLLMENTS_COUNT);
             }
-            long totalCount = duplicateCount + attemptLimitCount;
-            rejectedEnrollments = new RejectedEnrollmentsBlock(duplicateCount, attemptLimitCount, totalCount);
 
             // 3. Bloco de correções administrativas de matrícula
-            List<RecentAdministrativeCorrectionEvent> recentCorrections =
-                    auditAggregateQuery.findRecentAdministrativeCorrectionEvents(
-                            ADMIN_CORRECTION_ACTIONS,
-                            RECENT_EVENTS_LIMIT);
+            try {
+                List<RecentAdministrativeCorrectionEvent> recentCorrections =
+                        auditAggregateQuery.findRecentAdministrativeCorrectionEvents(
+                                ADMIN_CORRECTION_ACTIONS,
+                                RECENT_EVENTS_LIMIT);
 
-            List<AdministrativeCorrectionEventDto> correctionDtos = recentCorrections.stream()
-                    .map(e -> new AdministrativeCorrectionEventDto(
-                            e.eventId(),
-                            e.occurredAt(),
-                            e.actorIdentityId(),
-                            e.actorRole(),
-                            e.targetIdentityId(),
-                            e.targetNickname(),
-                            e.action(),
-                            e.outcome(),
-                            e.hasReason(),
-                            e.reason()))
-                    .toList();
-            administrativeCorrections = new AdministrativeCorrectionsBlock(correctionDtos);
+                List<AdministrativeCorrectionEventDto> correctionDtos = recentCorrections.stream()
+                        .filter(event -> isWithinTimeWindow(event.occurredAt(), since, now))
+                        .map(e -> new AdministrativeCorrectionEventDto(
+                                e.eventId(),
+                                e.occurredAt(),
+                                e.actorIdentityId(),
+                                e.actorRole(),
+                                e.targetIdentityId(),
+                                e.targetNickname(),
+                                e.action(),
+                                e.outcome(),
+                                e.hasReason(),
+                                e.reason()))
+                        .toList();
+                administrativeCorrections = new AdministrativeCorrectionsBlock(correctionDtos);
+            } catch (RuntimeException e) {
+                log.warn("Falha ao consultar bloco ADMINISTRATIVE_CORRECTIONS do painel operacional");
+                unavailableBlocks.add(OperationalBlock.ADMINISTRATIVE_CORRECTIONS);
+            }
         }
 
         if (isGlobalAdmin || isCompAdmin) {
             // 4. Bloco de contas sem matrícula registrada
-            int count = enrollmentCountLookup.countAccountsWithoutActiveEnrollment();
-            unregisteredEnrollments = new UnregisteredEnrollmentsBlock(count);
+            try {
+                int count = enrollmentCountLookup.countAccountsWithoutActiveEnrollment();
+                unregisteredEnrollments = new UnregisteredEnrollmentsBlock(count);
+            } catch (RuntimeException e) {
+                log.warn("Falha ao consultar bloco UNREGISTERED_ENROLLMENTS_COUNT do painel operacional");
+                unavailableBlocks.add(OperationalBlock.UNREGISTERED_ENROLLMENTS_COUNT);
+            }
         }
 
         return new OperationalPanelResponse(
@@ -182,6 +214,11 @@ public class OperationalPanelService {
                 roleChanges,
                 rejectedEnrollments,
                 administrativeCorrections,
-                unregisteredEnrollments);
+                unregisteredEnrollments,
+                unavailableBlocks);
+    }
+
+    private static boolean isWithinTimeWindow(Instant occurredAt, Instant since, Instant until) {
+        return !occurredAt.isBefore(since) && !occurredAt.isAfter(until);
     }
 }

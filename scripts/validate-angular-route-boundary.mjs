@@ -281,6 +281,103 @@ function previousNonWhitespaceIndex(source, startIndex) {
   return cursor;
 }
 
+const REGEX_PRECEDING_EXPRESSION_KEYWORDS = new Set([
+  'await',
+  'case',
+  'default',
+  'delete',
+  'do',
+  'else',
+  'in',
+  'instanceof',
+  'new',
+  'return',
+  'throw',
+  'typeof',
+  'void',
+  'yield',
+]);
+
+function isRegexStart(result) {
+  let cursor = result.length - 1;
+  while (cursor >= 0 && /\s/u.test(result[cursor])) {
+    cursor -= 1;
+  }
+  if (cursor < 0) {
+    return true;
+  }
+
+  const char = result[cursor];
+
+  if ('([{:;,!?=~&|^<>*%'.includes(char)) {
+    return true;
+  }
+
+  if (char === '+') {
+    return cursor === 0 || result[cursor - 1] !== '+';
+  }
+  if (char === '-') {
+    return cursor === 0 || result[cursor - 1] !== '-';
+  }
+
+  if (char === '}') {
+    return true;
+  }
+
+  if (char === ')') {
+    let depth = 1;
+    let openIndex = cursor - 1;
+    while (openIndex >= 0 && depth > 0) {
+      if (result[openIndex] === ')') depth += 1;
+      else if (result[openIndex] === '(') depth -= 1;
+      openIndex -= 1;
+    }
+    if (depth === 0) {
+      while (openIndex >= 0 && /\s/u.test(result[openIndex])) {
+        openIndex -= 1;
+      }
+      if (openIndex >= 0) {
+        let wordEnd = openIndex;
+        let wordStart = wordEnd;
+        while (wordStart >= 0 && /[\p{ID_Continue}$]/u.test(result[wordStart])) {
+          wordStart -= 1;
+        }
+        const headerWord = result.slice(wordStart + 1, wordEnd + 1);
+        let beforeHeader = wordStart;
+        while (beforeHeader >= 0 && /\s/u.test(result[beforeHeader])) {
+          beforeHeader -= 1;
+        }
+        if (beforeHeader >= 0 && result[beforeHeader] === '.') {
+          return false;
+        }
+        if (['if', 'while', 'for', 'with'].includes(headerWord)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  if (/[\p{ID_Continue}$]/u.test(char)) {
+    let wordStart = cursor;
+    while (wordStart >= 0 && /[\p{ID_Continue}$]/u.test(result[wordStart])) {
+      wordStart -= 1;
+    }
+    const word = result.slice(wordStart + 1, cursor + 1);
+    let beforeWord = wordStart;
+    while (beforeWord >= 0 && /\s/u.test(result[beforeWord])) {
+      beforeWord -= 1;
+    }
+    if (beforeWord >= 0 && result[beforeWord] === '.') {
+      return false;
+    }
+
+    return REGEX_PRECEDING_EXPRESSION_KEYWORDS.has(word);
+  }
+
+  return false;
+}
+
 function transformScriptSource(source, { maskLiterals = false, stripComments = false } = {}) {
   let result = '';
   const contexts = [{ type: 'code', templateExpression: false, braceDepth: 0 }];
@@ -341,6 +438,28 @@ function transformScriptSource(source, { maskLiterals = false, stripComments = f
       continue;
     }
 
+    if (context.type === 'regex') {
+      if (current === '\\' && next !== undefined) {
+        result += maskLiterals ? `${maskCharacter(current)}${maskCharacter(next)}` : `${current}${next}`;
+        index += 1;
+      } else if (current === '[' && !context.inClass) {
+        context.inClass = true;
+        result += maskLiterals ? maskCharacter(current) : current;
+      } else if (current === ']' && context.inClass) {
+        context.inClass = false;
+        result += maskLiterals ? maskCharacter(current) : current;
+      } else if (current === '/' && !context.inClass) {
+        result += current;
+        contexts.pop();
+      } else if (current === '\n') {
+        result += '\n';
+        contexts.pop();
+      } else {
+        result += maskLiterals ? maskCharacter(current) : current;
+      }
+      continue;
+    }
+
     if (stripComments && current === '/' && next === '/') {
       result += '  ';
       index += 1;
@@ -364,6 +483,12 @@ function transformScriptSource(source, { maskLiterals = false, stripComments = f
     if (current === '`') {
       result += current;
       contexts.push({ type: 'template' });
+      continue;
+    }
+
+    if (current === '/' && isRegexStart(result)) {
+      result += current;
+      contexts.push({ type: 'regex', inClass: false });
       continue;
     }
 
@@ -742,21 +867,13 @@ async function readGeneratedTypeScriptSources(projectRoot) {
     );
   }
 
-  expect(
-    isDeepStrictEqual(manifest.files, APPROVED_GENERATED_FILES),
-    'GENERATED_MANIFEST_PATHS',
-    `a arvore gerada deve conter exatamente os ${APPROVED_GENERATED_FILES.length} caminhos aprovados, na ordem canonica.`,
-  );
-  expect(
-    manifest.digest === APPROVED_GENERATED_DIGEST,
-    'GENERATED_MANIFEST_DIGEST',
-    `a arvore gerada deve possuir o digest canonico ${APPROVED_GENERATED_DIGEST}.`,
-  );
-
-  return new Map(manifest.entries.map(({ path, bytes }) => [
-    `${PATHS.generatedRoot}/${path}`,
-    normalizeText(bytes.toString('utf8')),
-  ]));
+  return {
+    manifest,
+    sources: new Map(manifest.entries.map(({ path, bytes }) => [
+      `${PATHS.generatedRoot}/${path}`,
+      normalizeText(bytes.toString('utf8')),
+    ])),
+  };
 }
 
 async function readFrontendRuntimeSources(projectRoot) {
@@ -1233,6 +1350,19 @@ function validateGeneratedClient(generatedSources) {
   }
 }
 
+function validateGeneratedManifest(manifest) {
+  expect(
+    isDeepStrictEqual(manifest.files, APPROVED_GENERATED_FILES),
+    'GENERATED_MANIFEST_PATHS',
+    `a arvore gerada deve conter exatamente os ${APPROVED_GENERATED_FILES.length} caminhos aprovados, na ordem canonica.`,
+  );
+  expect(
+    manifest.digest === APPROVED_GENERATED_DIGEST,
+    'GENERATED_MANIFEST_DIGEST',
+    `a arvore gerada deve possuir o digest canonico ${APPROVED_GENERATED_DIGEST}.`,
+  );
+}
+
 function validateAppConfigUsage(sources) {
   const scriptSources = [...sources.entries()]
     .filter(([relativePath]) => relativePath.endsWith('.ts'))
@@ -1572,7 +1702,8 @@ export async function validateAngularRouteBoundary(projectRoot = defaultProjectR
   const resolvedProjectRoot = resolve(projectRoot);
   const angularConfiguration = await readAngularConfiguration(resolvedProjectRoot);
   const sources = new Map();
-  const generatedSources = await readGeneratedTypeScriptSources(resolvedProjectRoot);
+  const { manifest: generatedManifest, sources: generatedSources } =
+    await readGeneratedTypeScriptSources(resolvedProjectRoot);
   const runtimeSources = await readFrontendRuntimeSources(resolvedProjectRoot);
 
   for (const relativePath of HOST_SOURCE_PATHS) {
@@ -1588,6 +1719,7 @@ export async function validateAngularRouteBoundary(projectRoot = defaultProjectR
   validateRouteSources(sources);
   validateForbiddenPatterns(sources);
   validateGeneratedClient(generatedSources);
+  validateGeneratedManifest(generatedManifest);
 
   return true;
 }

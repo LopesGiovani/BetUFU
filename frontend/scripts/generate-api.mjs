@@ -88,6 +88,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/diagnostic.service.ts',
   'api/enrollment.service.ts',
   'api/identity.service.ts',
+  'api/operational-panel.service.ts',
   'api/password-reset-recovery.service.ts',
   'api/profile.service.ts',
   'api/role.service.ts',
@@ -95,6 +96,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'configuration.ts',
   'encoder.ts',
   'index.ts',
+  'model/administrative-correction-event-dto.ts',
+  'model/administrative-corrections-block.ts',
   'model/current-device-logout-response.ts',
   'model/current-identity-response.ts',
   'model/current-profile-response.ts',
@@ -104,26 +107,32 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/enrollment-registration-request.ts',
   'model/enrollment-status-response.ts',
   'model/models.ts',
+  'model/operational-panel-response.ts',
   'model/operational-role.ts',
   'model/password-reset-event-recovery-page-response.ts',
   'model/password-reset-event-recovery-response.ts',
   'model/profile-update-request.ts',
+  'model/rejected-enrollments-block.ts',
+  'model/role-change-event-dto.ts',
+  'model/role-changes-block.ts',
   'model/role-grant-request.ts',
   'model/role-grant-response.ts',
   'model/role-status-dto.ts',
   'model/session-state-response.ts',
+  'model/time-window.ts',
+  'model/unregistered-enrollments-block.ts',
   'param.ts',
   'provide-api.ts',
   'query.params.ts',
   'variables.ts',
 ]);
-// Inventario de 33 -> 34 caminhos e digest aprovados especificamente pelo responsavel em
-// 2026-08-23, no checkpoint de correcao da revisao da Wave 8. O arquivo novo e o modelo
-// paginado de recovery; nenhum caminho anterior foi removido.
+// Inventario de 34 -> 43 caminhos e digest aprovados especificamente pelo responsavel em
+// 2026-08-24, no checkpoint da Wave 10. Os nove arquivos novos publicam o servico e os
+// modelos do painel operacional; nenhum caminho anterior foi removido.
 //
-// FE96... foi reproduzido por duas geracoes offline com o motor 7.24.0 fixado. O valor abaixo
-// foi aprovado somente depois dessa verificacao deterministica.
-export const APPROVED_GENERATED_DIGEST = 'FE9616E8FF0DF72BED8B336A1CF9BBA759C5CBF45A114B8E397F09FABD493478';
+// CDDE... foi produzido pelo motor 7.24.0 fixado e aprovado somente depois da verificacao
+// semantica, da paridade OpenAPI e da conferencia humana do inventario.
+export const APPROVED_GENERATED_DIGEST = '74172C925F10EA4196021520D72AC386831278155842F582329FDAA5727C0571';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

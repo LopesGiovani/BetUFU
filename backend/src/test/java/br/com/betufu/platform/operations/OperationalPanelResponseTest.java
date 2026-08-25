@@ -20,7 +20,8 @@ class OperationalPanelResponseTest {
             "roleChanges",
             "rejectedEnrollmentsCount",
             "administrativeCorrections",
-            "unregisteredEnrollmentsCount");
+            "unregisteredEnrollmentsCount",
+            "unavailableBlocks");
 
     private static final List<String> APPROVED_TIME_WINDOW_COMPONENTS = List.of(
             "since",
@@ -63,8 +64,14 @@ class OperationalPanelResponseTest {
     private static final List<String> APPROVED_UNREGISTERED_ENROLLMENTS_COMPONENTS = List.of(
             "count");
 
+    private static final List<String> APPROVED_OPERATIONAL_BLOCK_VALUES = List.of(
+            "ROLE_CHANGES",
+            "REJECTED_ENROLLMENTS_COUNT",
+            "ADMINISTRATIVE_CORRECTIONS",
+            "UNREGISTERED_ENROLLMENTS_COUNT");
+
     @Test
-    @DisplayName("Garante allowlist estrita de 6 componentes no record OperationalPanelResponse")
+    @DisplayName("Garante allowlist estrita de 7 componentes no record OperationalPanelResponse")
     void enforcesStrictAllowlistOnOperationalPanelResponseComponents() {
         assertThat(OperationalPanelResponse.class.isRecord()).isTrue();
 
@@ -87,9 +94,22 @@ class OperationalPanelResponseTest {
                 case "rejectedEnrollmentsCount" -> assertThat(component.getType()).isEqualTo(OperationalPanelResponse.RejectedEnrollmentsBlock.class);
                 case "administrativeCorrections" -> assertThat(component.getType()).isEqualTo(OperationalPanelResponse.AdministrativeCorrectionsBlock.class);
                 case "unregisteredEnrollmentsCount" -> assertThat(component.getType()).isEqualTo(OperationalPanelResponse.UnregisteredEnrollmentsBlock.class);
+                case "unavailableBlocks" -> assertThat(component.getType()).isEqualTo(List.class);
                 default -> throw new AssertionError("Componente não autorizado na allowlist: " + component.getName());
             }
         }
+    }
+
+    @Test
+    @DisplayName("Garante allowlist estrita e valores do enum OperationalBlock")
+    void enforcesStrictAllowlistOnOperationalBlockEnum() {
+        assertThat(OperationalPanelResponse.OperationalBlock.class.isEnum()).isTrue();
+
+        List<String> actualNames = Arrays.stream(OperationalPanelResponse.OperationalBlock.values())
+                .map(Enum::name)
+                .toList();
+
+        assertThat(actualNames).containsExactlyElementsOf(APPROVED_OPERATIONAL_BLOCK_VALUES);
     }
 
     @Test

@@ -426,6 +426,39 @@ paths:
         "404":
           description: Evento nao encontrado.
 
+  /api/v1/operations/panel:
+    get:
+      tags:
+        - OperationalPanel
+      operationId: getOperationalPanel
+      summary: Consultar o painel operacional governado por papel
+      description: >-
+        Retorna a projeção operacional do painel com recorte temporal de sete
+        dias (OPER-01, OPER-02, OPER-04, OPER-06, S4). Os quatro blocos são
+        opcionais e deliberadamente omitidos da serialização quando o papel não
+        os autoriza (ausência no servidor). Moderadores recebem resposta válida
+        200 sem blocos. Falhas isoladas em blocos autorizados são declaradas em
+        `unavailableBlocks` sem divulgar exceções nem escopo não autorizado. Não
+        expõe e-mail, matrícula, HMAC, digest, segredo ou lista de identidades.
+      responses:
+        "200":
+          description: Projeção operacional consultada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationalPanelResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Autenticado sem papel operacional autorizado (Problem Details).
+
   /api/v1/diagnostic:
     get:
       tags:
@@ -780,3 +813,203 @@ components:
           type: [string, "null"]
           format: uuid
           description: Identificador do escopo para concessões escopadas, ou nulo se global.
+
+    OperationalPanelResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - queriedAt
+        - timeWindow
+        - unavailableBlocks
+      properties:
+        queriedAt:
+          type: string
+          format: date-time
+          description: Instante em UTC da realização da consulta.
+        timeWindow:
+          $ref: "#/components/schemas/TimeWindow"
+        roleChanges:
+          $ref: "#/components/schemas/RoleChangesBlock"
+        rejectedEnrollmentsCount:
+          $ref: "#/components/schemas/RejectedEnrollmentsBlock"
+        administrativeCorrections:
+          $ref: "#/components/schemas/AdministrativeCorrectionsBlock"
+        unregisteredEnrollmentsCount:
+          $ref: "#/components/schemas/UnregisteredEnrollmentsBlock"
+        unavailableBlocks:
+          type: array
+          items:
+            type: string
+            enum:
+              - ROLE_CHANGES
+              - REJECTED_ENROLLMENTS_COUNT
+              - ADMINISTRATIVE_CORRECTIONS
+              - UNREGISTERED_ENROLLMENTS_COUNT
+            description: Enumeração fechada dos blocos operacionais governados do painel.
+          description: >-
+            Lista fechada de blocos autorizados que falharam durante a consulta.
+            Blocos fora do escopo do papel permanecem ausentes e nunca são
+            listados aqui.
+
+    TimeWindow:
+      type: object
+      additionalProperties: false
+      required:
+        - since
+        - until
+      properties:
+        since:
+          type: string
+          format: date-time
+          description: Instante inicial do recorte temporal.
+        until:
+          type: string
+          format: date-time
+          description: Instante final do recorte temporal.
+
+    RoleChangesBlock:
+      type: object
+      additionalProperties: false
+      required:
+        - recentEvents
+      properties:
+        recentEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoleChangeEventDto"
+          description: Lista de eventos recentes de alteração de papel.
+
+    RoleChangeEventDto:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - occurredAt
+        - action
+        - outcome
+        - hasReason
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Identificador único do evento de auditoria.
+        occurredAt:
+          type: string
+          format: date-time
+          description: Instante em UTC da ocorrência do evento.
+        actorIdentityId:
+          type: [string, "null"]
+          format: uuid
+          description: Identificador opaco do autor da alteração, ou nulo se sistema.
+        actorRole:
+          type: [string, "null"]
+          description: Papel do autor no momento da alteração.
+        targetIdentityId:
+          type: [string, "null"]
+          format: uuid
+          description: Identificador opaco da identidade afetada.
+        targetNickname:
+          type: [string, "null"]
+          description: Apelido da identidade afetada no momento da alteração.
+        action:
+          type: string
+          description: Ação executada (ex. PAPEL_CONCEDIDO, AUTOCONCESSAO_BLOQUEADA).
+        outcome:
+          type: string
+          description: Resultado da ação (ex. PERMITTED, BLOCKED).
+        hasReason:
+          type: boolean
+          description: Indica se o evento registrou motivo na auditoria interna.
+
+    RejectedEnrollmentsBlock:
+      type: object
+      additionalProperties: false
+      required:
+        - duplicateCount
+        - attemptLimitCount
+        - totalCount
+      properties:
+        duplicateCount:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Total de recusas por matrícula já vinculada a outra conta.
+        attemptLimitCount:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Total de recusas por excesso de tentativas na janela.
+        totalCount:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Soma fechada das categorias de recusa aprovadas.
+
+    AdministrativeCorrectionsBlock:
+      type: object
+      additionalProperties: false
+      required:
+        - recentEvents
+      properties:
+        recentEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdministrativeCorrectionEventDto"
+          description: Lista de eventos recentes de correção administrativa de matrícula.
+
+    AdministrativeCorrectionEventDto:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - occurredAt
+        - action
+        - outcome
+        - hasReason
+      properties:
+        eventId:
+          type: string
+          format: uuid
+          description: Identificador único do evento de auditoria.
+        occurredAt:
+          type: string
+          format: date-time
+          description: Instante em UTC da ocorrência da correção.
+        actorIdentityId:
+          type: [string, "null"]
+          format: uuid
+          description: Identificador opaco do administrador autor da correção.
+        actorRole:
+          type: [string, "null"]
+          description: Papel do administrador autor.
+        targetIdentityId:
+          type: [string, "null"]
+          format: uuid
+          description: Identificador opaco da identidade que teve a matrícula corrigida.
+        targetNickname:
+          type: [string, "null"]
+          description: Apelido da identidade afetada.
+        action:
+          type: string
+          description: Ação executada (ex. CORRECAO_MATRICULA).
+        outcome:
+          type: string
+          description: Resultado da ação (ex. PERMITTED).
+        hasReason:
+          type: boolean
+          description: Indica presença de motivo registrado.
+        reason:
+          type: [string, "null"]
+          description: Motivo por extenso da correção administrativa (única projeção autorizada).
+
+    UnregisteredEnrollmentsBlock:
+      type: object
+      additionalProperties: false
+      required:
+        - count
+      properties:
+        count:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Contagem agregada de contas sem matrícula ativa.

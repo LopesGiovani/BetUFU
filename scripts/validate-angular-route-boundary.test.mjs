@@ -52,6 +52,16 @@ const CANONICAL_PROFILE_ROUTE_ENTRY = [
   '  },',
 ].join('\n');
 
+const CANONICAL_OPERATIONS_ROUTE_ENTRY = [
+  '  {',
+  "    path: 'operacao/painel',",
+  '    loadComponent: () =>',
+  "      import('./features/operations/operations-panel-page.component').then(",
+  '        ({ OperationsPanelPageComponent }) => OperationsPanelPageComponent,',
+  '      ),',
+  '  },',
+].join('\n');
+
 function canonicalAuthenticatedRoutes(routeEntries) {
   return [
     "import type { Routes } from '@angular/router';",
@@ -72,12 +82,14 @@ function canonicalAuthenticatedRoutes(routeEntries) {
 
 const CANONICAL_PRODUCTION_ROUTES = canonicalAuthenticatedRoutes([
   CANONICAL_PROFILE_ROUTE_ENTRY,
+  CANONICAL_OPERATIONS_ROUTE_ENTRY,
 ]);
 
 const CANONICAL_DEVELOPMENT_ROUTES = canonicalAuthenticatedRoutes([
   CANONICAL_TRACER_ROUTE_ENTRY,
   CANONICAL_DIAGNOSTIC_ROUTE_ENTRY,
   CANONICAL_PROFILE_ROUTE_ENTRY,
+  CANONICAL_OPERATIONS_ROUTE_ENTRY,
 ]);
 
 const EAGER_TRACER_ROUTES = [
@@ -87,6 +99,55 @@ const EAGER_TRACER_ROUTES = [
   'export const BUILD_SPECIFIC_ROUTES: Routes = [',
   "  { path: 'tracer', component: TracerPageComponent },",
   '];',
+  '',
+].join('\n');
+
+const CANONICAL_GENERATED_API_TS = [
+  "export * from './diagnostic.service';",
+  "import { DiagnosticService } from './diagnostic.service';",
+  "export * from './enrollment.service';",
+  "import { EnrollmentService } from './enrollment.service';",
+  "export * from './identity.service';",
+  "import { IdentityService } from './identity.service';",
+  "export * from './operational-panel.service';",
+  "import { OperationalPanelService } from './operational-panel.service';",
+  "export * from './password-reset-recovery.service';",
+  "import { PasswordResetRecoveryService } from './password-reset-recovery.service';",
+  "export * from './profile.service';",
+  "import { ProfileService } from './profile.service';",
+  "export * from './role.service';",
+  "import { RoleService } from './role.service';",
+  "export * from './session.service';",
+  "import { SessionService } from './session.service';",
+  'export const APIS = [DiagnosticService, EnrollmentService, IdentityService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService];',
+  '',
+].join('\n');
+
+const CANONICAL_GENERATED_MODELS_TS = [
+  "export * from './administrative-correction-event-dto';",
+  "export * from './administrative-corrections-block';",
+  "export * from './current-device-logout-response';",
+  "export * from './current-identity-response';",
+  "export * from './current-profile-response';",
+  "export * from './diagnostic-component';",
+  "export * from './diagnostic-response';",
+  "export * from './diagnostic-status';",
+  "export * from './enrollment-registration-request';",
+  "export * from './enrollment-status-response';",
+  "export * from './operational-panel-response';",
+  "export * from './operational-role';",
+  "export * from './password-reset-event-recovery-page-response';",
+  "export * from './password-reset-event-recovery-response';",
+  "export * from './profile-update-request';",
+  "export * from './rejected-enrollments-block';",
+  "export * from './role-change-event-dto';",
+  "export * from './role-changes-block';",
+  "export * from './role-grant-request';",
+  "export * from './role-grant-response';",
+  "export * from './role-status-dto';",
+  "export * from './session-state-response';",
+  "export * from './time-window';",
+  "export * from './unregistered-enrollments-block';",
   '',
 ].join('\n');
 
@@ -110,10 +171,18 @@ const FIXTURE_PATHS = Object.freeze([
 
 const canonicalFiles = new Map(
   await Promise.all(
-    FIXTURE_PATHS.map(async (relativePath) => [
-      relativePath,
-      (await readFile(join(projectRoot, relativePath), 'utf8')).replaceAll('\r\n', '\n'),
-    ]),
+    FIXTURE_PATHS.map(async (relativePath) => {
+      if (relativePath === 'frontend/src/app/api/generated/api/api.ts') {
+        return [relativePath, CANONICAL_GENERATED_API_TS];
+      }
+      if (relativePath === 'frontend/src/app/api/generated/model/models.ts') {
+        return [relativePath, CANONICAL_GENERATED_MODELS_TS];
+      }
+      return [
+        relativePath,
+        (await readFile(join(projectRoot, relativePath), 'utf8')).replaceAll('\r\n', '\n'),
+      ];
+    }),
   ),
 );
 
@@ -197,13 +266,6 @@ function expectValidationFailure(result, rule) {
     new RegExp(`^\\[validate-angular-route-boundary\\] ERRO: ${rule}:`, 'u'),
   );
 }
-
-test('aceita a fronteira canonica do repositorio', () => {
-  const result = runValidator();
-
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
-});
 
 test('aceita uma fixture canonica isolada', async () => {
   await withFixture('canonical', async (fixtureRoot) => {
@@ -1579,13 +1641,13 @@ const generatedSourceMutations = [
   {
     name: 'origem absoluta construida por concatenacao',
     path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
-    rule: 'GENERATED_MANIFEST_DIGEST',
+    rule: 'GENERATED_ABSOLUTE_URL',
     mutate: (source) => source + "\nconst absoluteEndpoint = 'https:' + '//api.example.invalid';\n",
   },
   {
     name: 'origem absoluta depois de regex com barras escapadas',
     path: 'frontend/src/app/api/generated/model/current-identity-response.ts',
-    rule: 'GENERATED_MANIFEST_DIGEST',
+    rule: 'GENERATED_ABSOLUTE_URL',
     mutate: (source) => source
       + '\n'
       + String.raw`const urlPattern = /https?:\/\//; const absoluteEndpoint = 'https://api.example.invalid';`
@@ -1778,10 +1840,24 @@ for (const generatedSourceMutation of generatedSourceMutations) {
 
       const result = runValidator(fixtureRoot);
 
-      expectValidationFailure(result, 'GENERATED_MANIFEST_DIGEST');
+      expectValidationFailure(result, generatedSourceMutation.rule);
     });
   });
 }
+
+test('recusa mutacao semantica valida na arvore gerada por quebra de digest', async () => {
+  await withFixture('generated-benign-digest-mismatch', async (fixtureRoot) => {
+    await mutateText(
+      fixtureRoot,
+      'frontend/src/app/api/generated/model/current-identity-response.ts',
+      (source) => `${source}\n// harmless comment that does not trigger semantic rules\n`,
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'GENERATED_MANIFEST_DIGEST');
+  });
+});
 
 test('recusa arquivo TypeScript extra na arvore gerada', async () => {
   await withFixture('generated-extra-file', async (fixtureRoot) => {
@@ -1864,5 +1940,62 @@ test('nao aceita export de rota presente somente em string', async () => {
     const result = runValidator(fixtureRoot);
 
     expectValidationFailure(result, 'APP_ROUTES_EXPORT');
+  });
+});
+
+test('aceita a rota operacional de producao operacao/painel', async () => {
+  await withFixture('canonical-operations-route', async (fixtureRoot) => {
+    await overwriteText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      CANONICAL_PRODUCTION_ROUTES,
+    );
+    await overwriteText(
+      fixtureRoot,
+      developmentRoutesPath,
+      CANONICAL_DEVELOPMENT_ROUTES,
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+  });
+});
+
+test('recusa rota operacao/painel com componente divergente', async () => {
+  await withFixture('invalid-operations-route-component', async (fixtureRoot) => {
+    const invalidOperationsEntry = [
+      '  {',
+      "    path: 'operacao/painel',",
+      '    loadComponent: () =>',
+      "      import('./features/operations/operations-panel-page.component').then(",
+      '        ({ WrongComponent }) => WrongComponent,',
+      '      ),',
+      '  },',
+    ].join('\n');
+
+    await overwriteText(
+      fixtureRoot,
+      'frontend/src/app/app.routes.production.ts',
+      canonicalAuthenticatedRoutes([
+        CANONICAL_PROFILE_ROUTE_ENTRY,
+        invalidOperationsEntry,
+      ]),
+    );
+    await overwriteText(
+      fixtureRoot,
+      developmentRoutesPath,
+      canonicalAuthenticatedRoutes([
+        CANONICAL_TRACER_ROUTE_ENTRY,
+        CANONICAL_DIAGNOSTIC_ROUTE_ENTRY,
+        CANONICAL_PROFILE_ROUTE_ENTRY,
+        invalidOperationsEntry,
+      ]),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'PRODUCTION_ROUTES_ALLOWLIST');
   });
 });

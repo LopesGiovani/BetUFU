@@ -15,6 +15,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  * privacidade e impede a revelação de escopo (OPER-02, OPER-04).
  *
  * <p>Agregados nunca contêm listas de pessoas, e-mails, matrículas ou digests (PRIV-01, PROF-02).
+ * <p>Falhas parciais em blocos autorizados são declaradas através de {@code unavailableBlocks},
+ * contendo exclusivamente os blocos autorizados que falharam na consulta, sem expor mensagens de
+ * erro técnicas nem revelar blocos fora do escopo do papel.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record OperationalPanelResponse(
@@ -23,11 +26,40 @@ public record OperationalPanelResponse(
         RoleChangesBlock roleChanges,
         RejectedEnrollmentsBlock rejectedEnrollmentsCount,
         AdministrativeCorrectionsBlock administrativeCorrections,
-        UnregisteredEnrollmentsBlock unregisteredEnrollmentsCount) {
+        UnregisteredEnrollmentsBlock unregisteredEnrollmentsCount,
+        List<OperationalBlock> unavailableBlocks) {
 
     public OperationalPanelResponse {
         Objects.requireNonNull(queriedAt, "queriedAt must not be null");
         Objects.requireNonNull(timeWindow, "timeWindow must not be null");
+        unavailableBlocks = unavailableBlocks == null ? List.of() : List.copyOf(unavailableBlocks);
+    }
+
+    public OperationalPanelResponse(
+            Instant queriedAt,
+            TimeWindow timeWindow,
+            RoleChangesBlock roleChanges,
+            RejectedEnrollmentsBlock rejectedEnrollmentsCount,
+            AdministrativeCorrectionsBlock administrativeCorrections,
+            UnregisteredEnrollmentsBlock unregisteredEnrollmentsCount) {
+        this(
+                queriedAt,
+                timeWindow,
+                roleChanges,
+                rejectedEnrollmentsCount,
+                administrativeCorrections,
+                unregisteredEnrollmentsCount,
+                List.of());
+    }
+
+    /**
+     * Enumeração fechada dos blocos operacionais governados do painel.
+     */
+    public enum OperationalBlock {
+        ROLE_CHANGES,
+        REJECTED_ENROLLMENTS_COUNT,
+        ADMINISTRATIVE_CORRECTIONS,
+        UNREGISTERED_ENROLLMENTS_COUNT
     }
 
     /**
