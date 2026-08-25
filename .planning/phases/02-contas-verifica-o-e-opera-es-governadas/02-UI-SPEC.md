@@ -248,15 +248,17 @@ Bloqueia a navegação enquanto o perfil estiver incompleto (D-39).
 ### S5 — Administração de papéis · `/operacao/papeis` (`OPER-01`)
 
 - `h1` `Papéis operacionais`, subtítulo obrigatório: `Conceda e revogue papéis. Toda alteração é auditada e encerra as sessões da pessoa afetada.` — o custo de D-49 é declarado **antes** de qualquer ação, não depois.
-- Os três papéis administráveis aqui incluem `administrador geral`, embora `OPER-01` nomeie apenas moderador e administrador de competição: a superfície mais ampla é exigida por D-47 (a semente cria um único administrador) e por D-48b (a saída do último administrador só é possível depois de conceder o papel a outra pessoa). Ampliação deliberada e registrada, não omissão.
+- Os três papéis permanecem modelados e visíveis. Nesta fase, porém, somente `administrador geral` é acionável: é global e já possui fonte autoritativa completa. `Administrador de competição` fica indisponível até a Fase 3 criar o catálogo real de competições; `moderador` fica indisponível até a Fase 7 criar seu escopo autoritativo. A máquina do servidor continua preparada, mas a UI nunca solicita nem fabrica `scopeRef` antes desses domínios.
 - **Seleção da pessoa pelo identificador público**, nunca por e-mail e nunca por matrícula. Campo `Identificador público da pessoa` + botão laranja `Localizar conta`. Justificativa registrada no contrato: o apelido não é único (D-42) e o e-mail é credencial de acesso (D-41).
-- Encontrada a pessoa, exibir apelido + identificador público (monoespaçado) e a lista dos três papéis, cada linha com nome do papel, chip de estado (`Vigente` em `$color-available` / `Não concedido` em `$color-text-muted`) e o controle correspondente.
-- Concessão: botão laranja `Conceder papel`. Revogação: botão de texto `Revogar papel` com rótulo `#FF6B6B`.
-- **Ambas exigem diálogo de confirmação**, porque ambas encerram sessões alheias.
-- **Guarda (a) — autoconcessão bloqueada (D-48a).** Quando o alvo localizado for o próprio ator, os botões `Conceder papel` são desabilitados e acompanhados do motivo visível: `Concessão a si mesmo bloqueada. Peça a outro administrador geral.` Os botões de revogar permanecem habilitados. O motivo é ligado ao botão por `aria-describedby`.
+- Encontrada a pessoa, exibir apelido + identificador público (monoespaçado) e a lista dos três papéis. A linha global mostra nome, chip de estado (`Vigente` em `$color-available` / `Não concedido` em `$color-text-muted`) e o controle correspondente. As duas linhas escopadas mostram o papel modelado e o estado `Indisponível nesta fase`, sem campo de UUID e sem botão de mutação.
+- Na linha `Administrador geral`, concessão usa botão laranja `Conceder papel`; revogação usa botão de texto `Revogar papel` com rótulo `#FF6B6B`.
+- **Ambas as ações globais exigem diálogo de confirmação**, porque ambas encerram sessões alheias.
+- Motivo literal para `Administrador de competição`: `Disponível na Fase 3, quando o catálogo de competições fornecer escopos válidos.` Motivo literal para `Moderador`: `Disponível na Fase 7, quando o escopo de moderação estiver definido.` Ambos ficam associados à linha por descrição acessível.
+- **Guarda (a) — autoconcessão bloqueada (D-48a).** Quando o alvo localizado for o próprio ator, o botão global `Conceder papel` é desabilitado e acompanhado do motivo visível: `Concessão a si mesmo bloqueada. Peça a outro administrador geral.` O botão de revogar permanece habilitado. O motivo é ligado ao botão por `aria-describedby`.
 - **Guarda (b) — último administrador geral (D-48b).** Quando o ator for o único administrador geral, o botão `Revogar papel` da linha `Administrador geral` é desabilitado com o motivo visível: `Você é o único administrador geral. Conceda o papel a outra pessoa antes de revogar o seu.`
 - Desabilitar é conveniência. **A recusa autoritativa vem do servidor** e tem cópia própria (ver *Contrato de cópia*), porque a guarda precisa continuar funcionando quando o estado do cliente estiver defasado.
 - Se o ator revogar o próprio papel com sucesso, a própria sessão termina; a interface cai no estado de sessão encerrada de S7.
+- O catálogo de competições, o seletor de competição e a ativação da linha `Administrador de competição` pertencem à Fase 3. A ativação de `Moderador` pertence à Fase 7. Esta decisão evita aceitar UUID arbitrário e evita antecipar entidades esportivas sem ciclo de vida definido.
 
 ### S6 — Correção administrativa de matrícula · `/operacao/matriculas/corrigir` (D-32)
 
