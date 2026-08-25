@@ -17,6 +17,12 @@ import { Observable }                                        from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { BetufuProblemDetails } from '../model/betufu-problem-details';
+// @ts-ignore
+import { EnrollmentCorrectionRequest } from '../model/enrollment-correction-request';
+// @ts-ignore
+import { EnrollmentCorrectionResponse } from '../model/enrollment-correction-response';
+// @ts-ignore
 import { EnrollmentRegistrationRequest } from '../model/enrollment-registration-request';
 // @ts-ignore
 import { EnrollmentStatusResponse } from '../model/enrollment-status-response';
@@ -26,6 +32,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 
+
+export interface CorrectEnrollmentRequestParams {
+    enrollmentCorrectionRequest: EnrollmentCorrectionRequest;
+}
 
 export interface PutEnrollmentRequestParams {
     enrollmentRegistrationRequest: EnrollmentRegistrationRequest;
@@ -39,6 +49,75 @@ export class EnrollmentService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
+    }
+
+    /**
+     * Corrigir administrativamente o vínculo de matrícula de uma conta
+     * Substitui de forma atômica e auditada o vínculo de matrícula UFU de uma conta identificada por UUID público (VERI-07, OPER-01, AUDT-01, PRIV-01, D-32). O vínculo anterior é marcado como LIBERADO e preservado no histórico, e a nova matrícula é vinculada sob a versão de chave ativa corrente. Exige papel ADMINISTRADOR_GERAL na sessão autenticada, CSRF e motivo obrigatório. A resposta não expõe número de matrícula, digest HMAC ou versão de chave.
+     * @endpoint post /api/v1/operations/enrollments/correction
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public correctEnrollment(requestParameters: CorrectEnrollmentRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<EnrollmentCorrectionResponse>;
+    public correctEnrollment(requestParameters: CorrectEnrollmentRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<EnrollmentCorrectionResponse>>;
+    public correctEnrollment(requestParameters: CorrectEnrollmentRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<EnrollmentCorrectionResponse>>;
+    public correctEnrollment(requestParameters: CorrectEnrollmentRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const enrollmentCorrectionRequest = requestParameters?.enrollmentCorrectionRequest;
+        if (enrollmentCorrectionRequest === null || enrollmentCorrectionRequest === undefined) {
+            throw new Error('Required parameter enrollmentCorrectionRequest was null or undefined when calling correctEnrollment.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/operations/enrollments/correction`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<EnrollmentCorrectionResponse>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: enrollmentCorrectionRequest,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
     }
 
     /**

@@ -98,12 +98,16 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'index.ts',
   'model/administrative-correction-event-dto.ts',
   'model/administrative-corrections-block.ts',
+  'model/betufu-field-violation.ts',
+  'model/betufu-problem-details.ts',
   'model/current-device-logout-response.ts',
   'model/current-identity-response.ts',
   'model/current-profile-response.ts',
   'model/diagnostic-component.ts',
   'model/diagnostic-response.ts',
   'model/diagnostic-status.ts',
+  'model/enrollment-correction-request.ts',
+  'model/enrollment-correction-response.ts',
   'model/enrollment-registration-request.ts',
   'model/enrollment-status-response.ts',
   'model/models.ts',
@@ -126,13 +130,13 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'query.params.ts',
   'variables.ts',
 ]);
-// Inventario de 34 -> 43 caminhos e digest aprovados especificamente pelo responsavel em
-// 2026-08-24, no checkpoint da Wave 10. Os nove arquivos novos publicam o servico e os
-// modelos do painel operacional; nenhum caminho anterior foi removido.
+// Inventario de 45 -> 47 caminhos e digest aprovados especificamente pelo responsavel em
+// 2026-08-25, na correcao da revisao da Wave 12. Os dois arquivos novos publicam o contrato
+// RFC 9457 da BETUFU e sua violacao de campo; nenhum caminho anterior foi removido.
 //
-// CDDE... foi produzido pelo motor 7.24.0 fixado e aprovado somente depois da verificacao
+// 9C8D... foi produzido pelo motor 7.24.0 fixado e aprovado somente depois da verificacao
 // semantica, da paridade OpenAPI e da conferencia humana do inventario.
-export const APPROVED_GENERATED_DIGEST = '74172C925F10EA4196021520D72AC386831278155842F582329FDAA5727C0571';
+export const APPROVED_GENERATED_DIGEST = '9C8D3FF3BF4D40B20FEC58E4C44DF7F4189D15CE36ADF23AB63614C6E06E4071';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

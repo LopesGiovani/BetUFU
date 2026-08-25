@@ -426,6 +426,70 @@ paths:
         "404":
           description: Evento nao encontrado.
 
+  /api/v1/operations/enrollments/correction:
+    post:
+      tags:
+        - Enrollment
+      operationId: correctEnrollment
+      summary: Corrigir administrativamente o vínculo de matrícula de uma conta
+      description: >-
+        Substitui de forma atômica e auditada o vínculo de matrícula UFU de uma
+        conta identificada por UUID público (VERI-07, OPER-01, AUDT-01, PRIV-01,
+        D-32). O vínculo anterior é marcado como LIBERADO e preservado no histórico,
+        e a nova matrícula é vinculada sob a versão de chave ativa corrente.
+        Exige papel ADMINISTRADOR_GERAL na sessão autenticada, CSRF e motivo
+        obrigatório. A resposta não expõe número de matrícula, digest HMAC ou versão de chave.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnrollmentCorrectionRequest"
+      responses:
+        "200":
+          description: Vínculo de matrícula corrigido com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnrollmentCorrectionResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "400":
+          description: Requisição inválida, formato de matrícula inválido ou motivo ausente/curto (Problem Details).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/BetufuProblemDetails"
+        "401":
+          description: Requisição não autenticada.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/BetufuProblemDetails"
+        "403":
+          description: Autenticado sem o papel ADMINISTRADOR_GERAL (Problem Details).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/BetufuProblemDetails"
+        "404":
+          description: Conta alvo não encontrada (Problem Details).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/BetufuProblemDetails"
+        "409":
+          description: Conflito de negócio, nova matrícula já vinculada a outra conta (Problem Details).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/BetufuProblemDetails"
+
   /api/v1/operations/panel:
     get:
       tags:
@@ -574,6 +638,118 @@ components:
             Número de matrícula da UFU a ser vinculado à conta institucional
             (5 a 20 caracteres alfanuméricos após normalização e remoção de
             separadores).
+
+    EnrollmentCorrectionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - targetIdentityId
+        - matricula
+        - reason
+      properties:
+        targetIdentityId:
+          type: string
+          format: uuid
+          description: Identificador opaco da conta alvo da correção de matrícula.
+        matricula:
+          type: string
+          description: >-
+            Novo número de matrícula da UFU a ser vinculado à conta institucional
+            (5 a 20 caracteres alfanuméricos após normalização e remoção de
+            separadores).
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 1024
+          x-betufu-max-utf8-bytes: 1024
+          description: >-
+            Motivo auditável por extenso da correção administrativa (mínimo de 10
+            caracteres e máximo autoritativo de 1024 octetos UTF-8). O maxLength
+            documenta o teto em caracteres; o backend também mede os bytes UTF-8.
+
+    EnrollmentCorrectionResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - targetIdentityId
+        - status
+        - correctedAt
+        - previousBindingReleased
+      properties:
+        targetIdentityId:
+          type: string
+          format: uuid
+          description: Identificador opaco da conta corrigida.
+        status:
+          type: string
+          description: Estado do vínculo resultante (ex. ATIVO).
+        correctedAt:
+          type: string
+          format: date-time
+          description: Instante em UTC da correção do vínculo atribuído pelo PostgreSQL.
+        previousBindingReleased:
+          type: boolean
+          description: Indica se havia vínculo anterior e se ele foi liberado.
+
+    BetufuFieldViolation:
+      type: object
+      additionalProperties: false
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+          description: Nome estável do campo recusado.
+        message:
+          type: string
+          description: Explicação pública e sanitizada da violação.
+
+    BetufuProblemDetails:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - code
+        - action
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          description: Identificador RFC 9457 do tipo do problema; about:blank quando genérico.
+        title:
+          type: string
+          description: Título público estável em português.
+        status:
+          type: integer
+          format: int32
+          minimum: 400
+          maximum: 599
+          description: Status HTTP associado ao problema.
+        detail:
+          type: string
+          description: Explicação pública sanitizada, sem detalhe interno ou dado sensível.
+        instance:
+          type: string
+          format: uri-reference
+          description: Identificador opcional da ocorrência segundo RFC 9457.
+        code:
+          type: string
+          description: Código BETUFU estável para decisão do cliente.
+        action:
+          type: string
+          description: Ação segura recomendada à pessoa usuária.
+        correlationId:
+          type: string
+          description: Código opaco opcional para suporte e correlação de logs.
+        fieldErrors:
+          type: array
+          description: Violações de campos presentes somente em erros de validação.
+          items:
+            $ref: "#/components/schemas/BetufuFieldViolation"
 
     SessionStateResponse:
       type: object
