@@ -194,7 +194,7 @@ Plans:
 - [x] 02-10-PLAN.md
 - [x] 02-11-PLAN.md
 - [x] 02-12-PLAN.md
-- [ ] 02-13-PLAN.md
+- [x] 02-13-PLAN.md
 - [x] 02-14-PLAN.md
 - [x] 02-15-PLAN.md
 - [x] 02-16-PLAN.md
@@ -206,7 +206,7 @@ Plans:
 - [x] 02-22-PLAN.md
 - [x] 02-23-PLAN.md
 - [x] 02-24-PLAN.md
-- [ ] 02-25-PLAN.md
+- [x] 02-25-PLAN.md
 - [ ] 02-26-PLAN.md
 - [ ] 02-27-PLAN.md
 - [x] 02-28-PLAN.md
@@ -225,7 +225,7 @@ Plans:
 - **Wave 9** *(concluída em 2026-08-24: painel operacional e rollout D-40 verificados, revisados e integrados após o gate humano literal)*: 02-10, 02-29
 - **Wave 10** *(concluída em 2026-08-25 com contrato, cliente gerado e S4 verificados; revisão final P0=P1=P2=0)*: 02-18
 - **Wave 11** *(concluída em 2026-08-25: correção D-32 transacional, autorização exclusiva do Administrador Geral e revisão final P0=P1=P2=0)*: 02-12
-- **Wave 12**: 02-13, 02-25
+- **Wave 12** *(concluída em 2026-08-25: S3 e contrato/cliente da correção verificados; inventário final 47, digest aprovado e revisão P0=P1=P2=0)*: 02-13, 02-25
 - **Wave 13**: 02-19
 - **Wave 14**: 02-20, 02-26
 - **Wave 15**: 02-27

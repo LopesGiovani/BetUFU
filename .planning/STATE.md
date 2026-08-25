@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: preflight da Wave 12 aprovado; planos 02-13/02-25 e validação reconciliados antes da criação das worktrees"
-last_updated: "2026-08-25T11:55:15-03:00"
+stopped_at: "Fase 2: Wave 12 implementada, verificada, revisada e formalizada; pendente de autorização Git para commits, integração, limpeza e push"
+last_updated: "2026-08-25T16:52:00-03:00"
 last_activity: 2026-08-25
-last_activity_desc: "Wave 12 preparada: S3 usa oito arquivos e o 02-25 separa geração candidata da aprovação humana de inventário/digest."
+last_activity_desc: "Wave 12 aprovada: S3 responsiva sem persistência da matrícula e contrato final da correção com 47 arquivos gerados e digest 9C8D3FF3…."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 62
-  completed_plans: 56
+  completed_plans: 58
 ---
 
 # Estado do Projeto
@@ -28,9 +28,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 25 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-21`, `02-22`, `02-23`, `02-24`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
-Status: In Progress — Waves 1 a 11 concluídas. A Wave 11 recebeu revisão final sem P0–P2 e está formalizada; integração e sincronização devem ser conferidas pelos refs atuais do Git.
-Last activity: 2026-08-25 — correção administrativa de matrícula D-32 e autorização exclusiva do Administrador Geral foram verificadas no snapshot congelado.
+Plan: 27 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
+Status: In Progress — Waves 1 a 12 concluídas tecnicamente. A Wave 12 recebeu revisão final sem P0–P2 e está formalizada; commits, integração, limpeza e push ainda não foram autorizados.
+Last activity: 2026-08-25 — S3 e contrato/cliente da correção foram verificados no snapshot combinado, inclusive em navegador real.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git: a Wave 9 permanece como base em `ffac2ea`. A Wave 10 está integrada linearmente na `master` em exatamente dois commits acima dessa base: `027f5f7` (`feat(02-18)`) e este commit documental, cujo hash não cabe dentro dele próprio. Existe somente a worktree principal e a branch `master`; a branch/worktree temporária do 02-18 foi removida. No instante em que este commit foi criado, `origin/master` apontava para `ffac2ea`; a sincronização posterior não pode ser autorreferenciada dentro do próprio commit e deve ser confirmada com `git rev-parse master refs/remotes/origin/master`. `AGENTS.md` e caches Angular permanecem alheios e fora dos commits.
@@ -55,6 +55,8 @@ Git — Wave 11 (snapshot técnico revisado, 2026-08-25): o commit `32ea355` (`f
 
 Git — Wave 12 (preflight aprovado, 2026-08-25): o dry-run do adaptador confirmou duas lanes sem sobreposição, `02-13` e `02-25`. Antes de criar worktrees, o responsável ratificou três correções documentais: a fatia S3 possui oito arquivos; o manifesto governado do cliente vive em `frontend/scripts/generate-api.mjs`; e a aprovação do inventário/digest passou a ser o checkpoint explícito `02-25-T2`, elevando a matriz para 68 Task IDs. O commit que transporta essas emendas para as worktrees não pode citar o próprio hash; confirme-o ao vivo por `git log -1`. Nenhuma worktree, branch temporária, chamada externa ou teste material havia sido iniciado neste ponto. `AGENTS.md`, `CLAUDE.md` e os caches Angular permanecem fora do commit.
 
+Git — Wave 12 (snapshot final aprovado, 2026-08-25): as lanes `02-13` e `02-25` foram montadas sobre `d4cc1099` num worktree de integração destacado, totalizando 21 paths e SHA-256 composto `8023A1881DCCE314757C722C0655AC939C7C703A4CEE32C178A6A7EFE1DF5543`. A árvore terminou Angular `136/136`, Node `617/617`, Surefire `246/246`, Failsafe `317/317`, build produtivo e gates de contrato/fronteira verdes. O cliente final possui 47 arquivos e digest aprovado `9C8D3FF3BF4D40B20FEC58E4C44DF7F4189D15CE36ADF23AB63614C6E06E4071`. A inspeção final em Chrome real provou 320px/1280px, teclado, PUT único, mensagem persistente e ausência da matrícula no DOM/storage. A revisão retornou `PASS`, P0=P1=P2=0. Nenhum stage, commit, integração, limpeza ou push desta onda ocorreu até este registro.
+
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 
 Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para 15 paths por ratificação prévia do responsável, acrescentando `backend/src/test/java/br/com/betufu/platform/persistence/FlywayMigrationIT.java`. Causa: `V6` invalida as seis asserções que fixam o total de migrations em 5 — duas em cada um dos três testes do arquivo. A lane do 02-23 gravou **6**. **Corrigido no fechamento da onda:** a premissa de que o 02-30 não precisava tocar o arquivo estava errada. O commit do 02-30 cria a `V5_1` e, sem reconciliar a contagem, ficava vermelho isoladamente — qualquer `git bisect` entre ele e o 02-23 daria falso positivo. O arquivo entrou também na allowlist do 02-30, que grava **6** com a `V5_1`, e o 02-23 leva a **8** com a `V6` e a `V7`. O defeito não constava de nenhum achado de revisão; apareceu porque o rebase de dobra obrigou a medir cada commit individualmente.
@@ -65,13 +67,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [████████░░] 25/31 planos da Fase 2 (81%)
+Progress: [█████████░] 27/31 planos da Fase 2 (87%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 56
+- Total de planos concluídos: 58
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -80,11 +82,11 @@ Progress: [████████░░] 25/31 planos da Fase 2 (81%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 25 | não mensurado | não mensurada |
+| 2 | 27 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-31, 02-10, 02-29, 02-18, 02-12
+- Últimos 5 planos: 02-29, 02-18, 02-12, 02-13, 02-25
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
