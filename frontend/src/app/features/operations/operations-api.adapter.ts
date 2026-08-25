@@ -1,7 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, defer, map } from 'rxjs';
 import { OperationalPanelService } from '../../api/generated/api/operational-panel.service';
+import { RoleService } from '../../api/generated/api/role.service';
 import { OperationalPanelResponse } from '../../api/generated/model/operational-panel-response';
+import { RoleGrantResponse } from '../../api/generated/model/role-grant-response';
+import { OperationalRole } from '../../api/generated/model/operational-role';
 import { RejectedEnrollmentsBlock } from '../../api/generated/model/rejected-enrollments-block';
 import { AdministrativeCorrectionsBlock } from '../../api/generated/model/administrative-corrections-block';
 import { AdministrativeCorrectionEventDto } from '../../api/generated/model/administrative-correction-event-dto';
@@ -15,6 +18,8 @@ import {
   RejectedEnrollmentsViewModel,
   RoleChangeEventViewModel,
   RoleChangesViewModel,
+  RoleItemViewModel,
+  TargetAccountRolesViewModel,
   TimeWindowViewModel,
   UnavailableBlockKey,
   UnregisteredEnrollmentsViewModel,
@@ -27,6 +32,7 @@ const SAFE_UNAVAILABLE_BLOCK_MESSAGE = 'Este bloco não pôde ser carregado.';
 })
 export class OperationsApiAdapter {
   private readonly operationalPanelService = inject(OperationalPanelService);
+  private readonly roleService = inject(RoleService);
 
   /**
    * Consulta o painel operacional do BFF e adapta o payload OpenAPI para o ViewModel estrito.
@@ -313,5 +319,148 @@ export class OperationsApiAdapter {
     } catch {
       return isoString;
     }
+  }
+
+  /**
+   * Consulta o estado dos papéis operacionais de uma identidade alvo no BFF.
+   * Utiliza exclusivamente o RoleService gerado.
+   */
+  getRoles(
+    targetIdentityId: string,
+    actorIdentityId?: string | null,
+  ): Observable<TargetAccountRolesViewModel | null> {
+    return defer(() => this.roleService.getRoles({ targetIdentityId })).pipe(
+      map((response) => this.adaptRoleGrantResponse(response, actorIdentityId)),
+    );
+  }
+
+  /**
+   * Concede o papel de Administrador Geral a uma conta alvo.
+   * Conforme D-48 e UI-SPEC S5, apenas ADMINISTRADOR_GERAL é acionável na Fase 2 e nunca envia scopeRef.
+   */
+  grantRole(
+    targetIdentityId: string,
+    role: typeof OperationalRole.AdministradorGeral,
+    actorIdentityId?: string | null,
+  ): Observable<TargetAccountRolesViewModel> {
+    return defer(() =>
+      this.roleService.grantRole({
+        roleGrantRequest: {
+          targetIdentityId,
+          role,
+        },
+      }),
+    ).pipe(
+      map((response) => this.adaptRoleGrantResponse(response, actorIdentityId)!),
+    );
+  }
+
+  /**
+   * Revoga o papel de Administrador Geral de uma conta alvo.
+   * Conforme D-48 e UI-SPEC S5, apenas ADMINISTRADOR_GERAL é acionável na Fase 2.
+   */
+  revokeRole(
+    targetIdentityId: string,
+    role: typeof OperationalRole.AdministradorGeral,
+    actorIdentityId?: string | null,
+  ): Observable<TargetAccountRolesViewModel> {
+    return defer(() =>
+      this.roleService.revokeRole({
+        roleGrantRequest: {
+          targetIdentityId,
+          role,
+        },
+      }),
+    ).pipe(
+      map((response) => this.adaptRoleGrantResponse(response, actorIdentityId)!),
+    );
+  }
+
+  /**
+   * Adapta o payload RoleGrantResponse para TargetAccountRolesViewModel,
+   * sempre gerando as 3 linhas fixas na ordem canônica e calculando guardas D-48.
+   */
+  adaptRoleGrantResponse(
+    response: RoleGrantResponse | null | undefined,
+    actorIdentityId?: string | null,
+  ): TargetAccountRolesViewModel | null {
+    if (!response) {
+      return null;
+    }
+
+    const targetIdentityId = response.identityId;
+    const targetNickname = response.nickname ?? null;
+    const rawRoles = Array.isArray(response.roles) ? response.roles : [];
+
+    const hasActorContext = Boolean(actorIdentityId);
+    const isSelfTarget = Boolean(actorIdentityId && actorIdentityId === targetIdentityId);
+
+    // 1. ADMINISTRADOR_GERAL
+    const adminGeralStatusDto = rawRoles.find((r) => r.role === OperationalRole.AdministradorGeral);
+    const isAdminGeralVigente = adminGeralStatusDto?.status === 'VIGENTE';
+
+    const selfGrantBlocked = !isAdminGeralVigente && (!hasActorContext || isSelfTarget);
+    const selfGrantBlockedReason = selfGrantBlocked
+      ? isSelfTarget
+        ? 'Concessão a si mesmo bloqueada. Peça a outro administrador geral.'
+        : 'Não foi possível confirmar sua identidade. Recarregue a página antes de conceder.'
+      : null;
+
+    const adminGeralItem: RoleItemViewModel = Object.freeze({
+      role: OperationalRole.AdministradorGeral,
+      roleName: 'Administrador geral',
+      status: isAdminGeralVigente ? 'VIGENTE' : 'NAO_CONCEDIDO',
+      statusLabel: isAdminGeralVigente ? 'Vigente' : 'Não concedido',
+      isActionable: true,
+      isVigente: isAdminGeralVigente,
+      unavailableReason: null,
+      selfGrantBlocked,
+      selfGrantBlockedReason,
+    });
+
+    // 2. ADMINISTRADOR_COMPETICAO
+    const compAdminStatusDto = rawRoles.find((r) => r.role === OperationalRole.AdministradorCompeticao);
+    const isCompAdminVigente = compAdminStatusDto?.status === 'VIGENTE';
+    const compAdminItem: RoleItemViewModel = Object.freeze({
+      role: OperationalRole.AdministradorCompeticao,
+      roleName: 'Administrador de competição',
+      status: 'INDISPONIVEL',
+      statusLabel: 'Indisponível nesta fase',
+      isActionable: false,
+      isVigente: isCompAdminVigente,
+      unavailableReason: 'Disponível na Fase 3, quando o catálogo de competições fornecer escopos válidos.',
+      selfGrantBlocked: false,
+      selfGrantBlockedReason: null,
+    });
+
+    // 3. MODERADOR
+    const moderadorStatusDto = rawRoles.find((r) => r.role === OperationalRole.Moderador);
+    const isModeradorVigente = moderadorStatusDto?.status === 'VIGENTE';
+    const moderadorItem: RoleItemViewModel = Object.freeze({
+      role: OperationalRole.Moderador,
+      roleName: 'Moderador',
+      status: 'INDISPONIVEL',
+      statusLabel: 'Indisponível nesta fase',
+      isActionable: false,
+      isVigente: isModeradorVigente,
+      unavailableReason: 'Disponível na Fase 7, quando o escopo de moderação estiver definido.',
+      selfGrantBlocked: false,
+      selfGrantBlockedReason: null,
+    });
+
+    const roles: readonly RoleItemViewModel[] = Object.freeze([
+      adminGeralItem,
+      compAdminItem,
+      moderadorItem,
+    ]);
+
+    const hasAnyGrantedRole = isAdminGeralVigente || isCompAdminVigente || isModeradorVigente;
+
+    return Object.freeze({
+      targetIdentityId,
+      targetNickname,
+      roles,
+      hasAnyGrantedRole,
+    });
   }
 }

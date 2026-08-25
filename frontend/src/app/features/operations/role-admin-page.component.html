@@ -1,0 +1,205 @@
+<section class="role-admin-container" aria-labelledby="role-admin-title">
+  <!-- Região de Anúncio Dinâmico Acessível (WCAG 2.2 AA) -->
+  <div
+    class="visually-hidden"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    id="role-admin-live-region"
+  >
+    @if (store.feedbackMessage()) {
+      <p>{{ store.feedbackMessage() }}</p>
+    }
+    @if (copyFeedbackMessage()) {
+      <p>{{ copyFeedbackMessage() }}</p>
+    }
+  </div>
+
+  <!-- Cabeçalho da Página com Declaração Obrigatória Prévia de Custo D-49 -->
+  <header class="page-header">
+    <h1 id="role-admin-title" class="page-title">Papéis operacionais</h1>
+    <p class="page-subtitle">
+      Conceda e revogue papéis. Toda alteração é auditada e encerra as sessões da pessoa afetada.
+    </p>
+  </header>
+
+  <!-- Recusas de Negócio e Erros no Topo do Formulário (role="alert") -->
+  @if (store.errorMessage()) {
+    <div class="alert-box error-alert" role="alert" aria-live="assertive">
+      <div class="alert-header">
+        <span class="material-symbols-rounded alert-icon" aria-hidden="true">error_outline</span>
+        <span class="alert-title">{{ store.errorMessage() }}</span>
+      </div>
+
+      @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
+        <div class="correlation-box">
+          <span class="correlation-label">Código de referência:</span>
+          <code class="code-value">{{ store.errorCorrelationId() }}</code>
+          <button
+            type="button"
+            class="btn-copy"
+            (click)="copyCorrelationId(store.errorCorrelationId()!)"
+            aria-label="Copiar código de referência"
+          >
+            {{ copyStatus() === 'copied' ? 'Copiado!' : 'Copiar' }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Formulário de Busca por UUID Público (D-41, D-42) -->
+  <form class="search-form" (submit)="onSearchSubmit($event)">
+    <div class="form-group">
+      <label for="targetIdentityInput" class="form-label">
+        Identificador público da pessoa
+      </label>
+      <div class="search-input-row">
+        <input
+          id="targetIdentityInput"
+          name="targetIdentity"
+          type="text"
+          class="input-text"
+          #targetIdentityInput
+          [formControl]="searchControl"
+          [attr.aria-describedby]="store.fieldError() ? 'targetIdentity-error' : null"
+          [attr.aria-invalid]="store.fieldError() ? 'true' : null"
+          placeholder="Ex: 11a70246-3db4-4c53-b2ab-3fdd91a3ea84"
+          autocomplete="off"
+        />
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="store.isSearching()"
+        >
+          <span>{{ store.isSearching() ? 'Localizando…' : 'Localizar conta' }}</span>
+        </button>
+      </div>
+      @if (store.fieldError()) {
+        <p id="targetIdentity-error" class="field-error" role="alert">
+          {{ store.fieldError() }}
+        </p>
+      }
+    </div>
+  </form>
+
+  <!-- Estado Vazio: Pessoa não localizada (UI-SPEC §307) -->
+  @if (store.isEmpty()) {
+    <div class="status-feedback empty-state" role="status" aria-live="polite">
+      <span class="material-symbols-rounded status-icon" aria-hidden="true">search_off</span>
+      <h2>Nenhuma conta com esse identificador</h2>
+      <p>Confira o identificador público e tente novamente. Ele é diferente do apelido.</p>
+    </div>
+  }
+
+  <!-- Estado Populado: Exibição dos dados da conta e dos 3 papéis operacionais fixos -->
+  @if (store.targetAccount(); as account) {
+    <div class="target-profile-card">
+      <div class="profile-summary">
+        <span class="target-nickname">{{ account.targetNickname || 'Identidade sem apelido' }}</span>
+        <code class="target-identity-id">{{ account.targetIdentityId }}</code>
+      </div>
+    </div>
+
+    @if (store.hasNoGrantedRoles()) {
+      <div class="notice-box empty-roles-notice" role="status">
+        <span class="material-symbols-rounded notice-icon" aria-hidden="true">info</span>
+        <div>
+          <h3 class="notice-title">Nenhum papel concedido</h3>
+          <p class="notice-body">Esta pessoa não tem papéis operacionais. Selecione um papel para conceder.</p>
+        </div>
+      </div>
+    }
+
+    <div class="roles-table-container">
+      <div class="roles-list" role="list" aria-label="Papéis operacionais da conta">
+        @for (roleItem of account.roles; track roleItem.role) {
+          <div class="role-card-item" role="listitem">
+            <div class="role-info">
+              <h2 class="role-name">{{ roleItem.roleName }}</h2>
+              <div class="role-status-row">
+                @if (roleItem.status === 'VIGENTE') {
+                  <span class="status-chip chip-available" [attr.aria-label]="roleItem.roleName + ': vigente'">
+                    Vigente
+                  </span>
+                }
+                @if (roleItem.status === 'NAO_CONCEDIDO') {
+                  <span class="status-chip chip-muted" [attr.aria-label]="roleItem.roleName + ': não concedido'">
+                    Não concedido
+                  </span>
+                }
+                @if (roleItem.status === 'INDISPONIVEL') {
+                  <span class="status-chip chip-unavailable" [attr.aria-label]="roleItem.roleName + ': indisponível nesta fase'">
+                    Indisponível nesta fase
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="role-actions">
+              <!-- Papel Global (Administrador Geral): Conceder / Revogar com guardas D-48 -->
+              @if (roleItem.isActionable) {
+                @if (!roleItem.isVigente) {
+                  <div class="action-group">
+                    <button
+                      #grantBtn
+                      type="button"
+                      class="btn-grant"
+                      [disabled]="roleItem.selfGrantBlocked || store.isMutating()"
+                      [attr.aria-describedby]="roleItem.selfGrantBlocked ? 'self-grant-blocked-reason' : null"
+                      (click)="openGrantConfirmation(roleItem, grantBtn)"
+                    >
+                      {{ store.isMutating() && store.mutatingRole() === roleItem.role ? 'Concedendo…' : 'Conceder papel' }}
+                    </button>
+                    @if (roleItem.selfGrantBlocked) {
+                      <p id="self-grant-blocked-reason" class="guard-reason">
+                        {{ roleItem.selfGrantBlockedReason }}
+                      </p>
+                    }
+                  </div>
+                }
+
+                @if (roleItem.isVigente) {
+                  <div class="action-group">
+                    <button
+                      #revokeBtn
+                      type="button"
+                      class="btn-revoke"
+                      [disabled]="store.isMutating()"
+                      (click)="openRevokeConfirmation(roleItem, revokeBtn)"
+                    >
+                      {{ store.isMutating() && store.mutatingRole() === roleItem.role ? 'Revogando…' : 'Revogar papel' }}
+                    </button>
+                  </div>
+                }
+              }
+
+              <!-- Papéis Escopados Deferidos (Administrador de competição e Moderador): sem ação e sem scopeRef -->
+              @if (!roleItem.isActionable) {
+                <div class="deferred-group">
+                  <p [id]="'deferred-reason-' + roleItem.role" class="deferred-reason">
+                    {{ roleItem.unavailableReason }}
+                  </p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Diálogo Modal de Confirmação Destrutiva / Concessão Acessível (D-49, T-02-19-02) -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogOpen()"
+    [title]="confirmDialogTitle()"
+    [body]="confirmDialogBody()"
+    [confirmLabel]="confirmDialogActionLabel()"
+    [cancelLabel]="'Cancelar'"
+    [isDestructive]="confirmDialogIsDestructive()"
+    [isLoading]="store.isMutating()"
+    [triggerElement]="dialogTriggerElement"
+    (confirmed)="onDialogConfirmed()"
+    (cancelled)="onDialogCancelled()"
+  ></app-confirm-dialog>
+</section>

@@ -48,6 +48,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ OperationsPanelPageComponent }) => OperationsPanelPageComponent,
           ),
       },
+      {
+        path: 'operacao/papeis',
+        loadComponent: () =>
+          import('./features/operations/role-admin-page.component').then(
+            ({ RoleAdminPageComponent }) => RoleAdminPageComponent,
+          ),
+      },
     ],
   },
 ];

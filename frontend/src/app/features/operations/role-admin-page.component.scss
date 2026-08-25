@@ -1,0 +1,371 @@
+@use '../../../styles/tokens';
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.role-admin-container {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: tokens.$container-max-width;
+  margin: 0 auto;
+  padding: tokens.$space-6 tokens.$space-4;
+  overflow-wrap: anywhere;
+}
+
+.page-header,
+.alert-box,
+.target-profile-card,
+.notice-box {
+  margin-bottom: tokens.$space-6;
+}
+
+.page-title {
+  margin: 0 0 tokens.$space-1;
+}
+
+.page-subtitle,
+.notice-body,
+.status-feedback p,
+.deferred-reason {
+  color: tokens.$color-text-muted;
+}
+
+.page-subtitle,
+.notice-body,
+.status-feedback p,
+.guard-reason,
+.deferred-reason {
+  margin: 0;
+  line-height: 1.5;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.alert-box,
+.status-feedback,
+.target-profile-card,
+.notice-box,
+.role-card-item {
+  background: tokens.$color-surface;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-md;
+}
+
+.alert-box {
+  padding: tokens.$space-4;
+
+  &.error-alert {
+    border-color: tokens.$color-unavailable;
+    background: rgba(255, 107, 107, 0.08);
+  }
+}
+
+.alert-header,
+.correlation-box,
+.search-input-row,
+.profile-summary,
+.notice-box {
+  display: flex;
+  align-items: center;
+}
+
+.alert-header {
+  gap: tokens.$space-2;
+  color: tokens.$color-unavailable;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.alert-icon {
+  font-size: 1.25rem;
+}
+
+.correlation-box {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: tokens.$space-2;
+  margin-top: tokens.$space-2;
+  padding: tokens.$space-2 tokens.$space-4;
+  background: tokens.$color-canvas;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-sm;
+  font-size: 0.85rem;
+}
+
+.correlation-label {
+  color: tokens.$color-text-muted;
+}
+
+.code-value,
+.target-identity-id {
+  font-family: monospace;
+  overflow-wrap: anywhere;
+}
+
+.code-value {
+  color: tokens.$color-accent;
+}
+
+.btn-copy,
+.input-text,
+.btn-primary,
+.btn-grant,
+.btn-revoke {
+  border-radius: tokens.$radius-md;
+}
+
+.btn-copy {
+  padding: tokens.$space-1 tokens.$space-2;
+  border: 1px solid tokens.$color-border;
+  background: tokens.$color-surface;
+  color: tokens.$color-text;
+  font-size: 0.8rem;
+}
+
+.search-form {
+  max-width: tokens.$form-max-width;
+  margin-bottom: tokens.$space-8;
+}
+
+.form-group,
+.roles-list,
+.role-card-item,
+.role-actions,
+.action-group,
+.deferred-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group,
+.action-group {
+  gap: tokens.$space-2;
+}
+
+.form-label {
+  color: tokens.$color-text;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.search-input-row {
+  flex-wrap: wrap;
+  gap: tokens.$space-2;
+}
+
+.input-text {
+  box-sizing: border-box;
+  flex: 1 1 240px;
+  min-height: tokens.$min-touch-target;
+  padding: tokens.$space-2 tokens.$space-4;
+  border: 1px solid tokens.$color-border;
+  background: tokens.$color-surface;
+  color: tokens.$color-text;
+  font: inherit;
+
+  &[aria-invalid='true'] {
+    border-color: tokens.$color-unavailable;
+  }
+}
+
+.field-error,
+.guard-reason,
+.deferred-reason {
+  font-size: 0.85rem;
+}
+
+.field-error {
+  margin: 0;
+  color: tokens.$color-unavailable;
+}
+
+.btn-primary,
+.btn-grant,
+.btn-revoke {
+  padding: tokens.$space-2 tokens.$space-4;
+  font-size: 0.95rem;
+}
+
+.btn-primary,
+.btn-grant {
+  border: 0;
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+}
+
+.btn-primary {
+  gap: tokens.$space-2;
+}
+
+.btn-revoke {
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  background: transparent;
+  color: tokens.$color-unavailable;
+
+}
+
+.status-feedback {
+  margin: tokens.$space-6 0;
+  padding: tokens.$space-8 tokens.$space-4;
+  text-align: center;
+}
+
+.status-icon {
+  display: inline-block;
+  margin-bottom: tokens.$space-2;
+  color: tokens.$color-text-muted;
+  font-size: 2.5rem;
+}
+
+.status-feedback h2 {
+  margin: 0 0 tokens.$space-2;
+}
+
+.target-profile-card,
+.role-card-item {
+  padding: tokens.$space-4;
+}
+
+.profile-summary {
+  flex-wrap: wrap;
+  gap: tokens.$space-4;
+}
+
+.target-identity-id {
+  padding: tokens.$space-1 tokens.$space-2;
+  background: tokens.$color-canvas;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-sm;
+  color: tokens.$color-text;
+  font-size: 0.85rem;
+}
+
+.notice-box {
+  align-items: flex-start;
+  gap: tokens.$space-4;
+  padding: tokens.$space-4;
+}
+
+.notice-title {
+  margin: 0 0 tokens.$space-1;
+}
+
+.notice-body {
+  font-size: 0.9rem;
+}
+
+.roles-list,
+.role-card-item {
+  gap: tokens.$space-4;
+}
+
+.role-info,
+.role-actions {
+  width: 100%;
+  min-width: 0;
+}
+
+.role-name {
+  margin: 0 0 tokens.$space-2;
+}
+
+.status-chip {
+  display: inline-flex;
+  padding: tokens.$space-1 tokens.$space-2;
+  border-radius: tokens.$radius-sm;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.chip-available {
+  background: rgba(86, 209, 156, 0.15);
+  color: tokens.$color-available;
+}
+
+.chip-muted {
+  background: rgba(197, 209, 224, 0.12);
+  color: tokens.$color-text-muted;
+}
+
+.chip-unavailable {
+  background: rgba(246, 196, 83, 0.15);
+  color: tokens.$color-degraded;
+}
+
+.role-actions,
+.action-group,
+.deferred-group {
+  align-items: flex-start;
+}
+
+.guard-reason,
+.deferred-reason {
+  max-width: 340px;
+}
+
+.guard-reason {
+  color: tokens.$color-degraded;
+}
+
+@media (min-width: tokens.$breakpoint-tablet-min) {
+  .role-admin-container {
+    padding: tokens.$space-8 tokens.$space-6;
+  }
+
+  .target-profile-card,
+  .role-card-item {
+    padding-inline: tokens.$space-6;
+  }
+
+  .role-card-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .role-info {
+    flex: 1 1 240px;
+  }
+
+  .role-actions {
+    flex: 1 1 320px;
+  }
+
+  .role-actions,
+  .action-group,
+  .deferred-group {
+    align-items: flex-end;
+  }
+
+  .guard-reason,
+  .deferred-reason {
+    text-align: right;
+  }
+}
+
+@media (min-width: tokens.$breakpoint-desktop-min) {
+  .role-admin-container {
+    padding: tokens.$space-8;
+  }
+}

@@ -108,3 +108,48 @@ export interface OperationsPanelState {
   readonly isRetrying: boolean;
   readonly isStale: boolean;
 }
+
+/**
+ * Modelos de View Model e Estado para a Superfície S5: Administração de Papéis da BETUFU.
+ * Alinhado rigorosamente a 02-UI-SPEC.md §S5, OPER-01, OPER-02, OPER-04, D-41, D-42, D-48 e D-49.
+ */
+
+export type RoleAdminStateStatus =
+  | 'initial'
+  | 'searching'
+  | 'empty'
+  | 'populated'
+  | 'error';
+
+export interface RoleItemViewModel {
+  readonly role: 'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR';
+  readonly roleName: string;
+  readonly status: 'VIGENTE' | 'NAO_CONCEDIDO' | 'INDISPONIVEL';
+  readonly statusLabel: string;
+  readonly isActionable: boolean;
+  readonly isVigente: boolean;
+  readonly unavailableReason: string | null;
+  readonly selfGrantBlocked: boolean;
+  readonly selfGrantBlockedReason: string | null;
+}
+
+export interface TargetAccountRolesViewModel {
+  readonly targetIdentityId: string;
+  readonly targetNickname: string | null;
+  readonly roles: readonly RoleItemViewModel[];
+  readonly hasAnyGrantedRole: boolean;
+}
+
+export interface RoleAdminState {
+  readonly status: RoleAdminStateStatus;
+  readonly targetAccount: TargetAccountRolesViewModel | null;
+  readonly searchQuery: string;
+  readonly isSearching: boolean;
+  readonly isMutating: boolean;
+  readonly mutatingRole: 'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR' | null;
+  readonly feedbackMessage: string | null;
+  readonly errorMessage: string | null;
+  readonly errorCorrelationId: string | null;
+  readonly fieldError: string | null;
+  readonly actorIdentityId: string | null;
+}
