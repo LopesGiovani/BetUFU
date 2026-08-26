@@ -12,6 +12,68 @@ const projectRoot = resolve(scriptsDirectory, '..');
 const validatorPath = join(scriptsDirectory, 'validate-angular-route-boundary.mjs');
 const developmentRoutesPath = 'frontend/src/app/app.routes.development.ts';
 const tracerComponentPath = 'frontend/src/app/features/tracer/tracer-page.component.ts';
+const appRoutesPath = 'frontend/src/app/app.routes.ts';
+const profileGuardPath = 'frontend/src/app/core/profile/profile-completion.guard.ts';
+
+const CANONICAL_GUARDED_APP_ROUTES = [
+  "import type { Routes } from '@angular/router';",
+  "import { profileCompletionGuard } from './core/profile/profile-completion.guard';",
+  "import { BUILD_SPECIFIC_ROUTES } from './app.routes.development';",
+  '',
+  'export const APP_ROUTES: Routes = [',
+  '  {',
+  "    path: '',",
+  '    canActivateChild: [profileCompletionGuard],',
+  '    children: BUILD_SPECIFIC_ROUTES,',
+  '  },',
+  '];',
+  '',
+].join('\n');
+
+const CANONICAL_PROFILE_GUARD = [
+  "import { inject } from '@angular/core';",
+  "import { CanActivateChildFn, Router } from '@angular/router';",
+  "import { ProfileStore } from '../../features/profile/profile.store';",
+  '',
+  "const PROFILE_COMPLETION_URL = '/conta/perfil/completar';",
+  "const ERROR_URL = '/error';",
+  'const AUTH_TECHNICAL_ROUTE_PREFIXES = Object.freeze([',
+  "  '/oauth2/authorization/',",
+  "  '/login/oauth2/code/',",
+  ']);',
+  '',
+  'function routePath(url: string): string {',
+  "  const fragmentBoundary = url.indexOf('#');",
+  '  const withoutFragment = fragmentBoundary === -1 ? url : url.slice(0, fragmentBoundary);',
+  "  const queryBoundary = withoutFragment.indexOf('?');",
+  '  return queryBoundary === -1 ? withoutFragment : withoutFragment.slice(0, queryBoundary);',
+  '}',
+  '',
+  'function isExemptRoute(url: string): boolean {',
+  '  const path = routePath(url);',
+  '  return path === PROFILE_COMPLETION_URL',
+  '    || path === ERROR_URL',
+  '    || AUTH_TECHNICAL_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix));',
+  '}',
+  '',
+  'export const profileCompletionGuard: CanActivateChildFn = async (_route, state) => {',
+  '  if (isExemptRoute(state.url)) {',
+  '    return true;',
+  '  }',
+  '',
+  '  const profileStore = inject(ProfileStore);',
+  '  const router = inject(Router);',
+  '',
+  "  if (profileStore.status() === 'initial') {",
+  '    await profileStore.loadProfile();',
+  '  }',
+  '',
+  '  return profileStore.hasProfile()',
+  '    ? true',
+  '    : router.createUrlTree([PROFILE_COMPLETION_URL]);',
+  '};',
+  '',
+].join('\n');
 
 const CANONICAL_TRACER_ROUTE_ENTRY = [
   '  {',
@@ -168,6 +230,7 @@ const FIXTURE_PATHS = Object.freeze([
   'frontend/src/main.ts',
   'frontend/src/app/app.config.ts',
   'frontend/src/app/app.routes.ts',
+  profileGuardPath,
   'frontend/src/app/app.routes.development.ts',
   'frontend/src/app/app.routes.production.ts',
   'frontend/src/app/app.component.ts',
@@ -180,6 +243,12 @@ const FIXTURE_PATHS = Object.freeze([
 const canonicalFiles = new Map(
   await Promise.all(
     FIXTURE_PATHS.map(async (relativePath) => {
+      if (relativePath === appRoutesPath) {
+        return [relativePath, CANONICAL_GUARDED_APP_ROUTES];
+      }
+      if (relativePath === profileGuardPath) {
+        return [relativePath, CANONICAL_PROFILE_GUARD];
+      }
       if (relativePath === 'frontend/src/app/api/generated/api/api.ts') {
         return [relativePath, CANONICAL_GENERATED_API_TS];
       }
@@ -283,6 +352,66 @@ test('aceita uma fixture canonica isolada', async () => {
     assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
   });
 });
+
+const globalGuardMutations = [
+  {
+    name: 'seam global sem a guarda de perfil',
+    path: appRoutesPath,
+    rule: 'PROFILE_GUARD_COMPOSITION',
+    mutate: (source) => source.replace('    canActivateChild: [profileCompletionGuard],\n', ''),
+  },
+  {
+    name: 'simbolo divergente da guarda global',
+    path: appRoutesPath,
+    rule: 'PROFILE_GUARD_IMPORT',
+    mutate: (source) => source.replaceAll('profileCompletionGuard', 'otherGuard'),
+  },
+  {
+    name: 'excecao de S1 removida criando loop',
+    path: profileGuardPath,
+    rule: 'PROFILE_GUARD_EXEMPTION',
+    mutate: (source) => source.replace(
+      '  return path === PROFILE_COMPLETION_URL\n',
+      '  return false\n',
+    ),
+  },
+  {
+    name: 'header Authorization manual no arquivo da guarda',
+    path: profileGuardPath,
+    rule: 'AUTHORIZATION_HEADER',
+    mutate: (source) => `${source}\nconst manualHeader = 'Authorization';\n`,
+  },
+  {
+    name: 'propriedade extra na raiz guardada',
+    path: appRoutesPath,
+    rule: 'PROFILE_GUARD_COMPOSITION',
+    mutate: (source) => source.replace(
+      "    path: '',\n",
+      "    path: '',\n    data: { leaked: true },\n",
+    ),
+  },
+  {
+    name: 'rota irma fora da composicao guardada',
+    path: appRoutesPath,
+    rule: 'PROFILE_GUARD_COMPOSITION',
+    mutate: (source) => source.replace(
+      '  },\n];',
+      "  },\n  { path: 'unguarded', redirectTo: '' },\n];",
+    ),
+  },
+];
+
+for (const mutation of globalGuardMutations) {
+  test(`recusa ${mutation.name}`, async () => {
+    await withFixture(mutation.name, async (fixtureRoot) => {
+      await mutateText(fixtureRoot, mutation.path, mutation.mutate);
+
+      const result = runValidator(fixtureRoot);
+
+      expectValidationFailure(result, mutation.rule);
+    });
+  });
+}
 
 test('aceita password somente como segmento de rota relativa gerada', async () => {
   await withFixture('password-reset-relative-path', async (fixtureRoot) => {
@@ -1320,26 +1449,26 @@ provideHttpClient(
   {
     name: 'mutacao da lista build-specific dentro da seam',
     path: 'frontend/src/app/app.routes.ts',
-    rule: 'BUILD_SPECIFIC_ROUTES_USAGE',
+    rule: 'PROFILE_GUARD_COMPOSITION',
     mutate: (source) => source.replace(
-      'export const APP_ROUTES: Routes = [...BUILD_SPECIFIC_ROUTES];',
+      'export const APP_ROUTES: Routes = [',
       [
         "BUILD_SPECIFIC_ROUTES.push({ path: 'technical', redirectTo: '' });",
         '',
-        'export const APP_ROUTES: Routes = [...BUILD_SPECIFIC_ROUTES];',
+        'export const APP_ROUTES: Routes = [',
       ].join('\n'),
     ),
   },
   {
     name: 'mutacao posterior da lista final APP_ROUTES',
     path: 'frontend/src/app/app.routes.ts',
-    rule: 'APP_ROUTES_USAGE',
+    rule: 'PROFILE_GUARD_COMPOSITION',
     mutate: (source) => `${source}\nAPP_ROUTES.push({ path: 'technical', redirectTo: '' });\n`,
   },
   {
     name: 'mutacao APP_ROUTES em interpolacao executavel',
     path: 'frontend/src/app/app.routes.ts',
-    rule: 'APP_ROUTES_USAGE',
+    rule: 'PROFILE_GUARD_COMPOSITION',
     mutate: (source) => `${source}\nconst hiddenMutation = \`\${APP_ROUTES.push({ path: 'technical', redirectTo: '' })}\`;\n`,
   },
   {
@@ -1544,19 +1673,19 @@ bootstrapApplication(AppComponent, { providers: [] }).catch((error: unknown) => 
   {
     name: 'codigo ativo depois de comentario encerrado por CR',
     path: 'frontend/src/app/app.routes.ts',
-    rule: 'APP_ROUTES_USAGE',
+    rule: 'PROFILE_GUARD_COMPOSITION',
     mutate: (source) => `${source}// harmless\rAPP_ROUTES.push({ path: 'technical' });\n`,
   },
   {
     name: 'codigo ativo depois de comentario encerrado por U+2028',
     path: 'frontend/src/app/app.routes.ts',
-    rule: 'APP_ROUTES_USAGE',
+    rule: 'PROFILE_GUARD_COMPOSITION',
     mutate: (source) => `${source}// harmless\u2028APP_ROUTES.push({ path: 'technical' });\n`,
   },
   {
     name: 'codigo ativo depois de comentario encerrado por U+2029',
     path: 'frontend/src/app/app.routes.ts',
-    rule: 'APP_ROUTES_USAGE',
+    rule: 'PROFILE_GUARD_COMPOSITION',
     mutate: (source) => `${source}// harmless\u2029APP_ROUTES.push({ path: 'technical' });\n`,
   },
   {
@@ -1947,7 +2076,7 @@ test('nao aceita export de rota presente somente em string', async () => {
 
     const result = runValidator(fixtureRoot);
 
-    expectValidationFailure(result, 'APP_ROUTES_EXPORT');
+    expectValidationFailure(result, 'PROFILE_GUARD_COMPOSITION');
   });
 });
 

@@ -422,6 +422,9 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
     expect(store.isError()).toBe(true);
     expect(store.displaySnapshot()).toBeNull();
     expect(compiled.querySelectorAll('.panel-card').length).toBe(0);
+    expect(compiled.querySelector('.operations-grid')).toBeNull();
+    expect(compiled.querySelector('.audit-item')).toBeNull();
+    expect(compiled.querySelector('.aggregate-number')).toBeNull();
     expect(compiled.querySelector('.stale-warning')).toBeNull();
 
     // Mensagem segura de 401 do contrato
@@ -468,8 +471,11 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
 
     // Mensagem segura de 403 do contrato
     expect(compiled.querySelector('.error-state')).not.toBeNull();
-    expect(compiled.querySelector('.error-text')?.textContent).toContain(
+    expect(compiled.querySelector('.error-text')?.textContent?.trim()).toBe(
       'Você não tem acesso a esta área.',
+    );
+    expect(compiled.textContent).not.toMatch(
+      /ADMINISTRADOR|VIEW_OPERATIONAL_PANEL|MANAGE_ROLES|CORRECT_ENROLLMENT|admin-id-|user-id-|aluno_ufu|moderador_01/u,
     );
   });
 

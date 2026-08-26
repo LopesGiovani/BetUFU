@@ -11,6 +11,17 @@ export type OperationsPanelStateStatus =
   | 'partial'
   | 'error';
 
+export type OperationalCapabilityName =
+  | 'VIEW_OPERATIONAL_PANEL'
+  | 'MANAGE_ROLES'
+  | 'CORRECT_ENROLLMENT';
+
+export interface OperationalNavigationItem {
+  readonly capability: OperationalCapabilityName;
+  readonly label: string;
+  readonly path: string;
+}
+
 export type UnavailableBlockKey =
   | 'ROLE_CHANGES'
   | 'REJECTED_ENROLLMENTS_COUNT'

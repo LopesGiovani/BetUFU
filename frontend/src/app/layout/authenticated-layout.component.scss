@@ -79,33 +79,91 @@
   min-width: 0;
 }
 
-.user-identity {
+.account-menu-container {
+  position: relative;
+  min-width: 0;
+}
+
+.account-menu-trigger,
+.account-menu-item,
+.btn-logout {
+  min-height: tokens.$min-touch-target;
+  min-width: tokens.$min-touch-target;
+  font: inherit;
+
+  &:focus-visible {
+    outline: tokens.$focus-outline-width solid tokens.$color-focus;
+    outline-offset: tokens.$focus-outline-offset;
+  }
+}
+
+.account-menu-trigger {
+  background-color: tokens.$color-surface-raised;
+  color: tokens.$color-text;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-md;
+  padding: tokens.$space-2 tokens.$space-4;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + tokens.$space-2);
+  right: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  min-width: calc(tokens.$min-touch-target * 5);
+  max-width: calc(100vw - tokens.$space-8);
+  max-height: calc(100vh - tokens.$space-16);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: tokens.$color-surface;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-md;
+  box-shadow: tokens.$shadow-raised;
+  padding: tokens.$space-2;
+}
+
+.operation-menu-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-menu-label {
+  color: tokens.$color-text-muted;
+  font-size: 14px;
+  font-weight: 600;
+  padding: tokens.$space-2 tokens.$space-4;
+  overflow-wrap: anywhere;
+}
+
+.account-menu-item {
   display: flex;
   align-items: center;
-  gap: tokens.$space-2;
-  background-color: tokens.$color-surface-raised;
-  padding: tokens.$space-1 tokens.$space-2;
-  border-radius: tokens.$radius-full;
-  border: 1px solid tokens.$color-border;
+  width: 100%;
+  padding: tokens.$space-2 tokens.$space-4;
+  color: tokens.$color-text;
+  background-color: transparent;
+  border: 0;
+  border-radius: tokens.$radius-sm;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
 
-  .user-avatar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    background-color: tokens.$color-accent;
-    color: tokens.$color-on-accent;
-    font-weight: 700;
-    font-size: 14px;
-    border-radius: tokens.$radius-full;
+  &:hover {
+    background-color: tokens.$color-surface-raised;
   }
+}
 
-  .user-name {
-    color: tokens.$color-text;
-    font-size: 14px;
-    font-weight: 600;
-  }
+.account-menu-divider {
+  height: 1px;
+  margin: tokens.$space-2 0;
+  background-color: tokens.$color-border;
 }
 
 .btn-logout {
@@ -225,18 +283,8 @@
     flex-shrink: 0;
   }
 
-  .user-identity {
-    flex-shrink: 0;
-
-    .user-name {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-    }
+  .account-menu-container {
+    flex-shrink: 1;
   }
 
   .btn-logout {

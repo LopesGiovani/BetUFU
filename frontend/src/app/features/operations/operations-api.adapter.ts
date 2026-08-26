@@ -1,7 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, defer, map } from 'rxjs';
+import { OperationalCapabilitiesService } from '../../api/generated/api/operational-capabilities.service';
 import { OperationalPanelService } from '../../api/generated/api/operational-panel.service';
 import { RoleService } from '../../api/generated/api/role.service';
+import { OperationalCapability as GeneratedOperationalCapability } from '../../api/generated/model/operational-capability';
 import { OperationalPanelResponse } from '../../api/generated/model/operational-panel-response';
 import { RoleGrantResponse } from '../../api/generated/model/role-grant-response';
 import { OperationalRole } from '../../api/generated/model/operational-role';
@@ -14,6 +16,7 @@ import { UnregisteredEnrollmentsBlock } from '../../api/generated/model/unregist
 import {
   AdministrativeCorrectionEventViewModel,
   AdministrativeCorrectionsViewModel,
+  OperationalCapabilityName,
   OperationsPanelSnapshotViewModel,
   RejectedEnrollmentsViewModel,
   RoleChangeEventViewModel,
@@ -27,10 +30,17 @@ import {
 
 const SAFE_UNAVAILABLE_BLOCK_MESSAGE = 'Este bloco não pôde ser carregado.';
 
+const OPERATIONAL_CAPABILITY_ORDER: readonly OperationalCapabilityName[] = Object.freeze([
+  GeneratedOperationalCapability.ViewOperationalPanel,
+  GeneratedOperationalCapability.ManageRoles,
+  GeneratedOperationalCapability.CorrectEnrollment,
+]);
+
 @Injectable({
   providedIn: 'root',
 })
 export class OperationsApiAdapter {
+  private readonly operationalCapabilitiesService = inject(OperationalCapabilitiesService);
   private readonly operationalPanelService = inject(OperationalPanelService);
   private readonly roleService = inject(RoleService);
 
@@ -41,6 +51,31 @@ export class OperationsApiAdapter {
   fetchOperationalPanel(): Observable<OperationsPanelSnapshotViewModel | null> {
     return defer(() => this.operationalPanelService.getOperationalPanel()).pipe(
       map((response) => this.adapt(response)),
+    );
+  }
+
+  fetchOperationalCapabilities(): Observable<readonly OperationalCapabilityName[]> {
+    return defer(() => this.operationalCapabilitiesService.getOperationalCapabilities()).pipe(
+      map((response) => this.adaptOperationalCapabilities(response)),
+    );
+  }
+
+  adaptOperationalCapabilities(response: unknown): readonly OperationalCapabilityName[] {
+    if (typeof response !== 'object' || response === null) {
+      return Object.freeze([]);
+    }
+
+    const capabilities = (response as { readonly capabilities?: unknown }).capabilities;
+    if (!Array.isArray(capabilities)) {
+      return Object.freeze([]);
+    }
+
+    const occurrences = new Map<unknown, number>();
+    for (const capability of capabilities) {
+      occurrences.set(capability, (occurrences.get(capability) ?? 0) + 1);
+    }
+    return Object.freeze(
+      OPERATIONAL_CAPABILITY_ORDER.filter((capability) => occurrences.get(capability) === 1),
     );
   }
 

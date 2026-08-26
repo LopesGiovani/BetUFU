@@ -18,6 +18,7 @@ const PATHS = Object.freeze({
   main: 'frontend/src/main.ts',
   config: 'frontend/src/app/app.config.ts',
   seam: 'frontend/src/app/app.routes.ts',
+  profileGuard: 'frontend/src/app/core/profile/profile-completion.guard.ts',
   development: 'frontend/src/app/app.routes.development.ts',
   production: 'frontend/src/app/app.routes.production.ts',
   component: 'frontend/src/app/app.component.ts',
@@ -105,6 +106,7 @@ const HOST_SOURCE_PATHS = Object.freeze([
   PATHS.main,
   PATHS.config,
   PATHS.seam,
+  PATHS.profileGuard,
   PATHS.development,
   PATHS.production,
   PATHS.component,
@@ -1485,6 +1487,7 @@ function expectApprovedRoutes(routes, approvedRoutes, rule, environmentLabel) {
 
 function validateRouteSources(sources) {
   const seam = stripScriptComments(sources.get(PATHS.seam));
+  const profileGuard = stripScriptComments(sources.get(PATHS.profileGuard));
   const development = stripScriptComments(sources.get(PATHS.development));
   const production = stripScriptComments(sources.get(PATHS.production));
   const scriptSources = [...sources.entries()]
@@ -1508,15 +1511,39 @@ function validateRouteSources(sources) {
 
   expectExactlyOnceActiveImport(
     seam,
+    /^\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*['"]\.\/core\/profile\/profile-completion\.guard['"]\s*;/mu,
+    'PROFILE_GUARD_IMPORT',
+    'import da guarda global de completude do perfil',
+  );
+  expectExactlyOnceActiveImport(
+    seam,
     /^\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*\}\s*from\s*['"]\.\/app\.routes\.development['"]\s*;/mu,
     'DEVELOPMENT_ROUTE_IMPORT',
     'import da lista development pela seam',
   );
-  expectExactlyOnce(
-    maskScriptStrings(seam),
-    /\bexport\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\.\.\.\s*BUILD_SPECIFIC_ROUTES\s*\]\s*;/u,
-    'APP_ROUTES_EXPORT',
-    'export APP_ROUTES: Routes',
+  expect(
+    /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*BUILD_SPECIFIC_ROUTES\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u.test(seam),
+    'PROFILE_GUARD_COMPOSITION',
+    'APP_ROUTES deve ter uma unica raiz vazia, protegida pela guarda de perfil, envolvendo BUILD_SPECIFIC_ROUTES.',
+  );
+  expect(
+    /const\s+PROFILE_COMPLETION_URL\s*=\s*'\/conta\/perfil\/completar'\s*;/u.test(profileGuard)
+      && /const\s+ERROR_URL\s*=\s*'\/error'\s*;/u.test(profileGuard)
+      && /const\s+AUTH_TECHNICAL_ROUTE_PREFIXES\s*=\s*Object\.freeze\s*\(\s*\[\s*'\/oauth2\/authorization\/'\s*,\s*'\/login\/oauth2\/code\/'\s*,?\s*\]\s*\)\s*;/u.test(profileGuard),
+    'PROFILE_GUARD_EXEMPTION',
+    'a guarda deve declarar somente S1 e as rotas tecnicas de autenticacao e erro como excecoes.',
+  );
+  expect(
+    /return\s+path\s*===\s*PROFILE_COMPLETION_URL\s*\|\|\s*path\s*===\s*ERROR_URL\s*\|\|\s*AUTH_TECHNICAL_ROUTE_PREFIXES\.some\s*\(\s*\(\s*prefix\s*\)\s*=>\s*path\.startsWith\s*\(\s*prefix\s*\)\s*\)\s*;/u.test(profileGuard)
+      && /if\s*\(\s*isExemptRoute\s*\(\s*state\.url\s*\)\s*\)\s*\{\s*return\s+true\s*;\s*\}/u.test(profileGuard),
+    'PROFILE_GUARD_EXEMPTION',
+    'a guarda deve liberar S1 e rotas tecnicas antes de consultar o perfil, evitando loop.',
+  );
+  expect(
+    /if\s*\(\s*profileStore\.status\s*\(\s*\)\s*===\s*'initial'\s*\)\s*\{\s*await\s+profileStore\.loadProfile\s*\(\s*\)\s*;\s*\}/u.test(profileGuard)
+      && /return\s+profileStore\.hasProfile\s*\(\s*\)\s*\?\s*true\s*:\s*router\.createUrlTree\s*\(\s*\[\s*PROFILE_COMPLETION_URL\s*\]\s*\)\s*;/u.test(profileGuard),
+    'PROFILE_GUARD_DECISION',
+    'a guarda deve carregar o perfil inicial e falhar fechado por UrlTree quando ele nao estiver completo.',
   );
   expectExactlyOnce(
     maskScriptStrings(development),
@@ -1623,8 +1650,14 @@ function validateForbiddenPatterns(sources) {
       : stripScriptComments(source);
 
     for (const forbiddenPattern of FORBIDDEN_PATTERNS) {
+      const inspectedSource = (
+        relativePath === PATHS.profileGuard
+        && forbiddenPattern.rule === 'AUTHORIZATION_HEADER'
+      )
+        ? activeSource.replaceAll('/oauth2/authorization/', '')
+        : activeSource;
       expect(
-        !forbiddenPattern.pattern.test(activeSource),
+        !forbiddenPattern.pattern.test(inspectedSource),
         forbiddenPattern.rule,
         `${forbiddenPattern.label} nao e permitido no host (${relativePath}).`,
       );

@@ -1,23 +1,17 @@
-<!-- Skip Link para Acessibilidade WCAG 2.2 AA -->
 <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
 
 <div class="layout-container">
-  <!-- Estado 1: Checking (Carregando estado da sessão) -->
-  <div
-    *ngIf="sessionStore.isChecking()"
-    class="session-status-container checking"
-    role="status"
-    aria-live="polite"
-  >
-    <div class="loading-card">
-      <div class="spinner" aria-hidden="true"></div>
-      <h2 class="status-title">Preparando sua sessão…</h2>
-      <p class="status-description">Validando autenticação com a plataforma segura.</p>
+  @if (sessionStore.isChecking()) {
+    <div class="session-status-container checking" role="status" aria-live="polite">
+      <div class="loading-card">
+        <div class="spinner" aria-hidden="true"></div>
+        <h2 class="status-title">Preparando sua sessão…</h2>
+        <p class="status-description">Validando autenticação com a plataforma segura.</p>
+      </div>
     </div>
-  </div>
+  }
 
-  <!-- Estado 2: Authenticated (Sessão Válida) -->
-  <ng-container *ngIf="sessionStore.isAuthenticated()">
+  @if (sessionStore.isAuthenticated()) {
     <header class="layout-header">
       <div class="header-inner container">
         <div class="brand-area">
@@ -25,24 +19,63 @@
           <span class="brand-badge">MVP</span>
         </div>
 
-        <nav class="user-navigation" aria-label="Menu do usuário">
-          <div class="user-identity" *ngIf="sessionStore.displayName()">
-            <span class="user-avatar" aria-hidden="true">
-              {{ sessionStore.displayName()?.charAt(0)?.toUpperCase() }}
-            </span>
-            <span class="user-name" id="user-display-name">
-              {{ sessionStore.displayName() }}
-            </span>
-          </div>
+        <nav class="user-navigation" aria-label="Menu da conta">
+          @if (isProfileCompletionRoute()) {
+            <button
+              type="button"
+              class="btn-logout"
+              (click)="onLogout()"
+              aria-label="Encerrar sessão deste dispositivo"
+            >
+              Sair
+            </button>
+          } @else {
+            <div class="account-menu-container">
+              <button
+                #accountMenuTrigger
+                type="button"
+                class="account-menu-trigger"
+                aria-controls="account-navigation-menu"
+                [attr.aria-expanded]="menuOpen()"
+                (click)="toggleMenu()"
+                (keydown)="onMenuTriggerKeydown($event)"
+              >
+                Conta
+              </button>
 
-          <button
-            type="button"
-            class="btn-logout"
-            (click)="onLogout()"
-            aria-label="Encerrar sessão deste dispositivo"
-          >
-            Sair
-          </button>
+              @if (menuOpen()) {
+                <div
+                  id="account-navigation-menu"
+                  class="account-menu"
+                  (keydown)="onMenuKeydown($event)"
+                >
+                  <a class="account-menu-item" routerLink="/conta/perfil" (click)="closeMenu()">
+                    Meu perfil
+                  </a>
+                  <a class="account-menu-item" routerLink="/conta/matricula" (click)="closeMenu()">
+                    Matrícula UFU
+                  </a>
+
+                  @if (operationItems().length > 0) {
+                    <div class="account-menu-divider" aria-hidden="true"></div>
+                    <div class="operation-menu-group" role="group" aria-labelledby="operation-menu-label">
+                      <span id="operation-menu-label" class="account-menu-label">Operação</span>
+                      @for (item of operationItems(); track item.capability) {
+                        <a class="account-menu-item" [routerLink]="item.path" (click)="closeMenu()">
+                          {{ item.label }}
+                        </a>
+                      }
+                    </div>
+                  }
+
+                  <div class="account-menu-divider" aria-hidden="true"></div>
+                  <button type="button" class="account-menu-item btn-logout" (click)="onLogout()">
+                    Sair
+                  </button>
+                </div>
+              }
+            </div>
+          }
         </nav>
       </div>
     </header>
@@ -50,41 +83,25 @@
     <main id="main-content" tabindex="-1" class="layout-main container">
       <router-outlet />
     </main>
-  </ng-container>
+  }
 
-  <!-- Estado 3: Expired / Anônimo (Sessão Expirada ou Rejeitada) -->
-  <div
-    *ngIf="sessionStore.isExpired()"
-    class="session-status-container expired"
-    role="alert"
-    aria-live="assertive"
-  >
-    <div class="status-card">
-      <h2 class="status-title">Sessão expirada ou encerrada</h2>
-      <p class="status-description">
-        Sua sessão segura encerrou ou atingiu o tempo limite de inatividade. Faça login novamente para continuar.
-      </p>
-      <button type="button" class="btn-primary" (click)="onLogin()">
-        Entrar novamente
-      </button>
+  @if (sessionStore.isExpired()) {
+    <div class="session-status-container expired" role="alert" aria-live="assertive">
+      <div class="status-card">
+        <h2 class="status-title">Sessão encerrada</h2>
+        <p class="status-description">Sua sessão foi encerrada. Entre novamente para continuar.</p>
+        <button type="button" class="btn-primary" (click)="onLogin()">Entrar novamente</button>
+      </div>
     </div>
-  </div>
+  }
 
-  <!-- Estado 4: Logged Out (Logout Concluído) -->
-  <div
-    *ngIf="sessionStore.isLoggedOut()"
-    class="session-status-container logged-out"
-    role="status"
-    aria-live="polite"
-  >
-    <div class="status-card">
-      <h2 class="status-title">Sessão encerrada</h2>
-      <p class="status-description">
-        Você saiu com sucesso da plataforma BETUFU neste dispositivo.
-      </p>
-      <button type="button" class="btn-primary" (click)="onLogin()">
-        Entrar novamente
-      </button>
+  @if (sessionStore.isLoggedOut()) {
+    <div class="session-status-container logged-out" role="status" aria-live="polite">
+      <div class="status-card">
+        <h2 class="status-title">Sessão encerrada</h2>
+        <p class="status-description">Você saiu com sucesso da plataforma BETUFU neste dispositivo.</p>
+        <button type="button" class="btn-primary" (click)="onLogin()">Entrar novamente</button>
+      </div>
     </div>
-  </div>
+  }
 </div>

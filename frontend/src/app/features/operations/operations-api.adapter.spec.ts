@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OperationalPanelService } from '../../api/generated/api/operational-panel.service';
+import { OperationalCapabilitiesService } from '../../api/generated/api/operational-capabilities.service';
+import { RoleService } from '../../api/generated/api/role.service';
 import { OperationalPanelResponse } from '../../api/generated/model/operational-panel-response';
 import { OperationsApiAdapter } from './operations-api.adapter';
 
@@ -67,16 +69,22 @@ const MOCK_FULL_PANEL_RESPONSE: OperationalPanelResponse = {
 describe('OperationsApiAdapter (Contrato e Mapeamento S4)', () => {
   let adapter: OperationsApiAdapter;
   let mockOperationalPanelService: { getOperationalPanel: ReturnType<typeof vi.fn> };
+  let mockOperationalCapabilitiesService: { getOperationalCapabilities: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     mockOperationalPanelService = {
       getOperationalPanel: vi.fn(),
+    };
+    mockOperationalCapabilitiesService = {
+      getOperationalCapabilities: vi.fn(),
     };
 
     TestBed.configureTestingModule({
       providers: [
         OperationsApiAdapter,
         { provide: OperationalPanelService, useValue: mockOperationalPanelService },
+        { provide: OperationalCapabilitiesService, useValue: mockOperationalCapabilitiesService },
+        { provide: RoleService, useValue: {} },
       ],
     });
 
@@ -400,5 +408,50 @@ describe('OperationsApiAdapter (Contrato e Mapeamento S4)', () => {
 
     expect(mockOperationalPanelService.getOperationalPanel).toHaveBeenCalledTimes(1);
     expect(result).not.toBeNull();
+  });
+
+  it('consulta capacidades pelo cliente gerado, ordena valores unicos e rejeita o valor duplicado', async () => {
+    mockOperationalCapabilitiesService.getOperationalCapabilities.mockReturnValue(of({
+      capabilities: [
+        'CORRECT_ENROLLMENT',
+        'VIEW_OPERATIONAL_PANEL',
+        'MANAGE_ROLES',
+        'VIEW_OPERATIONAL_PANEL',
+      ],
+    }));
+
+    const result = await new Promise<readonly string[]>((resolve) => {
+      adapter.fetchOperationalCapabilities().subscribe(resolve);
+    });
+
+    expect(mockOperationalCapabilitiesService.getOperationalCapabilities).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(['MANAGE_ROLES', 'CORRECT_ENROLLMENT']);
+  });
+
+  it('falha fechado para valores desconhecidos, nulos, papel e identidade sem promover autoridade', () => {
+    const result = adapter.adaptOperationalCapabilities({
+      capabilities: [
+        null,
+        'ADMINISTRADOR_GERAL',
+        'identity-123',
+        'UNKNOWN_CAPABILITY',
+        'MANAGE_ROLES',
+      ],
+      role: 'ADMINISTRADOR_GERAL',
+      identityId: 'identity-123',
+    });
+
+    expect(result).toEqual(['MANAGE_ROLES']);
+  });
+
+  it.each([
+    null,
+    undefined,
+    {},
+    { capabilities: null },
+    { capabilities: 'VIEW_OPERATIONAL_PANEL' },
+    { capabilities: new Set(['VIEW_OPERATIONAL_PANEL']) },
+  ])('trata payload de capacidades malformado como nenhuma permissao: %j', (response) => {
+    expect(adapter.adaptOperationalCapabilities(response)).toEqual([]);
   });
 });
