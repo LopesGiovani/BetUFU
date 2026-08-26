@@ -34,7 +34,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
   3. O navegador se comunica por uma API versionada e um cliente gerado, enquanto sessões BFF apoiadas pelo Keycloak mantêm tokens fora do armazenamento do navegador.
   4. Criação, renovação e encerramento de sessão, além das tentativas de conexão em tempo real, aplicam as proteções acordadas de OIDC, cookies, origem e CSRF.
 
-**Plans**: 25/31 plans executed
+**Plans**: 31/31 plans executed
 Plans:
 **Wave 1**
 
@@ -180,7 +180,7 @@ Plans:
   4. A plataforma usa um HMAC não público da matrícula para impedir vínculos duplicados e comunica decisões de elegibilidade sem expor informações privadas.
   5. Um administrador geral consegue conceder, revogar e delimitar papéis operacionais; cada papel enxerga somente seu trabalho autorizado, e ações sensíveis ficam auditáveis. MFA é opcional no MVP e não condiciona nenhum comando.
 
-**Plans**: 28/32 plans executed
+**Plans**: 32/32 plans executed
 
 - [x] 02-01-PLAN.md
 - [x] 02-02-PLAN.md
