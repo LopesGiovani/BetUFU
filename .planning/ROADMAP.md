@@ -201,7 +201,7 @@ Plans:
 - [x] 02-17-PLAN.md
 - [x] 02-18-PLAN.md
 - [x] 02-19-PLAN.md
-- [ ] 02-20-PLAN.md
+- [x] 02-20-PLAN.md
 - [x] 02-21-PLAN.md
 - [x] 02-22-PLAN.md
 - [x] 02-23-PLAN.md
@@ -228,7 +228,7 @@ Plans:
 - **Wave 11** *(concluída em 2026-08-25: correção D-32 transacional, autorização exclusiva do Administrador Geral e revisão final P0=P1=P2=0)*: 02-12
 - **Wave 12** *(concluída em 2026-08-25: S3 e contrato/cliente da correção verificados; inventário final 47, digest aprovado e revisão P0=P1=P2=0)*: 02-13, 02-25
 - **Wave 13** *(concluida em 2026-08-25: S5 global governada, papeis escopados deferidos, navegador real e revisao final P0=P1=P2=0)*: 02-19
-- **Wave 14** *(replanejada em 2026-08-26: duas lanes independentes, com adapter S6 próprio e contrato/digest de capacidades)*: 02-20, 02-32
+- **Wave 14** *(em execução em 2026-08-26: 02-20 concluído e revisado; 02-32 aguarda formalização e integração)*: 02-20, 02-32
 - **Wave 15** *(bloqueada em 02-20-T1 e 02-32-T3 concluídos; consome a rota S6 e o cliente/digest de capacidades sem mapear papéis no Angular)*: 02-26
 - **Wave 16** *(checkpoint humano final servido de snapshot combinado congelado e certificado, após 02-20, 02-32 e 02-26)*: 02-27
 

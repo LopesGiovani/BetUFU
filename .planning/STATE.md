@@ -5,15 +5,15 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 14 replanejada para 02-20 e 02-32; Wave 15 reserva 02-26 e Wave 16 reserva o checkpoint 02-27"
+stopped_at: "Fase 2: Plano 02-20 concluído e revisado; Wave 14 aguarda formalização e integração do 02-32"
 last_updated: "2026-08-26T00:03:52-03:00"
 last_activity: 2026-08-26
-last_activity_desc: "Waves 14–16 replanejadas antes da execução: 02-20/02-32 paralelos, 02-26 sequencial após digest aprovado e 02-27 como checkpoint final."
+last_activity_desc: "Plano 02-20 concluído com S6, provas agregadas e revisão final PASS; 02-32 permanece pendente de formalização."
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 63
-  completed_plans: 59
+  completed_plans: 60
 ---
 
 # Estado do Projeto
@@ -28,9 +28,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 28 of 32 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-19`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
-Status: In Progress — Waves 1 a 13 concluídas. Wave 14 contém `02-20` e `02-32`; Wave 15 contém `02-26` somente após `02-20-T1` e `02-32-T3`; Wave 16 contém `02-27` após as implementações.
-Last activity: 2026-08-26 — emenda de planejamento aprovada para impedir autoridade sintética no Angular; nenhuma implementação, teste ou operação Git da Wave 14 ocorreu.
+Plan: 29 of 32 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-19`, `02-20`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
+Status: In Progress — Waves 1 a 13 concluídas. Na Wave 14, `02-20` está concluído e `02-32` aguarda formalização; Wave 15 contém `02-26` e Wave 16 contém `02-27`.
+Last activity: 2026-08-26 — Plano 02-20 concluiu S6 com Angular 196/196, Node 617/617, backend Surefire 251/251 e Failsafe 332/332, build produtivo, mutações discriminantes e revisão final PASS.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git — snapshot histórico da Wave 10: naquele fechamento, a Wave 9 era a base `ffac2ea` e a Wave 10 estava integrada linearmente em dois commits, `027f5f7` (`feat(02-18)`) e seu documental. A afirmação então verdadeira de worktree/branch únicas e do estado de `origin/master` pertence somente àquele instante e não descreve o checkout atual. Snapshot atual medido no início da revisão documental de 2026-08-26: `HEAD`, `master` e `origin/master` apontam para `d562cfd30191f93675180888e4671ffeb2f93677`; existe apenas a worktree principal; as branches locais são `master` e `backup/pre-author-fix-a27a376`; e nove documentos de planejamento estão modificados. A branch de backup não foi removida nem alterada.
@@ -59,7 +59,7 @@ Git — Wave 12 (snapshot final aprovado, 2026-08-25): as lanes `02-13` e `02-25
 
 Git — Wave 13 (concluida em 2026-08-25): o Plano `02-19` entregou S5 em 12 paths de implementacao, com Angular `157/157`, Node `617/617`, Surefire `246/246`, Failsafe `317/317`, build produtivo e smoke em navegador real. O snapshot final reconciliou 15/15 paths e recebeu `PASS`, P0=P1=P2=0. O historico preserva a emenda de decisao, o commit tecnico e este commit documental; refs finais de integracao e sincronizacao devem ser confirmados ao vivo porque o documento nao pode autorreferenciar seu proprio hash.
 
-Planejamento — Waves 14–16 (emendado em 2026-08-26, ainda não executado): o novo Plano `02-32` publica um contrato BFF de capacidades derivado exclusivamente dos papéis vigentes no PostgreSQL pelo par OIDC exato. O payload não expõe papéis, escopos, identidade ou PII; o Angular reconhece somente `VIEW_OPERATIONAL_PANEL`, `MANAGE_ROLES` e `CORRECT_ENROLLMENT`, e os endpoints/403 do BFF continuam autoritativos. Na Wave 14, `02-20` possui adapter dedicado e executa em paralelo com `02-32`; na Wave 15, `02-26` aguarda tanto a rota S6 certificada em `02-20-T1` quanto o cliente/digest aprovados em `02-32-T3`; na Wave 16, `02-27` realiza o checkpoint humano final exclusivamente sobre um snapshot combinado congelado, com hashes dos três planos reconciliados e build/runtime servidos dessa mesma árvore. Variantes de capacidade e stale-client 403 são pré-requisitos sintéticos automatizados; sem mecanismo reproduzível o checkpoint permanece bloqueado. A separação elimina a sobreposição da fixture de rota entre 02-32 e 02-26 sem mudar ownership. Nenhum path de implementação, teste, worktree, branch ou operação Git foi realizado por esta emenda documental.
+Planejamento — Waves 14–16 (emendado em 2026-08-26): o novo Plano `02-32` publica um contrato BFF de capacidades derivado exclusivamente dos papéis vigentes no PostgreSQL pelo par OIDC exato. O payload não expõe papéis, escopos, identidade ou PII; o Angular reconhece somente `VIEW_OPERATIONAL_PANEL`, `MANAGE_ROLES` e `CORRECT_ENROLLMENT`, e os endpoints/403 do BFF continuam autoritativos. Na Wave 14, `02-20` possui adapter dedicado e executa em paralelo com `02-32`; na Wave 15, `02-26` aguarda tanto a rota S6 certificada em `02-20-T1` quanto o cliente/digest aprovados em `02-32-T3`; na Wave 16, `02-27` realiza o checkpoint humano final exclusivamente sobre um snapshot combinado congelado, com hashes dos três planos reconciliados e build/runtime servidos dessa mesma árvore. Variantes de capacidade e stale-client 403 são pré-requisitos sintéticos automatizados; sem mecanismo reproduzível o checkpoint permanece bloqueado. A separação elimina a sobreposição da fixture de rota entre 02-32 e 02-26 sem mudar ownership. O Plano 02-20 foi implementado e revisado com PASS; o fechamento da Wave 14 ainda depende da formalização e integração do 02-32.
 
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 
@@ -71,7 +71,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [█████████░] 28/32 planos da Fase 2 (88%)
+Progress: [█████████░] 29/32 planos da Fase 2 (91%)
 
 ## Métricas de desempenho
 
@@ -218,5 +218,5 @@ Progress: [█████████░] 28/32 planos da Fase 2 (88%)
 ## Session Continuity
 
 Last session: 2026-08-26
-Stopped at: planejamento das Waves 14–16 em revisão; Wave 14 executará 02-20 e 02-32, Wave 15 aguarda 02-20-T1 e 02-32-T3 para executar 02-26, e Wave 16 permanece no checkpoint 02-27
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-20-PLAN.md
+Stopped at: Plano 02-20 concluído e revisado; Wave 14 aguarda o fechamento do Plano 02-32
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-32-PLAN.md
