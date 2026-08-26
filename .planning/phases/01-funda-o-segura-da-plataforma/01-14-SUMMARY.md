@@ -96,3 +96,30 @@ O teste `theme.spec.ts` lê diretamente os arquivos `_tokens.scss` e `styles.scs
 - `frontend/src/assets/fonts/inter-ofl.txt`
 - `frontend/src/assets/fonts/inter-regular.woff2`
 - `frontend/src/assets/fonts/inter-semibold.woff2`
+
+---
+
+## 6. Remediação posterior — Material Symbols Rounded (2026-08-26)
+
+O checkpoint humano 02-27 encontrou as ligaduras `warning_amber`, `info` e
+`error_outline` renderizadas literalmente. A causa era a omissão deliberada registrada
+acima: as telas usavam a classe `material-symbols-rounded`, mas o ativo e o `@font-face`
+nunca haviam sido materializados.
+
+- Origem oficial: Google Fonts / Material Symbols Rounded, subconjunto estático `v369`
+  contendo somente `check_circle,error_outline,info,search_off,warning_amber`.
+- `material-symbols-rounded.woff2`: 2.128 bytes, assinatura `wOF2`, SHA-256
+  `B5D6A3ABCECB8DBC02446840BABC93FF50F5D0442B730F057B9F5FD767510AAD`.
+- Licença: Apache License 2.0 do repositório oficial `google/material-design-icons`,
+  commit `e083cc60a0828fdd3b404cea0cb8a5b900e9c23e`, SHA-256
+  `58D1E17FFE5109A7AE296CAAFCADFDBE6A7D176F0BC4AB01E12A689B0499D8BD`.
+- `_fonts.scss` passou a usar exclusivamente o ativo local, `font-display: block` e
+  ligaduras; blob Git canônico
+  `616da5928d207dd6c6a6316d49e40362f63d3a36`.
+- `theme.spec.ts` trava formato, dois hashes, licença, URL local e classe CSS; blob Git
+  canônico `a8398fbabff26dd1402ec44df5460c3f1418d5d6`.
+
+Provas independentes da remediação: teste focal `9/9`, Angular completo `220/220`,
+build produtivo verde, os dois arquivos empacotados em `dist` com hashes idênticos e
+validadores Node `623/623`. Permaneceram somente os três avisos de orçamento SCSS já
+existentes. A aprovação visual definitiva pertence à repetição do Plano 02-27.
