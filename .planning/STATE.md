@@ -5,14 +5,14 @@ milestone_name: milestone
 current_phase: 2
 current_phase_name: Contas, Verificação e Operações Governadas
 status: In progress
-stopped_at: "Fase 2: Wave 13 concluida; Wave 14 liberada para os Planos 02-20 e 02-26"
-last_updated: "2026-08-25T20:15:00-03:00"
-last_activity: 2026-08-25
-last_activity_desc: "Wave 13 aprovada: S5 governa o papel global, mantem papeis escopados deferidos e passou revisao final P0=P1=P2=0."
+stopped_at: "Fase 2: Wave 14 replanejada para 02-20 e 02-32; Wave 15 reserva 02-26 e Wave 16 reserva o checkpoint 02-27"
+last_updated: "2026-08-26T00:03:52-03:00"
+last_activity: 2026-08-26
+last_activity_desc: "Waves 14–16 replanejadas antes da execução: 02-20/02-32 paralelos, 02-26 sequencial após digest aprovado e 02-27 como checkpoint final."
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 62
+  total_plans: 63
   completed_plans: 59
 ---
 
@@ -28,12 +28,12 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 ## Current Position
 
 Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 28 of 31 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-19`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
-Status: In Progress — Waves 1 a 13 concluídas. A Wave 14 esta liberada para `02-20` e `02-26`.
-Last activity: 2026-08-25 — S5 foi verificada por testes, build, validadores, navegador real e revisao final sem P0–P2.
+Plan: 28 of 32 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-19`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-28`, `02-29`, `02-30` e `02-31` concluídos)
+Status: In Progress — Waves 1 a 13 concluídas. Wave 14 contém `02-20` e `02-32`; Wave 15 contém `02-26` somente após `02-20-T1` e `02-32-T3`; Wave 16 contém `02-27` após as implementações.
+Last activity: 2026-08-26 — emenda de planejamento aprovada para impedir autoridade sintética no Angular; nenhuma implementação, teste ou operação Git da Wave 14 ocorreu.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git: a Wave 9 permanece como base em `ffac2ea`. A Wave 10 está integrada linearmente na `master` em exatamente dois commits acima dessa base: `027f5f7` (`feat(02-18)`) e este commit documental, cujo hash não cabe dentro dele próprio. Existe somente a worktree principal e a branch `master`; a branch/worktree temporária do 02-18 foi removida. No instante em que este commit foi criado, `origin/master` apontava para `ffac2ea`; a sincronização posterior não pode ser autorreferenciada dentro do próprio commit e deve ser confirmada com `git rev-parse master refs/remotes/origin/master`. `AGENTS.md` e caches Angular permanecem alheios e fora dos commits.
+Git — snapshot histórico da Wave 10: naquele fechamento, a Wave 9 era a base `ffac2ea` e a Wave 10 estava integrada linearmente em dois commits, `027f5f7` (`feat(02-18)`) e seu documental. A afirmação então verdadeira de worktree/branch únicas e do estado de `origin/master` pertence somente àquele instante e não descreve o checkout atual. Snapshot atual medido no início da revisão documental de 2026-08-26: `HEAD`, `master` e `origin/master` apontam para `d562cfd30191f93675180888e4671ffeb2f93677`; existe apenas a worktree principal; as branches locais são `master` e `backup/pre-author-fix-a27a376`; e nove documentos de planejamento estão modificados. A branch de backup não foi removida nem alterada.
 
 Git — Wave 7 (concluída e integrada, 2026-08-23): operações Git mutáveis autorizadas e executadas, na ordem. (1) `git worktree add` para os três planos, a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`; os três nasceram limpos. (2) Um quarto worktree temporário e destacado, `wave-07/integration`, montou a árvore combinada sem commit para as suítes agregadas e para cada rodada de revisão. (3) **Rebase de dobra**: as correções das cinco rodadas de revisão foram dobradas nos commits existentes por cherry-pick encadeado com `--amend`, sem criar commit de correção. Os SHAs `eb4e79f`, `e63e313` e `a9b68de` deixaram de existir. (4) **Normalização de mensagens**: uma segunda passada reescreveu as mensagens dos cinco commits da onda para uma linha, no padrão dos vinte commits anteriores do projeto, e removeu os rodapés `Co-Authored-By` e `Claude-Session`, que nenhum commit do repositório usa. Os corpos longos foram auditados item a item antes de descartados: nove itens que existiam somente neles foram acrescentados aos SUMMARY, e as árvores dos três commits de código permaneceram idênticas antes e depois, provando que só a mensagem mudou.
 
@@ -59,6 +59,8 @@ Git — Wave 12 (snapshot final aprovado, 2026-08-25): as lanes `02-13` e `02-25
 
 Git — Wave 13 (concluida em 2026-08-25): o Plano `02-19` entregou S5 em 12 paths de implementacao, com Angular `157/157`, Node `617/617`, Surefire `246/246`, Failsafe `317/317`, build produtivo e smoke em navegador real. O snapshot final reconciliou 15/15 paths e recebeu `PASS`, P0=P1=P2=0. O historico preserva a emenda de decisao, o commit tecnico e este commit documental; refs finais de integracao e sincronizacao devem ser confirmados ao vivo porque o documento nao pode autorreferenciar seu proprio hash.
 
+Planejamento — Waves 14–16 (emendado em 2026-08-26, ainda não executado): o novo Plano `02-32` publica um contrato BFF de capacidades derivado exclusivamente dos papéis vigentes no PostgreSQL pelo par OIDC exato. O payload não expõe papéis, escopos, identidade ou PII; o Angular reconhece somente `VIEW_OPERATIONAL_PANEL`, `MANAGE_ROLES` e `CORRECT_ENROLLMENT`, e os endpoints/403 do BFF continuam autoritativos. Na Wave 14, `02-20` possui adapter dedicado e executa em paralelo com `02-32`; na Wave 15, `02-26` aguarda tanto a rota S6 certificada em `02-20-T1` quanto o cliente/digest aprovados em `02-32-T3`; na Wave 16, `02-27` realiza o checkpoint humano final exclusivamente sobre um snapshot combinado congelado, com hashes dos três planos reconciliados e build/runtime servidos dessa mesma árvore. Variantes de capacidade e stale-client 403 são pré-requisitos sintéticos automatizados; sem mecanismo reproduzível o checkpoint permanece bloqueado. A separação elimina a sobreposição da fixture de rota entre 02-32 e 02-26 sem mudar ownership. Nenhum path de implementação, teste, worktree, branch ou operação Git foi realizado por esta emenda documental.
+
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 
 Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para 15 paths por ratificação prévia do responsável, acrescentando `backend/src/test/java/br/com/betufu/platform/persistence/FlywayMigrationIT.java`. Causa: `V6` invalida as seis asserções que fixam o total de migrations em 5 — duas em cada um dos três testes do arquivo. A lane do 02-23 gravou **6**. **Corrigido no fechamento da onda:** a premissa de que o 02-30 não precisava tocar o arquivo estava errada. O commit do 02-30 cria a `V5_1` e, sem reconciliar a contagem, ficava vermelho isoladamente — qualquer `git bisect` entre ele e o 02-23 daria falso positivo. O arquivo entrou também na allowlist do 02-30, que grava **6** com a `V5_1`, e o 02-23 leva a **8** com a `V6` e a `V7`. O defeito não constava de nenhum achado de revisão; apareceu porque o rebase de dobra obrigou a medir cada commit individualmente.
@@ -69,13 +71,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [█████████░] 27/31 planos da Fase 2 (87%)
+Progress: [█████████░] 28/32 planos da Fase 2 (88%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 58
+- Total de planos concluídos: 59
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -84,7 +86,7 @@ Progress: [█████████░] 27/31 planos da Fase 2 (87%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 27 | não mensurado | não mensurada |
+| 2 | 28 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
@@ -96,6 +98,7 @@ Progress: [█████████░] 27/31 planos da Fase 2 (87%)
 
 ### Decisões
 
+- Na navegação S7, o backend converte os papéis D-46 em três capacidades fechadas; o frontend nunca recebe nem mapeia papel. Ausência, valor desconhecido ou payload malformado falham fechados, e a visibilidade do menu é apenas conveniência sobre a autorização do BFF.
 - A trilha de auditoria referencia estados e versões sem armazenar o HMAC da matrícula; MFA e evidência documental permanecem ausentes do MVP.
 - O usuário de migration será separado do usuário de runtime. A aplicação não terá `UPDATE`, `DELETE`, `TRUNCATE` ou DDL sobre `audit_event`, e um trigger que lança erro servirá como segunda camada.
 - Durante o MVP fechado, a auditoria é retida pela vida do ambiente. Uma política definitiva por classe de dado permanece gate de `PRIV-05` antes do lançamento público.
@@ -214,6 +217,6 @@ Progress: [█████████░] 27/31 planos da Fase 2 (87%)
 
 ## Session Continuity
 
-Last session: 2026-08-25T00:07:44-03:00
-Stopped at: Wave 10 concluída, integrada e limpa; sincronização remota tratada como operação posterior e verificável pelos refs atuais do Git
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-18-SUMMARY.md
+Last session: 2026-08-26
+Stopped at: planejamento das Waves 14–16 em revisão; Wave 14 executará 02-20 e 02-32, Wave 15 aguarda 02-20-T1 e 02-32-T3 para executar 02-26, e Wave 16 permanece no checkpoint 02-27
+Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-20-PLAN.md

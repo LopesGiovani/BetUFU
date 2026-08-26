@@ -118,5 +118,9 @@ requirements-completed: [OPER-01, OPER-02, OPER-03, OPER-04, IDEN-05]
 - O catalogo de competicoes continua na Fase 3 e o escopo de moderacao na Fase 7;
   a Wave 14 nao deve ativar esses papeis por atalho.
 
+## Errata histórica — sequência superseded em 2026-08-26
+
+O texto acima registra corretamente o handoff conhecido quando o Plano 02-19 foi concluído, mas sua sequência foi substituída pelo replanejamento aprovado depois. A sequência autoritativa atual é: **Wave 14 = Planos 02-20 e 02-32 em paralelo; Wave 15 = Plano 02-26; Wave 16 = Plano 02-27**. O 02-32 entrega e governa o contrato/digest de capacidades antes de o 02-26 consumi-lo. Esta errata não reescreve nem invalida a evidência passada do 02-19; apenas impede que seu registro histórico seja usado como agenda atual.
+
 ---
 *Completed: 2026-08-25*

@@ -1124,27 +1124,22 @@ Ordem de ataque recomendada, por custo crescente: **A-12** (um IT de sessão, mi
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-**OQ-1 — Padrão real da matrícula UFU.** `D-29` exige validar o normalizado contra um padrão, e `02-CONTEXT.md` manda "confirmar na pesquisa antes de fixar". Não localizei fonte autoritativa da UFU nesta sessão, e **não vou inventar uma regex**: `D-29` é declaradamente *one-way* — uma regra errada invalida a base inteira e não há como recalcular. Recomendação: padrão deliberadamente permissivo — `^[A-Z0-9]{5,20}$` sobre o texto já normalizado — que rejeita entrada obviamente malformada sem excluir pós-graduação ou matrículas antigas. Apertar depois é seguro (só recusa entradas novas); afrouxar depois também é seguro. **Trocar a normalização é que é irreversível** — e `^[A-Z0-9]{5,20}$` não depende do formato real, apenas do alfabeto que `D-29` já fixa. **Decisão do responsável.**
+Esta seção preserva as perguntas originais como índice histórico, mas a situação autoritativa é a registrada abaixo. “Deferida” significa que a decisão da Fase 2 não foi fabricada nem reaberta: o item foi atribuído explicitamente a um gate posterior e não bloqueia as Waves 14–16.
 
-**OQ-2 — Números do limite de tentativas (`D-30`).** Sem base empírica. Sugestão conservadora: 5 tentativas recusadas por conta em janela de 15 minutos, e um teto por origem numa janela maior. O `02-UI-SPEC.md` já proíbe revelar quantas restam ou o tamanho da janela. **Decisão do responsável.**
-
-**OQ-3 — `D-37` versus `AUDT-02`.** O expurgo dos HMACs da versão comprometida colide com a imutabilidade da trilha se a trilha guardar HMACs. Recomendação em §7: a auditoria referencia `enrollment_id` + `hmac_version`, nunca o digest. Isso altera o sentido de "versão anterior e nova" em `AUDT-01`. **Precisa de ratificação.**
-
-**OQ-4 — Semente da `D-47` por e-mail exige `email` no ID token.** Hoje o escopo pedido é só `openid` `[CÓDIGO] application.yaml:72-73` e o userinfo está desligado `[CÓDIGO] SecurityConfiguration.java:96`. Ou a semente muda de chave, ou o escopo muda — e mudar escopo reabre a minimização de dados do 01-07. **Decisão de arquitetura.**
-
-**OQ-5 — `AUDT-01` pede "papel e MFA", `D-52` proíbe publicar sinalizador de MFA.** Recomendo não criar a coluna. Contraria a letra do requisito. **Precisa de ratificação, ou emenda ao texto de `AUDT-01`.**
-
-**OQ-6 — Separar o usuário de aplicação do usuário de migration.** É o que dá dentes a `AUDT-02` (sem `UPDATE`/`DELETE` sobre `audit_event`), mas toca `compose.yaml` e bootstrap do PostgreSQL — fora da allowlist natural de uma fase de aplicação. **Decisão de escopo.**
-
-**OQ-7 — Prazo de retenção da auditoria (`AUDT-02`).** Ninguém definiu. `STATE.md` lista "fluxos legais, de privacidade, retenção e direitos dos titulares" como bloqueio pré-lançamento. Recomendação: registrar o prazo como **procedimento escrito** nesta fase, como `D-37` faz com o expurgo, sem construir a ferramenta de expurgo. **Decisão do responsável.**
-
-**OQ-8 — Repositório indexado versus índice próprio (§4).** Comparação apresentada; recomendo o indexado. É decisão de arquitetura com custo visível em quatro contratos travados e possivelmente no `compose.yaml`. `AGENTS.md` exige aprovação explícita **antes** de editar. **Apresentar ao responsável antes do primeiro plano desta frente.**
-
-**OQ-9 — Frequência de troca do apelido.** Discrição delegada. Recomendação conservadora: livre, com intervalo mínimo de 30 dias e registro em auditoria. O ranking é vitalício e o apelido não é único — trocar logo após uma discussão para assumir o apelido de outra pessoa é o cenário que o intervalo encarece. **Suposição a registrar.**
-
-**OQ-10 — `post_logout_redirect_uri` na pendência do `STATE.md`.** O atributo está presente em `infra/keycloak/realm-betufu.json` `[CÓDIGO]`, mas `STATE.md` ainda lista a pendência como aberta. Reconciliar.
+| Questão | Status | Decisão efetivamente tomada | Artefato autoritativo |
+|---|---|---|---|
+| OQ-1 — padrão da matrícula UFU | RESOLVIDA | O responsável aprovou `^[A-Z0-9]{5,20}$` sobre a matrícula já normalizada; a ordem canônica continua recorte, `Locale.ROOT`, remoção de separadores, validação e HMAC. | `02-06-SUMMARY.md`, `MatriculaNormalizer.java` |
+| OQ-2 — limite de tentativas | RESOLVIDA | Foram aprovadas e implementadas 5 recusas por conta em 15 minutos e 50 por origem em 1 hora, com reserva atômica no Redis e sem revelar contadores ao usuário. | `02-07-SUMMARY.md`, `EnrollmentAttemptLimiterIT` |
+| OQ-3 — D-37 versus auditoria imutável | RESOLVIDA | A auditoria referencia vínculo/estado e versão da chave quando aplicável, nunca o digest HMAC; assim o expurgo D-37 não exige alterar a trilha. | `02-04-SUMMARY.md` §OQ-3, `.planning/REQUIREMENTS.md` `AUDT-01`, `02-21-SUMMARY.md` |
+| OQ-4 — chave da semente administrativa | RESOLVIDA | `BETUFU_BOOTSTRAP_ADMIN_IDENTIFIER` usa o UUID público canônico de uma conta que já realizou o primeiro login; e-mail/claim não é identificador da semente. Ausente, inválido ou inexistente falha fechado. | `02-08-SUMMARY.md`, `02-17-SUMMARY.md` |
+| OQ-5 — MFA/evidência na auditoria | RESOLVIDA | O MVP não cria coluna de MFA nem evidência documental; MFA não governa autorização e verificação documental saiu do escopo. O requisito foi reconciliado. | `02-04-SUMMARY.md` §OQ-5, `.planning/REQUIREMENTS.md` `AUDT-01` |
+| OQ-6 — usuário de migration versus runtime | RESOLVIDA E IMPLEMENTADA | Flyway e runtime usam identidades PostgreSQL distintas; runtime recebe somente `SELECT`/`INSERT` sobre `audit_event`, sem `UPDATE`, `DELETE`, `TRUNCATE` ou DDL, com trigger em profundidade. | `02-04-SUMMARY.md` §OQ-6, `02-21-SUMMARY.md` |
+| OQ-7 — retenção da auditoria | RESOLVIDA PARA O MVP; POLÍTICA PÚBLICA DEFERIDA | No MVP fechado, a trilha vive por toda a vida do ambiente sem exclusão automática. Política jurídica por classe de dado permanece gate obrigatório anterior ao lançamento público sob `PRIV-05`; não é decisão aberta da Wave 14. | `02-04-SUMMARY.md` §OQ-7, `02-21-SUMMARY.md`, `.planning/REQUIREMENTS.md` `PRIV-05` |
+| OQ-8 — repositório indexado versus índice próprio | RESOLVIDA E IMPLEMENTADA | O responsável escolheu o repositório indexado nativo do Spring Session; a decisão e sua razão DRY foram registradas antes da implementação. | `02-MEASUREMENTS.md` §5, `02-09-SUMMARY.md` |
+| OQ-9 — frequência de troca do apelido | RESOLVIDA E IMPLEMENTADA | Criação não inicia cooldown, primeira troca real é imediata, trocas posteriores exigem 30 dias e repetir o mesmo valor é idempotente. | `02-03-SUMMARY.md`, `ProfileControllerIT` |
+| OQ-10 — redirect pós-logout | CONFIGURAÇÃO PRESENTE; PROVA DE RUNTIME DEFERIDA AO FECHAMENTO | O realm contém `post.logout.redirect.uris=http://localhost:4200/`. A confirmação do comportamento real de logout e a reconciliação final do registro continuam explicitamente atribuídas ao fechamento da fase; isso não bloqueia as Waves 14–16 e não deve ser marcado como runtime comprovado. | `02-KEYCLOAK-OPERACAO.md` §9/§11, `.planning/STATE.md` pendência de fechamento |
 
 ---
 

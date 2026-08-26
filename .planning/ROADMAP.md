@@ -171,7 +171,7 @@ Plans:
 **Depends on**: Phase 1
 **Requirements**: AUTH-02, AUTH-03, AUTH-04, PROF-01, PROF-02, VERI-06, VERI-07, VERI-09, VERI-11, OPER-01, OPER-02, OPER-03, OPER-04, OPER-06, IDEN-05, PRIV-01, AUDT-01, AUDT-02
 **Escopo reduzido em 2026-08-19**: a verificação documental do vínculo UFU (`VERI-01` a `VERI-05`, `VERI-08`, `VERI-12`, `OPER-05`) foi adiada para a v2, e `PRIV-02` foi reatribuído à Phase 3, onde o comprovante de atleta (`SPRT-04`) o mantém vivo no MVP. No MVP a matrícula é autodeclarada e a plataforma verifica somente a unicidade por HMAC — a titularidade não é comprovada.
-**Decisão pendente**: O tratamento de matrículas reemitidas ou múltiplas e o protocolo de normalização, versionamento, rotação e comprometimento do HMAC continuam em aberto e passaram a ser o único mecanismo de integridade da matrícula no MVP; esta fase deve submetê-los a uma decisão explícita ou configuração antes que a implementação dependa deles. A regra de validade deixou de ser pendência: sem verificação documental, a matrícula registrada não expira no MVP.
+**Decisões reconciliadas**: normalização e formato foram aprovados e implementados no `02-06-SUMMARY.md`; persistência versionada, busca sob versões ativas e limites foram provados no `02-07-SUMMARY.md`; rotação concorrente está no `02-16-SUMMARY.md`; e comprometimento/expurgo D-37 está governado por `02-CHAVE-HMAC-PROCEDIMENTO.md` e pela trilha minimizada dos `02-04-SUMMARY.md`/`02-21-SUMMARY.md`. Permanece aberta somente a política de produto para matrículas legitimamente reemitidas ou múltiplas, que não pode ser inferida do mecanismo criptográfico. A regra de validade deixou de ser pendência: sem verificação documental, a matrícula registrada não expira no MVP.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
   1. Uma pessoa consegue criar uma conta BETUFU, verificar o e-mail, entrar novamente em visitas futuras, recuperar o acesso, sair e atualizar um perfil público sem que a BETUFU receba sua senha.
@@ -180,7 +180,7 @@ Plans:
   4. A plataforma usa um HMAC não público da matrícula para impedir vínculos duplicados e comunica decisões de elegibilidade sem expor informações privadas.
   5. Um administrador geral consegue conceder, revogar e delimitar papéis operacionais; cada papel enxerga somente seu trabalho autorizado, e ações sensíveis ficam auditáveis. MFA é opcional no MVP e não condiciona nenhum comando.
 
-**Plans**: 24/31 plans executed
+**Plans**: 28/32 plans executed
 
 - [x] 02-01-PLAN.md
 - [x] 02-02-PLAN.md
@@ -213,6 +213,7 @@ Plans:
 - [x] 02-29-PLAN.md
 - [x] 02-30-PLAN.md
 - [x] 02-31-PLAN.md
+- [ ] 02-32-PLAN.md
 
 - **Wave 1** *(concluída: 02-01, 02-02 e 02-03 implementados, verificados e revisados)*: 02-01, 02-02, 02-03
 - **Wave 2** *(concluída: 02-04, 02-06 e 02-14 implementados, verificados, revisados e integrados)*: 02-04, 02-06, 02-14
@@ -227,8 +228,9 @@ Plans:
 - **Wave 11** *(concluída em 2026-08-25: correção D-32 transacional, autorização exclusiva do Administrador Geral e revisão final P0=P1=P2=0)*: 02-12
 - **Wave 12** *(concluída em 2026-08-25: S3 e contrato/cliente da correção verificados; inventário final 47, digest aprovado e revisão P0=P1=P2=0)*: 02-13, 02-25
 - **Wave 13** *(concluida em 2026-08-25: S5 global governada, papeis escopados deferidos, navegador real e revisao final P0=P1=P2=0)*: 02-19
-- **Wave 14**: 02-20, 02-26
-- **Wave 15**: 02-27
+- **Wave 14** *(replanejada em 2026-08-26: duas lanes independentes, com adapter S6 próprio e contrato/digest de capacidades)*: 02-20, 02-32
+- **Wave 15** *(bloqueada em 02-20-T1 e 02-32-T3 concluídos; consome a rota S6 e o cliente/digest de capacidades sem mapear papéis no Angular)*: 02-26
+- **Wave 16** *(checkpoint humano final servido de snapshot combinado congelado e certificado, após 02-20, 02-32 e 02-26)*: 02-27
 
 **UI hint**: yes
 
@@ -329,7 +331,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 17/29 | In Progress | - |
-| 2. Contas, Verificação e Operações Governadas | 16/31 | In Progress | - |
+| 2. Contas, Verificação e Operações Governadas | 28/32 | In Progress | - |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |

@@ -6,12 +6,12 @@ nyquist_compliant: true
 wave_0_complete: false
 evidence_state: partial-executed
 created: 2026-08-19
-updated: 2026-08-25
+updated: 2026-08-26
 ---
 
 # Phase 02 — Validation Strategy
 
-> `nyquist_compliant: true` significa que todas as 68 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. As linhas `PASS` abaixo registram evidência já executada; as linhas `PLANNED — NOT RUN` continuam futuras. `wave_0_complete: false` permanece intencional enquanto ainda houver scaffolds da fase não executados.
+> `nyquist_compliant: true` significa que todas as 71 tarefas finais possuem uma prova automatizada ou uma pré-condição automatizada vinculada. As linhas `PASS` abaixo registram evidência já executada; as linhas `PLANNED — NOT RUN` continuam futuras. `wave_0_complete: false` permanece intencional enquanto ainda houver scaffolds da fase não executados.
 
 ## Test Infrastructure
 
@@ -28,7 +28,7 @@ updated: 2026-08-25
 1. Cada tarefa produtiva começa criando ou ampliando a prova indicada abaixo e executando-a antes da implementação. A primeira execução precisa falhar pela ausência do comportamento, e não por erro de ambiente.
 2. O executor aplica o controle negativo indicado: inverte temporariamente a regra de autorização/validação, remove a ligação crítica ou apresenta entrada inválida, confirma que a prova falha e restaura a implementação antes do GREEN.
 3. Uma tarefa de decisão ou verificação humana não inventa teste unitário: ela executa a pré-condição automatizada do plano e grava a escolha/aprovação explícita. Uma escolha bloqueante sem solução aprovada interrompe plano e fase.
-4. Nenhum resultado abaixo é evidência existente. Todos permanecem `PLANNED — NOT RUN` até a execução autorizada do respectivo plano.
+4. Linhas marcadas `PASS` são evidência histórica já executada e registrada no respectivo SUMMARY. Somente linhas marcadas `PLANNED — NOT RUN` descrevem prova futura ainda não executada; nenhuma delas pode ser tratada como evidência existente.
 5. Os comandos canônicos são os blocos `<verify><automated>` dos PLANs. Esta matriz nomeia a prova e o oráculo; se ambos divergirem, o PLAN é corrigido antes de executar.
 
 ## Final Task-to-Test Map
@@ -100,13 +100,16 @@ updated: 2026-08-25
 | 02-18-T3 | OPER-06; OPER-01; OPER-02; OPER-04; UI S4 | `operations-api.adapter.spec.ts`, `operations-panel-page.component.spec.ts`, prova Playwright em Chromium a 320px, build e validador de rota cobrem estado parcial real, motivo literal, limpeza pós-401/403, responsividade e a primeira rota operacional de produção | renderizar para papel errado, manter cartões privilegiados após 401/403, repetir esses status, remover trecho entre `<` e `>` do motivo, ocultar falha de bloco autorizado, criar rolagem horizontal, reintroduzir tracer/diagnóstico em produção ou perder prova semântica deve falhar | PASS — 2026-08-25; Angular 108/108, Node 617/617, Playwright Chrome 1/1 a 320px, build produtivo e mutações de filtro temporal/UUID discriminantes; revisão final P0=P1=P2=0 |
 | 02-19-T1 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05; UI S5 | `role-admin-page.component.spec.ts`, `confirm-dialog.component.spec.ts`, build e validador de rota cobrem administração global, D-48a antecipada, D-48b recusada pelo servidor, três papéis modelados e deferimento explícito dos escopados | remover razão D-48a ou tratamento 409 D-48b, revelar matrícula, alterar sem confirmação, renderizar entrada de `scopeRef` ou chamar mutação para papel escopado deve falhar | PASS — 2026-08-25; Angular 157/157, build produtivo, Node 617/617, mutacoes de papel escopado/D-48a/D-48b discriminantes e revisao final P0=P1=P2=0 |
 | 02-19-T2 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05; UI S5 | suíte frontend GREEN é pré-condição da jornada humana; a inspeção confirma ação somente global e ausência de UUID manual | cópia, teclado, privacidade ou ativação prematura de papel escopado bloqueia aprovação | PASS — 2026-08-25; Chrome real em 320px/1280px provou dialogo, foco, D-48a, 409 D-48b, tres linhas, ausencia de scopeRef e nenhum overflow/alvo abaixo de 44px |
-| 02-20-T1 | VERI-06; VERI-07; OPER-01; PRIV-01; AUDT-01; D-32; UI S6 | `enrollment-admin-page.component.spec.ts`, build, validador de rota e suíte completa cobrem nova matrícula somente em memória, motivo integral e correção governada | persistir matrícula, exibir a anterior, truncar motivo, aceitar motivo vazio/curto ou repetir mutação deve falhar | PLANNED — NOT RUN |
-| 02-26-T1 | PROF-01; PROF-02; OPER-01; OPER-02; OPER-03; OPER-04; AUTH-04; IDEN-05; D-39; D-46; UI S7 | `profile-completion.guard.spec.ts`, `session-layout.component.spec.ts`, prova de 403 real com cliente defasado, build e `validate-angular-route-boundary.test.mjs` cobrem guard global funcional, os três papéis autoritativos BETUFU/PostgreSQL, contrato real de capacidade, disclosure nativo e rotas protegidas | guard ausente/no gate incorreto, loop em S1, papel vindo do Keycloak, capacidade futura exposta, item não autorizado presente no DOM, autoridade inventada no cliente, estado defasado superando 403, causa de término inferida ou quebra de teclado/foco/320px deve falhar | PLANNED — NOT RUN |
-| 02-27-T1 | PROF-01; PROF-02; VERI-06; VERI-07; OPER-01; OPER-02; OPER-03; OPER-04; OPER-06; IDEN-05; PRIV-01; UI S1..S7 | evidências GREEN dos Planos 02-20 e 02-26 são pré-condição do checkpoint humano final S1–S7, incluindo variantes reais de papel/capacidade, disclosure nativo e cliente defasado com 403 | qualquer evidência pendente, superfície, papel, teclado, foco, scroll/wrap, viewport, privacidade ou autoridade divergente bloqueia a fase e nunca é autoaprovado | PLANNED — NOT RUN |
+| 02-20-T1 | VERI-06; VERI-07; OPER-01; PRIV-01; AUDT-01; D-32; D-44; UI S6 | `enrollment-admin-api.adapter.spec.ts` prova os fluxos dedicados `RoleService.getRoles`→targetIdentityId+nickname e `EnrollmentService.correctEnrollment`; resolução exige identityId exatamente igual ao UUID solicitado e nickname String já válido em `^[A-Za-z0-9_-]{3,20}$`, sem normalização; page spec, build, rota e suíte cobrem seleção manual, nickname literal, nova matrícula somente em memória e motivo integral | usar `OperationsApiAdapter`, deixar roles atravessarem adapter/store/DOM/log/storage, aceitar como existente um 200 com nickname vazio e três roles `NAO_CONCEDIDO`, aceitar nickname null/inválido ou identityId divergente, usar 404 como oráculo de existência, abrir dialog/chamar correção nesses casos, tocar `operations.models.ts`, persistir matrícula, expor qualquer matrícula armazenada, truncar motivo ou repetir mutação deve falhar | PLANNED — NOT RUN |
+| 02-32-T1 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05; D-46 | `OperationalCapabilitiesResponseTest` e `OperationalCapabilitiesIT` cobrem 401 anônimo, 200 vazio, par OIDC exato, payload de campo único, matriz PostgreSQL dos três papéis e coerência com painel/papéis/correção autoritativos | aceitar papel/escopo desconhecido, normalizar issuer/subject, conceder por Keycloak, vazar papel/PII ou divergir dos endpoints deve falhar; ameaça high permanece bloqueante | PLANNED — NOT RUN |
+| 02-32-T2 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05 | paridade código→OpenAPI exige `tags: [OperationalCapabilities]`, `operationId: getOperationalCapabilities` e prova os candidatos `api/operational-capabilities.service.ts`, `model/operational-capability.ts` e `model/operational-capabilities-response.ts`, regenerados pelo motor fixado sem edição manual | cliente usado antes do digest, tag/operationId/path divergente, enum permissivo, campo de identidade/papel/PII, edição manual ou falha diferente do manifesto esperado bloqueia | PLANNED — NOT RUN |
+| 02-32-T3 | OPER-01; OPER-02; OPER-03; OPER-04; IDEN-05 | checkpoint `blocking-human`: inventário candidato medido a partir de 47, paths e digest literal são aprovados antes de alterar `generate-api.mjs` e a fixture canônica | ausência de aprovação literal, divergência de inventário/digest ou qualquer gate vermelho impede o 02-26 | PLANNED — NOT RUN |
+| 02-26-T1 | PROF-01; PROF-02; OPER-01; OPER-02; OPER-03; OPER-04; AUTH-04; IDEN-05; D-39; D-46; UI S7 | após `02-20-T1` e `02-32-T3`, `profile-completion.guard.spec.ts`, `operations-api.adapter.spec.ts`, `layout/session-layout.spec.ts`, prova de 403 real com cliente defasado, build e `validate-angular-route-boundary.test.mjs` cobrem guard global funcional, rota S6 existente, consumo das três capacidades exatas, disclosure no `AuthenticatedLayout` real e rotas protegidas | guard ausente/no gate incorreto, loop em S1, papel ou matriz de papéis no Angular, capability sintética/desconhecida, item não autorizado presente no DOM, cliente usado antes do digest, estado defasado superando 403, causa de término inferida ou quebra de teclado/foco/320px deve falhar | PLANNED — NOT RUN |
+| 02-27-T1 | PROF-01; PROF-02; VERI-06; VERI-07; OPER-01; OPER-02; OPER-03; OPER-04; OPER-06; IDEN-05; PRIV-01; UI S1..S7 | evidências GREEN dos Planos 02-20, 02-32 e 02-26, digest aprovado e manifesto de um snapshot combinado limpo com hashes certificados são pré-condição; specs sintéticas sem PII materializam vazio, as três capacidades, unknown/malformed e stale-client 403 antes da revisão humana servida do mesmo snapshot | worktree isolada, hash divergente, build/runtime fora do snapshot, variante sintética ausente, capability/PII vazada ou qualquer evidência/visual/teclado/foco/viewport/autoridade divergente mantém o checkpoint bloqueado e nunca é autoaprovado | PLANNED — NOT RUN |
 
 ### Handoff de cobertura S7
 
-`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de papéis/capacidades do 02-17 e os destinos dos Planos 02-13/18/19/20 existem. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20` e `02-26`. A contagem agora é 68 Task IDs únicos: D-40 possui 14 tasks distribuídas entre `02-24-T1..T3`, `02-28-T1..T2`, `02-30-T1..T3`, `02-31-T1..T3` e `02-29-T1..T3`, incluindo o checkpoint final `02-29-T2`; o 02-25 possui agora o checkpoint humano explícito `02-25-T2` para aprovar inventário e digest. Os gates materiais internos anteriores às tasks continuam sem Task ID. `02-15-T1`, as 14 tasks D-40 e `02-18-T1..T3` estão `PASS`; `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
+`02-15-T2` não foi executada nem descartada: sua cobertura planejada foi transferida para `02-26-T1`, depois que o contrato de capacidades do 02-32 e os destinos dos Planos 02-13/18/19/20 existem. A matriz D-46 permanece exclusivamente no backend do 02-32; o Angular nunca recebe nem mapeia papéis. O checkpoint humano final passa integralmente a `02-27-T1` e bloqueia explicitamente em `02-20`, `02-32` e `02-26`. A contagem agora é 71 Task IDs únicos: o novo 02-32 acrescenta `T1..T3`, incluindo o checkpoint humano de inventário/digest; D-40 mantém 14 tasks distribuídas entre `02-24-T1..T3`, `02-28-T1..T2`, `02-30-T1..T3`, `02-31-T1..T3` e `02-29-T1..T3`. Os gates materiais internos anteriores às tasks continuam sem Task ID. `02-15-T1`, as 14 tasks D-40 e `02-18-T1..T3` estão `PASS`; `02-20-T1`, `02-32-T1..T3`, `02-26-T1`, `02-27-T1` e as demais tasks ainda não executadas permanecem `PLANNED — NOT RUN`.
 
 ## Wave 0 Requirements and Dependencies
 
@@ -125,7 +128,7 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 02-09, 02-11, 02-24, 02-28, 02-30, 02-31, 02-29 | `IdentitySessionTerminationIT`, `RedisSessionIT`, `CurrentDeviceLogoutIT`, `SessionControllerIT`, `PasswordResetTriggerSpikeIT`, `PasswordResetProviderTracerIT`, `PasswordResetEventInboxIT`, `PasswordResetHermeticTracerIT`, `PasswordResetDeliveryRecoveryTest`, `PasswordResetDeliveryRecoveryIT`, `PasswordResetSessionTerminationIT` e validadores recovery/realm/runtime/reconciler | enumeração e decisão; origem; hardening da origem; destino/tracer; hardening de inbox/operações; rollout final governado |
 | 02-10, 02-18 | `OperationalPanelIT`, `OperationalPanelResponseTest`, matriz de autorização e specs do painel | painel S4 após contrato |
 | 02-12, 02-25 | `EnrollmentCorrectionIT`, `EnrollmentCorrectionAuthorizationIT`, matriz de autorização e validadores de contrato/digest | correção administrativa D-32 e contrato S6 |
-| 02-13, 02-19, 02-20, 02-26, 02-27 | specs S3, S5 e S6; guard global de perfil, layout/menu disclosure e mutações do validador em S7; builds; axe; e evidência automatizada antes do checkpoint | superfícies finais, navegação governada e revisão humana S1..S7 sem perda de cobertura |
+| 02-13, 02-19, 02-20, 02-32, 02-26, 02-27 | specs S3, S5 e S6; matriz backend e contrato/digest de capacidades; guard global de perfil, layout/menu disclosure e mutações do validador em S7; builds; axe; e evidência automatizada antes do checkpoint | superfícies finais, navegação governada sem papéis no Angular e revisão humana S1..S7 sem perda de cobertura |
 | 02-14, 02-16, 02-17, 02-18, 02-25 | validadores OpenAPI/cliente/digest | consumo frontend somente após contrato aprovado |
 
 `wave_0_complete` só poderá mudar para `true` depois que todos os scaffolds aplicáveis existirem e os REDs forem registrados nos SUMMARYs. Um teste que passa na primeira execução sem demonstrar ausência do comportamento deve ser corrigido antes da implementação.
@@ -148,8 +151,9 @@ Wave 0 é uma preparação lógica fail-first dentro da tarefa proprietária, n�
 | 11 | 02-12 | CONCLUÍDA em 2026-08-25 — correção D-32 transacional, autorização administrativa, mutações discriminantes e revisão final PASS |
 | 12 | 02-13, 02-25 | S3 validada e contrato/digest da correção aprovados |
 | 13 | 02-19 | S5 validada |
-| 14 | 02-20, 02-26 | S6 e S7/guard/menu/validador em paralelo, sem sobreposição de arquivos |
-| 15 | 02-27 | checkpoint humano final S1..S7, bloqueado nas duas fatias da Onda 14 |
+| 14 | 02-20, 02-32 | S6 com adapter dedicado e backend/contrato/digest de capacidades em duas lanes sem sobreposição |
+| 15 | 02-26 | S7/guard/menu/validador consome somente o cliente aprovado no 02-32 e não compartilha a fixture com um plano da mesma onda |
+| 16 | 02-27 | checkpoint humano final S1..S7, bloqueado em 02-20, 02-32 e 02-26 |
 
 ### Comandos obrigatórios das Waves 6–9 para D-40
 
@@ -170,13 +174,14 @@ Cada onda pausa para aprovação explícita conforme `AGENTS.md`; nenhuma aprova
 
 ## Phase Exit Gate
 
-- Os 68 Task IDs acima precisam de evidência no SUMMARY proprietário; não há marcador pendente nem tarefa sem mapa.
+- Os 71 Task IDs acima precisam de evidência no SUMMARY proprietário; não há marcador pendente nem tarefa sem mapa.
 - Todo comportamento produtivo precisa de RED, GREEN e controle negativo/mutação registrado; checkpoints precisam da pré-condição automatizada e da decisão/aprovação humana.
 - Todos os testes focados passam, a suíte de regressão passa e nenhum artefato sensível aparece em logs, erros, cache, DTO ou UI.
 - Nenhuma ameaça `critical` ou `high` permanece aberta sob ASVS L1.
 - Os contratos OpenAPI e digests são aprovados antes dos adapters Angular dependentes.
+- Na transição Wave 14 → Wave 15, `02-20-T1` e `02-32-T3` são pré-requisitos conjuntos. Rota S6 não certificada, ausência de prova da matriz backend, vazamento de papéis/PII, capability sintética, divergência endpoint/capability ou consumo Angular antes do digest aprovado bloqueiam o 02-26 e a fase.
 - D-40, D-49 e D-51 não possuem caminho de conclusão por adiamento: dúvida ou alternativa não aprovada bloqueia e exige replanejamento.
-- A revisão humana final de `02-27-T1`, somente após `02-20` e `02-26`, confirma UI S1-S7, responsividade, teclado, foco, contraste, estados vazios/erro, privacidade e separação por papel, sem caminho de autoaprovação.
+- A revisão humana final de `02-27-T1`, somente após `02-20`, `02-32` e `02-26`, confirma UI S1-S7, responsividade, teclado, foco, contraste, estados vazios/erro, privacidade e separação por capacidade, sem caminho de autoaprovação.
 
 ## Approval
 
