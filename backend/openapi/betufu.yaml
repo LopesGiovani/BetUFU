@@ -523,6 +523,29 @@ paths:
         "403":
           description: Autenticado sem papel operacional autorizado (Problem Details).
 
+  /api/v1/operations/capabilities:
+    get:
+      tags:
+        - OperationalCapabilities
+      operationId: getOperationalCapabilities
+      summary: Consultar as capacidades operacionais atuais da conta autenticada
+      description: >-
+        Retorna a projeção de capacidades operacionais atuais da conta
+        autenticada atual (OPER-01, OPER-02, OPER-04, IDEN-05, S7). A resposta
+        orienta exclusivamente a visibilidade de itens e a navegação na
+        interface; os endpoints de negócio e os respectivos 403 do BFF continuam
+        sendo a fonte de autorização autoritativa. Não expõe identityId, nomes de
+        papel, escopos, apelidos, e-mail, claims, tokens ou MFA.
+      responses:
+        "200":
+          description: Capacidades operacionais consultadas com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OperationalCapabilitiesResponse"
+        "401":
+          description: Requisição não autenticada.
+
   /api/v1/diagnostic:
     get:
       tags:
@@ -1189,3 +1212,24 @@ components:
           format: int32
           minimum: 0
           description: Contagem agregada de contas sem matrícula ativa.
+
+    OperationalCapability:
+      type: string
+      enum:
+        - VIEW_OPERATIONAL_PANEL
+        - MANAGE_ROLES
+        - CORRECT_ENROLLMENT
+      description: Allowlist fechada das capacidades operacionais da BETUFU (OPER-01, OPER-02, OPER-04).
+
+    OperationalCapabilitiesResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - capabilities
+      properties:
+        capabilities:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/OperationalCapability"
+          description: Lista ordenada e sem duplicatas das capacidades operacionais atuais do ator.

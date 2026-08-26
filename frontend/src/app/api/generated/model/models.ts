@@ -12,6 +12,8 @@ export * from './enrollment-correction-request';
 export * from './enrollment-correction-response';
 export * from './enrollment-registration-request';
 export * from './enrollment-status-response';
+export * from './operational-capabilities-response';
+export * from './operational-capability';
 export * from './operational-panel-response';
 export * from './operational-role';
 export * from './password-reset-event-recovery-page-response';

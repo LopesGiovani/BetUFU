@@ -109,6 +109,8 @@ const CANONICAL_GENERATED_API_TS = [
   "import { EnrollmentService } from './enrollment.service';",
   "export * from './identity.service';",
   "import { IdentityService } from './identity.service';",
+  "export * from './operational-capabilities.service';",
+  "import { OperationalCapabilitiesService } from './operational-capabilities.service';",
   "export * from './operational-panel.service';",
   "import { OperationalPanelService } from './operational-panel.service';",
   "export * from './password-reset-recovery.service';",
@@ -119,7 +121,7 @@ const CANONICAL_GENERATED_API_TS = [
   "import { RoleService } from './role.service';",
   "export * from './session.service';",
   "import { SessionService } from './session.service';",
-  'export const APIS = [DiagnosticService, EnrollmentService, IdentityService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService];',
+  'export const APIS = [DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService];',
   '',
 ].join('\n');
 
@@ -138,6 +140,8 @@ const CANONICAL_GENERATED_MODELS_TS = [
   "export * from './enrollment-correction-response';",
   "export * from './enrollment-registration-request';",
   "export * from './enrollment-status-response';",
+  "export * from './operational-capabilities-response';",
+  "export * from './operational-capability';",
   "export * from './operational-panel-response';",
   "export * from './operational-role';",
   "export * from './password-reset-event-recovery-page-response';",

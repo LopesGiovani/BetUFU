@@ -88,6 +88,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/diagnostic.service.ts',
   'api/enrollment.service.ts',
   'api/identity.service.ts',
+  'api/operational-capabilities.service.ts',
   'api/operational-panel.service.ts',
   'api/password-reset-recovery.service.ts',
   'api/profile.service.ts',
@@ -111,6 +112,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/enrollment-registration-request.ts',
   'model/enrollment-status-response.ts',
   'model/models.ts',
+  'model/operational-capabilities-response.ts',
+  'model/operational-capability.ts',
   'model/operational-panel-response.ts',
   'model/operational-role.ts',
   'model/password-reset-event-recovery-page-response.ts',
@@ -136,7 +139,13 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 //
 // 9C8D... foi produzido pelo motor 7.24.0 fixado e aprovado somente depois da verificacao
 // semantica, da paridade OpenAPI e da conferencia humana do inventario.
-export const APPROVED_GENERATED_DIGEST = '9C8D3FF3BF4D40B20FEC58E4C44DF7F4189D15CE36ADF23AB63614C6E06E4071';
+// Inventario de 47 -> 50 caminhos e digest aprovados literalmente pelo responsavel em
+// 2026-08-26, na Wave 14. Os tres arquivos novos publicam somente o servico e os modelos
+// fechados de capacidades operacionais; nenhum caminho anterior foi removido.
+//
+// BDF0... foi produzido pelo mesmo motor 7.24.0 fixado, depois da paridade OpenAPI, da
+// conferencia humana do inventario e da prova isolada de GENERATED_MANIFEST_DIGEST.
+export const APPROVED_GENERATED_DIGEST = 'BDF0CA8BDBC4118DA74FA0E5B0FFF47D4C0FF636DC9309751F550161F8EE4E71';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
