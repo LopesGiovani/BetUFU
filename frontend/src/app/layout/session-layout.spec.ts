@@ -420,6 +420,16 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     fixture.detectChanges();
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
 
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    await Promise.resolve();
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    fixture.detectChanges();
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+
     const reopenedMenu = fixture.nativeElement.querySelector('#account-navigation-menu') as HTMLElement;
     const tabbableItems = [
       ...reopenedMenu.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('a, button'),

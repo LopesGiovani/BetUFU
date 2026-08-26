@@ -94,6 +94,13 @@ export class AuthenticatedLayoutComponent implements OnInit {
   }
 
   onMenuTriggerKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.menuOpen()) {
+        this.onMenuKeydown(event);
+      }
+      return;
+    }
+
     if (event.key !== 'Enter' && event.key !== ' ') {
       return;
     }
