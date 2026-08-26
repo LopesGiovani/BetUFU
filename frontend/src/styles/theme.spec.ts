@@ -4,6 +4,7 @@ declare const require: any;
 declare const process: any;
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 /**
  * Funções auxiliares para cálculo estrito de contraste per WCAG 2.2
@@ -48,6 +49,14 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
   const tokensFilePath = path.resolve(basePath, 'src/styles/_tokens.scss');
   const stylesFilePath = path.resolve(basePath, 'src/styles.scss');
   const fontsFilePath = path.resolve(basePath, 'src/styles/_fonts.scss');
+  const materialSymbolsFilePath = path.resolve(
+    basePath,
+    'src/assets/fonts/material-symbols-rounded.woff2',
+  );
+  const materialSymbolsLicensePath = path.resolve(
+    basePath,
+    'src/assets/fonts/material-symbols-apache-license.txt',
+  );
 
   const tokensContent: string = fs.readFileSync(tokensFilePath, 'utf8');
   const stylesContent: string = fs.readFileSync(stylesFilePath, 'utf8');
@@ -152,5 +161,24 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
       expect(content).not.toContain('http://');
       expect(content).not.toContain('https://');
     }
+  });
+
+  it('Ícones: Material Symbols Rounded usa o subconjunto local e a licença aprovados', () => {
+    const font = fs.readFileSync(materialSymbolsFilePath);
+    const license = fs.readFileSync(materialSymbolsLicensePath);
+
+    expect(font.subarray(0, 4).toString('ascii')).toBe('wOF2');
+    expect(crypto.createHash('sha256').update(font).digest('hex')).toBe(
+      'b5d6a3abcecb8dbc02446840babc93ff50f5d0442b730f057b9f5fd767510aad',
+    );
+    expect(crypto.createHash('sha256').update(license).digest('hex')).toBe(
+      '58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd',
+    );
+    expect(license.toString('utf8')).toContain('Apache License');
+    expect(fontsContent).toContain("font-family: 'Material Symbols Rounded'");
+    expect(fontsContent).toContain("url('/assets/fonts/material-symbols-rounded.woff2')");
+    expect(fontsContent).toContain('font-display: block');
+    expect(fontsContent).toContain('.material-symbols-rounded');
+    expect(fontsContent).toContain("font-feature-settings: 'liga'");
   });
 });
