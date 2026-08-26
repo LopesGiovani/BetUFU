@@ -113,3 +113,26 @@ requirements-completed: [AUTH-04, PROF-01, PROF-02, OPER-01, OPER-02, OPER-03, O
 
 ---
 *Completed: 2026-08-26*
+
+---
+
+## Remediação posterior — Escape no acionador do menu (2026-08-26)
+
+O checkpoint humano 02-27 provou que abrir o disclosure com Espaço e pressionar Escape
+enquanto o foco permanecia no próprio botão não fechava o menu. O handler do conteúdo
+tratava Escape, mas o handler do acionador tratava somente Enter e Espaço.
+
+A prova foi acrescentada antes da correção e ficou vermelha exatamente em
+`aria-expanded`: esperado `false`, recebido `true`. A implementação mínima passou a
+delegar Escape ao fechamento existente somente quando o menu está aberto, preservando
+Enter, Espaço, Tab e o retorno de foco.
+
+- `authenticated-layout.component.ts`: blob Git canônico
+  `da1fecb12869d0b76fffc419c52d84aef53cbf0b`.
+- `session-layout.spec.ts`: blob Git canônico
+  `9767bd84ef94eb7660d696cdad10e0b66f73eb9e`.
+- Provas: RED discriminante, focal `19/19`, Angular completo `219/219`, build produtivo
+  verde e validadores Node `623/623`.
+
+Esta remediação invalida a aprovação visual anterior e exige repetir integralmente o
+checkpoint 02-27 em um snapshot combinado, limpo e congelado.
