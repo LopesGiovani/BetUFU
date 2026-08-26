@@ -12,7 +12,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - Fases decimais ficam reservadas para inserções urgentes após o planejamento.
 
 - [x] **Phase 1: Fundação Segura da Plataforma** - Estabelecer a base modular, observável e segura da qual todas as capacidades do MVP dependem.
-- [ ] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
+- [x] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
 - [ ] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar dados confiáveis de confrontos diretos, equipes e elencos das Olimpíadas UFU.
 - [ ] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [ ] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
@@ -208,7 +208,7 @@ Plans:
 - [x] 02-24-PLAN.md
 - [x] 02-25-PLAN.md
 - [x] 02-26-PLAN.md
-- [ ] 02-27-PLAN.md
+- [x] 02-27-PLAN.md
 - [x] 02-28-PLAN.md
 - [x] 02-29-PLAN.md
 - [x] 02-30-PLAN.md
@@ -230,7 +230,7 @@ Plans:
 - **Wave 13** *(concluida em 2026-08-25: S5 global governada, papeis escopados deferidos, navegador real e revisao final P0=P1=P2=0)*: 02-19
 - **Wave 14** *(concluída em 2026-08-26: S6 e contrato/digest de capacidades implementados, verificados em árvore combinada e revisados com P0=P1=P2=0)*: 02-20, 02-32
 - **Wave 15** *(concluída em 2026-08-26: guard global, navegação S7 por capacidades, ciclo de vida de sessão, suítes completas e revisão final P0=P1=P2=0)*: 02-26
-- **Wave 16** *(checkpoint humano final servido de snapshot combinado congelado e certificado, após 02-20, 02-32 e 02-26)*: 02-27
+- **Wave 16** *(concluída em 2026-08-26: checkpoint humano S1-S7 aprovado sobre snapshot combinado congelado, com desktop/320 px, teclado, foco, privacidade, capabilities fail-closed e zero divergência no manifesto)*: 02-27
 
 **UI hint**: yes
 
@@ -330,8 +330,8 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Fundação Segura da Plataforma | 17/29 | In Progress | - |
-| 2. Contas, Verificação e Operações Governadas | 28/32 | In Progress | - |
+| 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
+| 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
 | 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |

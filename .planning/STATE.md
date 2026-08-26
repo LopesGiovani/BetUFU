@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-current_phase_name: Contas, Verificação e Operações Governadas
-status: In progress
-stopped_at: "Fase 2: Wave 15 concluída e revisada; próximo plano 02-27 na Wave 16"
-last_updated: "2026-08-26T15:20:01-03:00"
+current_phase: 3
+current_phase_name: Experiência Esportiva do Piloto
+status: Ready for discussion
+stopped_at: "Fase 2 concluída: 32/32 planos e checkpoint humano 02-27 aprovado; próxima etapa é discutir a Fase 3"
+last_updated: "2026-08-26T17:05:33-03:00"
 last_activity: 2026-08-26
-last_activity_desc: "Wave 15 concluída: 02-26 implementado, suítes completas verdes e revisão final PASS; próximo passo é o checkpoint visual 02-27."
+last_activity_desc: "Wave 16 concluída: snapshot combinado certificado, S1-S7 aprovados em desktop/320 px e Fase 2 encerrada com 32/32 planos."
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 63
-  completed_plans: 62
+  completed_plans: 63
 ---
 
 # Estado do Projeto
@@ -23,14 +23,14 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-01)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Fase 2 — Contas, Verificação e Operações Governadas
+**Current focus:** preparação da Fase 3 — Experiência Esportiva do Piloto
 
 ## Current Position
 
-Phase: 2 of 7 (Contas, Verificação e Operações Governadas) — EM ANDAMENTO
-Plan: 31 of 32 (`02-01`, `02-02`, `02-03`, `02-04`, `02-05`, `02-06`, `02-07`, `02-08`, `02-09`, `02-10`, `02-11`, `02-12`, `02-13`, `02-14`, `02-15`, `02-16`, `02-17`, `02-18`, `02-19`, `02-20`, `02-21`, `02-22`, `02-23`, `02-24`, `02-25`, `02-26`, `02-28`, `02-29`, `02-30`, `02-31` e `02-32` concluídos)
-Status: In Progress — Waves 1 a 15 concluídas. Wave 16 contém somente o checkpoint humano final `02-27`.
-Last activity: 2026-08-26 — Wave 15 concluiu a navegação S7 com Angular 219/219, Node 623/623, backend Surefire 251/251 e Failsafe 332/332, build produtivo, mutação discriminante e revisão final PASS.
+Phase: 3 of 7 (Experiência Esportiva do Piloto) — PRONTA PARA DISCUSSÃO
+Plan: nenhum — a Fase 2 encerrou seus 32/32 planos; a Fase 3 ainda não foi discutida nem planejada.
+Status: Ready for Discussion — a Wave 16 e a Fase 2 foram concluídas após aprovação humana explícita do 02-27.
+Last activity: 2026-08-26 — checkpoint final S1-S7 aprovado com Angular 220/220, Node 623/623, build produtivo, manifesto sem divergências e navegador real em desktop/320 px.
 
 GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
 Git — snapshot histórico da Wave 10: naquele fechamento, a Wave 9 era a base `ffac2ea` e a Wave 10 estava integrada linearmente em dois commits, `027f5f7` (`feat(02-18)`) e seu documental. A afirmação então verdadeira de worktree/branch únicas e do estado de `origin/master` pertence somente àquele instante e não descreve o checkout atual. Snapshot atual medido no início da revisão documental de 2026-08-26: `HEAD`, `master` e `origin/master` apontam para `d562cfd30191f93675180888e4671ffeb2f93677`; existe apenas a worktree principal; as branches locais são `master` e `backup/pre-author-fix-a27a376`; e nove documentos de planejamento estão modificados. A branch de backup não foi removida nem alterada.
@@ -63,7 +63,7 @@ Git — Wave 14 (concluída em 2026-08-26): o Plano `02-20` entregou a superfíc
 
 Git — Wave 15 (concluída e revisada em 2026-08-26): o Plano `02-26` entregou guard global de completude de perfil, navegação S7 governada pelas três capacidades do BFF e limpeza de estado privilegiado em 13 paths pelo commit técnico `9ace941`. O snapshot passou Angular `219/219`, Node `623/623`, Surefire `251/251`, Failsafe `332/332`, build produtivo e mutação discriminante do guard; a revisão final retornou `PASS`, P0=P1=P2=0. Movimento físico por Tab e geometria real em 320 px continuam deliberadamente reservados ao checkpoint humano do 02-27. O commit documental corrente não cita o próprio hash; integração, limpeza e sincronização devem ser confirmadas ao vivo depois dele.
 
-Planejamento — Wave 16: o Plano `02-26` está concluído e o Plano `02-27` está desbloqueado. Ele permanece como checkpoint humano final sobre snapshot combinado congelado, sem autoaprovação, e deve observar em navegador real teclado, foco, disclosure e viewport de 320 px antes de encerrar a Fase 2.
+Git — Wave 16 (concluída e aprovada em 2026-08-26): o checkpoint 02-27 foi repetido sobre `a0b5a20` após as remediações proprietárias 01-14/02-26. O manifesto `F941E34A81F17600521E8B9904757FEC049781CA3403F94A1721AD31902FC38B` validou 35 paths, com 33 intactos, dois remediados e zero divergências. Angular `220/220`, Node `623/623`, build produtivo, fronteira e Playwright S1-S7 ficaram verdes; desktop/320 px, teclado, foco, 44 px, ausência de overflow, fonte local e 403 fail-closed foram inspecionados antes da resposta literal `aprovado`. `master` está em `a0b5a20`, quatro commits à frente de `origin/master` (`076c7c4`); formalização, limpeza e push permanecem operações separadas.
 
 Emendas de allowlist da Wave 7, todas ratificadas pelo responsável **antes** da edição: `META-INF/betufu-password-reset-outbox-changelog.xml` e `keycloak-password-event-listener/pom.xml` para o 02-28; `scripts/validate-runtime-prerequisites.mjs`, `scripts/validate-runtime-prerequisites.test.mjs` e `FlywayMigrationIT.java` para o 02-30; `V7__enforce_operational_role_scope.sql` para o 02-23, que também já havia recebido o `FlywayMigrationIT.java` na emenda anterior desta onda.
 
@@ -75,13 +75,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [██████████] 31/32 planos da Fase 2 (97%)
+Progress: [██████████] 32/32 planos da Fase 2 (100%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 62
+- Total de planos concluídos: 63
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -90,11 +90,11 @@ Progress: [██████████] 31/32 planos da Fase 2 (97%)
 | Fase | Planos | Total | Média/plano |
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
-| 2 | 31 | não mensurado | não mensurada |
+| 2 | 32 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-25, 02-19, 02-20, 02-32 e 02-26
+- Últimos 5 planos: 02-19, 02-20, 02-32, 02-26 e 02-27
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -222,5 +222,5 @@ Progress: [██████████] 31/32 planos da Fase 2 (97%)
 ## Session Continuity
 
 Last session: 2026-08-26
-Stopped at: Wave 15 concluída e revisada; próximo plano é o checkpoint humano 02-27 na Wave 16
-Resume file: .planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-27-PLAN.md
+Stopped at: Fase 2 concluída com 32/32 planos e checkpoint humano 02-27 aprovado
+Resume file: .planning/ROADMAP.md — iniciar discussão da Fase 3 antes de planejar
