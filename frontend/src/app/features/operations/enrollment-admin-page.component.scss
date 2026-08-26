@@ -1,0 +1,286 @@
+@use '../../../styles/tokens';
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.enrollment-admin-container {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: tokens.$form-max-width;
+  margin: 0 auto;
+  padding: tokens.$space-6 tokens.$space-4;
+  overflow-wrap: anywhere;
+}
+
+.page-header,
+.alert-box,
+.target-profile-card {
+  margin-bottom: tokens.$space-6;
+}
+
+.page-title {
+  margin: 0 0 tokens.$space-1;
+}
+
+.page-subtitle,
+.field-help,
+.status-feedback p {
+  color: tokens.$color-text-muted;
+}
+
+.page-subtitle,
+.field-help,
+.status-feedback p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.field-help {
+  font-size: 0.85rem;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: tokens.$min-touch-target;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.alert-box,
+.status-feedback,
+.target-profile-card {
+  background: tokens.$color-surface;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-md;
+}
+
+.alert-box {
+  padding: tokens.$space-4;
+
+  &.error-alert {
+    border-color: tokens.$color-unavailable;
+    background: rgba(255, 107, 107, 0.08);
+  }
+
+  &.success-alert {
+    border-color: tokens.$color-available;
+    background: rgba(86, 209, 156, 0.1);
+  }
+}
+
+.alert-header,
+.correlation-box,
+.input-row,
+.profile-summary {
+  display: flex;
+  align-items: center;
+}
+
+.alert-header {
+  gap: tokens.$space-2;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: tokens.$color-unavailable;
+
+  &.success-header {
+    color: tokens.$color-available;
+  }
+}
+
+.alert-icon {
+  font-size: 1.25rem;
+}
+
+.correlation-box {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: tokens.$space-2;
+  margin-top: tokens.$space-2;
+  padding: tokens.$space-2 tokens.$space-4;
+  background: tokens.$color-canvas;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-sm;
+  font-size: 0.85rem;
+}
+
+.correlation-label {
+  color: tokens.$color-text-muted;
+}
+
+.code-value,
+.target-identity-id {
+  font-family: monospace;
+  overflow-wrap: anywhere;
+}
+
+.code-value {
+  color: tokens.$color-accent;
+}
+
+.btn-copy,
+.input-text,
+.input-textarea,
+.btn-primary {
+  border-radius: tokens.$radius-md;
+}
+
+.btn-copy {
+  padding: tokens.$space-1 tokens.$space-2;
+  border: 1px solid tokens.$color-border;
+  background: tokens.$color-surface;
+  color: tokens.$color-text;
+  font-size: 0.8rem;
+}
+
+.lookup-form {
+  margin-bottom: tokens.$space-8;
+}
+
+.correction-form {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-6;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-2;
+}
+
+.form-label {
+  color: tokens.$color-text;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.input-row {
+  flex-wrap: wrap;
+  gap: tokens.$space-2;
+}
+
+.input-text,
+.input-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: tokens.$space-2 tokens.$space-4;
+  border: 1px solid tokens.$color-border;
+  background: tokens.$color-surface;
+  color: tokens.$color-text;
+  font: inherit;
+
+  &[aria-invalid='true'] {
+    border-color: tokens.$color-unavailable;
+  }
+}
+
+.input-text {
+  min-height: tokens.$min-touch-target;
+}
+
+.input-textarea {
+  min-height: 96px;
+  resize: vertical;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.field-error {
+  margin: 0;
+  color: tokens.$color-unavailable;
+  font-size: 0.85rem;
+}
+
+.btn-primary {
+  padding: tokens.$space-2 tokens.$space-4;
+  border: 0;
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+  font-size: 0.95rem;
+}
+
+.btn-lookup {
+  flex: 0 0 auto;
+}
+
+.btn-correct {
+  width: 100%;
+}
+
+.status-feedback {
+  margin: tokens.$space-6 0;
+  padding: tokens.$space-8 tokens.$space-4;
+  text-align: center;
+}
+
+.status-icon {
+  display: inline-block;
+  margin-bottom: tokens.$space-2;
+  color: tokens.$color-text-muted;
+  font-size: 2.5rem;
+}
+
+.status-feedback h2 {
+  margin: 0 0 tokens.$space-2;
+}
+
+.target-profile-card {
+  padding: tokens.$space-4;
+}
+
+.profile-summary {
+  flex-wrap: wrap;
+  gap: tokens.$space-4;
+}
+
+.target-nickname {
+  font-size: 1rem;
+  font-weight: 600;
+  color: tokens.$color-text;
+}
+
+.target-identity-id {
+  padding: tokens.$space-1 tokens.$space-2;
+  background: tokens.$color-canvas;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-sm;
+  color: tokens.$color-text;
+  font-size: 0.85rem;
+}
+
+.action-row {
+  margin-top: tokens.$space-2;
+}
+
+@media (min-width: tokens.$breakpoint-tablet-min) {
+  .enrollment-admin-container {
+    padding: tokens.$space-8 tokens.$space-6;
+  }
+
+  .input-row {
+    flex-wrap: nowrap;
+  }
+
+  .btn-correct {
+    width: auto;
+    align-self: flex-start;
+  }
+}

@@ -55,6 +55,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ RoleAdminPageComponent }) => RoleAdminPageComponent,
           ),
       },
+      {
+        path: 'operacao/matriculas/corrigir',
+        loadComponent: () =>
+          import('./features/operations/enrollment-admin-page.component').then(
+            ({ EnrollmentAdminPageComponent }) => EnrollmentAdminPageComponent,
+          ),
+      },
     ],
   },
 ];

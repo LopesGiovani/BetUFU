@@ -1,0 +1,199 @@
+<section class="enrollment-admin-container" aria-labelledby="enrollment-admin-title">
+  <!-- Região de Anúncio Dinâmico Acessível (WCAG 2.2 AA) -->
+  <div
+    class="visually-hidden"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    id="enrollment-admin-live-region"
+  >
+    @if (store.feedbackMessage()) {
+      <p>{{ store.feedbackMessage() }}</p>
+    }
+    @if (copyFeedbackMessage()) {
+      <p>{{ copyFeedbackMessage() }}</p>
+    }
+  </div>
+
+  <!-- Cabeçalho da Página S6 (UI-SPEC §263-270) -->
+  <header class="page-header">
+    <h1 id="enrollment-admin-title" class="page-title">Corrigir matrícula</h1>
+    <p class="page-subtitle">
+      A correção libera a matrícula registrada nesta conta e registra a nova. O número anterior não é exibido, porque a plataforma não o conserva.
+    </p>
+  </header>
+
+  <!-- Mensagem de Sucesso (após mutação) -->
+  @if (store.feedbackMessage()) {
+    <div class="alert-box success-alert" role="status" aria-live="polite">
+      <div class="alert-header success-header">
+        <span class="material-symbols-rounded alert-icon" aria-hidden="true">check_circle</span>
+        <span class="alert-title">{{ store.feedbackMessage() }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Recusas de Negócio e Erros no Topo do Formulário (role="alert") -->
+  @if (store.errorMessage()) {
+    <div class="alert-box error-alert" role="alert" aria-live="assertive">
+      <div class="alert-header">
+        <span class="material-symbols-rounded alert-icon" aria-hidden="true">error_outline</span>
+        <span class="alert-title">{{ store.errorMessage() }}</span>
+      </div>
+
+      @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
+        <div class="correlation-box">
+          <span class="correlation-label">Código de referência:</span>
+          <code class="code-value">{{ store.errorCorrelationId() }}</code>
+          <button
+            type="button"
+            class="btn-copy"
+            (click)="copyCorrelationId(store.errorCorrelationId()!)"
+            aria-label="Copiar código de referência"
+          >
+            {{ copyStatus() === 'copied' ? 'Copiado!' : 'Copiar' }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Formulário de Identificação da Conta Alvo -->
+  <form class="lookup-form" (submit)="onSearchTarget($event)">
+    <div class="form-group">
+      <label for="targetIdentityInput" class="form-label">
+        Identificador público da conta
+      </label>
+      <div class="input-row">
+        <input
+          id="targetIdentityInput"
+          name="targetIdentityId"
+          type="text"
+          class="input-text"
+          #targetIdentityInput
+          [formControl]="form.controls.targetIdentityId"
+          [attr.aria-describedby]="targetIdentityErrorMessage ? 'targetIdentity-error' : null"
+          [attr.aria-invalid]="targetIdentityErrorMessage ? 'true' : null"
+          placeholder="Ex: 11a70246-3db4-4c53-b2ab-3fdd91a3ea84"
+          autocomplete="off"
+        />
+        <button
+          type="submit"
+          class="btn-primary btn-lookup"
+          [disabled]="store.isResolving()"
+        >
+          <span>{{ store.isResolving() ? 'Localizando…' : 'Localizar conta' }}</span>
+        </button>
+      </div>
+      @if (targetIdentityErrorMessage) {
+        <p id="targetIdentity-error" class="field-error" role="alert">
+          {{ targetIdentityErrorMessage }}
+        </p>
+      }
+    </div>
+  </form>
+
+  <!-- Estado Vazio: Conta não localizada (UI-SPEC §307) -->
+  @if (store.isEmpty()) {
+    <div class="status-feedback empty-state" role="status" aria-live="polite">
+      <span class="material-symbols-rounded status-icon" aria-hidden="true">search_off</span>
+      <h2>Nenhuma conta com esse identificador</h2>
+      <p>Confira o identificador público e tente novamente. Ele é diferente do apelido.</p>
+    </div>
+  }
+
+  <!-- Conta Localizada: Exibe apenas apelido e UUID público (nunca papéis nem matrícula) -->
+  @if (store.resolvedTarget(); as account) {
+    <div class="target-profile-card">
+      <div class="profile-summary">
+        <span class="target-nickname">{{ account.nickname }}</span>
+        <code class="target-identity-id">{{ account.targetIdentityId }}</code>
+      </div>
+    </div>
+
+    <!-- Formulário de Correção de Matrícula e Motivo -->
+    <form class="correction-form" (submit)="$event.preventDefault()">
+      <!-- Campo 2: Nova matrícula -->
+      <div class="form-group">
+        <label for="matriculaInput" class="form-label">
+          Nova matrícula
+        </label>
+        <p id="matricula-help" class="field-help">
+          Informe como aparece no seu registro acadêmico. Letras, números e separadores são aceitos.
+        </p>
+        <input
+          id="matriculaInput"
+          name="matricula"
+          type="text"
+          class="input-text"
+          #matriculaInput
+          [formControl]="form.controls.matricula"
+          [attr.aria-describedby]="matriculaErrorMessage ? 'matricula-error matricula-help' : 'matricula-help'"
+          [attr.aria-invalid]="matriculaErrorMessage ? 'true' : null"
+          autocomplete="off"
+          spellcheck="false"
+          inputmode="text"
+        />
+        @if (matriculaErrorMessage) {
+          <p id="matricula-error" class="field-error" role="alert">
+            {{ matriculaErrorMessage }}
+          </p>
+        }
+      </div>
+
+      <!-- Campo 3: Motivo da correção (obrigatório e integral per D-32) -->
+      <div class="form-group">
+        <label for="reasonInput" class="form-label">
+          Motivo da correção
+        </label>
+        <p id="reason-help" class="field-help">
+          Descreva por que a correção é necessária. O motivo fica na auditoria e não pode ser apagado depois.
+        </p>
+        <textarea
+          id="reasonInput"
+          name="reason"
+          class="input-textarea"
+          rows="4"
+          maxlength="1024"
+          #reasonInput
+          [formControl]="form.controls.reason"
+          [attr.aria-describedby]="reasonErrorMessage ? 'reason-error reason-help' : 'reason-help'"
+          [attr.aria-invalid]="reasonErrorMessage ? 'true' : null"
+          autocomplete="off"
+        ></textarea>
+        @if (reasonErrorMessage) {
+          <p id="reason-error" class="field-error" role="alert">
+            {{ reasonErrorMessage }}
+          </p>
+        }
+      </div>
+
+      <!-- Ação Destrutiva: CTA de Correção Administrativa -->
+      <div class="action-row">
+        <button
+          #correctBtn
+          type="button"
+          class="btn-primary btn-correct"
+          [disabled]="isSubmitDisabled"
+          (click)="openConfirmation(correctBtn)"
+        >
+          <span>{{ store.isSubmitting() ? 'Corrigindo…' : 'Corrigir matrícula' }}</span>
+        </button>
+      </div>
+    </form>
+  }
+
+  <!-- Diálogo Modal de Confirmação Destrutiva (UI-SPEC §373, D-32, D-49) -->
+  <app-confirm-dialog
+    [isOpen]="isConfirmDialogOpen()"
+    [title]="confirmDialogTitle()"
+    [body]="confirmDialogBody()"
+    [confirmLabel]="'Corrigir matrícula'"
+    [cancelLabel]="'Cancelar'"
+    [isDestructive]="true"
+    [isLoading]="store.isSubmitting()"
+    [triggerElement]="dialogTriggerElement"
+    (confirmed)="onDialogConfirmed()"
+    (cancelled)="onDialogCancelled()"
+  ></app-confirm-dialog>
+</section>
