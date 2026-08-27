@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
-status: Ready to execute
-stopped_at: "Phase 3 planned: 17/17 PLANs verified; next step is Wave 1 interactive preflight"
-last_updated: "2026-08-27T09:45:35-03:00"
+status: In progress
+stopped_at: Completed 03-01-PLAN.md; Wave 2 ready for interactive preflight
+last_updated: "2026-08-27T15:11:58.935Z"
 last_activity: 2026-08-27
-last_activity_desc: "Planejamento verificado da Fase 3 formalizado no commit documental corrente; execução ainda não iniciada."
-state_head: 6756b5f062f044e705ff211ab40f69aadb487aa4
+last_activity_desc: Wave 1 da Fase 3 concluída e integrada localmente; Wave 2 pronta para preflight interativo.
+state_head: 2253ed7e2da923c1a07c01508283d58d52aec011
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 63
-  completed_plans: 63
+  total_plans: 80
+  completed_plans: 64
+milestone_name: milestone
 ---
 
 # Estado do Projeto
@@ -24,17 +24,17 @@ progress:
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** execução interativa da Fase 3 — Wave 1 ainda não iniciada
+**Current focus:** execução interativa da Fase 3 — Wave 2 pronta para preflight
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 17 de 17 PLANs criados e aprovados pelo checker; nenhuma task de implementação foi iniciada.
-Status: Ready to execute — pesquisa, UI-SPEC, estratégia Nyquist, rastreabilidade e revisão de planejamento estão concluídas.
-Last activity: 2026-08-27 — planejamento verificado da Fase 3 formalizado no commit documental corrente; execução ainda não iniciada.
+Plan: 1 de 17 concluído; próximo plano executável é o 03-02, tracer backend da primeira migration até a API pública.
+Status: In progress — Wave 1 decisória concluída; nenhuma migration ou alteração de produção foi executada.
+Last activity: 2026-08-27 — ER/DDL, identidade de versão e migração preservadora aprovados, revisados e integrados localmente.
 
-GitHub: milestone `Fase 1 — Fundação Segura da Plataforma`; concluída com 100% de conformidade.
-Git — snapshot histórico da Wave 10: naquele fechamento, a Wave 9 era a base `ffac2ea` e a Wave 10 estava integrada linearmente em dois commits, `027f5f7` (`feat(02-18)`) e seu documental. A afirmação então verdadeira de worktree/branch únicas e do estado de `origin/master` pertence somente àquele instante e não descreve o checkout atual. Planejamento da Fase 3 formalizado em 2026-08-27: o snapshot aprovado tinha `HEAD`, `master` e `origin/master` em `6756b5f062f044e705ff211ab40f69aadb487aa4`, uma única worktree, 17 PLANs e digest documental composto `D1C309FF3050E71A45456CDFDA0F4BBEE4FF7E692B1E551ADE78385E71C93405`. O commit documental corrente inclui exatamente 28 documentos — quatro existentes e 24 artefatos da Fase 3 — e não cita o próprio hash; confirme-o ao vivo por `git log -1`. Os seis caches de pesquisa continuam untracked e fora do commit, `arquivo.txt` foi removido pelo responsável e não integra o planejamento, e `master` fica um commit à frente de `origin/master` até autorização separada de push. A branch de backup não foi alterada.
+GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
+Git — Fase 3: planejamento formalizado e enviado em `e4b3cf0`; Wave 1 integrada localmente em `2253ed7`. A `master` permanece à frente de `origin/master` até autorização separada de push. Os seis caches de pesquisa continuam untracked e fora dos commits, `arquivo.txt` foi removido pelo responsável e a branch de backup não foi alterada.
 
 Git — Wave 7 (concluída e integrada, 2026-08-23): operações Git mutáveis autorizadas e executadas, na ordem. (1) `git worktree add` para os três planos, a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`; os três nasceram limpos. (2) Um quarto worktree temporário e destacado, `wave-07/integration`, montou a árvore combinada sem commit para as suítes agregadas e para cada rodada de revisão. (3) **Rebase de dobra**: as correções das cinco rodadas de revisão foram dobradas nos commits existentes por cherry-pick encadeado com `--amend`, sem criar commit de correção. Os SHAs `eb4e79f`, `e63e313` e `a9b68de` deixaram de existir. (4) **Normalização de mensagens**: uma segunda passada reescreveu as mensagens dos cinco commits da onda para uma linha, no padrão dos vinte commits anteriores do projeto, e removeu os rodapés `Co-Authored-By` e `Claude-Session`, que nenhum commit do repositório usa. Os corpos longos foram auditados item a item antes de descartados: nove itens que existiam somente neles foram acrescentados aos SUMMARY, e as árvores dos três commits de código permaneceram idênticas antes e depois, provando que só a mensagem mudou.
 
@@ -76,13 +76,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [██████████] 32/32 planos da Fase 2 (100%)
+Progress: [█░░░░░░░░░] 1/17 planos da Fase 3 (6%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 63
+- Total de planos concluídos: 64
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -222,9 +222,9 @@ Progress: [██████████] 32/32 planos da Fase 2 (100%)
 
 ## Session Continuity
 
-Last session: 2026-08-27T09:45:35-03:00
-Stopped at: Phase 3 planned — 17/17 PLANs verified; execution not started
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-01-PLAN.md — preflight interativo da Wave 1
+Last session: 2026-08-27T15:11:58.492Z
+Stopped at: Completed 03-01-PLAN.md; Wave 2 ready for interactive preflight
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-02-PLAN.md
 
 ## Accumulated Context
 
@@ -232,3 +232,9 @@ Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-01-PLAN.md �
 
 - Phase 3 edited: Fase 3 reconciliada após discussão: domínio esportivo genérico, vínculo por HMAC sem comprovante, política de atleta permissiva no MVP e confirmação de resultado pela mesma pessoa.
 - Phase 3 edited: A reatribuição histórica de PRIV-02 à Fase 3 foi superada: comprovantes documentais permanecem na v2; a Fase 3 usa matrícula transitória e HMAC sem arquivo.
+
+## Performance Metrics
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 03 P01 | 20 min | 2 tasks | 3 files |
