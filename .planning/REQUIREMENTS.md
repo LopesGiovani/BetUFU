@@ -13,8 +13,8 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **AUTH-02**: Pessoa pode criar uma conta pelo fluxo hospedado do Keycloak com e-mail e senha e completar o perfil BETUFU, sem que a aplicação receba ou persista a senha.
 - [ ] **AUTH-03**: Usuário pode confirmar o e-mail, entrar, permanecer autenticado entre acessos e encerrar a sessão.
 - [ ] **AUTH-04**: Usuário pode recuperar o acesso por um fluxo seguro de redefinição de senha.
-- [ ] **PROF-01**: Usuário pode editar apelido e equipe favorita dentro das regras públicas de perfil.
-- [ ] **PROF-02**: Perfil público exibe somente apelido, equipe favorita, posição permitida e conquistas, sem revelar e-mail, matrícula, HMAC, comprovante ou identidade civil.
+- [ ] **PROF-01**: Usuário pode editar o apelido dentro das regras públicas de perfil; a referência opcional reservada para favorito é completada pela Fase 3 em `SPRT-15`.
+- [ ] **PROF-02**: Perfil público básico exibe somente apelido, posição permitida e conquistas, sem revelar e-mail, matrícula, HMAC, comprovante ou identidade civil; favorito e extensão esportiva pertencem a `SPRT-15` e `SPRT-16`.
 
 ### Matrícula UFU
 
@@ -26,20 +26,22 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Competições, Equipes e Elencos
 
-- [ ] **SPRT-01**: Administrador da competição pode cadastrar competição, edição, modalidade, categoria, fase e local dentro do escopo atribuído.
-- [ ] **SPRT-02**: Administrador da competição pode cadastrar equipes, atletas e vínculos de elenco por edição, modalidade e período.
+- [ ] **SPRT-01**: Administrador autorizado pode cadastrar esporte, competição, edição, categoria, fase e local reutilizável com espaço interno opcional dentro do escopo atribuído; a Olimpíada UFU 2026 é a primeira edição real de um catálogo genérico.
+- [ ] **SPRT-02**: Administrador da competição pode cadastrar organizações esportivas, equipes por edição, atletas e vínculos de elenco por modalidade, categoria e período, individualmente ou por CSV oficial validado de forma atômica.
 - [ ] **SPRT-03**: Um atleta pode existir no catálogo sem possuir conta BETUFU.
-- [ ] **SPRT-04**: Para incluir um atleta no elenco, o administrador apresenta comprovante aceito ou fonte confiável; o número da matrícula isolado não é prova suficiente.
-- [ ] **SPRT-05**: O vínculo comprovado do atleta pode guardar o mesmo HMAC de matrícula usado na verificação, sem expor nem conservar o número consultável.
+- [ ] **SPRT-04**: Para cadastrar um atleta, o administrador informa a matrícula somente como entrada transitória; o servidor normaliza, calcula HMAC versionado e descarta o valor bruto. A coincidência não comprova vínculo oficial, titularidade ou legitimidade esportiva.
+- [ ] **SPRT-05**: O cadastro do atleta pode guardar o mesmo HMAC versionado usado na verificação da conta, sem expor nem conservar o número consultável e sem receber comprovante documental no MVP.
 - [ ] **SPRT-06**: Quando uma conta verificada produzir HMAC igual ao de um atleta ainda sem usuário, o sistema propõe vínculo único e auditável entre os registros.
 - [ ] **SPRT-07**: HMAC já ligado a outra conta, múltiplos candidatos ou divergência de dados bloqueiam o vínculo automático e abrem revisão manual.
-- [ ] **SPRT-08**: A pessoa vinculada é notificada e pode contestar uma associação de atleta incorreta.
-- [ ] **SPRT-09**: Elenco fica bloqueado antes da abertura do primeiro mercado afetado; alteração ou vínculo tardio exige motivo, auditoria e análise das apostas impactadas conforme política de conflito ainda a definir.
-- [ ] **SPRT-10**: Administrador pode cadastrar uma partida com participantes, horário canônico, fuso, local, fase e proveniência dos dados.
-- [ ] **SPRT-11**: Administrador pode manter a partida como rascunho, publicá-la, suspendê-la, adiá-la ou cancelá-la com motivo auditável.
-- [ ] **SPRT-12**: Pessoa pode filtrar a agenda por data, modalidade, categoria, fase e estado e abrir a página completa de uma partida.
-- [ ] **SPRT-13**: Pessoa pode abrir página de equipe com modalidade, elenco público autorizado, próximos jogos, resultados e desempenho recente.
-- [ ] **SPRT-14**: O piloto libera somente confrontos diretos com ou sem empate cuja tabela, horário, participantes e regra de resultado sejam confiáveis.
+- [ ] **SPRT-08**: A pessoa recebe a proposta de vínculo, precisa aceitá-la explicitamente e pode rejeitar ou contestar uma associação de atleta incorreta; foto e campos pessoais do atleta só são liberados após o aceite.
+- [ ] **SPRT-09**: Elenco nasce como rascunho, é publicado manualmente antes da abertura do primeiro mercado afetado e não possui escalação por partida no MVP; alteração ou vínculo tardio exige motivo e auditoria.
+- [ ] **SPRT-10**: Administrador pode cadastrar evento com participantes, horário canônico, fuso, fase, fonte e local opcionalmente detalhado por espaço interno.
+- [ ] **SPRT-11**: Administrador pode manter evento e resultado como rascunho, publicar, suspender, adiar, cancelar, informar e corrigir com fonte, motivo, versões e auditoria; o mesmo administrador pode confirmar no MVP ou pedir revisão opcional.
+- [ ] **SPRT-12**: Pessoa pode navegar primeiro pela agenda e filtrar por data, esporte, competição/edição, categoria, fase e estado, abrindo a página completa do evento.
+- [ ] **SPRT-13**: Pessoa pode abrir páginas de organização, equipe e atleta com equipes da edição, elenco público autorizado, próximos eventos, resultados e estatísticas genéricas confiáveis; campos pessoais opcionais são controlados pelo atleta vinculado.
+- [ ] **SPRT-14**: O piloto opera detalhadamente eventos de confronto direto confiáveis, incluindo chaveamento derivado das partidas; outras modalidades podem aparecer no catálogo e agenda básica, e classificações de grupos/pontos corridos são transcritas da fonte oficial sem motor automático de desempate.
+- [ ] **SPRT-15**: Usuário pode escolher como favorito uma organização esportiva permanente, que agrega suas equipes de diferentes modalidades e edições; a Fase 3 reconcilia a referência técnica de equipe criada na Fase 2 sem perder o perfil existente.
+- [ ] **SPRT-16**: Após aceitar o vínculo, somente o atleta controla foto, curso, biografia e redes sociais opcionais; mídia e links recebem validação segura, campos removíveis não incluem dados privados e estatísticas públicas permanecem genéricas no MVP.
 
 ### Papéis, Operação e Integridade
 
@@ -48,9 +50,9 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **OPER-03**: Administrador geral gerencia papéis e configurações da plataforma e não pode registrar apostas em nenhum evento.
 - [ ] **OPER-04**: Moderador pode atuar nos chats e denúncias sem receber acesso a comprovantes, saldos ou funções esportivas que não lhe pertençam.
 - [ ] **OPER-06**: Painel operacional apresenta pendências, falhas e estados necessários para manter a edição piloto.
-- [ ] **INTE-01**: Atleta com vínculo vigente não pode apostar em mercado relacionado a uma partida da própria equipe.
+- [ ] **INTE-01**: No MVP, vínculo vigente de atleta não bloqueia apostas, inclusive em evento ou equipe de que participe; a relação atleta–equipe–evento permanece autoritativa para permitir reavaliação futura da política.
 - [ ] **INTE-02**: Administrador de competição não pode apostar em nenhum evento da competição atribuída, ainda que não tenha criado a partida específica.
-- [ ] **INTE-03**: Restrições de verificação, papel, escopo, atleta e conflito são validadas no servidor em toda tentativa de aposta.
+- [ ] **INTE-03**: Restrições vigentes de verificação, papel, escopo, estado do mercado e conflitos administrativos são validadas no servidor em toda tentativa de aposta; vínculo de atleta é permitido pela política do MVP.
 - [ ] **INTE-04**: Negação de elegibilidade informa motivo adequado ao usuário sem revelar dados privados ou regras exploráveis.
 - [ ] **INTE-05**: Administrador autorizado pode suspender conta, partida, mercado ou canal sem apagar o histórico necessário à auditoria.
 
@@ -99,14 +101,14 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Resultados e Liquidação
 
-- [ ] **SETL-01**: Administrador da competição pode registrar resultado provisório com fonte e evidência operacional mínima.
-- [ ] **SETL-02**: Um segundo administrador autorizado e necessariamente distinto confirma ou rejeita o resultado provisório.
-- [ ] **SETL-03**: Nenhuma aposta é liquidada antes da confirmação válida pelo segundo administrador.
+- [ ] **SETL-01**: A liquidação consome exatamente uma versão vigente do resultado esportivo já publicada e confirmada na Fase 3, preservando sua fonte e identificador; não cria um segundo cadastro de resultado.
+- [ ] **SETL-02**: A autorização para liquidar valida novamente permissão, estado e versão do resultado; no MVP, o mesmo administrador que registrou ou confirmou o resultado esportivo pode autorizar essa versão, com atores persistidos separadamente para futura política de duas pessoas.
+- [ ] **SETL-03**: Nenhuma aposta é liquidada antes de existir versão esportiva confirmada e autorização de liquidação válida e auditada; segundo administrador distinto não é obrigatório no MVP.
 - [ ] **SETL-04**: Após confirmação, a liquidação aplica a regra versionada do mercado a todas as apostas elegíveis de forma idempotente.
 - [ ] **SETL-05**: Partida adiada suspende mercado e liquidação até remarcação ou cancelamento auditável.
 - [ ] **SETL-06**: Partida cancelada ou mercado anulado devolve integralmente os créditos uma única vez e não registra acerto nem erro.
 - [ ] **SETL-07**: Repetir fechamento, confirmação, liquidação, anulação, devolução ou retry não duplica débito nem pagamento.
-- [ ] **SETL-08**: Correção, cancelamento ou anulação posterior cria nova versão proposta e exige confirmação por segundo administrador distinto antes de qualquer reversão, devolução ou reliquidação.
+- [ ] **SETL-08**: Correção, cancelamento ou anulação posterior nasce como nova versão no domínio esportivo; somente depois de publicada e confirmada pode autorizar reversão, devolução ou reliquidação auditada. O MVP permite o mesmo administrador e preserva atores separados para futura segregação de função.
 - [ ] **SETL-09**: Usuário pode ver resultado utilizado, regra, cálculo do retorno e lançamentos que alteraram seu saldo.
 - [ ] **SETL-10**: Execução de liquidação, devolução ou correção possui estado e progresso duráveis, propriedade temporária de processamento e unidades idempotentes, permitindo diagnóstico e retomada sem apresentar execução parcial como concluída.
 - [ ] **SETL-11**: Correção confirmada recompõe, de forma idempotente, ledger, ranking, conquistas e dados futuros do modelo, preservando todas as versões anteriores.
@@ -125,7 +127,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **POOL-02**: Usuário pode entrar por convite ou código válido e sair quando a política permitir.
 - [ ] **POOL-03**: Criador pode editar nome, convidar ou remover integrantes e encerrar o grupo sem criar moeda, prêmio ou regra financeira própria.
 - [ ] **POOL-04**: Grupo exibe um recorte de seus integrantes usando as mesmas métricas, período vitalício e desempates do ranking UFU.
-- [ ] **ACHV-01**: Usuário pode obter conquistas por sequência de acertos, previsão de azarão, desempenho em rodada e apoio à equipe favorita.
+- [ ] **ACHV-01**: Usuário pode obter conquistas por sequência de acertos, previsão de azarão, desempenho em rodada e apoio à organização esportiva favorita.
 - [ ] **ACHV-02**: Conquistas derivam de liquidações e odds aceitas e não são concedidas duas vezes quando o processamento é repetido.
 - [ ] **ACHV-03**: Perfil apresenta conquistas com nome, descrição, regra e edição em que foram obtidas.
 
@@ -153,9 +155,8 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **DATA-03**: Comando crítico valida e bloqueia mercado, versão da odd, elegibilidade, conflito e saldo autoritativos dentro da mesma transação PostgreSQL.
 - [ ] **DATA-04**: Nenhuma alteração de saldo ocorre sem lançamento correspondente no ledger, e registros históricos não podem ser sobrescritos ou apagados.
 - [ ] **DATA-05**: Constraints e chaves de negócio impedem concessão inicial, seleção por usuário/mercado, lançamento de ledger, pagamento, devolução e liquidação duplicados, inclusive sob concorrência e retries.
-- [ ] **DATA-06**: Redis permanece auxiliar; comprovantes usam armazenamento S3 privado; BETUFU e Keycloak usam bancos e usuários separados.
+- [ ] **DATA-06**: Redis permanece auxiliar; a plataforma possui contrato S3 desacoplado para objetos que precisem de armazenamento, e BETUFU e Keycloak usam bancos e usuários separados. Comprovantes documentais, se reintroduzidos na v2, exigem uso privado conforme `PRIV-02`.
 - [ ] **PRIV-01**: Matrículas, HMACs, documentos, tokens, chaves e dados privados não aparecem em URLs, conteúdo público, telemetria ou logs operacionais comuns.
-- [ ] **PRIV-02**: Comprovantes de conta e de atleta ficam criptografados em armazenamento privado, usam acesso temporário autorizado e são excluídos após a decisão final segundo política que também cobre versões e backups.
 - [ ] **PRIV-03**: Checklist de publicação verifica páginas, builds, imagens, documentos, metadados e histórico destinado a repositório público contra identificadores pessoais definidos e bloqueia exposição conhecida do fundador.
 - [ ] **PRIV-04**: Domínio, infraestrutura, e-mails e presença pública usam identidade institucional legítima, mantendo dados verdadeiros onde contratos e lei exigirem.
 - [ ] **PRIV-05**: Lançamento público depende de revisão jurídica e de fluxos testáveis para aviso, acesso, correção, oposição, exclusão ou pseudonimização e retenção por classe de dado, incluindo atleta sem conta, logs, ledger, auditoria e backups.
@@ -193,6 +194,7 @@ Adiados do MVP em 2026-08-19. No MVP a matrícula é autodeclarada e a plataform
 - **VERI-08**: O comprovante e o número de matrícula temporariamente processado são excluídos após a decisão final conforme prazo operacional definido, com sucesso ou falha da exclusão rastreável.
 - **VERI-12**: Revisor não pode decidir a própria solicitação nem solicitação em que possua conflito registrado; a tentativa é bloqueada e auditada.
 - **OPER-05**: Revisor de matrícula pode analisar comprovantes sem receber permissão para alterar odds, resultados ou créditos.
+- **PRIV-02**: Comprovantes de conta ou de atleta, caso sejam reintroduzidos, ficam criptografados em armazenamento privado, usam acesso temporário autorizado e são excluídos após a decisão final segundo política que também cobre versões e backups.
 
 ### Engajamento posterior
 
@@ -287,7 +289,8 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | SPRT-12 | Phase 3 | Pending |
 | SPRT-13 | Phase 3 | Pending |
 | SPRT-14 | Phase 3 | Pending |
-| PRIV-02 | Phase 3 | Pending |
+| SPRT-15 | Phase 3 | Pending |
+| SPRT-16 | Phase 3 | Pending |
 | ODDS-01 | Phase 4 | Pending |
 | ODDS-02 | Phase 4 | Pending |
 | ODDS-03 | Phase 4 | Pending |
@@ -376,10 +379,10 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | UX-02 | Phase 7 | Pending |
 
 **Coverage:**
-- v1 requirements: 137 total
-- Mapped to phases: 137
+- v1 requirements: 138 total
+- Mapped to phases: 138
 - Unmapped: 0 ✓
 
 ---
 *Requisitos definidos em: 2026-08-01*
-*Última atualização: 2026-08-20 após tornar o MFA opcional em todo o MVP (IDEN-05 e ODDS-12)*
+*Última atualização: 2026-08-26 após reconciliar o contexto da Fase 3 e manter 138/138 requisitos v1 mapeados*

@@ -20,15 +20,15 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 
 - [ ] Permitir navegação pública por competições, agenda, partidas, equipes e resultados.
 - [ ] Oferecer contas BETUFU com autenticação gerenciada por Keycloak, sem login ou SSO da UFU.
-- [ ] Manter perfis públicos por apelido, equipe favorita, conquistas e posição permitida, sem expor matrícula, documentos ou identidade privada.
+- [ ] Manter perfis públicos por apelido, organização esportiva favorita, conquistas e posição permitida; atleta vinculado pode publicar foto, curso, biografia e redes sociais opcionais sem expor matrícula, documentos ou identidade privada.
 - [ ] Permitir o registro voluntário e opcional da matrícula UFU, sem exigir comprovante no MVP; a verificação documental com revisão manual foi adiada para a v2.
 - [ ] Representar a matrícula por HMAC normalizado e único, sem conservar o número original consultável, impedindo mais de uma conta por matrícula.
 - [ ] Restringir apostas em eventos internos e participação no ranking a contas com matrícula UFU registrada e única.
-- [ ] Usar uma edição das Olimpíadas UFU como piloto, começando pelas modalidades de confronto direto que possuam tabelas e resultados confiáveis.
-- [ ] Modelar competições, edições, modalidades, categorias, equipes, atletas, elencos, fases, partidas e mercados de forma extensível.
-- [ ] Fazer o administrador da competição cadastrar equipes e elencos no escopo que administra.
+- [ ] Usar a Olimpíada Universitária UFU 2026 como primeira edição real de uma plataforma genérica para várias competições ao longo do ano, começando pela operação detalhada de confrontos diretos com dados confiáveis.
+- [ ] Modelar esportes, competições, edições, categorias, fases, organizações esportivas, equipes por edição, atletas, elencos, locais, eventos e mercados de forma extensível.
+- [ ] Fazer um ou mais administradores da competição cadastrarem e publicarem dados esportivos somente no escopo atribuído, com fonte, histórico e auditoria.
 - [ ] Permitir que um atleta exista sem conta BETUFU e seja vinculado posteriormente a uma conta verificada quando os HMACs de matrícula coincidirem, com unicidade, auditoria e possibilidade de contestação.
-- [ ] Exibir páginas de equipes com modalidade, elenco público autorizado, desempenho recente, resultados e próximas partidas.
+- [ ] Exibir páginas de organização, equipe e atleta com dados esportivos públicos autorizados, desempenho genérico confiável, resultados e próximos eventos.
 - [ ] Calcular odds pré-jogo automaticamente com baseline Elo por modalidade e categoria, influência de recência, regressão entre edições, peso limitado de confrontos diretos e margem configurável.
 - [ ] Exibir metodologia, confiança, versões e mudanças das odds, preservando em cada aposta a versão aceita.
 - [ ] Admitir override de odds somente como exceção: mercado suspenso, motivo e evidência obrigatórios, proposta e aprovação por administradores distintos, comparação com o modelo e nova versão imutável.
@@ -38,14 +38,14 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - [ ] Registrar toda movimentação em ledger imutável e manter aposta, débito e snapshot da odd na mesma transação.
 - [ ] Oferecer apostas simples antes da partida, com bilhete, créditos usados, retorno virtual potencial, histórico e liquidação idempotente.
 - [ ] Limitar cada usuário a uma única seleção aceita por mercado e ocultar palpites de outros usuários até o fechamento.
-- [ ] Exigir que um administrador registre qualquer versão inicial ou corretiva do resultado e outro administrador distinto a confirme antes da liquidação, reversão ou reliquidação.
+- [ ] Exigir fonte oficial, versões e auditoria para resultado inicial ou corretivo; no MVP, a mesma pessoa autorizada pode registrar e confirmar antes da liquidação, reversão ou reliquidação, preservando atores separados no modelo para futura política de duas pessoas.
 - [ ] Tratar adiamento, cancelamento, anulação e correção por suspensão, devolução ou lançamentos compensatórios, sem apagar histórico.
 - [ ] Manter um único ranking principal UFU, vitalício, ordenado por total de acertos e, no primeiro desempate, por taxa de acerto.
 - [ ] Usar a mesma métrica do ranking UFU nas visões de grupos privados; empate remanescente compartilha a mesma posição.
 - [ ] Contabilizar no máximo um acerto por mercado, independentemente do valor apostado ou da odd; palpites anulados ou devolvidos não contam como acerto nem erro.
 - [ ] Disponibilizar grupos privados, chat persistido por partida, denúncia, silenciamento e moderação.
-- [ ] Oferecer conquistas por sequências de acertos, previsão de azarão, desempenho em rodada e apoio a uma equipe.
-- [ ] Impedir atletas de apostar em partidas da própria equipe, administradores de competição de apostar no próprio escopo e administradores gerais de apostar em qualquer evento.
+- [ ] Oferecer conquistas por sequências de acertos, previsão de azarão, desempenho em rodada e apoio à organização esportiva favorita.
+- [ ] No MVP, permitir que atletas apostem inclusive em eventos próprios; administradores de competição continuam proibidos de apostar no próprio escopo e administradores gerais em qualquer evento. A política de atleta deve ser reavaliada antes de prêmio real, escala relevante ou parceria institucional.
 - [ ] Manter trilha de auditoria para verificações, vínculos de atletas, elencos, odds, resultados, liquidações, permissões e moderação.
 - [ ] Funcionar bem em navegadores de celular e desktop.
 
@@ -61,7 +61,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - Verificação documental do vínculo UFU — envio de comprovante, revisão manual, acesso temporário auditado e exclusão do arquivo foram adiados para a v2 em 2026-08-19; no MVP a matrícula é autodeclarada e apenas a unicidade é verificada.
 - Notificações de partidas, liquidações, chat e ranking — adiadas para depois do MVP.
 - Janela formal de contestação de resultados — adiada para depois do MVP.
-- Mercados de provas com vários competidores, como atletismo e natação — adiados até validar os confrontos diretos.
+- Operação detalhada e mercados de provas com vários competidores, como atletismo e natação — o catálogo e a agenda básica podem exibi-los, mas regras de baterias, marcas, pódio e liquidação ficam adiadas.
 - Aplicativos nativos para Android e iOS — a primeira versão será web responsiva.
 - Login, SSO, integração, vínculo, endosso ou representação oficial da UFU — nada disso é presumido no MVP.
 
@@ -70,8 +70,8 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - O público principal são estudantes da UFU que acompanham e torcem por equipes e atléticas nos jogos universitários.
 - O cadastro de conta BETUFU é aberto, mas somente contas com matrícula UFU registrada podem apostar nos eventos UFU. No MVP esse registro é autodeclarado: a plataforma verifica a unicidade da matrícula, não a sua titularidade. Não há uma conta UFU usada para entrar na plataforma.
 - A matrícula é opcional para quem apenas navega ou usa recursos sociais, nunca aparece publicamente e não permanece armazenada de forma consultável após o registro.
-- O piloto concentra calendário, comunidade e operação em uma edição específica das Olimpíadas UFU; as modalidades exatas dependem das tabelas confiáveis disponíveis.
-- Atleta e usuário BETUFU são entidades distintas. O administrador comprova o vínculo esportivo do atleta mesmo que ele não tenha conta; se a pessoa criar uma conta depois, a coincidência de HMAC permite o vínculo auditável.
+- A primeira operação real será a Olimpíada Universitária UFU 2026, mas o domínio e a navegação são genéricos para várias competições e edições ao longo do ano; documentos de 2025 servem apenas como referência.
+- Atleta e usuário BETUFU são entidades distintas. O administrador cadastra o atleta mesmo sem conta e informa a matrícula somente para cálculo transitório do HMAC; isso não comprova vínculo com a UFU nem titularidade. Se a pessoa criar uma conta depois, a coincidência de HMAC gera uma proposta auditável que ela aceita ou rejeita.
 - Equipes e elencos ficam sob responsabilidade do administrador da competição. O elenco deve ser travado antes da abertura do mercado; mudanças posteriores são auditadas e podem exigir revisão das apostas afetadas.
 - O volume apostado pelos usuários não altera as odds no MVP, evitando manipulação em uma comunidade pequena.
 - A margem inicial das odds é configurável e começa em 5%; alterações futuras não mudam odds já aceitas.
@@ -110,7 +110,7 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - PostgreSQL 18 é a fonte oficial, com Flyway, Spring Data JPA para operações comuns e SQL/locks explícitos nas transações críticas.
 - Ledger, versões de odds, odds aceitas e auditoria são imutáveis; correções usam novos registros e lançamentos compensatórios.
 - Redis é auxiliar para sessões, rate limiting e suporte ao tempo real, nunca fonte de saldo, elegibilidade, resultado ou liquidação.
-- Comprovantes temporários ficam em armazenamento S3 compatível, privado e criptografado. O backend usa configuração genérica `BETUFU_S3_*`, incluindo `BETUFU_S3_ENDPOINT`, sem acoplamento ao serviço local.
+- Fotos opcionais de atletas usam armazenamento de objetos com processamento seguro e política pública de mídia. O MVP não coleta comprovante de conta nem de atleta; caso a verificação documental retorne na v2, seus arquivos exigirão armazenamento privado e criptografado. O backend mantém configuração genérica `BETUFU_S3_*`, incluindo `BETUFU_S3_ENDPOINT`, sem acoplamento ao serviço local.
 - BETUFU e Keycloak usam bancos e usuários separados, ainda que compartilhem inicialmente o mesmo servidor PostgreSQL.
 
 ### API, tempo real e operação
@@ -135,8 +135,8 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 
 - **Economia virtual**: nenhum crédito possui valor monetário ou pode ser comprado, vendido, transferido, convertido, sacado ou trocado por prêmio.
 - **Independência institucional**: a BETUFU não representa a UFU; textos, marcas e identidade não podem sugerir vínculo oficial.
-- **Privacidade**: matrícula e comprovante são dados identificadores; coleta mínima e impressão HMAC versionada e protegida por segredo são obrigatórias. No MVP, o armazenamento temporário privado e a exclusão após decisão aplicam-se ao comprovante de atleta (`SPRT-04`); o comprovante de conta foi adiado para a v2.
-- **Integridade**: uma conta por matrícula, uma seleção por mercado, bloqueio de conflitos, dupla confirmação de resultado e ledger imutável.
+- **Privacidade**: matrícula é dado identificador; coleta transitória mínima e impressão HMAC versionada protegida por segredo são obrigatórias. O MVP não recebe comprovante documental de conta nem de atleta e nunca apresenta a coincidência de HMAC como verificação oficial da UFU.
+- **Integridade**: uma conta por matrícula, uma seleção por mercado, restrições administrativas, fonte/versionamento de resultado e ledger imutável. No MVP, resultado não exige confirmador distinto; a separação de atores é preservada para futura política de duas pessoas.
 - **Stack aprovada**: Angular/TypeScript no frontend e Java/Spring no backend; qualquer troca relevante volta para decisão explícita.
 - **Plataforma**: web responsiva primeiro, sem aplicativos nativos no MVP.
 - **Fonte de dados**: calendários, elencos e resultados dependem de fontes confiáveis e operação administrativa; integração oficial não é presumida.
@@ -149,11 +149,12 @@ Tornar os jogos universitários da UFU mais envolventes por meio de uma competi�
 - Tratamento de matrícula reemitida ou de uma mesma pessoa com mais de uma matrícula legítima.
 - Política para correção de resultado quando créditos pagos incorretamente já tiverem sido gastos, sem apagar o ledger nem permitir saldo negativo.
 - Controle de aprovação para ajuste compensatório direto no ledger; dupla aprovação é a recomendação de segurança, ainda não uma decisão.
-- Destino de aposta aceita quando vínculo de atleta, alteração de elenco ou papel administrativo posterior revelar conflito de interesse.
+- Política futura para conflito esportivo de atleta — o MVP permite aposta em evento próprio, mas preserva a relação atleta–equipe–evento para reavaliação antes de prêmio real, escala relevante ou parceria institucional.
 - Parâmetros numéricos do Elo, tratamento probabilístico de empate e fixtures de referência por modalidade.
 - Protocolo de normalização, versionamento, rotação e resposta a comprometimento da chave HMAC — passou a ser o único mecanismo de integridade da matrícula no MVP.
 - Indicadores e resposta operacional caso a margem e a ausência de reposição reduzam excessivamente a oferta total de créditos.
-- Modalidades, categorias e tabelas exatas da edição piloto.
+- Regras detalhadas, estatísticas e critérios automáticos de classificação/desempate para modalidades além do confronto direto do MVP.
+- Momento de exigir pessoas distintas para confirmar resultado e autorizar liquidação, reversão ou reliquidação.
 - Provedor de nuvem e plataforma de CI/CD.
 - Solução S3 compatível para homologação e produção; SeaweedFS foi aprovado somente para o ambiente local do MVP.
 
@@ -166,11 +167,11 @@ Essas decisões devem permanecer configuráveis ou ser fechadas antes da fase qu
 | Usar exclusivamente créditos virtuais | Validar diversão e integridade sem movimentação financeira | ✓ Aprovado para o MVP |
 | Manter cadastro aberto e restringir apostas UFU a contas com matrícula registrada | Permitir descoberta pública e reduzir participação indevida | ✓ Aprovado |
 | Autenticar contas BETUFU com Keycloak, sem conta ou SSO UFU | Separar identidade da plataforma de uma integração institucional inexistente | ✓ Aprovado |
-| Verificar vínculo por comprovante privado, exclusão posterior e HMAC da matrícula | Minimizar dados e impedir duplicidade sem conservar o número consultável | ⚠ Superada em 2026-08-19: o HMAC da matrícula permanece no MVP, mas o comprovante de conta e a revisão manual foram adiados para a v2 |
+| Verificar vínculo por comprovante privado, exclusão posterior e HMAC da matrícula | Minimizar dados e impedir duplicidade sem conservar o número consultável | ⚠ Superada: o comprovante de conta foi adiado em 2026-08-19 e o de atleta em 2026-08-26; o HMAC permanece sem representar prova oficial |
 | Registrar a matrícula UFU por autodeclaração no MVP, sem comprovante | Reduzir o escopo do MVP mantendo a unicidade por HMAC, que impede duas contas com a mesma matrícula | ✓ Aprovado em 2026-08-19; o risco de alguém registrar matrícula alheia foi apresentado e aceito explicitamente, inclusive a ausência de meio de disputa, porque o número original não é conservado |
 | Não aplicar prazo de validade à matrícula registrada no MVP | Sem verificação documental não existe evento que justifique revalidação periódica | ✓ Aprovado em 2026-08-19 |
-| Tornar o MFA opcional em todo o MVP, inclusive para contas administrativas | Reduzir o escopo do MVP; as guardas de duas pessoas distintas permanecem como controle de integridade | ✓ Aprovado em 2026-08-20; substitui a regra anterior de MFA obrigatório e alcança IDEN-05 e ODDS-12. Risco aceito explicitamente: a governança da plataforma passa a depender apenas de senha |
-| Usar uma edição das Olimpíadas UFU como piloto | Concentrar calendário, equipes e comunidade em um evento observável | ✓ Aprovado |
+| Tornar o MFA opcional em todo o MVP, inclusive para contas administrativas | Reduzir o escopo do MVP; a dupla aprovação do override de odds permanece como controle de integridade | ✓ Aprovado em 2026-08-20; substitui a regra anterior de MFA obrigatório e alcança IDEN-05 e ODDS-12. A antiga dupla confirmação de resultado foi substituída em 2026-08-26 |
+| Usar a Olimpíada Universitária UFU 2026 como primeira edição de um catálogo genérico | Validar a operação em evento observável sem fixar o produto a uma única competição | ✓ Aprovado em 2026-08-26; documentos de 2025 são somente referência |
 | Começar por confrontos diretos | Reduzir a complexidade inicial de mercados e liquidação | ✓ Aprovado |
 | Usar Angular 22 e TypeScript 6 no frontend | Construir uma aplicação web tipada e estruturada | ✓ Aprovado |
 | Usar Java 25, Spring Boot 4.1 e Spring Modulith 2.1 | Começar com backend robusto e modular sem distribuir prematuramente | ✓ Aprovado |
@@ -183,9 +184,9 @@ Essas decisões devem permanecer configuráveis ou ser fechadas antes da fase qu
 | Começar com margem de odds configurável em 5% | Aplicar um parâmetro inicial explícito sem impedir ajuste futuro | ✓ Aprovado para o MVP |
 | Permitir override excepcional de odds com dupla aprovação | Corrigir distorções graves sem transformar intervenção manual em rotina | ✓ Aprovado |
 | Preservar a odd aceita e publicar histórico de versões | Garantir transparência e tratamento uniforme | ✓ Aprovado |
-| Exigir duas pessoas distintas para confirmar resultados | Reduzir erro e manipulação antes da liquidação | ✓ Aprovado |
+| Permitir que a mesma pessoa registre e confirme resultado no MVP | Reduzir operação inicial preservando fonte, versões e atores separados | ✓ Aprovado em 2026-08-26; duas pessoas tornam-se reavaliação obrigatória antes de prêmio real, escala relevante ou parceria institucional |
 | Cadastrar equipes e elencos pelo administrador da competição | Manter responsabilidade operacional e escopo auditável | ✓ Aprovado |
-| Permitir atleta sem conta e vínculo posterior por HMAC | Não obrigar cadastro e ainda aplicar conflitos quando houver associação | ✓ Aprovado |
+| Permitir atleta sem conta e vínculo posterior por HMAC | Não obrigar cadastro e permitir proposta auditável sem apresentar a coincidência como prova oficial | ✓ Aprovado; vínculo de atleta não bloqueia aposta no MVP e a política será reavaliada futuramente |
 | Conceder o mesmo saldo inicial a todo estudante verificado | Garantir ponto de partida uniforme | ✓ Aprovado; valor pendente |
 | Persistir saldo sem reset automático | Manter continuidade entre edições no MVP | ✓ Aprovado; revisar futuramente |
 | Aceitar bloqueio por saldo zerado, sem recuperação no MVP | Evitar criar uma economia adicional antes de validá-la | ✓ Aprovado; revisar futuramente |
@@ -214,4 +215,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-20 after making MFA optional across the whole MVP*
+*Last updated: 2026-08-26 after reconciling Phase 3 sports, athlete and result policies*

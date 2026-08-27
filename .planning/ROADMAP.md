@@ -13,7 +13,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 
 - [x] **Phase 1: Fundação Segura da Plataforma** - Estabelecer a base modular, observável e segura da qual todas as capacidades do MVP dependem.
 - [x] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
-- [ ] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar dados confiáveis de confrontos diretos, equipes e elencos das Olimpíadas UFU.
+- [ ] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar um catálogo genérico de competições e edições, começando pela Olimpíada Universitária UFU 2026 e detalhando inicialmente confrontos diretos.
 - [ ] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [ ] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
 - [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
@@ -122,9 +122,11 @@ Plans:
       Plano criado durante a Wave 20 para corrigir drift herdado do 01-29, que deixava
       `validate-keycloak-realm.mjs` vermelho contra um artefato commitado e bloqueava o
       gate agregado do 01-16.
+
 - [x] 01-31-PLAN.md — Fechar a última regressão negativa inerte da suíte Node.
       Criado durante a Wave 20 para eliminar o ruído de `core.autocrlf=true` antes do
       gate agregado do 01-16. Suíte Node passou a 481/481.
+
 - [x] 01-12-PLAN.md — Padronizar Problem Details, correlação e logs estruturados.
 
 **Wave 21** *(concluída; Plano 01-25 executado, revisado com PASS e integrado)*
@@ -170,7 +172,7 @@ Plans:
 **Mode:** mvp
 **Depends on**: Phase 1
 **Requirements**: AUTH-02, AUTH-03, AUTH-04, PROF-01, PROF-02, VERI-06, VERI-07, VERI-09, VERI-11, OPER-01, OPER-02, OPER-03, OPER-04, OPER-06, IDEN-05, PRIV-01, AUDT-01, AUDT-02
-**Escopo reduzido em 2026-08-19**: a verificação documental do vínculo UFU (`VERI-01` a `VERI-05`, `VERI-08`, `VERI-12`, `OPER-05`) foi adiada para a v2, e `PRIV-02` foi reatribuído à Phase 3, onde o comprovante de atleta (`SPRT-04`) o mantém vivo no MVP. No MVP a matrícula é autodeclarada e a plataforma verifica somente a unicidade por HMAC — a titularidade não é comprovada.
+**Escopo reduzido em 2026-08-19 e reconciliado em 2026-08-26**: a verificação documental do vínculo UFU (`VERI-01` a `VERI-05`, `VERI-08`, `VERI-12`, `OPER-05`, `PRIV-02`) foi adiada para a v2. A Fase 3 também não recebe comprovante: usa matrícula transitória somente para calcular HMAC e não apresenta a coincidência como prova de titularidade ou vínculo oficial.
 **Decisões reconciliadas**: normalização e formato foram aprovados e implementados no `02-06-SUMMARY.md`; persistência versionada, busca sob versões ativas e limites foram provados no `02-07-SUMMARY.md`; rotação concorrente está no `02-16-SUMMARY.md`; e comprometimento/expurgo D-37 está governado por `02-CHAVE-HMAC-PROCEDIMENTO.md` e pela trilha minimizada dos `02-04-SUMMARY.md`/`02-21-SUMMARY.md`. Permanece aberta somente a política de produto para matrículas legitimamente reemitidas ou múltiplas, que não pode ser inferida do mecanismo criptográfico. A regra de validade deixou de ser pendência: sem verificação documental, a matrícula registrada não expira no MVP.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
@@ -236,20 +238,90 @@ Plans:
 
 ### Phase 3: Experiência Esportiva do Piloto
 
-**Goal**: Visitantes conseguem acompanhar um piloto confiável de confrontos diretos das Olimpíadas UFU, enquanto administradores de competição mantêm seus dados esportivos dentro de escopos responsabilizáveis.
+**Goal**: Visitantes conseguem acompanhar um catálogo confiável e genérico de competições e edições esportivas, começando pela Olimpíada Universitária UFU 2026, enquanto administradores mantêm seus dados somente nos escopos atribuídos.
 **Mode:** mvp
 **Depends on**: Phase 1, Phase 2
-**Requirements**: AUTH-01, SPRT-01, SPRT-02, SPRT-03, SPRT-04, SPRT-05, SPRT-06, SPRT-07, SPRT-08, SPRT-09, SPRT-10, SPRT-11, SPRT-12, SPRT-13, SPRT-14, PRIV-02
-**Decisão pendente**: As modalidades, categorias e tabelas autoritativas exatas do piloto continuam em aberto; somente partidas confiáveis em formato de confronto direto podem ser lançadas.
+**Requirements**: AUTH-01, SPRT-01, SPRT-02, SPRT-03, SPRT-04, SPRT-05, SPRT-06, SPRT-07, SPRT-08, SPRT-09, SPRT-10, SPRT-11, SPRT-12, SPRT-13, SPRT-14, SPRT-15, SPRT-16
+**Decisões encerradas em 2026-08-26**: o produto é genérico para várias competições; todas as modalidades podem entrar no catálogo, mas somente eventos de confronto direto recebem operação detalhada no MVP. Não há comprovante documental de atleta, escalação por partida, estatística específica por modalidade nem bloqueio de aposta por vínculo de atleta. O contexto completo e as evoluções obrigatórias estão em `03-CONTEXT.md`.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
-  1. Um visitante consegue navegar por competições públicas, filtrar a programação, abrir uma partida completa e consultar estado, proveniência e horários de um confronto publicado sem possuir conta.
-  2. Um administrador de competição consegue manter apenas edição, etapas, equipes, atletas, elencos e partidas da competição atribuída, com motivos auditáveis para publicação, suspensão, adiamento e cancelamento.
-  3. Um visitante consegue abrir a página de uma equipe e consultar elenco público autorizado, esporte, desempenho recente, resultados e próximas partidas.
-  4. Um atleta pode existir sem conta BETUFU; uma correspondência HMAC posterior é proposta de modo único, revisável e contestável, sem revelar a matrícula.
-  5. Elencos ficam bloqueados antes da abertura dos mercados afetados, e o piloto lançado exclui formatos não suportados com vários competidores e confrontos sem fonte confiável.
+  1. Um visitante sem conta consegue navegar primeiro pela agenda de várias competições/edições, aplicar filtros e abrir evento com estado, horário, local opcional, participantes e fonte.
+  2. Um ou mais administradores de competição conseguem operar somente o escopo atribuído e manter rascunhos/publicações de organizações, equipes por edição, atletas, elencos e eventos com versões, motivo e auditoria.
+  3. Um visitante consegue abrir páginas de organização, equipe e atleta com dados autorizados, próximos eventos, resultados e estatísticas genéricas; favorito aponta para a organização esportiva inteira.
+  4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
+  5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: TBD
+**Plans**: 17 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — aprovar ER/DDL, identidade de versão e migração preservadora
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md — provar migration, autorização e API pública do tracer
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 03-03-PLAN.md — levar o tracer ao contrato Angular e navegador
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 03-04-PLAN.md — expandir catálogo genérico e locais reutilizáveis
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 03-05-PLAN.md — criar organizações/equipes e reconciliar favorito
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 03-06-PLAN.md — criar atleta global e seam HMAC transitório
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 03-07-PLAN.md — entregar propostas e revisão de vínculo
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 03-08-PLAN.md — publicar elencos versionados
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [ ] 03-09-PLAN.md — importar CSV atomicamente
+
+**Wave 10** *(blocked on Wave 9 completion)*
+
+- [ ] 03-10-PLAN.md — versionar eventos, resultados e fontes
+
+**Wave 11** *(blocked on Wave 10 completion)*
+
+- [ ] 03-11-PLAN.md — completar agenda e páginas públicas
+
+**Wave 12** *(blocked on Wave 11 completion)*
+
+- [ ] 03-12-PLAN.md — derivar chaveamento dos eventos
+
+**Wave 13** *(blocked on Wave 12 completion)*
+
+- [ ] 03-13-PLAN.md — publicar classificação manual versionada
+
+**Wave 14** *(blocked on Wave 13 completion)*
+
+- [ ] 03-14-PLAN.md — entregar perfil esportivo textual/social owner-only
+
+**Wave 15** *(blocked on Wave 14 completion)*
+
+- [ ] 03-15-PLAN.md — processar e armazenar foto com segurança
+
+**Wave 16** *(blocked on Wave 15 completion)*
+
+- [ ] 03-16-PLAN.md — consolidar capabilities e workspace O1–O8
+
+**Wave 17** *(blocked on Wave 16 completion)*
+
+- [ ] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação
+
 **UI hint**: yes
 
 ### Phase 4: Mercados Pré-jogo e Odds Transparentes
@@ -276,12 +348,12 @@ Plans:
 **Mode:** mvp
 **Depends on**: Phase 2, Phase 4
 **Requirements**: VERI-10, CRED-01, CRED-02, CRED-03, CRED-04, CRED-05, CRED-06, CRED-08, CRED-10, ODDS-14, PRED-01, PRED-02, PRED-03, PRED-04, PRED-05, PRED-06, PRED-07, PRED-08, INTE-01, INTE-02, INTE-03, INTE-04, DATA-03, DATA-04, DATA-05, API-03
-**Decisão pendente**: Quantidade inicial de créditos; limites e precisão da aposta; fórmula de pagamento; inclusão ou não da aposta no retorno; arredondamento; e política para conflito identificado tardiamente continuam em aberto. Esta fase não pode escolhê-los implicitamente.
+**Decisão pendente**: Quantidade inicial de créditos; limites e precisão da aposta; fórmula de pagamento; inclusão ou não da aposta no retorno; arredondamento; e política para conflito administrativo identificado tardiamente continuam em aberto. Esta fase não pode escolhê-los implicitamente. Vínculo de atleta não bloqueia aposta no MVP, conforme `03-CONTEXT.md`.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
   1. Um aluno recém-elegível recebe a mesma concessão única e auditável de créditos virtuais, nunca a recebe novamente por revalidação e não consegue comprar, vender, transferir, sacar ou repor créditos por mecanismos não aprovados.
   2. Um usuário verificado, elegível e sem conflitos consegue selecionar um resultado do mercado antes do horário canônico de fechamento e visualizar um bilhete com seleção, valor, versões da odd aceita e das regras do mercado, retorno virtual potencial e horário de encerramento.
-  3. O servidor verifica novamente, de forma atômica, verificação, papéis, conflitos como atleta, estado do mercado, prazo, versão da odd, limites configurados e saldo; tentativas inválidas ou concorrentes são rejeitadas sem saldo negativo, seleção duplicada ou efeitos duplicados no livro-razão.
+  3. O servidor verifica novamente, de forma atômica, verificação, papéis, escopos, conflitos administrativos, estado do mercado, prazo, versão da odd, limites configurados e saldo; tentativas inválidas ou concorrentes são rejeitadas sem saldo negativo, seleção duplicada ou efeitos duplicados no livro-razão. O vínculo de atleta é permitido pela política do MVP.
   4. Um palpite enviado é imutável, seu débito e seus registros aceitos são gravados juntos, e palpites individuais ou agregados permanecem ocultos de outros usuários até o fechamento do mercado.
   5. Quando o preço muda antes do envio, o bilhete aberto é invalidado e o usuário precisa reconfirmar explicitamente a versão atualizada.
 
@@ -297,7 +369,7 @@ Plans:
 **Decisão pendente**: O tratamento de correções após o gasto de créditos pagos incorretamente, a aprovação de ajustes compensatórios diretos no livro-razão e a visibilidade no ranking durante uma verificação expirada continuam em aberto e exigem uma política explícita antes da implementação dos fluxos correspondentes.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
-  1. Um administrador de competição consegue enviar um resultado provisório com evidências, mas um segundo administrador autorizado e distinto precisa confirmá-lo antes de qualquer liquidação.
+  1. A liquidação consome a versão esportiva vigente já publicada e confirmada na Fase 3; um administrador autoriza a versão exata e, no MVP, pode ser a mesma pessoa que registrou ou confirmou o resultado, com atores persistidos separadamente para futura política de duas pessoas.
   2. Usuários conseguem consultar o estado pendente, ganho, perdido, reembolsado ou anulado de cada palpite, juntamente com resultado, regra, cálculo e movimentações de saldo aplicados.
   3. Adiamento, cancelamento, anulação e correção suspendem ou compensam o trabalho afetado sem apagar o histórico; novas tentativas e recuperações não duplicam débitos, reembolsos, pagamentos, conquistas ou efeitos de liquidação.
   4. Uma pessoa consegue visualizar um único ranking vitalício da UFU, ordenado primeiro por palpites definitivamente corretos e depois pela taxa de acerto, com posições compartilhadas nos empates restantes e sem multiplicação dos acertos por créditos ou odds.
@@ -332,7 +404,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 0/TBD | Pending | - |
+| 3. Experiência Esportiva do Piloto | 0/17 | Planned | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
