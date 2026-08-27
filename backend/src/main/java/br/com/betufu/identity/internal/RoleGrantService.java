@@ -18,8 +18,10 @@ import br.com.betufu.identity.OperationalRoleQuery;
 import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
 import br.com.betufu.platform.session.events.OperationalRoleChanged;
+import br.com.betufu.sports.CompetitionScopeCatalog;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,8 @@ public class RoleGrantService implements OperationalRoleQuery {
     private final BetufuProfileService profileService;
     private final AuditRecorder auditRecorder;
     private final ApplicationEventPublisher eventPublisher;
+    @Nullable
+    private final CompetitionScopeCatalog competitionScopeCatalog;
     private final TransactionOperations transactionOperations;
 
     public RoleGrantService(
@@ -45,7 +49,13 @@ public class RoleGrantService implements OperationalRoleQuery {
             BetufuProfileService profileService,
             AuditRecorder auditRecorder,
             ApplicationEventPublisher eventPublisher) {
-        this(repository, profileService, auditRecorder, eventPublisher, (PlatformTransactionManager) null);
+        this(
+                repository,
+                profileService,
+                auditRecorder,
+                eventPublisher,
+                null,
+                null);
     }
 
     @Autowired
@@ -54,11 +64,15 @@ public class RoleGrantService implements OperationalRoleQuery {
             BetufuProfileService profileService,
             AuditRecorder auditRecorder,
             ApplicationEventPublisher eventPublisher,
+            ObjectProvider<CompetitionScopeCatalog> competitionScopeCatalogProvider,
             @Nullable PlatformTransactionManager transactionManager) {
         this.repository = Objects.requireNonNull(repository, "repository must not be null");
         this.profileService = profileService;
         this.auditRecorder = auditRecorder;
         this.eventPublisher = eventPublisher;
+        this.competitionScopeCatalog = competitionScopeCatalogProvider != null
+                ? competitionScopeCatalogProvider.getIfAvailable()
+                : null;
         this.transactionOperations = transactionManager != null
                 ? new TransactionTemplate(transactionManager)
                 : TransactionOperations.withoutTransaction();
@@ -179,6 +193,7 @@ public class RoleGrantService implements OperationalRoleQuery {
 
         requireConsistentScope(
                 actorIdentityId, targetIdentityId, role, scopeRef, AuditEntry.ACTION_PAPEL_CONCEDIDO);
+        requireExistingCompetition(actorIdentityId, targetIdentityId, role, scopeRef);
 
         transactionOperations.execute(status -> {
             int inserted = repository.insertGrant(targetIdentityId, role.name(), scopeRef);
@@ -347,6 +362,27 @@ public class RoleGrantService implements OperationalRoleQuery {
             return role.name();
         }
         return role.name() + ";scope=" + scopeRef;
+    }
+
+    private void requireExistingCompetition(
+            UUID actorIdentityId,
+            UUID targetIdentityId,
+            OperationalRole role,
+            UUID scopeRef) {
+        if (role != OperationalRole.ADMINISTRADOR_COMPETICAO) {
+            return;
+        }
+        if (competitionScopeCatalog == null || !competitionScopeCatalog.existsCompetition(scopeRef)) {
+            recordAudit(
+                    actorIdentityId,
+                    targetIdentityId,
+                    AuditEntry.ACTION_PAPEL_CONCEDIDO,
+                    AuditEntry.OUTCOME_BLOCKED,
+                    null,
+                    formatRoleValue(role, scopeRef),
+                    "Competição usada como escopo não existe");
+            throw new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
+        }
     }
 
     private static final class LastAdminRevocationBlockedException extends RuntimeException {

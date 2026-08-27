@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,7 +20,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -79,7 +82,7 @@ class FlywayMigrationIT {
     }
 
     @Test
-    @DisplayName("Aplica V1 a V6 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
+    @DisplayName("Aplica V1 a V9 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
     void appliesV1AndV2MigrationsSequentially() {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
@@ -88,10 +91,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(9);
+        assertThat(result.migrationsExecuted).isEqualTo(10);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(9);
+        assertThat(applied).hasSize(10);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -120,6 +123,9 @@ class FlywayMigrationIT {
         assertThat(applied[8].getVersion().getVersion()).isEqualTo("8");
         assertThat(applied[8].getState()).isEqualTo(MigrationState.SUCCESS);
 
+        assertThat(applied[9].getVersion().getVersion()).isEqualTo("9");
+        assertThat(applied[9].getState()).isEqualTo(MigrationState.SUCCESS);
+
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
                 Integer.class);
@@ -135,7 +141,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(9);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(10);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -144,7 +150,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(9);
+        assertThat(applied).hasSize(10);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -182,7 +188,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(9);
+            assertThat(totalExecuted).isEqualTo(10);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -190,7 +196,7 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(9);
+            assertThat(applied).hasSize(10);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();
@@ -239,5 +245,92 @@ class FlywayMigrationIT {
                 "INSERT INTO public.operational_role_grant (identity_id, role_name, scope_ref, status)"
                         + " VALUES (?, 'ADMINISTRADOR_GERAL', NULL, 'VIGENTE')",
                 identityId)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("V9 preserva publicações e seus slots como snapshots imutáveis")
+    void v9KeepsPublishedSnapshotsImmutable() {
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        TransactionTemplate transaction = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
+        UUID publicationId = transaction.execute(status -> {
+            UUID identityId = jdbcTemplate.queryForObject(
+                    "INSERT INTO public.local_identity (issuer, subject) VALUES (?, ?) RETURNING identity_id",
+                    UUID.class,
+                    "https://example.invalid/realms/betufu-sports",
+                    "sports-publisher");
+            UUID competitionId = jdbcTemplate.queryForObject(
+                    "INSERT INTO public.sports_competition (name, slug) "
+                            + "VALUES ('Competicao', 'competicao') RETURNING competition_id",
+                    UUID.class);
+            UUID editionId = jdbcTemplate.queryForObject(
+                    "INSERT INTO public.sports_edition (competition_id, name, slug) "
+                            + "VALUES (?, 'Edicao', 'edicao') RETURNING edition_id",
+                    UUID.class,
+                    competitionId);
+            UUID eventId = jdbcTemplate.queryForObject(
+                    "INSERT INTO public.sports_event "
+                            + "(competition_id, edition_id, title, event_format, scheduled_at, zone_id, "
+                            + "venue_state, source_reference) "
+                            + "VALUES (?, ?, 'Evento', 'HEAD_TO_HEAD', CURRENT_TIMESTAMP, "
+                            + "'America/Sao_Paulo', 'LOCAL_A_DEFINIR', 'https://example.invalid/source') "
+                            + "RETURNING event_id",
+                    UUID.class,
+                    competitionId,
+                    editionId);
+            UUID createdPublicationId = jdbcTemplate.queryForObject(
+                    "INSERT INTO public.sports_event_publication "
+                            + "(event_id, competition_id, edition_id, version_no, competition_name, "
+                            + "edition_name, title, event_format, scheduled_at, zone_id, venue_state, "
+                            + "source_reference, published_by_identity_id, base_lock_version) "
+                            + "VALUES (?, ?, ?, 1, 'Competicao', 'Edicao', 'Evento', 'HEAD_TO_HEAD', "
+                            + "CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', "
+                            + "'https://example.invalid/source', ?, 0) RETURNING publication_id",
+                    UUID.class,
+                    eventId,
+                    competitionId,
+                    editionId,
+                    identityId);
+            jdbcTemplate.update(
+                    "INSERT INTO public.sports_event_publication_slot "
+                            + "(publication_id, slot_no, display_label) VALUES (?, 1, 'Equipe A')",
+                    createdPublicationId);
+            jdbcTemplate.update(
+                    "INSERT INTO public.sports_event_publication_slot "
+                            + "(publication_id, slot_no, display_label) VALUES (?, 2, 'Equipe B')",
+                    createdPublicationId);
+            return createdPublicationId;
+        });
+
+        assertThat(publicationId).isNotNull();
+
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_event_publication_slot "
+                        + "(publication_id, slot_no, display_label) VALUES (?, 3, 'Equipe tardia')",
+                publicationId))
+                .hasMessageContaining("exactly two immutable slots");
+
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_event_publication SET title = 'Alterado' WHERE publication_id = ?",
+                publicationId))
+                .hasMessageContaining("snapshots are immutable");
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "DELETE FROM public.sports_event_publication WHERE publication_id = ?",
+                publicationId))
+                .hasMessageContaining("snapshots are immutable");
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_event_publication_slot SET display_label = 'Alterado' "
+                        + "WHERE publication_id = ? AND slot_no = 1",
+                publicationId))
+                .hasMessageContaining("snapshots are immutable");
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "DELETE FROM public.sports_event_publication_slot "
+                        + "WHERE publication_id = ? AND slot_no = 1",
+                publicationId))
+                .hasMessageContaining("snapshots are immutable");
     }
 }

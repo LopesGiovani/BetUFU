@@ -36,6 +36,12 @@ public enum ApiErrorCode {
             "Você não pode conceder papéis a si mesmo.",
             "Peça a outro administrador geral."),
 
+    NOT_FOUND(
+            "BETUFU-404-NOT_FOUND",
+            "Recurso não encontrado",
+            "O recurso solicitado não foi encontrado.",
+            "Confira o endereço ou atualize a página."),
+
     METHOD_NOT_ALLOWED(
             "BETUFU-405-METHOD",
             "Método não permitido",
@@ -71,6 +77,12 @@ public enum ApiErrorCode {
             "Nova matrícula já registrada",
             "A nova matrícula já está registrada em outra conta.",
             "A correção não foi aplicada."),
+
+    STALE_VERSION(
+            "BETUFU-409-STALE_VERSION",
+            "Versão desatualizada",
+            "O recurso foi alterado desde a sua última leitura.",
+            "Atualize os dados antes de tentar novamente."),
 
     UNSUPPORTED_MEDIA_TYPE(
             "BETUFU-415-MEDIA_TYPE",
@@ -135,6 +147,7 @@ public enum ApiErrorCode {
             case 400 -> VALIDATION_FAILED;
             case 401 -> UNAUTHORIZED;
             case 403 -> FORBIDDEN;
+            case 404 -> NOT_FOUND;
             case 405 -> METHOD_NOT_ALLOWED;
             case 406 -> NOT_ACCEPTABLE;
             case 415 -> UNSUPPORTED_MEDIA_TYPE;

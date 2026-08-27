@@ -132,7 +132,9 @@ class RoleGrantControllerIT {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute(
-                "TRUNCATE TABLE public.audit_event, public.operational_role_grant, public.betufu_profile, public.ufu_enrollment, public.local_identity CASCADE");
+                "TRUNCATE TABLE public.sports_competition, public.audit_event, "
+                        + "public.operational_role_grant, public.betufu_profile, "
+                        + "public.ufu_enrollment, public.local_identity CASCADE");
         var connection = redisTemplate.getConnectionFactory().getConnection();
         connection.serverCommands().flushDb();
 
@@ -409,8 +411,8 @@ class RoleGrantControllerIT {
         grantAdminRole(actorId);
         OidcUser actorPrincipal = buildOidcUser("https://idp.invalid", "scope-actor-sub");
 
-        UUID scopeA = UUID.randomUUID();
-        UUID scopeB = UUID.randomUUID();
+        UUID scopeA = createCompetition("Escopo A");
+        UUID scopeB = createCompetition("Escopo B");
 
         roleGrantService.grantRole(actorId, targetId, OperationalRole.ADMINISTRADOR_COMPETICAO, scopeA);
         roleGrantService.grantRole(actorId, targetId, OperationalRole.ADMINISTRADOR_COMPETICAO, scopeB);
@@ -428,6 +430,14 @@ class RoleGrantControllerIT {
         jdbcTemplate.update(
                 "INSERT INTO public.operational_role_grant (identity_id, role_name, status) VALUES (?, 'ADMINISTRADOR_GERAL', 'VIGENTE') ON CONFLICT DO NOTHING",
                 identityId);
+    }
+
+    private UUID createCompetition(String name) {
+        return jdbcTemplate.queryForObject(
+                "INSERT INTO public.sports_competition (name, slug) VALUES (?, ?) RETURNING competition_id",
+                UUID.class,
+                name,
+                "role-grant-" + UUID.randomUUID());
     }
 
     private UUID createIdentityAndProfile(String issuer, String subject, String nickname) {

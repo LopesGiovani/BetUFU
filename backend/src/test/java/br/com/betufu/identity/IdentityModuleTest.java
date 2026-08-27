@@ -54,9 +54,10 @@ class IdentityModuleTest {
     // futuro. Ele foi entregue pelos Planos 02-04 e 02-21, e `verification/internal/EnrollmentService`
     // já o consome sem que nenhuma guarda o impeça. Manter `audit` aqui bloquearia a trilha de
     // auditoria de concessões e recusas de papel exigida por D-30 e D-48.
+    // O Plano 03-02 autoriza identity -> sports somente pelo contrato publico
+    // CompetitionScopeCatalog; ApplicationModules.verify() continua vedando sports.internal.
     private static final List<String> FUTURE_BUSINESS_MODULES = List.of(
             "verification",
-            "sports",
             "odds",
             "betting",
             "ledger",

@@ -279,6 +279,9 @@ paths:
         "403":
           description: Autenticado sem permissão ou autoconcessão bloqueada (Problem Details).
 
+        "404":
+          description: Competição usada como escopo não encontrada ao conceder ADMINISTRADOR_COMPETICAO.
+
   /api/v1/operations/roles/revocations:
     post:
       tags:
@@ -545,6 +548,180 @@ paths:
                 $ref: "#/components/schemas/OperationalCapabilitiesResponse"
         "401":
           description: Requisição não autenticada.
+
+  /api/v1/operations/sports/competitions:
+    post:
+      tags:
+        - SportsOperations
+      operationId: createSportsCompetition
+      summary: Criar uma competição esportiva
+      description: >-
+        Cria a raiz administrativa cujo UUID é usado como `scopeRef` dos
+        administradores de competição. Exige ADMINISTRADOR_GERAL global e CSRF.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsCompetitionCreateRequest"
+      responses:
+        "201":
+          description: Competição criada com UUID gerado pelo servidor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsCompetitionResponse"
+        "400":
+          description: Nome ou slug inválido (Problem Details).
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Ator sem ADMINISTRADOR_GERAL global.
+
+  /api/v1/operations/sports/competitions/{competitionId}/editions:
+    post:
+      tags:
+        - SportsOperations
+      operationId: createSportsEdition
+      summary: Criar uma edição de competição
+      description: >-
+        Cria uma edição sob a competição persistida indicada. Exige
+        ADMINISTRADOR_GERAL global e CSRF.
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsEditionCreateRequest"
+      responses:
+        "201":
+          description: Edição criada dentro da competição indicada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEditionResponse"
+        "400":
+          description: Dados da edição inválidos (Problem Details).
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Ator sem ADMINISTRADOR_GERAL global.
+        "404":
+          description: Competição não encontrada (Problem Details).
+
+  /api/v1/operations/sports/editions/{editionId}/events:
+    post:
+      tags:
+        - SportsOperations
+      operationId: createSportsEvent
+      summary: Criar um evento esportivo em rascunho
+      description: >-
+        Carrega a edição persistida, deriva sua `competitionId` e exige a
+        concessão ADMINISTRADOR_COMPETICAO com `scopeRef` exatamente igual.
+        O cliente não escolhe o escopo de autorização.
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsEventCreateRequest"
+      responses:
+        "201":
+          description: Evento criado no estado RASCUNHO.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEventResponse"
+        "400":
+          description: Dados do evento inválidos (Problem Details).
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Papel ausente ou concedido para outra competição.
+        "404":
+          description: Edição não encontrada (Problem Details).
+
+  /api/v1/operations/sports/events/{eventId}/publications:
+    post:
+      tags:
+        - SportsOperations
+      operationId: publishSportsEvent
+      summary: Publicar uma versão imutável do evento
+      description: >-
+        Carrega o evento, deriva sua competição, valida o papel escopado e cria
+        um snapshot append-only. Uma `expectedLockVersion` desatualizada recebe
+        409 sem sobrescrever trabalho concorrente.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsEventPublishRequest"
+      responses:
+        "201":
+          description: Snapshot público imutável criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicSportsEventResponse"
+        "400":
+          description: Versão esperada ausente ou inválida (Problem Details).
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Papel ausente ou concedido para outra competição.
+        "404":
+          description: Evento não encontrado (Problem Details).
+        "409":
+          description: Rascunho desatualizado ou já publicado (Problem Details).
+
+  /api/v1/public/sports/events/{eventId}:
+    get:
+      tags:
+        - SportsPublic
+      operationId: getPublishedSportsEvent
+      summary: Consultar a versão pública de um evento
+      description: >-
+        Endpoint anônimo que retorna somente o snapshot publicado mais recente.
+        Rascunho, ator da publicação, papéis e versão técnica de edição não
+        atravessam esta fronteira.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Snapshot público mais recente do evento.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicSportsEventResponse"
+        "404":
+          description: Evento sem versão publicada (Problem Details).
 
   /api/v1/diagnostic:
     get:
@@ -1212,6 +1389,304 @@ components:
           format: int32
           minimum: 0
           description: Contagem agregada de contas sem matrícula ativa.
+
+    SportsCompetitionCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 96
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+
+    SportsCompetitionResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - competitionId
+        - name
+        - slug
+        - status
+        - lockVersion
+      properties:
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsEditionCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 96
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        startDate:
+          type: [string, "null"]
+          format: date
+        endDate:
+          type: [string, "null"]
+          format: date
+
+    SportsEditionResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - editionId
+        - competitionId
+        - name
+        - slug
+        - startDate
+        - endDate
+        - status
+        - lockVersion
+      properties:
+        editionId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        startDate:
+          type: [string, "null"]
+          format: date
+        endDate:
+          type: [string, "null"]
+          format: date
+        status:
+          type: string
+          enum:
+            - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsEventFormat:
+      type: string
+      enum:
+        - HEAD_TO_HEAD
+
+    SportsVenueState:
+      type: string
+      enum:
+        - LOCAL_A_DEFINIR
+
+    SportsEventSlotRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - displayLabel
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 32
+        displayLabel:
+          type: string
+          minLength: 1
+          maxLength: 160
+
+    SportsEventCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - format
+        - scheduledAt
+        - zoneId
+        - venueState
+        - sourceReference
+        - slots
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        format:
+          $ref: "#/components/schemas/SportsEventFormat"
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+          minLength: 1
+          maxLength: 64
+        venueState:
+          $ref: "#/components/schemas/SportsVenueState"
+        sourceReference:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        slots:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SportsEventSlotRequest"
+
+    SportsEventResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - competitionId
+        - editionId
+        - title
+        - format
+        - status
+        - scheduledAt
+        - zoneId
+        - venueState
+        - lockVersion
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        format:
+          $ref: "#/components/schemas/SportsEventFormat"
+        status:
+          type: string
+          enum:
+            - RASCUNHO
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+        venueState:
+          $ref: "#/components/schemas/SportsVenueState"
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsEventPublishRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - expectedLockVersion
+      properties:
+        expectedLockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    PublicSportsEventSlotResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - displayLabel
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+        displayLabel:
+          type: string
+
+    PublicSportsEventResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - publicationId
+        - eventId
+        - competitionId
+        - editionId
+        - versionNo
+        - competitionName
+        - editionName
+        - title
+        - format
+        - scheduledAt
+        - zoneId
+        - venueState
+        - sourceReference
+        - publishedAt
+        - slots
+      properties:
+        publicationId:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        versionNo:
+          type: integer
+          format: int64
+          minimum: 1
+        competitionName:
+          type: string
+        editionName:
+          type: string
+        title:
+          type: string
+        format:
+          $ref: "#/components/schemas/SportsEventFormat"
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+        venueState:
+          $ref: "#/components/schemas/SportsVenueState"
+        sourceReference:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicSportsEventSlotResponse"
 
     OperationalCapability:
       type: string
