@@ -10,4 +10,5 @@
 /frontend/coverage/
 /.idea/
 /.agents/
+/.planning/research/.cache/
 skills-lock.json

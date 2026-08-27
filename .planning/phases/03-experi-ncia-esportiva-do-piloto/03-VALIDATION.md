@@ -72,7 +72,7 @@ created: 2026-08-26
 | Plan/Wave | Primary automated evidence |
 |---|---|
 | 03-01 / W1 | decisão documents gate (`approved`, IDs e forward-fix) |
-| 03-02 / W2 | `SportsTracerIT`, Flyway, Modulith e API pública backend |
+| 03-02 / W2 | `SportsTracerIT`, Flyway, Modulith e API pública backend — ✅ green: focal 9/9 + 2/2, Surefire 251/251, Failsafe 342/342 e Node 623/623 |
 | 03-03 / W3 | cliente gerado, Angular tracer e Playwright tracer |
 | 03-04 / W4 | `SportsCatalogIT`, Angular O1 e contract gates |
 | 03-05 / W5 | `SportsOrganizationIT`, `ProfilePersistenceIT` e O2/profile |
@@ -105,6 +105,14 @@ created: 2026-08-26
 - [ ] Servir bytes originais da foto deixa o teste de mídia vermelho.
 - [ ] Copiar placar/participante para o bracket deixa o teste derivado vermelho.
 
+### Evidência discriminante concluída na Wave 2
+
+| Controle | Resultado |
+|----------|-----------|
+| Escopo persistido A/B | ✅ `rejectsPublicationByAdministratorFromAnotherScope()` ficou vermelho ao remover `requireCompetitionAdministrator`: esperado 403, observado 201. |
+| Restauração | ✅ `SportsTracerService.java` restaurado ao SHA-256 `552921E19D2B9ED51DE813470DE8EA90F67E65947C2B88C59A71CBAEDBB05261`. |
+| Limite da evidência | AUTH-01, SPRT-01, SPRT-10 e SPRT-11 continuam `pending` no mapa global porque também dependem dos planos 03-03, 03-04, 03-10, 03-11, 03-16 e 03-17. |
+
 ---
 
 ## Wave 0 Requirements
@@ -113,8 +121,8 @@ created: 2026-08-26
 - [ ] 03-09/T2 — `backend/src/test/resources/sports/csv/` com válido, erro tardio, BOM/encoding, quoting, duplicata, referência ausente e limites.
 - [ ] 03-15/T2 — `backend/src/test/resources/sports/media/` com válida, MIME falso, truncada, pixels excessivos, metadados e falha de storage.
 - [ ] 03-06/T2 — compatibilidade da porta HMAC e extensão estreita de `PrivacyArchitectureTest`.
-- [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V19.
-- [ ] 03-02/T1 — teste de existência de competição ao conceder papel escopado.
+- [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V19. **V9: ✅ green no 03-02; V10–V19 permanecem pendentes.**
+- [x] 03-02/T1 — teste de existência de competição ao conceder papel escopado. **Provado por `rejectsGrantForUnknownCompetition()`.**
 - [ ] 03-03/T2 a 03-15/T3, com inventário/digest final no 03-17/T1 — gate do gerador OpenAPI e checkpoint humano de inventário/digest.
 
 Esses itens não precisam estar todos no primeiro plano. Cada PLAN deve possuir a fixture/gate antes da task que depende dela.

@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: Completed 03-01-PLAN.md; Wave 2 ready for interactive preflight
-last_updated: "2026-08-27T15:11:58.935Z"
+stopped_at: Wave 2 complete and cleaned; Wave 3 ready for interactive preflight
+last_updated: "2026-08-27T22:35:33.942Z"
 last_activity: 2026-08-27
-last_activity_desc: Wave 1 da Fase 3 concluída e integrada localmente; Wave 2 pronta para preflight interativo.
-state_head: 2253ed7e2da923c1a07c01508283d58d52aec011
+last_activity_desc: Wave 2 implementada, verificada, revisada, integrada e limpa; push permanece pendente e Wave 3 está pronta.
+state_head: 2be1b0f3ec035d7447e3d64aa9252ff68e6edce0
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 80
-  completed_plans: 64
+  completed_plans: 65
 milestone_name: milestone
 ---
 
@@ -24,17 +24,19 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** execução interativa da Fase 3 — Wave 2 pronta para preflight
+**Current focus:** preflight interativo da Wave 3 da Fase 3 — Plano 03-03
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 1 de 17 concluído; próximo plano executável é o 03-02, tracer backend da primeira migration até a API pública.
-Status: In progress — Wave 1 decisória concluída; nenhuma migration ou alteração de produção foi executada.
-Last activity: 2026-08-27 — ER/DDL, identidade de versão e migração preservadora aprovados, revisados e integrados localmente.
+Plan: 2 de 17 concluídos; o 03-02 entregou o tracer backend da primeira migration até a API pública.
+Status: In progress — Wave 2 concluída, integrada e limpa; push permanece separado e a Wave 3 está pronta para preflight.
+Last activity: 2026-08-27 — a worktree `worktree-agent-03-02` e sua branch temporária foram removidas após a integração do commit técnico `2be1b0f` e da formalização documental corrente; somente a worktree principal permanece.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
-Git — Fase 3: planejamento formalizado e enviado em `e4b3cf0`; Wave 1 integrada localmente em `2253ed7`. A `master` permanece à frente de `origin/master` até autorização separada de push. Os seis caches de pesquisa continuam untracked e fora dos commits, `arquivo.txt` foi removido pelo responsável e a branch de backup não foi alterada.
+Git — Fase 3: planejamento formalizado e enviado em `e4b3cf0`; Wave 1 e a atualização do README chegaram localmente até `57077de`, base usada para a integração linear da Wave 2. `origin/master` permanece em `e4b3cf0`. Os seis caches de pesquisa continuam untracked e fora dos commits, `arquivo.txt` foi removido pelo responsável e a branch de backup não foi alterada.
+
+Git — Fase 3 / Wave 2 (concluída e limpa, 2026-08-27): a `master` recebeu o commit técnico `2be1b0f`, contendo exatamente os 14 paths técnicos certificados, seguido pela formalização documental corrente com `03-02-PLAN.md`, `03-02-SUMMARY.md`, `03-VALIDATION.md`, `STATE.md` e `ROADMAP.md`. A árvore passou `SportsTracerIT` 9/9, `ModulithArchitectureTests` 2/2, Surefire 251/251, Failsafe 342/342, Node 623/623 e Maven `clean verify` com `BUILD SUCCESS`. A mutação de escopo ficou vermelha e o service foi restaurado ao SHA-256 `552921E19D2B9ED51DE813470DE8EA90F67E65947C2B88C59A71CBAEDBB05261`. A revisão Codex retornou `PASS`, P0=P1=P2=0. Os 14 hashes da worktree revisada permaneceram aprovados e o conteúdo Git integrado ficou idêntico em 14/14 paths. A worktree e a branch temporárias foram removidas; `.gitignore` foi atualizado para ignorar somente o cache local de pesquisa e o push permanece não executado.
 
 Git — Wave 7 (concluída e integrada, 2026-08-23): operações Git mutáveis autorizadas e executadas, na ordem. (1) `git worktree add` para os três planos, a partir do SHA base `a6f5f65`, com branches neutras `worktree-agent-02-23`, `worktree-agent-02-28` e `worktree-agent-02-30`; os três nasceram limpos. (2) Um quarto worktree temporário e destacado, `wave-07/integration`, montou a árvore combinada sem commit para as suítes agregadas e para cada rodada de revisão. (3) **Rebase de dobra**: as correções das cinco rodadas de revisão foram dobradas nos commits existentes por cherry-pick encadeado com `--amend`, sem criar commit de correção. Os SHAs `eb4e79f`, `e63e313` e `a9b68de` deixaram de existir. (4) **Normalização de mensagens**: uma segunda passada reescreveu as mensagens dos cinco commits da onda para uma linha, no padrão dos vinte commits anteriores do projeto, e removeu os rodapés `Co-Authored-By` e `Claude-Session`, que nenhum commit do repositório usa. Os corpos longos foram auditados item a item antes de descartados: nove itens que existiam somente neles foram acrescentados aos SUMMARY, e as árvores dos três commits de código permaneceram idênticas antes e depois, provando que só a mensagem mudou.
 
@@ -76,13 +78,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [█░░░░░░░░░] 1/17 planos da Fase 3 (6%)
+Progress: [█░░░░░░░░░] 2/17 planos da Fase 3 (12%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 64
+- Total de planos concluídos: 65
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -92,16 +94,22 @@ Progress: [█░░░░░░░░░] 1/17 planos da Fase 3 (6%)
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
 | 2 | 32 | não mensurado | não mensurada |
+| 3 | 2 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos 5 planos: 02-19, 02-20, 02-32, 02-26 e 02-27
+- Últimos planos: 02-26, 02-27, 03-01 e 03-02; a janela ainda possui somente quatro planos após a transição de fase
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
 ## Contexto acumulado
 
 ### Decisões
+
+- O tracer esportivo deriva `competitionId` da edição ou evento persistido antes da autorização; payload e path não são usados como prova de escopo.
+- `sports` consome `platform.identity.OperationalIdentityLookup`, enquanto `identity` valida concessões pela porta pública `sports.CompetitionScopeCatalog`; nenhum módulo importa o `internal` do outro.
+- Publicação esportiva cria snapshot append-only e o GET anônimo consulta somente a publicação mais recente; rascunho, ator e dados internos não cruzam a fronteira pública.
+- O matcher público libera apenas `GET /api/v1/public/sports/**`; comandos continuam protegidos pelo matcher autenticado de `/api/v1/**`.
 
 - Na navegação S7, o backend converte os papéis D-46 em três capacidades fechadas; o frontend nunca recebe nem mapeia papel. Ausência, valor desconhecido ou payload malformado falham fechados, e a visibilidade do menu é apenas conveniência sobre a autorização do BFF.
 - A trilha de auditoria referencia estados e versões sem armazenar o HMAC da matrícula; MFA e evidência documental permanecem ausentes do MVP.
@@ -176,6 +184,9 @@ Progress: [█░░░░░░░░░] 1/17 planos da Fase 3 (6%)
 
 ### Pendências
 
+- **P3 do 03-02 — slug duplicado.** A V9 protege unicidade no banco, mas a resposta amigável e específica para conflito de slug pertence ao catálogo completo do plano 03-04.
+- **P3 do 03-02 — expansão da fronteira pública.** Qualquer nova rota GET sob `/api/v1/public/sports/**` nasce anônima pelo matcher atual e precisa manter DTO allowlist estrito e leitura exclusiva de dados publicados.
+
 - ~~As 27 regras semânticas de `validate-angular-route-boundary` não tinham controle válido.~~ **Resolvido pelo Plano 02-18.** As 27 mutações agora exigem sua regra declarada e são avaliadas antes do digest final; as duas mutações de URL absoluta também receberam rótulos semânticos. O digest permanece ativo como controle de integridade residual.
 - **P3 da Wave 10 — vocabulário dos exemplos OpenAPI.** Dois exemplos ainda usam `PERMITTED`/`BLOCKED`, enquanto o runtime usa `PERMITIDO`/`BLOQUEADO`. Tipos e comportamento estão corretos; falta alinhar apenas os exemplos documentais.
 - **P3 da Wave 10 — orçamento de estilo.** O build passa, mas o SCSS do painel excede o orçamento de 4 kB em 2,67 kB; o perfil já excedia em 1,94 kB. Tratar antes de ampliar a S4 para evitar crescimento silencioso do bundle.
@@ -203,6 +214,8 @@ Progress: [█░░░░░░░░░] 1/17 planos da Fase 3 (6%)
 
 ### Bloqueios e pontos de atenção
 
+- ~~A Wave 3 permanecia bloqueada até integração e limpeza do 03-02.~~ **Resolvido em 2026-08-27:** commits `2be1b0f` e `61d2aa2` integrados, worktree/branch temporárias removidas e Wave 3 liberada para preflight.
+
 - Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
 - ~~Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.~~ **Resolvido em 2026-08-26:** a Fase 3 adotou catálogo esportivo genérico, registrou as modalidades conhecidas apenas como dados iniciais e definiu página oficial, regulamento e boletins oficiais como fontes autoritativas; detalhes de 2026 serão dados operacionais, não bloqueio arquitetural.
 - Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam de decisão explícita ou configuração.
@@ -222,9 +235,9 @@ Progress: [█░░░░░░░░░] 1/17 planos da Fase 3 (6%)
 
 ## Session Continuity
 
-Last session: 2026-08-27T15:11:58.492Z
-Stopped at: Completed 03-01-PLAN.md; Wave 2 ready for interactive preflight
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-02-PLAN.md
+Last session: 2026-08-27T22:35:33.942Z
+Stopped at: Wave 2 complete and cleaned; Wave 3 ready for interactive preflight
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-03-PLAN.md
 
 ## Accumulated Context
 
@@ -238,3 +251,4 @@ Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-02-PLAN.md
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 03 P01 | 20 min | 2 tasks | 3 files |
+| Phase 03 P02 | 5h13 elapsed | 2 tasks | 15 snapshot paths |
