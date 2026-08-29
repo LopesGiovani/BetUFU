@@ -77,6 +77,32 @@ Ela **não** entrega: odds ou mercados (Fase 4), créditos e apostas (Fase 5), l
 - **D-79:** O vínculo de atleta **não bloqueia apostas no MVP**: a pessoa pode apostar em qualquer mercado, inclusive em evento ou equipe de que participa e tanto a favor quanto contra. O risco de informação interna e influência sobre créditos/ranking virtuais foi apresentado e aceito para evitar complexidade prematura.
 - **D-80:** A relação atleta–equipe–evento deve permanecer modelada para permitir uma política futura sem reconstruir o domínio. A regra será reavaliada obrigatoriamente antes de prêmio real, crescimento relevante ou mudança de enquadramento. Administradores gerais continuam proibidos de apostar em qualquer evento e administradores de competição continuam proibidos no próprio escopo.
 
+### Convergência visual e replanejamento da Fase 3
+
+- **D-81:** A variante V em `.planning/sketches/004-identity-lab/index.html`, autenticada pelo SHA-256 `6C422384EE8DA0A91ACDA9397A9415413A0E3FF36F0EEF82A00F8D923F556F98`, é a referência visual definitiva da Fase 3. Alternativas descartadas não serão reabertas durante planejamento ou implementação.
+- **D-82:** A BETUFU possui uma identidade única, expressa em dois modos coordenados: **Arena pública**, editorial, esportiva e de alto impacto; e **Console operacional**, mais denso e contido, sem parecer outro produto.
+- **D-83:** A implementação permanece Angular nativo, standalone e zoneless. Não usar React, adaptar APIs de React literalmente, instalar biblioteca visual ou introduzir nova dependência para reproduzir V.
+- **D-84:** Grainient/WebGL é um reforço seletivo de atmosfera, não uma dependência funcional. Sua responsabilidade Angular deve isolar inicialização, resize, pausa fora da viewport/aba, limite de 30 fps, cleanup, perda/restauração de contexto, fallback CSS estático e `prefers-reduced-motion`.
+- **D-85:** Toda superfície usa dados reais e estados honestos. Eventos, contagens, placares ou entidades fixas não podem mascarar endpoint ausente, resposta vazia, erro, falta de permissão ou contrato ainda não entregue.
+- **D-86:** O 03-03 preserva o tracer vertical e inclui a listagem pública real mínima de eventos ponta a ponta: query/endpoint backend, OpenAPI, cliente gerado, integração, Angular, agenda, filtros, navegação e Playwright.
+- **D-87:** A expansão operacional completa do workspace e catálogo O1 pertence exclusivamente ao 03-04. O 03-03 entrega apenas o mínimo operacional/técnico necessário ao tracer, sem duplicar o workspace O1.
+- **D-88:** A migração visual ocorre gradualmente por tokens semânticos e componentes compartilhados. Cada plano consumidor aplica o mesmo contrato, em vez de redesenhar rotas isoladamente.
+- **D-89:** `03-UI-SPEC.md` continua sendo a fonte visual oficial do GSD para a Fase 3. Não criar `DESIGN.md` paralelo.
+- **D-90:** Cada gate começa com uma rodada fresca do checker. Havendo achados acionáveis, são permitidas até duas correções para UI e até três para PLANs, sem checkpoint humano enquanto a contagem diminuir estritamente e ainda houver tentativa.
+- **D-91:** Contradição genuína de produto pausa imediatamente. Também se pausa quando a contagem de achados não diminui ou o limite termina com achado acionável; o 03-18 permanece incompleto, o ledger registra a falha e nenhum plano técnico se torna elegível.
+- **D-92:** O 03-18 altera somente documentação de planejamento. Código Angular/Java, banco, infraestrutura, dependências, testes materiais, Docker, serviços e ações externas ficam fora de escopo.
+- **D-93:** `03-01-PLAN.md`, `03-01-SUMMARY.md`, `03-02-PLAN.md` e `03-02-SUMMARY.md` permanecem byte a byte idênticos aos hashes protegidos pelo 03-18.
+- **D-94:** Sketches, `PRODUCT.md`, `03-SOURCE-AUDIT.md`, `COVERAGE.md`, documentos de decisão encerrados e demais arquivos alheios permanecem somente leitura; remoções feitas pelo responsável não são restauradas.
+
+### Convergência das superfícies legadas
+
+- **D-95:** A convergência visual das telas existentes não altera lógica de negócio. APIs, contratos HTTP, adapters, Signal stores, guards, validações, permissões, capabilities e regras de segurança permanecem semanticamente iguais. Se a implementação revelar necessidade real de mudar backend ou comportamento funcional, o plano deve parar e registrar o bloqueio em vez de ampliar o escopo automaticamente.
+- **D-96:** As rotas `/conta/perfil/completar`, `/conta/perfil`, `/conta/matricula`, `/operacao/painel`, `/operacao/papeis` e `/operacao/matriculas/corrigir` fazem parte da convergência obrigatória da Fase 3 e precisam usar o contrato visual V antes da certificação final.
+- **D-97:** `/conta/...` usa o `ConsoleShell` em variante pessoal. Essa variante é uma expressão mais acolhedora e menos densa do mesmo modo Console, não um terceiro tema ou produto; compartilha tokens, foco, navegação, estados e componentes, sem WebGL ou movimento em loop.
+- **D-98:** `/operacao/...` converge para a variante operacional do mesmo `ConsoleShell`. A visibilidade de destinos continua derivada das capabilities retornadas pelo BFF e permanece apenas conveniência de navegação; autorização real continua no servidor e nenhuma rota pode ser inferida de papel no cliente.
+- **D-99:** `AuthenticatedLayoutComponent` só pode ser aposentado depois que todas as seis rotas forem transferidas, os estados de sessão permanecerem equivalentes e testes de rota/layout provarem ausência de import ou montagem residual. `tracer` e `diagnostic` continuam utilitários exclusivos de development e ficam dispensados da convergência de produto, preservando sua ausência no build de produção.
+- **D-100:** A convergência legada será executada em `03-19/W18` para o Console pessoal e `03-20/W19` para o Console operacional/retirada do shell antigo; a certificação `03-17` passa a `W20` e depende de `03-20`. Nenhuma nova dependência visual, API, fixture cosmética ou dado fictício é autorizada por essa decomposição.
+
 ### Discrição dos agentes posteriores
 
 Pesquisador e planejador podem decidir, de forma conservadora e registrada:

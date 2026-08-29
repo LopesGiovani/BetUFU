@@ -1,7 +1,7 @@
 ---
 phase: 3
 slug: experi-ncia-esportiva-do-piloto
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-26
@@ -14,146 +14,208 @@ created: 2026-08-26
 
 ---
 
-## Escopo e decisões de origem
+## Fonte visual e decisões de origem
 
-| Decisão | Contrato executável | Fonte |
+| Fonte | Contrato executável |
+|---|---|
+| Variante V | `.planning/sketches/004-identity-lab/index.html`, SHA-256 `6C422384EE8DA0A91ACDA9397A9415413A0E3FF36F0EEF82A00F8D923F556F98`. É a referência definitiva; o HTML é um sketch, não código para copiar. |
+| Identidade | Uma BETUFU, com os modos coordenados **Arena pública** e **Console operacional**. D-81–D-89 prevalecem sobre a direção visual anterior desta fase. |
+| Produto | `/` mostra agenda publicada antes de sessão. Catálogo continua genérico; rascunhos, PII, matrícula, HMAC, capacidades e escopos internos não atravessam a fronteira pública. |
+| Implementação | Angular 22 standalone/zoneless, Signals, Reactive Forms tipados, HTML semântico e estilos locais. Sem React, registry, scaffold, pacote visual ou asset remoto. |
+| Dados | Todo número, evento, time, estado e contagem vem do contrato real. Fixtures pertencem a testes; a aplicação não usa conteúdo fixo para esconder lacunas. |
+
+Este contrato preserva D-53–D-80, AUTH-01 e SPRT-01–SPRT-16. Ele muda a linguagem visual e a composição, não as regras esportivas, de publicação, segurança ou privacidade.
+
+---
+
+## Tese visual
+
+### Princípios
+
+1. **Transmissão, não dashboard genérico.** A Arena pública usa hierarquia de placar/editorial: tipografia condensada, horário, confronto, data e faixa de programação formam a imagem principal.
+2. **Uma identidade, dois ritmos.** Arena é expansiva e dramática; Console é preciso e denso. Cor, tipografia, raios, foco, estados e voz permanecem compartilhados.
+3. **O dado esportivo é o espetáculo.** Evento real, horário, fase, local e estado ocupam o protagonismo. Efeito visual nunca compete com leitura ou inventa conteúdo.
+4. **Coral é sinal, não preenchimento indiscriminado.** O acento marca ação, seleção, horário e momentos editoriais; superfícies vinho/preto sustentam contraste e profundidade.
+5. **Movimento explica mudança.** Entrada, troca do hero e atualização de estado têm intenção. Nenhuma animação é requisito para compreender, navegar ou agir.
+6. **Honestidade operacional.** Loading, vazio, parcial, stale, conflito e 403 possuem composição própria; nenhum deles se parece com sucesso.
+
+### Anti-princípios
+
+- não usar azul corporativo, roxo genérico, verde como identidade, gradiente arco-íris ou várias cores neon concorrentes;
+- não transformar toda superfície em vidro, glow ou card flutuante;
+- não repetir um hero promocional vazio em páginas internas;
+- não usar WebGL no Console operacional, em formulários, diálogos ou por trás de texto longo;
+- não comprimir tabelas em miniatura, esconder ações em ícones sem rótulo ou depender de hover;
+- não reproduzir APIs/componentes React; traduzir responsabilidades para Angular e CSS locais;
+- não usar eventos, placares, contagens ou entidades fixas fora de fixtures determinísticas.
+
+---
+
+## Tokens semânticos
+
+Os nomes são o contrato. Os planos podem adequar a sintaxe ao `_tokens.scss`, mas não criar uma paleta paralela por rota.
+
+### Cor
+
+| Token | Valor | Uso |
 |---|---|---|
-| Entrada pública | `/` renderiza a agenda antes de qualquer barreira de sessão, perfil ou operação. Visitante sem conta pode navegar por todo dado publicado. | `03-CONTEXT.md` D-62; `AUTH-01`; direção aprovada |
-| Catálogo genérico | A interface apresenta sempre `Esporte → Competição → Edição → Categoria → Fase → Evento`; “Olimpíada Universitária UFU 2026” é a primeira instância, não a estrutura da aplicação. | D-53–D-55 |
-| Organização permanente | Favorito aponta para a organização esportiva; equipes e elencos pertencem à edição. Atleta é global e pode participar de vários elencos. | D-56–D-58; `SPRT-13`, `SPRT-15` |
-| Publicação | Rascunho e pré-visualização são privados; dado público exige publicação explícita. Correção exige fonte ou motivo, preserva versões e nunca sobrescreve concorrência silenciosamente. | D-60–D-61; `SPRT-09`, `SPRT-11` |
-| Administração escopada | A pessoa escolhe uma competição dentre os escopos autorizados e trabalha em subseções reutilizáveis. UUID e `scopeRef` nunca são digitados. Visibilidade por capacidade é conveniência; autorização do BFF prevalece. | D-59; `OPER-02`; direção aprovada |
-| Chaveamento e classificação | Chaveamento é leitura derivada dos eventos, inclui rodadas, `bye`, terceiro lugar e vencedor de evento anterior. Classificação é transcrição do boletim, não cálculo automático. | D-64–D-65; `SPRT-14` |
-| Resultado e fonte | Resultado público indica fonte vigente e histórico. Aguardando revisão é opcional; confirmação atualiza agenda e chaveamento, sem crédito, odd ou liquidação nesta fase. | D-66–D-68; `SPRT-11` |
-| Vínculo atleta–conta | Coincidência de HMAC cria proposta, não vínculo automático nem verificação oficial. Aceite, rejeição e contestação são explícitos; ambiguidades vão para revisão autorizada. | D-69–D-71; `SPRT-04`–`SPRT-08` |
-| Elenco e CSV | Elenco é rascunho publicável. Importação aceita apenas CSV UTF-8 do modelo BETUFU, valida tudo e salva zero se qualquer linha falhar. Não cria referências implícitas. | D-72–D-75; `SPRT-02`, `SPRT-09` |
-| Perfil do atleta | Após o aceite, somente o atleta altera foto, curso, biografia e redes sociais. Perfil público não expõe matrícula, HMAC, e-mail, autenticação ou identificador interno. | D-76–D-78; `SPRT-16` |
-| Fora da fase | Não renderizar apostas, odds, liquidação, comprovantes, escalações, XLSX, estatísticas específicas por modalidade, sorteio de chave ou motor multi-competidor automático. | Limite da fase; D-54, D-73, D-77, D-79–D-80 |
+| `--bt-ink` | `#09080D` | canvas principal, header e texto sobre coral |
+| `--bt-canvas` | `#120B12` | fundo contínuo da aplicação |
+| `--bt-surface` | `#171018` | painéis, filtros, linhas de agenda e workspace |
+| `--bt-surface-raised` | `#21131D` | hover, seleção, diálogo e painel elevado |
+| `--bt-wine` | `#741D42` | profundidade editorial e apoio ao Grainient; nunca texto sozinho |
+| `--bt-signal` | `#FF626B` | CTA primário, item ativo, horário e faixa de destaque |
+| `--bt-signal-soft` | `#FFB4B8` | metadado editorial e borda enfatizada |
+| `--bt-text` | `#FFF4F4` | texto principal |
+| `--bt-text-muted` | `#CDBFC5` | texto secundário que ainda precisa passar AA |
+| `--bt-border` | `rgba(255,244,244,.18)` | divisores e campos em repouso |
+| `--bt-border-strong` | `rgba(255,180,184,.38)` | seleção, agrupamento e foco adjacente |
+| `--bt-focus` | `#FFD2D4` | outline de teclado independente do acento |
+| `--bt-success` | `#72D6A0` | publicado/confirmado, sempre com texto/ícone |
+| `--bt-warning` | `#F5C95C` | rascunho, revisão, adiado e stale |
+| `--bt-danger` | `#FF7A82` | erro, rejeição e ação destrutiva |
 
-Não há `RESEARCH.md` para a fase. O stack e os padrões deste contrato foram pré-populados do código atual, de `_tokens.scss`, dos UI-SPECs anteriores e de `03-CONTEXT.md`. Nenhuma decisão D-53–D-80 é reaberta.
+Combinações obrigatórias: `--bt-text` sobre `--bt-ink|canvas|surface`; `--bt-ink` sobre `--bt-signal`; `--bt-focus` como outline de 3px. Texto comum alcança 4,5:1 e texto grande/gráfico 3:1. Cor nunca é o único sinal.
 
----
+Distribuição visual aproximada: **60%** `ink/canvas` como campo dominante, **30%** `surface/wine` para estrutura e profundidade e **10%** `signal/signal-soft` para ação e ênfase. `success`, `warning` e `danger` são exceções semânticas de estado e não entram como decoração na proporção.
 
-## Sistema de design
+### Tipografia
 
-| Propriedade | Valor |
-|---|---|
-| Ferramenta | Nenhuma. Projeto Angular; o gate shadcn não se aplica e `components.json` está ausente. |
-| Preset | Não aplicável. |
-| Biblioteca de componentes | Nenhuma biblioteca externa. Reutilizar componentes standalone atuais e HTML semântico; não instalar biblioteca, scaffold ou registry. |
-| Ícones | Material Symbols Rounded auto-hospedados. Ícone decorativo usa `aria-hidden="true"`; ação mantém texto visível ou nome acessível completo. |
-| Fontes | Inter 400/600 para interface; Barlow Condensed 600 para títulos. Arquivos locais existentes; sem CDN ou nova família. |
-| Tema | Escuro único, mesma identidade BETUFU para visitante e pessoa autenticada. |
-| Estado | Stores por feature com `signal`/`computed`, adaptadores sobre o cliente OpenAPI e conteúdo anterior preservado durante recarga, conforme o padrão forte do painel operacional da Fase 2. |
-| Formulários e diálogo | Reactive Forms tipados; rótulo persistente, erro ancorado ao campo, foco no primeiro inválido. Reutilizar o diálogo acessível atual para confirmações compatíveis, com foco inicial na ação secundária contextual (`Manter proposta`, `Manter foto`, `Continuar nesta competição`, `Manter elenco atual`, `Manter evento`, `Voltar à edição` ou o equivalente literal contratado), `Escape` com o mesmo efeito dessa ação, armadilha e restauração de foco. Ação material/sensível não usa rótulo secundário genérico. |
+Fontes locais existentes: Barlow Condensed 600 para display e Inter 400/600 para interface. Sem CDN ou terceira família.
 
-Padrões visuais reutilizados: cartões com borda e raio de 8px; estado por texto+ícone+cor; erro bloqueante em `role="alert"`; sucesso persistente em `aria-live="polite"`; código de referência selecionável; listas operacionais que preservam dados anteriores e os marcam como desatualizados quando a recarga falha.
-
-### Componentes que esta fase precisa
-
-Os nomes são responsabilidades visuais, não nomes de classes obrigatórios:
-
-- `PublicShell` e `AuthenticatedShell`: compartilham marca, tokens, rodapé de independência e `main`; diferem apenas nas ações autorizadas do cabeçalho.
-- `AgendaFilters`, `EventCard` e `CatalogCard`: filtros e cartões públicos reutilizados em agenda, competição, organização, equipe e atleta.
-- `StatePanel`: loading, vazio, erro, desautorizado e dado anterior; não criar uma variante visual incompatível por feature.
-- `StatusChip`, `SourceHistory` e `PublicationBanner`: estado textual, fonte vigente/histórica e situação de rascunho/publicação/versão.
-- `ResponsiveDataView`: uma única coleção semântica com tabela em `≥600px` e cartões rotulados em `<600px`; obrigatório para classificação e erros de CSV.
-- `BracketView`: apresentação dedicada e derivada dos eventos, com leitura acessível independente dos conectores visuais.
-- `ScopeSelector` e `WorkspaceSubnav`: seleção de competição por nome e navegação pelas subseções operacionais.
-- `AthletePhotoField` e `SafeExternalLink`: upload/remoção de mídia própria e links validados, sem hotlink de imagem externa.
-
----
-
-## Escala de espaçamento
-
-Valores declarados, todos já existentes em `frontend/src/styles/_tokens.scss`:
-
-| Token | Valor | Uso obrigatório nesta fase |
-|---|---:|---|
-| `$space-1` | 4px | vão de ícone e texto, metadado compacto |
-| `$space-2` | 8px | filtros compactos, chips, linhas de fonte e ações relacionadas |
-| `$space-4` | 16px | controles, cartões mobile e recuo lateral 320–599px |
-| `$space-6` | 24px | padding de cartão, grupo de formulário e recuo 600–899px |
-| `$space-8` | 32px | grade desktop e recuo lateral a partir de 900px |
-| `$space-12` | 48px | separação entre blocos principais de uma página |
-| `$space-16` | 64px | respiro de página e estados centrais |
-
-Exceções permitidas: alvo mínimo `$min-touch-target` de 44×44px; ícone inline de 20px ou em controle de 24px; foco de 3px com deslocamento de 3px. Não criar espaçamento arbitrário. `$container-max-width: 1200px` limita páginas; `$form-max-width: 640px` limita formulários. Uma grade larga nunca amplia o viewport da página.
-
-| Faixa | Contrato |
-|---|---|
-| Mobile | 320–599px; 16px laterais; uma coluna; filtros em disclosure/formulário vertical; tabela vira cartões; cabeçalho mantém rótulos legíveis; nenhuma rolagem horizontal da página. |
-| Tablet | 600–899px; 24px laterais; grades de duas colunas quando houver espaço; tabelas semânticas permitidas. |
-| Desktop | ≥900px; contêiner até 1200px com 32px laterais; agenda e catálogo em grade; workspace pode usar subnavegação horizontal envolvente, nunca sidebar obrigatória. |
-
----
-
-## Tipografia
-
-Exatamente quatro tamanhos e dois pesos, herdados. Não introduzir 12px, 15px, 18px, 28px, peso 500/700 ou nova família nas superfícies da Fase 3.
-
-| Papel | Fonte | Tamanho | Peso | Altura de linha | Uso |
-|---|---|---:|---:|---:|---|
-| Rótulo | Inter | 14px | 600 | 1.3 | botões, filtros, chips, cabeçalho de tabela, metadado nomeado |
-| Corpo | Inter | 16px | 400 | 1.5 | valores, instruções, erros, biografia, fontes e cartões |
-| Título | Barlow Condensed | 24px | 600 | 1.2 | `h2`, título de cartão importante e diálogo |
-| Destaque | Barlow Condensed | 32px | 600 | 1.2 | `h1`, placar confirmado e título curto de competição |
-
-Nomes extensos de organização, equipe, local e competição quebram linha; não são truncados onde distinguem a entidade. Metadados podem ocupar duas linhas. Identificadores técnicos autorizados usam `monospace` genérico e `overflow-wrap:anywhere`, nunca uma fonte remota.
-
----
-
-## Cor
-
-| Papel | Token | Valor | Uso nesta fase |
+| Papel | Escala | Linha | Uso |
 |---|---|---|---|
-| Dominante (60%) | `$color-canvas` | `#0B1220` | fundo da aplicação e espaço entre superfícies |
-| Secundária (30%) | `$color-surface` | `#142033` | cabeçalho, filtros, cartões, tabela e workspace |
-| Elevada | `$color-surface-raised` | `#1C2C42` | hover/foco, seleção de escopo e diálogo |
-| Acento (10%) | `$color-accent` | `#FF8A3D` | somente CTAs primários, item ativo, foco e marca |
-| Sobre acento | `$color-on-accent` | `#0B1220` | texto/ícone sobre CTA laranja |
-| Texto | `$color-text` | `#F8FAFC` | texto primário e links sublinhados |
-| Texto secundário | `$color-text-muted` | `#C5D1E0` | ajuda e metadado não essencial |
-| Borda | `$color-border` | `#52657D` | divisores, campos e conectores do chaveamento |
-| Foco | `$color-focus` | `#FFC08A` | contorno visível |
-| Positivo | `$color-available` | `#56D19C` | publicado, confirmado e importação válida |
-| Atenção | `$color-degraded` | `#F6C453` | rascunho, revisão, adiado e dado desatualizado |
-| Destrutiva/erro | `$color-unavailable` | `#FF6B6B` | cancelamento, recusa, erro e ação destrutiva |
+| `display` | `clamp(4.75rem, 13vw, 11.5rem)` | `.72–.82` | hero, manifesto e títulos editoriais públicos; reduzir por contêiner, não criar quinto token |
+| `heading` | `clamp(1.5rem, 4vw, 3.5rem)` | `.9–1.15` | `h1` interno, `h2`, confronto, card importante e diálogo |
+| `body` | `1rem` | `1.5` | instrução, valor, mensagem e texto de controle principal |
+| `label` | `.875rem` | `1.3` | botão, filtro, cabeçalho, kicker e metadado; kicker pode usar caixa alta/tracking, não tamanho extra |
 
-O laranja fica reservado para: `Aplicar filtros`, `Salvar organização favorita`, `Aceitar vínculo`, `Salvar perfil esportivo`, `Abrir competição`, `Salvar rascunho`, `Importar rascunhos`, `Publicar {objeto}`, foco, item ativo e wordmark. Não usar laranja em placar, campeão, favorito, chip de estado, links comuns, classificação ou conectores. Cor nunca é o único sinal: todo estado tem palavra e, quando compacto, ícone.
+Display usa tracking negativo leve; kicker usa tracking positivo. Nomes essenciais quebram linha e nunca são truncados. Números de horário/placar usam `font-variant-numeric: tabular-nums`.
 
-Contraste mínimo: 4,5:1 para texto normal e 3:1 para texto grande ou gráfico informativo. CTA primário usa obrigatoriamente `#0B1220` sobre `#FF8A3D`.
+### Espaço, grid, raio e profundidade
+
+| Token | Valor | Contrato |
+|---|---:|---|
+| `space-1/2/4/6/8/12/16` | `4/8/16/24/32/48/64px` | única escala de espaçamento; qualquer valor intermediário deve ser arredondado para esta grade |
+| `container` | `min(calc(100% - 32px), 1240px)` | 16px laterais em mobile; desktop pode usar padding interno de 24px ou 32px |
+| `form-max` | `640px` | formulários e leitura longa |
+| `radius-control` | `999px` | botões, tabs segmentadas, chips e filtros compactos |
+| `radius-field` | `16px` | input, select, textarea e pequenos painéis |
+| `radius-card` | `16px` | cards públicos e operacionais |
+| `radius-feature` | `24px` | faixa esportiva, painel de próximo evento e diálogo |
+
+Profundidade vem primeiro de contraste de superfícies e borda. Sombra padrão: `0 18px 52px rgba(9,8,13,.36)` apenas em elemento destacado; glow coral só em indicador pequeno. Blur de fundo não é base do sistema.
+
+---
+
+## Dois modos da mesma identidade
+
+| Aspecto | Arena pública | Console (pessoal e operacional) |
+|---|---|---|
+| Objetivo | orientar, envolver e facilitar descoberta | permitir autocuidado claro na conta e decisão segura no trabalho operacional |
+| Composição | broadside assimétrico, data/horário grandes, ticker e linhas de evento | shell contido; variante pessoal mais acolhedora e variante operacional mais densa, sem trocar de identidade |
+| Display | token `display` no hero e nos títulos editoriais principais | token `heading`; sem manifesto gigante |
+| Coral | faixa, horário, seleção e CTA | CTA, foco adjacente e seleção; áreas menores |
+| Grainient | permitido somente na home/agenda, atrás de camada de contraste | proibido |
+| Movimento | hero/ticker/entrada controlados | feedback curto de opacidade/transform; sem loop decorativo |
+| Densidade | respiro editorial e eventos em linhas largas | pessoal com leitura guiada e formulários até 640px; operacional com tabelas responsivas e ações próximas do objeto |
+
+Não existem temas separados nem troca de marca. Um usuário que sai da Arena para o Console reconhece imediatamente cor, tipografia, controles, foco, estados e voz.
+
+---
+
+## Componentes e padrões
+
+Os nomes abaixo indicam responsabilidades; nomes de arquivos/classes serão definidos pelos PLANs.
+
+### Shell e navegação
+
+- `ArenaShell`: header preto, marca circular coral, links `Competições`, `Equipes`, `Atletas` e ação pill `Entrar`; sessão opcional nunca bloqueia conteúdo público.
+- `ConsoleShell`: mesma marca/paleta, título do contexto, retorno `Arena` e duas variantes semânticas. A variante pessoal organiza conta/perfil/matrícula; a operacional apresenta destinos por capability e escopo. Não exibe rota sem autorização nem cria um terceiro tema.
+- `SportRail`: lista horizontal de modalidades com `aria-pressed`; overflow rolável dentro do componente, não na página.
+- `SkipLink`, foco pós-rota no `h1` e rodapé de independência são compartilhados.
+
+### Hero e sinalização esportiva
+
+- `AutoEventHero`: duas composições do mesmo próximo evento, sem setas ou dots. Troca a cada ~5,2s com fade/clip curto, pausa em hover, foco, aba oculta e fora da viewport; com movimento reduzido fixa a primeira composição. Conteúdo é uma única fonte real, não dois eventos divergentes.
+- `HighlightMotionControl`: controle pill visível de no mínimo 44px, próximo do hero, alterna `Pausar destaques`/`Retomar destaques`, informa `aria-pressed` e persiste a escolha durante a sessão da página. Pausa simultaneamente hero e ticker para teclado, toque e tecnologia assistiva; não é seta nem paginação.
+- `BroadcastTicker`: próximos itens publicados em texto, subordinado ao mesmo `HighlightMotionControl`; com pausa ou movimento reduzido permanece estático e não é a única forma de acessar esses eventos.
+- `SportRibbon`: bloco integrado de 84px com marca, modalidades e estado textual da agenda. Não pode sobrepor hero ou agenda em 320px.
+- `DateLockup`: dia grande + mês/ano, associado semanticamente ao grupo de eventos.
+
+### Controles
+
+- Botão primário: fundo coral, texto ink, pill, mínimo 44px; hover escurece levemente e foco usa outline independente.
+- Secundário: superfície/contorno, texto claro; terciário é link sublinhado ou button sem preenchimento.
+- Destrutivo usa `--bt-danger`, verbo específico e confirmação contextual; nunca reutiliza coral de marca sem rótulo.
+- `PeriodSegment` agrupa `Hoje` e `Próximos` com `aria-pressed`, rótulo principal e contagem auxiliar.
+- `AgendaFilterDisclosure` é um botão pill com ícone+rótulo+badge; abre formulário rotulado, fecha com Escape e restaura foco.
+- Controles disabled preservam legibilidade; loading mantém largura e informa verbo (`Salvando…`).
+
+### Conteúdo e dados
+
+- `EventRow` desktop: horário, contexto, confronto/nome, local e ação circular; em mobile vira grade de três colunas sem esconder nome/estado.
+- `EventCard` é permitido em grades de entidade, mas a home usa linhas editoriais para preservar a assinatura V.
+- `StatePanel` cobre loading, vazio, erro, desautorizado, conflito e stale com título, corpo e próxima ação.
+- `StatusChip`, `SourceHistory`, `PublicationBanner`, `ResponsiveDataView`, `BracketView`, `ScopeSelector`, `WorkspaceSubnav`, `AthletePhotoField` e `SafeExternalLink` permanecem compartilhados.
+- Tabela usa caption, header persistente e linhas com divisores; abaixo de 600px vira coleção de cards rotulados quando não puder refluir sem perda.
+
+### Formulários e feedback
+
+- Reactive Forms tipados; label acima, ajuda antes do erro, erro ligado por `aria-describedby`, foco no primeiro inválido após submit.
+- Campos usam superfície escura, borda visível, raio 16px e altura mínima 44px. Placeholder nunca substitui label.
+- Diálogo usa o componente acessível existente: foco inicial na ação segura, armadilha, Escape equivalente a cancelar e restauração ao gatilho.
+- Sucesso é persistente e próximo da superfície com `aria-live="polite"`; toast temporário não é a única confirmação.
+- Recarregar preserva snapshot válido e marca stale. Mutação bloqueia apenas seus controles e não recebe retry automático.
+
+---
+
+## Grainient/WebGL e fallback
+
+O efeito aprovado é uma responsabilidade Angular isolada, não um componente React portado. Deve receber somente um host/canvas e configuração interna fechada.
+
+- uso permitido: fundo da agenda pública na home, abaixo de overlays que garantem contraste;
+- paleta: coral `#FF626B`, vinho `#741D42` e ink `#09080D`; velocidade baixa, grain discreto e saturação controlada;
+- limite de 30 fps e DPR calculado para não ultrapassar aproximadamente 900 mil pixels; `powerPreference: low-power`;
+- pausar quando fora da viewport, aba oculta ou `prefers-reduced-motion: reduce`; movimento reduzido desenha frame estático ou usa fallback;
+- `ResizeObserver` e `IntersectionObserver` desconectados no destroy; listeners removidos; RAF cancelado; program/VAO/shaders liberados;
+- `webglcontextlost` chama `preventDefault`, cancela loop e ativa fallback; restore reconstrói recursos sem log ruidoso;
+- sem WebGL2, compilação falha ou contexto perdido: gradientes radiais/lineares CSS equivalentes mantêm leitura e identidade;
+- canvas é `aria-hidden`, `pointer-events:none` e nunca contém informação, interação ou critério de sucesso.
 
 ---
 
 ## Arquitetura de informação e rotas
 
-### Contrato de rota fechado
-
-| Rota | Status | Contrato |
+| Rota/superfície | Modo | Contrato |
 |---|---|---|
-| `/` | **Obrigatória** | Agenda pública como primeira experiência. Não passa por guard de sessão, perfil ou capacidade. |
-| `/conta/perfil`, `/conta/matricula`, `/operacao/painel`, `/operacao/papeis`, `/operacao/matriculas/corrigir` | **Existentes e protegidas** | Continuam sob sessão/perfil e autorização já implementadas. A Fase 3 não as torna públicas. |
+| `/` | Arena pública | hero V + listagem real mínima; sem guard de sessão/perfil/capability |
+| competição, evento, organização, equipe, atleta, chaveamento e classificação | Arena pública | deep links publicados, mesmo shell e intensidade editorial reduzida |
+| `/conta/...` | Console pessoal | protegido por sessão/perfil; sem WebGL |
+| `/operacao/...` | Console operacional | protegido por capabilities e escopo do BFF; sem rota inferida por papel |
 
-### Exemplos de rota, não decisões arquiteturais
+Paths finais além de `/` são definidos nos PLANs. Nenhuma matrícula/PII entra em path/query/fragment. Links públicos são estáveis; conta/operação permanecem protegidas; UUID ou `scopeRef` nunca são digitados.
 
-`/competicoes/{slug}`, `/eventos/{id-ou-slug}`, `/organizacoes/{slug}`, `/equipes/{slug}`, `/atletas/{slug}`, `/conta/vinculo-atleta` e `/operacao/esportes/...` são exemplos legíveis de URL. O planejador deve decidir os paths, identificadores públicos, lazy loading, separação de route arrays e estratégia de subrotas. A decisão deve preservar:
+### Cabeçalho responsivo
 
-1. agenda pública em `/` e todas as superfícies públicas fora dos guards;
-2. nenhuma informação privada ou matrícula em path, query ou fragment;
-3. deep links públicos estáveis e compartilháveis;
-4. conta e operação sempre protegidas;
-5. seleção de escopo por opção autorizada, jamais por UUID digitado ou `scopeRef` fornecido pelo cliente.
+- desktop: marca à esquerda, navegação pública central e ação de sessão à direita, todos alinhados na mesma linha;
+- mobile: marca e `Entrar`/`Conta` ficam visíveis; links secundários migram para disclosure textual acessível, não desaparecem sem alternativa;
+- `Operação` só existe com capability válida. Payload ausente/malformado falha fechado;
+- perfil incompleto mantém o gate da Fase 2 apenas em rotas protegidas;
+- primeiro foco é `Pular para o conteúdo principal`; menus fecham com Escape e restauram foco.
 
-### Cabeçalho e shell
+### Convergência obrigatória das rotas existentes
 
-- Marca `BETUFU` e badge `MVP` à esquerda; rodapé único: `A BETUFU é uma plataforma independente e não possui vínculo oficial com a UFU.`
-- Visitante: ação `Entrar`. A agenda aparece mesmo enquanto o estado de sessão opcional é consultado ou falha.
-- Pessoa autenticada com perfil completo: controles separados `Conta` e `Operação`. `Conta` agrupa perfil, matrícula, favorito/vínculo quando aplicável e `Sair`; `Operação` aparece somente com capacidades reconhecidas e lista destinos autorizados.
-- Pessoa autenticada sem capacidade: `Operação` não existe no DOM. Payload ausente, malformado ou desconhecido falha fechado.
-- Perfil incompleto mantém o gate da Fase 2. Abrir um deep link protegido redireciona ao gate; abrir uma rota pública nunca o faz.
-- Em 320px os controles continuam com texto, podem envolver em duas linhas e mantêm 44px. Não substituir a navegação inteira por ícones sem rótulo.
-- `Pular para o conteúdo principal` é o primeiro foco. Após navegação, foco programático vai ao `main`/`h1`; menus fecham com `Escape` e devolvem foco ao gatilho.
+| Rota | Variante | Preservar sem alteração | Mudança visual obrigatória |
+|---|---|---|---|
+| `/conta/perfil/completar` | Console pessoal | gate de perfil, sessão, logout e validações | fluxo guiado, hierarquia de formulário, feedback e estados do contrato V |
+| `/conta/perfil` | Console pessoal | `ProfileStore`, adapter, favorito e regras owner-only | composição de conta, seções responsivas e componentes compartilhados |
+| `/conta/matricula` | Console pessoal | `EnrollmentStore`, adapter, normalização e mensagens funcionais | formulário, status e ajuda alinhados ao mesmo shell/tokens |
+| `/operacao/painel` | Console operacional | capability do BFF, store, estados 401/403 e links autorizados | painel denso, contexto operacional e navegação consistente |
+| `/operacao/papeis` | Console operacional | matriz de autorização, comandos, conflitos e auditoria | administração responsiva com formulários/tabela-cartões e feedback próximo |
+| `/operacao/matriculas/corrigir` | Console operacional | permissão, validação, correção e trilha auditável | fluxo de correção seguro, legível e responsivo no Console |
+
+As seis rotas não autorizam novos endpoints, dados, regras ou dependências. `AuthenticatedLayoutComponent` é uma ponte temporária: sua remoção pertence ao corte final de rotas e só ocorre com prova de equivalência de sessão, foco e navegação. `tracer` e `diagnostic` permanecem development-only e fora deste inventário de produto.
 
 ---
 
@@ -161,13 +223,15 @@ Contraste mínimo: 4,5:1 para texto normal e 3:1 para texto grande ou gráfico i
 
 ### P1 — Agenda pública em `/`
 
-1. `h1` `Agenda esportiva`; texto curto: `Acompanhe eventos publicados de diferentes competições e edições.`
-2. A hierarquia visual é fechada: os resultados — começando pelo grupo `Hoje` ou pelo próximo evento publicado — são o ponto focal primário; a superfície de filtros é secundária e compacta; metadados auxiliares são terciários. A ordem espacial e de DOM permanece `h1`/contexto → filtros → título e contagem dos resultados → cartões, mas tamanho, elevação e cor dos filtros nunca podem competir com o título do grupo e o primeiro `EventCard`; somente `Aplicar filtros` usa laranja nessa superfície.
-3. Atalhos de data `Hoje` e `Próximos`, seguidos dos filtros `Data`, `Esporte`, `Competição e edição`, `Categoria`, `Fase` e `Estado`. Opções vêm do catálogo publicado; não há campo livre de UUID.
-4. O formulário aplica todos os filtros por `Aplicar filtros`; `Limpar filtros` é secundário. Estado filtrado deve ser representável em URL compartilhável sem dados privados; formato exato da query é decisão do planejador.
-5. Resultados agrupam por data, em ordem canônica estável. Cada `EventCard` mostra horário com fuso/abreviação, estado por texto, participantes ou descrição pública do evento básico, esporte/categoria/fase, competição+edição, local/espaço ou `Local a definir` e link `Ver evento`.
-6. Evento de modalidade ainda não detalhada usa etiqueta `Agenda básica` e não cria placar, bracket, pódio, raias, marcas ou estatística falsa.
-7. Atualização conserva o último resultado visível. Falha posterior marca `Agenda da última atualização · não foi possível atualizar` e oferece `Tentar novamente`.
+1. O `h1` visual usa a composição aprovada `Hoje em quadra.`. O nome acessível pode incluir contexto adicional, mas não duplicar outro `h1`. Se não existir próximo evento publicado, o hero vira um estado editorial honesto e não mostra horário/confronto fictício.
+2. O `AutoEventHero` recebe o próximo evento real e alterna apenas a composição. Uma versão mostra data, contagem e contexto; a outra é mais direta. Ambas apontam ao mesmo evento e mantêm um único link `Abrir evento`.
+3. A ordem de DOM é header → modalidades → hero → ticker acessível → faixa esportiva → data/título da agenda → período/filtros → resultados. Transformações visuais não alteram essa ordem.
+4. A faixa mostra `Futsal · Vôlei · Xadrez` somente quando essas modalidades existem no recorte publicado; caso contrário, deriva rótulos reais ou usa o texto genérico `Competições do campus em um só lugar`. O status `Agenda publicada` exige resposta pública válida.
+5. `Hoje` e `Próximos` formam `PeriodSegment`. `Filtrar agenda` abre `Data`, `Esporte`, `Competição e edição`, `Categoria`, `Fase` e `Estado`; opções vêm do catálogo e nenhum UUID é digitado.
+6. `Aplicar filtros` é primário; `Limpar filtros` é secundário. Filtros ativos geram badge e URL compartilhável sem dado privado. Ao aplicar, anunciar a contagem e mover foco para o título/contagem dos resultados.
+7. Resultados agrupam por data e usam `EventRow`: horário com fuso, estado textual, participantes/nome, esporte/categoria/fase, competição+edição, local/espaço ou `Local a definir` e link nomeado. O primeiro evento pode receber destaque sem parecer publicado/confirmado por isso.
+8. Modalidade ainda não detalhada usa `Agenda básica` e não inventa placar, chave, pódio, raias, marcas ou estatística.
+9. Atualização preserva o último snapshot válido. Falha posterior marca `Agenda da última atualização · não foi possível atualizar` e oferece `Tentar novamente`.
 
 Estado vazio inicial: `Nenhum evento publicado` / `Ainda não há eventos publicados para acompanhar.`
 Estado vazio filtrado: `Nenhum evento encontrado` / `Ajuste ou limpe os filtros para ver outros eventos.`
@@ -185,6 +249,7 @@ Estado vazio filtrado: `Nenhum evento encontrado` / `Ajuste ou limpe os filtros 
 - Mostrar horário canônico formatado no fuso do evento, estado textual, local hierárquico (`Local → Espaço interno`) e observação pública. Endereço/mapa só aparecem quando presentes e seguros.
 - Confronto direto mostra placar somente quando publicado/confirmado e identifica `Resultado confirmado`; resultado aguardando revisão/rascunho nunca vaza ao público.
 - Fonte vigente aparece junto do resultado: título/órgão, data informada, momento de registro e link seguro quando houver. `Ver histórico de fontes` expande uma lista cronológica, mantendo fontes substituídas e o motivo público da correção.
+- O histórico de fontes é uma subcoleção explícita: vazio usa `Nenhuma fonte anterior` e `A fonte atual é a única fonte publicada para este evento.`; uma entrada usa `1 fonte anterior`; múltiplas usam `{n} fontes anteriores`. O estado vazio não remove a fonte vigente nem transforma ausência de histórico em erro.
 - `Adiado`, `Suspenso` e `Cancelado` são texto+ícone e explicação curta. Horário antigo não aparece como se vigente; remarcação publicada indica o novo horário.
 - Participante vindo de vencedor anterior usa `Vencedor de {evento}` até estar definido. `Bye` é `Folga na rodada`, não placar 0×0.
 
@@ -192,18 +257,22 @@ Estado vazio filtrado: `Nenhum evento encontrado` / `Ajuste ou limpe os filtros 
 
 - Nome, avatar/monograma local, descrição pública quando houver e ação autenticada `Salvar organização favorita`; visitante recebe `Entre para escolher sua organização favorita` sem bloquear a página.
 - Seções: equipes por edição/modalidade/categoria, elenco público autorizado, próximos eventos e resultados recentes. Favorito vale para a organização inteira; não escrever “equipe favorita”.
+- Coleções usam quantidade consciente: `1 equipe`/`{n} equipes`, `1 evento`/`{n} eventos` e `1 resultado`/`{n} resultados`. Zero usa as cópias literais de **Vazios e erros**, nunca `0 equipes` como único conteúdo.
+- Sem equipes, mostrar `Nenhuma equipe publicada` e a ação condicional `Ver outras edições` apenas quando existir outra edição publicada; sem alternativa real, o estado é informativo e não possui CTA. Elenco, próximos eventos e resultados possuem vazios próprios na tabela de cópia.
 - Seleção salva apresenta confirmação persistente `Organização favorita atualizada.` Remoção usa ação secundária `Remover dos favoritos` com confirmação explícita do objeto.
 
 ### P5 — Equipe
 
 - Nome da equipe, organização, edição, esporte e categoria formam o cabeçalho.
 - Exibe elenco publicado, próximos eventos e resultados. Rascunho, motivo interno, matrícula, período privado e ator operacional não aparecem.
+- Coleções usam `1 atleta`/`{n} atletas`, `1 evento`/`{n} eventos` e `1 resultado`/`{n} resultados`. Elenco, próximos eventos e resultados vazios usam as cópias literais da tabela; estados públicos somente leitura sem alternativa real não exibem CTA artificial.
 - Um atleta pode aparecer em várias equipes/edições sem duplicar o perfil público; link leva à mesma identidade esportiva pública.
 
 ### P6 — Atleta
 
 - Avatar padrão ou foto processada pela BETUFU, nome esportivo, curso/biografia/redes somente quando o atleta vinculado os publicou.
 - Exibe equipes, modalidades, participações e resultados públicos. Estatísticas permitidas: participações, vitórias, derrotas e resultados disponíveis, sempre nomeadas e sem sugerir completude quando a fonte for parcial.
+- Coleções usam `1 equipe`/`{n} equipes`, `1 participação`/`{n} participações` e `1 resultado`/`{n} resultados`. Ausências usam as cópias literais da tabela; sem conteúdo relacionado publicável, não há CTA porque o visitante não pode criar nem corrigir registro.
 - Não exibe matrícula, HMAC, e-mail, UUID interno, identidade civil, autenticação, estado de proposta ou selo de UFU. Não usar `Verificado pela UFU`, brasão ou marca universitária.
 - Biografia é texto simples com quebras preservadas; HTML não é interpretado. Links sociais exibem domínio/rótulo compreensível, não a URL inteira como única explicação.
 
@@ -244,6 +313,7 @@ Estado vazio filtrado: `Nenhum evento encontrado` / `Ajuste ou limpe os filtros 
 ### C3 — Perfil esportivo controlado pelo atleta
 
 - Disponível somente após vínculo aceito. Campos opcionais: `Foto`, `Curso`, `Biografia` e `Redes sociais`. Equipes/modalidades/resultados são somente leitura porque vêm do cadastro esportivo.
+- As três coleções somente leitura resolvem zero/um/muitos separadamente: equipes usam `Nenhuma equipe publicada`, `1 equipe` ou `{n} equipes`; modalidades usam `Nenhuma modalidade publicada`, `1 modalidade` ou `{n} modalidades`; resultados usam `Nenhum resultado publicado`, `1 resultado` ou `{n} resultados`. Ausência nessas coleções não habilita edição nem sugere falha do vínculo.
 - Foto: seletor de arquivo nativo, preview local seguro, ações `Escolher foto`, `Enviar foto` e `Remover foto`. Exibir formatos/tamanho aceitos antes da seleção; valores exatos, transformação, varredura e política de cache são gates do planejador. Não aceitar URL remota nem hotlink.
 - Após upload, usar somente a versão processada/servida pela BETUFU; remover metadados e ignorar nome original no endereço público. Falha preserva a foto vigente. Texto alternativo é `Foto de {nome esportivo}`; avatar padrão é decorativo se o nome já estiver adjacente.
 - Estados de falha da foto usam literalmente estas cópias e nunca repetem nome de arquivo, metadado ou detalhe interno:
@@ -383,6 +453,16 @@ GETs públicos/operacionais podem ter retry limitado conforme padrão do projeto
 |---|---|
 | Agenda vazia | `Nenhum evento publicado` — `Ainda não há eventos publicados para acompanhar.` |
 | Filtros sem resultado | `Nenhum evento encontrado` — `Ajuste ou limpe os filtros para ver outros eventos.` |
+| Organização sem equipes | `Nenhuma equipe publicada` — `Esta organização ainda não possui equipes publicadas nesta edição.` — `Ver outras edições` somente quando houver outra edição publicada; caso contrário, sem CTA por ser leitura pública final. |
+| Organização sem elenco público | `Nenhum elenco publicado` — `Ainda não há atletas publicados para as equipes desta organização nesta edição.` — sem CTA; visitante não administra elenco. |
+| Organização sem próximos eventos | `Nenhum próximo evento` — `Não há eventos publicados para esta organização no período atual.` — `Ver agenda da competição` quando o contexto possuir agenda publicada; caso contrário, sem CTA. |
+| Organização sem resultados | `Nenhum resultado publicado` — `Esta organização ainda não possui resultados publicados nesta edição.` — `Ver próximos eventos` somente quando a coleção existir; caso contrário, sem CTA. |
+| Equipe sem elenco | `Elenco ainda não publicado` — `Nenhum atleta foi publicado para esta equipe nesta edição.` — sem CTA; visitante não administra elenco. |
+| Equipe sem próximos eventos | `Nenhum próximo evento` — `Não há eventos publicados para esta equipe no período atual.` — `Ver agenda da competição` quando disponível; caso contrário, sem CTA. |
+| Equipe sem resultados | `Nenhum resultado publicado` — `Esta equipe ainda não possui resultados publicados nesta edição.` — sem CTA quando não houver outro conteúdo relacionado. |
+| Atleta sem equipes | `Nenhuma equipe publicada` — `Este atleta ainda não aparece em uma equipe publicada.` — sem CTA; o vínculo esportivo é cadastrado pela operação. |
+| Atleta sem participações | `Nenhuma participação publicada` — `Ainda não há participações públicas registradas para este atleta.` — sem CTA; ausência é informação final, não erro. |
+| Atleta sem resultados | `Nenhum resultado publicado` — `Ainda não há resultados públicos associados a este atleta.` — sem CTA quando não houver participação navegável. |
 | Bootstrap da primeira competição | `Nenhuma competição cadastrada` — `Cadastre a primeira competição para iniciar o catálogo esportivo. O identificador e o escopo serão gerados pela plataforma.` — `Cadastrar competição`. Em falha: `Não foi possível carregar as competições` — `Não foi possível confirmar se já existe uma competição cadastrada. Tente carregar novamente antes de iniciar o catálogo.` — `Tentar carregar competições`. |
 | Vazios operacionais O2–O4, O6 e O7 | Usar literalmente os títulos, corpos e próximas ações definidos nas respectivas subseções. Não reutilizar a cópia pública `Nenhum {objeto} publicado` em administração. |
 | Erro público | `Não foi possível carregar estes dados. Verifique a conexão e tente novamente. Código de referência: {correlationId}.` |
@@ -407,22 +487,28 @@ GETs públicos/operacionais podem ter retry limitado conforme padrão do projeto
 | Importar CSV válido | `Importar {n} atletas e vínculos como rascunho? Nenhum item ficará público nesta ação.` | `Revisar arquivo` |
 | Cancelar evento | `Cancelar {evento} em {data}? A agenda pública será atualizada e a versão anterior permanecerá no histórico.` | `Manter evento` |
 | Publicar objeto | `Publicar {objeto} na edição {edição}? Esta versão ficará disponível ao público.` | `Voltar à edição` |
+| Conceder papel | Herdar título, corpo, ação primária, encerramento de sessões e auditoria do contrato da Fase 2. | `Manter papéis atuais` |
+| Revogar papel | Herdar título, corpo, ação primária, encerramento de sessões e auditoria do contrato da Fase 2. | `Manter papel atual` |
+| Revogar o próprio papel | Herdar título, corpo, ação primária, encerramento da sessão e aviso de recuperação do contrato da Fase 2. | `Manter meu acesso` |
+| Corrigir matrícula | Herdar título, corpo, ação primária, motivo e auditoria do contrato da Fase 2. | `Manter matrícula atual` |
 
-Botão destrutivo usa vermelho e nome específico. A ação secundária contextual recebe foco inicial; `Escape` produz o mesmo resultado e restaura o foco ao gatilho. Não existe fallback visual genérico para ação material/sensível, nem `Excluir competição`, `Excluir atleta` ou deleção de histórico neste contrato.
+As quatro linhas herdadas acima substituem somente o rótulo visual secundário `Cancelar`; comportamento, ação primária, autorização, auditoria e encerramento de sessão permanecem semanticamente iguais. Botão destrutivo usa vermelho e nome específico. A ação secundária contextual recebe foco inicial; `Escape` produz o mesmo resultado e restaura o foco ao gatilho. Não existe fallback visual genérico para ação material/sensível, nem `Excluir competição`, `Excluir atleta` ou deleção de histórico neste contrato.
 
 ---
 
 ## Acessibilidade, teclado e movimento
 
-- WCAG 2.2 AA é o mínimo: contraste, zoom/reflow, ordem do DOM, rótulos, nome/estado/valor, erros associados e alvo de 44px.
-- Foco global: `outline: 3px solid #FFC08A; outline-offset: 3px`. Não remover sem substituição idêntica. Item ativo não substitui foco.
-- Ordem: skip link → cabeçalho → filtros/contexto → conteúdo → paginação/ações. A mudança de rota leva o foco ao título principal; filtro aplicado leva ao título/contagem dos resultados, não ao topo da janela.
+- WCAG 2.1 AA é o baseline obrigatório; aplicar também alvo de 44px e foco não encoberto de WCAG 2.2 quando compatível. Contraste, zoom/reflow, ordem do DOM, nome/estado/valor e erros associados são medidos.
+- Foco global: `outline: 3px solid #FFD2D4; outline-offset: 3px`. Não remover sem substituição equivalente. Coral de item ativo não substitui foco.
+- Ordem na home: skip link → cabeçalho → modalidades → hero → ticker/faixa → agenda → filtros → eventos. A rota leva foco ao título; filtro aplicado leva ao título/contagem dos resultados.
 - Combobox/select, disclosures, menus, diálogo e bracket funcionam com Tab/Shift+Tab, Enter, Espaço, setas quando o padrão nativo exigir e Escape. Não implementar clique em `<div>`.
 - Tabelas têm `caption`; cartões mobile repetem rótulos. Placar lido como frase (`Equipe A 2, Equipe B 1`), não como sequência ambígua de números.
 - `aria-live="polite"` para sucesso, filtros, upload e recarga; `role="alert"` somente para erro bloqueante/recusa. Não anunciar contadores a cada tecla.
 - Foto possui alternativa; ícone decorativo fica oculto. Chaveamento não depende de linhas/conectores ou posição visual.
-- Transições limitadas a opacidade/transform de até 160ms em controles pequenos. Sem parallax, scroll animation, blur animado ou layout contínuo. `prefers-reduced-motion: reduce` remove movimento; progresso mantém texto estático.
-- Conteúdo funciona a 200% de zoom e 320 CSS px sem perda, sobreposição ou scroll horizontal de página.
+- Slides inativos do hero usam `aria-hidden="true"` e `inert`; ambos representam o mesmo evento. O ciclo pausa enquanto ponteiro/foco está no componente, fora da viewport ou com a aba oculta. `Pausar destaques` oferece pausa persistente independente dessas condições e controla também o ticker.
+- Controles usam opacidade/transform de 120–200ms. A troca do hero pode durar até 780ms e o ticker pode ter loop linear lento; nenhum movimento altera layout ou é necessário para leitura.
+- `prefers-reduced-motion: reduce` fixa o primeiro hero, remove ticker/entradas e desenha Grainient estático ou fallback. Sem parallax, scroll animation, blur animado ou reação obrigatória ao ponteiro.
+- Conteúdo funciona a 200% de zoom e 320 CSS px sem perda, sobreposição, faixa solta ou scroll horizontal de página. Canvas, quadra decorativa, relógio fantasma e glow ficam fora da árvore acessível.
 
 ---
 
@@ -456,16 +542,46 @@ Botão destrutivo usa vermelho e nome específico. A ação secundária contextu
 
 | Superfície | 320–599px | 600–899px | ≥900px |
 |---|---|---|---|
-| Agenda | filtros em disclosure/coluna; cartões empilhados | filtros em duas colunas; grade 2 | barra de filtros envolvente; grade 2–3 |
-| Cabeçalho | marca + `Entrar` ou `Conta`/`Operação` com wrap; sem ícone solitário | uma linha quando couber | uma linha, menus ancorados |
+| Hero V | uma coluna; título 76–104px; painel do evento abaixo; faixa sem sobreposição | uma coluna larga ou grid equilibrado conforme conteúdo | manifesto em duas colunas; horário e confronto alinhados pela mesma grade |
+| Agenda | date lockup 92px + título; filtros em disclosure; `EventRow` 92px/1fr/48px, com ação integralmente contida | filtros em duas colunas; evento conserva local quando couber | date lockup 160px; evento 160px/1fr/230px/52px |
+| Cabeçalho | marca + `Entrar`/`Conta`; navegação secundária em disclosure textual | uma linha quando couber | marca, links e ação na mesma linha |
+| Faixa esportiva | grid marca+texto; status pode ir para segunda linha, nunca sair do contêiner | três colunas compactas | três colunas, até 1240px |
 | Competição/entidade | seções empilhadas e links de salto | grade 2 | resumo + grade, até 1200px |
 | Classificação | cartões rotulados | tabela semântica | tabela semântica |
 | Erros CSV | cartões por linha | tabela | tabela |
 | Chaveamento | uma rodada por vez | colunas quando couber ou seletor | colunas por rodada dentro do contêiner |
 | Workspace | seletor + subnav envolvente/vertical; uma subseção | duas colunas em formulários compatíveis | conteúdo e painel auxiliar; nunca página gigante |
+| Console pessoal | título/contexto e ações em uma coluna; navegação de conta em disclosure ou rail envolvente | conteúdo principal até 640px e resumo lateral quando útil | shell contido, navegação persistente e leitura guiada sem densidade operacional artificial |
+| Operação legada | cards rotulados e ações empilháveis; nenhuma tabela força overflow de página | tabela ou cards conforme conteúdo | tabela/painel denso com ação junto ao registro e contexto de capability visível |
 | Formulário | uma coluna, ações empilháveis | até 640px | até 640px centralizado/alinhado ao conteúdo |
 
-Textos, chips e ações podem envolver. Somente metadado redundante pode truncar visualmente, mantendo nome acessível completo; nome de entidade, estado, fonte, placar e erro nunca são truncados.
+Breakpoints são dirigidos por conteúdo; os intervalos acima são testes mínimos. Textos, chips e ações podem envolver. Somente metadado redundante pode truncar visualmente, mantendo nome acessível completo; entidade, estado, fonte, placar e erro nunca são truncados. Elementos decorativos usam `max-width`, `overflow: clip/hidden` local e nunca definem `min-width` da página.
+
+---
+
+## Mapa de aplicação por plano
+
+| Plano | Superfície/modo | Contrato visual consumido |
+|---|---|---|
+| 03-03 | `/`, Arena | tokens base, ArenaShell, hero V, faixa, período/filtros, `EventRow`, Grainient/fallback e estados da listagem real mínima |
+| 03-04 | Console O1/O2 | ConsoleShell, escopo, catálogo/local, formulário, vazio/erro e capability fechada; sem WebGL |
+| 03-05 | público + conta + Console O2 | organização/equipe, favorito e formulários operacionais compartilhados |
+| 03-06 | público + Console O3 | atleta global, seam transitório de matrícula e estados privados sem exposição pública |
+| 03-07 | conta + Console O8 | proposta, confirmação segura, contestação, ambiguidade e fila de revisão |
+| 03-08 | público + Console O4 | elenco publicado/rascunho, versão, publicação e correção |
+| 03-09 | Console O5 | upload CSV separado, preview, erros responsivos, atomicidade e estado não confirmado |
+| 03-10 | público + Console O6 | evento/resultado, lifecycle, fonte, concorrência e feedback de versão |
+| 03-11 | Arena interna P1–P6 | expansão das leituras públicas usando o mesmo shell, cards e estados, sem repetir o hero da home |
+| 03-12 | público + Console O7 | `BracketView` responsivo e derivado |
+| 03-13 | público + Console O7 | classificação tabela/cards, fonte e versão |
+| 03-14 | público + conta | perfil esportivo textual/social, owner e links seguros |
+| 03-15 | público + conta | `AthletePhotoField`, mídia processada, fallback e falhas preservadoras |
+| 03-16 | Console O1–O8 | capabilities, navegação, escopo persistente e ausência de destinos não autorizados |
+| 03-19 | Console pessoal | convergência de perfil incompleto, perfil e matrícula; mesma lógica/stores/guards, sem WebGL |
+| 03-20 | Console operacional legado | convergência de painel, papéis e correção de matrícula; corte de rotas e aposentadoria comprovada do `AuthenticatedLayoutComponent` |
+| 03-17 | todos | convergência das 26 superfícies, browser real, acessibilidade, privacidade, performance e regressão visual |
+
+03-03 é o único plano que inaugura a home V e sua listagem real mínima. 03-04 concentra a expansão completa O1. Planos posteriores estendem componentes e rotas sem criar uma segunda linguagem visual.
 
 ---
 
@@ -486,7 +602,13 @@ Provas mínimas:
 9. Fonte/link malicioso (`javascript:`, `data:`, credencial embutida) não vira link; biografia não executa HTML.
 10. Publicação/concorrência em duas sessões prova que a segunda não sobrescreve a primeira e recebe orientação de comparação.
 11. Inspeção de DOM/storage/network confirma ausência de matrícula, HMAC, token e rascunho em superfície pública.
-12. `prefers-reduced-motion`, zoom 200%, foco de 3px, alvos 44px e contraste WCAG 2.2 AA são medidos, não inferidos apenas por screenshot.
+12. O hero alterna somente duas composições do mesmo evento, pausa em hover/foco/offscreen/aba oculta e fixa a primeira com movimento reduzido; slides inativos não entram na ordem de foco.
+13. WebGL ativo respeita limite de fps/DPR; WebGL indisponível, compilação falha e perda/restauração de contexto mantêm fallback legível, sem warning recorrente e sem recursos/listeners após destroy.
+14. Arena e Console compartilham tokens, controles, foco e estados; o Console não carrega canvas, ticker ou animação em loop.
+15. `prefers-reduced-motion`, zoom 200%, foco de 3px, alvos 44px e contraste WCAG 2.1 AA são medidos, não inferidos apenas por screenshot.
+16. As três rotas `/conta/...` preservam guards, stores, validações e resultados funcionais enquanto usam a variante pessoal do `ConsoleShell` em 320px e desktop.
+17. As três rotas `/operacao/...` preservam capabilities e falha fechada; navegação oculta não substitui 403 do servidor e nenhum estado privilegiado reaparece após perda de autorização.
+18. Nenhuma route table importa ou monta `AuthenticatedLayoutComponent` após o corte; development mantém `tracer`/`diagnostic`, production mantém ambos ausentes e os estados de sessão continuam cobertos.
 
 Screenshot isolado não prova teclado, privacidade, atomicidade ou concorrência. Testes de worker não substituem a repetição independente do orquestrador exigida por `AGENTS.md`.
 
@@ -508,27 +630,50 @@ O visual e a interação acima são fechados; os itens seguintes devem ser decid
 | Fontes/links | Schema, allowlist de esquemas/domínios quando necessária e política de abertura externa. |
 | Tabelas/classificação | Colunas genéricas permitidas pela fonte sem codificar regra esportiva ou desempate. |
 | Aceitação | Browsers/versões suportados e fixtures determinísticas para todos os estados. |
+| Efeito Angular | API mínima do host de Grainient, estratégia de fallback, lifecycle e teste de cleanup sem expor uma API React. |
+| Tokens | Como reconciliar tokens herdados sem manter simultaneamente a paleta azul/laranja antiga nas superfícies migradas. |
+| Convergência legada | Como derivar a variante pessoal/operacional do `ConsoleShell`, migrar as seis rotas sem tocar stores/adapters/guards e retirar `AuthenticatedLayoutComponent` somente após prova de equivalência. |
 
-Nenhum gate autoriza adicionar dependência, mudar tokens, criar componente library, gerar imagem ou reabrir D-53–D-80 sem aprovação específica.
+Nenhum gate autoriza adicionar dependência, criar component library, gerar imagem ou reabrir D-53–D-94 sem aprovação específica. Ajustar os tokens existentes para este contrato faz parte da migração D-88; manter duas paletas concorrentes não é uma alternativa válida.
 
 ---
 
 ## UI Considerations
 
-Probe executado após a aprovação do checker, com classificação confirmada pelo responsável: **20 superfícies**, os **6 tipos de elemento** (`form`, `list-collection`, `nav`, `media`, `interactive-control` e `static-content`) e **156/156 considerações aplicáveis resolvidas explicitamente**. Resultado: 0 `backstop`, 0 dispensadas e 0 não resolvidas.
+Inventário para o checker fresco da reabertura do 03-18: **26 superfícies** e os **6 tipos de elemento** (`form`, `list-collection`, `nav`, `media`, `interactive-control` e `static-content`). O parecer de 20 superfícies continua histórico, mas não certifica a ampliação D-95–D-100.
 
-Inventário de superfícies: shell/navegação; agenda; competição/edição; evento; organização; equipe; atleta; chaveamento; classificação/fontes; favorito; proposta de vínculo; perfil esportivo/foto; seleção de escopo; catálogo; organizações/equipes operacionais; atletas/elencos; CSV; eventos/resultados; chaveamento/classificação operacional; fila de revisão.
+IDs: `E` vazio, `L` loading, `R` erro, `P` populado, `A` parcial, `O` overflow, `Z` zero/um/muitos e `T` texto longo. Elementos: `form`, `list`, `nav`, `media`, `control`, `static`. Todas as linhas abaixo são **explicit**; não existe backstop implícito.
 
-| Categoria | Aplicações | Status | Verdade explícita |
-|---|---:|---|---|
-| `empty` | 19 | resolved · explicit | Ausência real, formulário inicial e mídia ausente possuem estado próprio e próxima ação segura. A cópia vem de **Contrato de cópia**; rascunho ou falha nunca aparece como vazio de sucesso. |
-| `loading` | 20 | resolved · explicit | Carregamento inicial não inventa dados; recarga preserva o último snapshot válido; mutação bloqueia apenas o controle acionado e informa a ação em andamento. |
-| `error` | 20 | resolved · explicit | Toda falha apresenta mensagem segura e próxima ação. Conflito de versão, upload, CSV e autorização seguem fluxos próprios, sem sobrescrita nem vazamento. |
-| `populated` | 19 | resolved · explicit | Coleções e mídias preenchidas exibem identidade, contexto de competição/edição, fonte e versão sempre que esses dados afetam a interpretação. |
-| `partial` | 19 | resolved · explicit | Dados parciais preservam blocos válidos e usam fallbacks contratados (`Local a definir`, avatar padrão e `Agenda básica`), sem inventar placar, estatística, fonte ou dado opcional ausente. |
-| `overflow` | 20 | resolved · explicit | Em 320px a página não rola horizontalmente; tabelas viram cartões, o chaveamento usa uma rodada por vez e texto essencial quebra ou reflui. |
-| `zero-one-many` | 19 | resolved · explicit | Coleções distinguem zero, um e muitos itens com vazio próprio, identidade preservada, pluralização contextual, ordenação estável e paginação ou carregamento explícito. |
-| `long-text` | 20 | resolved · explicit | Nomes, biografia, fonte, local, motivo, erro e controles refluem; HTML não executa; URL e identificador seguro quebram sem ocultar conteúdo essencial. |
+| # | Superfície | Elementos | IDs aplicáveis | Referência contratada | Dispensa explícita |
+|---:|---|---|---|---|---|
+| 1 | Shell/navegação | `nav, control, static` | `L,R,P,A,O,T` | Shell, cabeçalho responsivo, sessão/capability e foco | `E,Z`: o shell sempre possui marca/main; destinos ausentes são `A`, não coleção vazia |
+| 2 | Agenda `/` | `form,list,nav,media,control,static` | `E,L,R,P,A,O,Z,T` | P1, hero/faixa/filtros, estados, responsividade | — |
+| 3 | Competição/edição | `list,nav,media,control,static` | `E,L,R,P,A,O,Z,T` | P2 e estados públicos | — |
+| 4 | Evento | `list,media,control,static` | `E,L,R,P,A,O,Z,T` | P3, fonte, histórico de fontes, lifecycle e concorrência | A entidade é singular; `E/Z` pertencem à subcoleção cronológica de fontes |
+| 5 | Organização | `list,media,control,static` | `E,L,R,P,A,O,Z,T` | P4, favorito e coleções por edição | — |
+| 6 | Equipe | `list,media,control,static` | `E,L,R,P,A,O,Z,T` | P5, elenco/eventos/resultados | — |
+| 7 | Atleta | `list,media,control,static` | `E,L,R,P,A,O,Z,T` | P6, avatar/foto e privacidade | — |
+| 8 | Chaveamento público | `list,nav,control,static` | `E,L,R,P,A,O,Z,T` | P7 e `BracketView` | — |
+| 9 | Classificação/fontes | `list,control,static` | `E,L,R,P,A,O,Z,T` | P8, `ResponsiveDataView` e histórico | — |
+| 10 | Favorito | `form,list,control,static` | `E,L,R,P,A,O,Z,T` | C1 e confirmações | — |
+| 11 | Proposta de vínculo | `list,control,static` | `E,L,R,P,A,O,Z,T` | C2, ambiguidade e owner | — |
+| 12 | Perfil esportivo/foto | `form,list,media,control,static` | `E,L,R,P,A,O,Z,T` | C3, equipes/modalidades/resultados somente leitura, falhas de foto e links seguros | O formulário é singular; `Z` pertence às três subcoleções somente leitura |
+| 13 | Seleção de escopo | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O1 e capability fechada | — |
+| 14 | Catálogo | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O2 e bootstrap seguro | — |
+| 15 | Organizações/equipes operacionais | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O3, publicação e erros contextuais | — |
+| 16 | Atletas/elencos operacionais | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O4, versões e propostas | — |
+| 17 | Importação CSV | `form,list,control,static` | `E,L,R,P,A,O,Z,T` | O5, preview, erros e estado não confirmado | — |
+| 18 | Eventos/resultados operacionais | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O6, lifecycle, fonte e conflito | — |
+| 19 | Chaveamento/classificação operacional | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O7, derivação/transcrição e versão | — |
+| 20 | Fila de revisão | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O8, dados mínimos e decisão auditada | — |
+| 21 | Perfil incompleto | `form,nav,control,static` | `L,R,P,A,O,T` | `/conta/perfil/completar`, gate e Console pessoal | `E,Z`: o fluxo existe porque o perfil está incompleto; ausência encerra o gate |
+| 22 | Perfil da conta | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | `/conta/perfil`, identidade/favorito e Console pessoal | — |
+| 23 | Matrícula pessoal | `form,nav,control,static` | `E,L,R,P,A,O,T` | `/conta/matricula`, status e validação preservada | `Z`: entidade singular; ausência usa `E` |
+| 24 | Painel operacional legado | `list,nav,control,static` | `E,L,R,P,A,O,Z,T` | `/operacao/painel`, capability e Console operacional | — |
+| 25 | Administração de papéis | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | `/operacao/papeis`, autorização e feedback auditável | — |
+| 26 | Correção de matrícula | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | `/operacao/matriculas/corrigir`, validação e correção segura | — |
+
+Critérios transversais `L/R/O/T` são verificados em todas as 26 superfícies; as dispensas acima são semânticas, não atalhos visuais. Planos consumidores devem citar a linha e a seção de estado correspondente em seus testes/aceitação.
 
 ---
 
@@ -551,4 +696,6 @@ Inventário de superfícies: shell/navegação; agenda; competição/edição; e
 - [x] Dimensão 5 Spacing: PASS
 - [x] Dimensão 6 Registry Safety: PASS
 
-**Approval:** approved em 2026-08-26, sem recomendações abertas.
+**Approval anterior:** o gate A de 20 superfícies foi aprovado em 2026-08-28, ledger `7 → 2 → 0` em `03-VALIDATION.md`.
+
+**Estado da reabertura:** PASS A2 — o `gsd-ui-checker` fresco aprovou as 26 superfícies e as decisões D-95–D-100 com `actionable_count: 0` (`BLOCK=0`, `FLAG=0`). O parecer anterior de 20 superfícies permanece apenas histórico; B2/C2 continuam independentes e pendentes.

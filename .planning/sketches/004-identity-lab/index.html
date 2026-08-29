@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BETUFU - Hero Broadcast</title>
+  <link rel="icon" href="data:,">
+  <style>
+    @font-face{font-family:BetufuDisplay;src:url('../../../frontend/src/assets/fonts/barlow-condensed-semibold.woff2') format('woff2');font-display:swap}@font-face{font-family:BetufuText;src:url('../../../frontend/src/assets/fonts/inter-regular.woff2') format('woff2');font-display:swap}@font-face{font-family:BetufuText;src:url('../../../frontend/src/assets/fonts/inter-semibold.woff2') format('woff2');font-weight:700;font-display:swap}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:0}button,a,select{min-height:44px;font:inherit}:focus-visible{outline:4px solid currentColor;outline-offset:3px}.skip{position:fixed;z-index:1000;top:8px;left:8px;padding:10px 14px;background:#fff;color:#000;font:700 14px Arial,sans-serif;transform:translateY(-160%)}.skip:focus{transform:none}.world{min-height:100vh}.wrap{width:min(calc(100% - 40px),1240px);margin:auto}
+
+    /* V: broadside foundation */
+    .broadside{--ink:#0b0b0d;--paper:#f3f0e8;--signal:#ff3d45;--steel:#8d929c;--line:#d2cec4;background:var(--paper);color:var(--ink);font:16px/1.45 BetufuText,sans-serif}.broadside ::selection{background:var(--signal);color:#fff}.broadside-header{display:flex;align-items:center;justify-content:space-between;min-height:76px;padding:0 max(20px,calc((100% - 1240px)/2));background:var(--ink);color:#fff;border-bottom:1px solid #303035}.broadside-brand{display:flex;align-items:center;gap:12px;color:#fff;font-weight:800;text-decoration:none}.broadside-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--signal);color:#fff;font:600 27px/1 BetufuDisplay,sans-serif}.broadside-nav{display:flex;align-items:center;gap:28px}.broadside-nav a{color:#c7c7cc;font-size:13px;font-weight:700;text-decoration:none}.broadside-nav .broadside-login{display:grid;place-items:center;padding:0 20px;border-radius:999px;background:#fff;color:var(--ink)}.broadside-hero{position:relative;min-height:690px;padding:42px 0 54px;background:var(--ink);color:#fff;overflow:hidden}.broadside-hero::after{content:"";position:absolute;right:-12vw;bottom:-38vw;width:58vw;height:58vw;border:1px solid #34343a;border-radius:50%}.broadside-sports{position:relative;z-index:1;display:flex;gap:8px;overflow-x:auto;margin-bottom:44px}.broadside-sports button{flex:0 0 auto;padding:9px 17px;border:1px solid #414149;border-radius:999px;background:transparent;color:#bdbdc4;cursor:pointer}.broadside-sports .active{border-color:var(--signal);background:var(--signal);color:#fff}.broadside-hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:48px;align-items:end}.broadside-title{margin:0;font:600 clamp(96px,13vw,184px)/.72 BetufuDisplay,sans-serif;letter-spacing:-.025em;text-transform:uppercase}.broadside-title span{display:block;color:var(--signal)}.broadside-next{align-self:end;padding:26px 0 4px;border-top:1px solid #4b4b53}.broadside-next-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:52px;color:#a3a3ad;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.broadside-next-label::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--signal)}.broadside-next time{display:block;color:#fff;font:600 74px/.8 BetufuDisplay,sans-serif;font-variant-numeric:tabular-nums}.broadside-next h2{margin:26px 0 8px;font:600 42px/.88 BetufuDisplay,sans-serif;text-transform:uppercase}.broadside-next p{margin:0;color:#aaaab2}.broadside-next a{display:inline-grid;place-items:center;margin-top:28px;padding:13px 20px;border-radius:999px;background:#fff;color:var(--ink);font-weight:800;text-decoration:none}.broadside-ribbon{position:relative;z-index:3;margin:-16px auto 0;padding:11px 28px;background:var(--signal);color:#fff;font-size:11px;font-weight:800;letter-spacing:.1em;text-align:center;text-transform:uppercase;transform:rotate(-.7deg)}.broadside-agenda{padding:78px 0 100px}.broadside-agenda-head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;padding-bottom:24px;border-bottom:2px solid var(--ink)}.broadside-agenda h2{margin:0;font:600 clamp(64px,8vw,106px)/.8 BetufuDisplay,sans-serif;text-transform:uppercase}.broadside-date{text-align:right;color:#555861;font-size:13px}.broadside-controls{display:flex;justify-content:space-between;gap:20px;padding:18px 0;border-bottom:1px solid var(--line)}.broadside-days{display:flex;gap:8px}.broadside-controls button{padding:9px 17px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer;font-weight:700}.broadside-controls .active,.broadside-controls .filter-action{border-color:var(--ink);background:var(--ink);color:#fff}.broadside-event{display:grid;grid-template-columns:150px 1fr 230px 52px;align-items:center;min-height:150px;border-bottom:1px solid var(--line)}.broadside-event>time{color:var(--signal);font:600 54px/.8 BetufuDisplay,sans-serif;font-variant-numeric:tabular-nums}.broadside-event-main small{color:#686b72;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.broadside-event-main h3{margin:8px 0 0;font:600 clamp(34px,4vw,54px)/.86 BetufuDisplay,sans-serif;text-transform:uppercase}.broadside-event-place{color:#5f6269;font-size:13px}.broadside-event a{display:grid;place-items:center;width:46px;height:46px;border:1px solid var(--ink);border-radius:50%;color:var(--ink);font-size:20px;text-decoration:none;transition:background .2s ease,color .2s ease}.broadside-event a:hover{background:var(--signal);color:#fff;border-color:var(--signal)}.broadside-event.featured{background:var(--ink);color:#fff;margin:0 -24px;padding:0 24px;border:0}.broadside-event.featured .broadside-event-place,.broadside-event.featured small{color:#a8a8b0}.broadside-event.featured a{border-color:#fff;color:#fff}.broadside-footer{display:flex;justify-content:space-between;gap:20px;padding:30px max(20px,calc((100% - 1240px)/2));background:var(--ink);color:#92929a;font-size:12px}.broadside-footer a{color:#fff}
+    @media(max-width:760px){.broadside-header{min-height:68px}.broadside-nav>a:not(.broadside-login){display:none}.broadside-hero{min-height:auto;padding:28px 0 46px}.broadside-sports{margin-bottom:38px}.broadside-hero-grid{grid-template-columns:1fr;gap:46px}.broadside-title{font-size:clamp(76px,25vw,110px)}.broadside-next-label{margin-bottom:34px}.broadside-next time{font-size:62px}.broadside-agenda{padding:58px 0 72px}.broadside-agenda-head{grid-template-columns:1fr}.broadside-date{text-align:left}.broadside-controls{align-items:flex-start;flex-direction:column}.broadside-event,.broadside-event.featured{grid-template-columns:92px 1fr 42px;min-height:130px;margin:0;padding:0}.broadside-event>time{font-size:38px}.broadside-event-main h3{font-size:31px}.broadside-event-place{display:none}.broadside-event a{width:40px;height:40px}.broadside-footer{flex-direction:column}}
+    .arena-court{position:absolute;z-index:0;top:118px;right:-90px;width:min(52vw,720px);height:500px;border:1px solid #38383f;transform:rotate(-7deg);opacity:.85}.arena-court::before{content:"";position:absolute;top:0;bottom:0;left:50%;border-left:1px solid #38383f}.arena-court::after{content:"";position:absolute;top:50%;left:50%;width:180px;height:180px;border:1px solid #38383f;border-radius:50%;transform:translate(-50%,-50%)}.arena-goal{position:absolute;top:50%;width:88px;height:210px;border:1px solid #38383f;transform:translateY(-50%)}.arena-goal:first-child{left:0;border-left:0}.arena-goal:last-child{right:0;border-right:0}.arena-ghost-time{position:absolute;z-index:0;right:-18px;bottom:-44px;color:transparent;font:600 clamp(180px,29vw,420px)/.7 BetufuDisplay,sans-serif;letter-spacing:-.04em;-webkit-text-stroke:1px #393940;white-space:nowrap}.broadside-title .title-line{display:block;color:#fff}.broadside-title .title-strike{position:relative;display:inline-block;margin-top:.08em;padding:.02em .12em .08em;background:var(--signal);color:#fff;transform:rotate(-2deg);transform-origin:left center;box-shadow:18px 0 0 var(--signal),-18px 0 0 var(--signal)}.broadside-next{padding:22px;border:1px solid #4b4b53;background:rgba(11,11,13,.88)}.broadside-next-label{margin:-22px -22px 42px;padding:12px 18px;background:var(--signal);color:#fff}.broadside-next-label::before{background:#fff}.broadside-ticker{position:relative;z-index:4;overflow:hidden;border-top:1px solid #3b3b42;border-bottom:1px solid #3b3b42;background:var(--ink);color:#fff}.broadside-ticker-track{display:flex;width:max-content;animation:arena-ticker 24s linear infinite}.broadside-ticker span{flex:0 0 auto;padding:15px 30px;font:600 18px/1 BetufuDisplay,sans-serif;letter-spacing:.06em;text-transform:uppercase}.broadside-ticker b{color:var(--signal)}.broadside-hero-grid{animation:arena-enter .8s cubic-bezier(.16,1,.3,1) both}.broadside-title .title-strike{animation:arena-strike .72s .12s cubic-bezier(.16,1,.3,1) both}.broadside-next{animation:arena-board .72s .22s cubic-bezier(.16,1,.3,1) both}@keyframes arena-enter{from{opacity:.5;transform:translateY(24px)}}@keyframes arena-strike{from{clip-path:inset(0 100% 0 0);transform:rotate(-2deg) translateX(-30px)}}@keyframes arena-board{from{opacity:0;transform:translateX(34px)}}@keyframes arena-ticker{to{transform:translateX(-50%)}}@media(prefers-reduced-motion:reduce){.broadside-hero-grid,.broadside-title .title-strike,.broadside-next,.broadside-ticker-track{animation:none}}
+    @media(max-width:760px){.arena-court{top:170px;right:-210px;width:520px;height:360px}.arena-court::after{width:120px;height:120px}.arena-goal{height:150px}.arena-ghost-time{right:-8px;bottom:6px;font-size:170px}.broadside-title .title-strike{box-shadow:8px 0 0 var(--signal),-8px 0 0 var(--signal)}.broadside-next{padding:18px}.broadside-next-label{margin:-18px -18px 34px}.broadside-ticker span{padding:13px 20px;font-size:15px}}
+
+    /* V: manifesto and agenda structure */
+    .broadside-t{--paper:#d7d0c4;--line:#aaa297}.broadside-t ::selection{background:var(--signal);color:var(--ink)}.broadside-t .broadside-sports .active{color:var(--ink)}.broadside-t .broadside-hero{min-height:0;padding:30px 0 48px}.broadside-t .broadside-hero::after{display:none}.broadside-t .arena-court{top:118px;right:-8vw;width:min(76vw,1080px);height:540px;transform:none;opacity:.62}.broadside-t .arena-ghost-time{display:none}.broadside-t .broadside-sports{margin-bottom:28px}.manifesto-stage{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.18fr) minmax(360px,.82fr);grid-template-areas:"title label" "beam beam" "context match";gap:0;align-items:stretch;border-top:1px solid #3d3d43;border-bottom:1px solid #3d3d43;animation:none}.manifesto-title{grid-area:title;align-self:end;margin:0;padding:34px 34px 24px 0;color:#fff;font:600 clamp(94px,11vw,156px)/.72 BetufuDisplay,sans-serif;letter-spacing:-.025em;text-transform:uppercase}.manifesto-title span{display:block}.manifesto-next-label{grid-area:label;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:28px 0 26px 32px;border-left:1px solid #3d3d43;color:#aaaab2;font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase}.manifesto-next-label span:first-child{display:flex;align-items:center;gap:10px}.manifesto-next-label span:first-child::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--signal)}.manifesto-beam{grid-area:beam;display:grid;grid-template-columns:minmax(0,1.18fr) minmax(360px,.82fr);background:var(--signal);color:var(--ink);overflow:hidden;animation:manifesto-beam .72s .08s cubic-bezier(.16,1,.3,1) both}.manifesto-beam>strong{align-self:center;padding:4px 30px 12px 0;font:600 clamp(100px,12vw,170px)/.72 BetufuDisplay,sans-serif;letter-spacing:-.025em;text-transform:uppercase}.manifesto-clock{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:14px 0 18px 32px;border-left:1px solid var(--ink)}.manifesto-clock time{font:600 clamp(82px,8.5vw,122px)/.72 BetufuDisplay,sans-serif;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.manifesto-clock span{padding-bottom:5px;font-size:11px;font-weight:800;letter-spacing:.12em}.manifesto-context{grid-area:context;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:24px 32px 4px 0;color:#a8a8b0;font-size:12px}.manifesto-context strong{color:#fff;font-size:12px;letter-spacing:.08em;text-transform:uppercase}.manifesto-match{grid-area:match;padding:24px 0 4px 32px;border-left:1px solid #3d3d43}.manifesto-match h2{margin:0;color:#fff;font:600 clamp(36px,3.5vw,48px)/.86 BetufuDisplay,sans-serif;text-transform:uppercase}.manifesto-match p{margin:10px 0 20px;color:#aaaab2}.manifesto-match a{display:inline-grid;place-items:center;padding:12px 20px;border-radius:999px;background:#fff;color:var(--ink);font-weight:800;text-decoration:none;transition:background .2s ease,color .2s ease}.manifesto-match a:hover{background:var(--signal);color:var(--ink)}.broadside-t .broadside-ticker{border-top:0;background:#151518}.broadside-t .broadside-ticker span{padding-top:13px;padding-bottom:13px}.broadside-t .broadside-ribbon{width:max-content;max-width:calc(100% - 40px);margin:-1px auto -20px;padding:10px 24px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);transform:rotate(-.55deg)}.broadside-t .broadside-agenda{padding-top:94px;background:var(--paper)}.broadside-t .broadside-agenda-head{grid-template-columns:160px 1fr;align-items:stretch;gap:0;padding:0;border-bottom:2px solid var(--ink)}.manifesto-date-lockup{display:grid;grid-template-columns:1fr auto;align-items:end;gap:8px;padding:18px 20px;background:var(--ink);color:#fff}.manifesto-date-lockup strong{color:var(--signal);font:600 78px/.7 BetufuDisplay,sans-serif;font-variant-numeric:tabular-nums}.manifesto-date-lockup span{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.manifesto-agenda-title{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:18px 0 18px 32px}.broadside-t .manifesto-agenda-title h2{font-size:clamp(62px,7vw,96px)}.manifesto-agenda-title p{margin:0 0 4px;color:#555861;font-size:12px;text-align:right}.broadside-t .broadside-controls{padding-left:192px}.broadside-t .broadside-events{border-top:1px solid var(--ink)}.broadside-t .broadside-event,.broadside-t .broadside-event.featured{grid-template-columns:160px 1fr 230px 52px;min-height:148px;margin:0;padding:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink)}.broadside-t .broadside-event>time{align-self:stretch;display:grid;place-items:center;padding:0 14px;background:var(--ink);color:var(--signal);font-size:52px}.broadside-t .broadside-event-main{padding-left:32px}.broadside-t .broadside-event.featured small,.broadside-t .broadside-event.featured .broadside-event-place{color:#5f6269}.broadside-t .broadside-event.featured a{border-color:var(--ink);color:var(--ink)}.broadside-t .broadside-event.featured a:hover{border-color:var(--signal);background:var(--signal);color:#fff}@keyframes manifesto-beam{from{clip-path:inset(0 100% 0 0)}}@media(prefers-reduced-motion:reduce){.manifesto-beam{animation:none}}
+    @media(max-width:760px){.broadside-t .broadside-hero{padding:24px 0 38px}.broadside-t .arena-court{top:160px;right:-260px;width:600px;height:430px}.broadside-t .broadside-sports{margin-bottom:22px}.manifesto-stage{grid-template-columns:1fr;grid-template-areas:"title" "label" "beam" "match" "context"}.manifesto-title{padding:28px 0 18px;font-size:clamp(76px,25vw,104px)}.manifesto-next-label{padding:13px 0;border-top:1px solid #3d3d43;border-left:0}.manifesto-beam{grid-template-columns:1fr}.manifesto-beam>strong{padding:8px 16px 4px;font-size:clamp(72px,23vw,96px)}.manifesto-clock{padding:9px 16px 14px;border-top:1px solid var(--ink);border-left:0}.manifesto-clock time{font-size:clamp(68px,22vw,90px)}.manifesto-match{padding:22px 0;border-top:1px solid #3d3d43;border-left:0}.manifesto-match h2{font-size:36px}.manifesto-context{padding:16px 0 2px;border-top:1px solid #3d3d43;flex-direction:column;gap:7px}.broadside-t .broadside-ribbon{margin-bottom:-16px;padding:9px 14px;font-size:9px}.broadside-t .broadside-agenda{padding-top:72px}.broadside-t .broadside-agenda-head{grid-template-columns:92px 1fr}.manifesto-date-lockup{grid-template-columns:1fr;padding:14px 10px}.manifesto-date-lockup strong{font-size:54px}.manifesto-agenda-title{display:grid;padding:14px 0 14px 18px}.broadside-t .manifesto-agenda-title h2{font-size:51px}.manifesto-agenda-title p{text-align:left}.broadside-t .broadside-controls{padding-left:0}.broadside-t .broadside-event,.broadside-t .broadside-event.featured{grid-template-columns:92px 1fr 42px;min-height:132px}.broadside-t .broadside-event>time{padding:0 6px;font-size:36px}.broadside-t .broadside-event-main{padding-left:16px}}
+
+    /* V: Grainient palette, ribbon, filters and events */
+    body.u-world-active{min-width:0}.broadside-u{--ink:#09080d;--paper:#09080d;--signal:#ff626b;--wine:#741d42;--rose:#ffb4b8;--soft:#fff4f4;--line:rgba(255,244,244,.18);background:var(--ink);color:var(--soft)}
+    .broadside-u ::selection{background:var(--signal);color:var(--ink)}.broadside-u .broadside-header{border-color:rgba(255,244,244,.16);background:#09080d}.broadside-u .broadside-mark,.broadside-u .broadside-sports .active{color:var(--ink)}.broadside-u .broadside-nav .broadside-login{background:var(--signal);color:var(--ink)}.broadside-u .manifesto-beam{background:var(--signal)}.broadside-u .broadside-ticker{border-color:rgba(255,244,244,.14);background:#120b12}
+    .broadside-u .broadside-ribbon{position:relative;z-index:5;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:16px;width:min(calc(100% - 40px),1240px);max-width:none;min-height:84px;margin:-1px auto -24px;padding:13px 16px;border:1px solid rgba(255,180,184,.32);border-radius:24px;background:#110c13;color:var(--soft);box-shadow:0 18px 52px rgba(9,8,13,.42);font-size:inherit;letter-spacing:normal;text-align:left;text-transform:none;transform:none}.u-sport-mark{display:grid;place-items:center;width:50px;height:50px;border-radius:17px;background:var(--signal);color:var(--ink);font:600 31px/1 BetufuDisplay,sans-serif}.u-sport-copy{display:grid;gap:3px;min-width:0}.u-sport-copy strong{color:var(--soft);font-size:13px;letter-spacing:.12em;text-transform:uppercase}.u-sport-copy span{color:var(--rose);font-size:14px;font-weight:700}.u-sport-status{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 15px;border:1px solid rgba(255,180,184,.24);border-radius:999px;background:rgba(116,29,66,.38);color:var(--soft);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.u-sport-status i{width:8px;height:8px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 5px rgba(255,98,107,.13)}
+    .broadside-u .broadside-agenda{position:relative;isolation:isolate;overflow:hidden;padding-top:98px;background:radial-gradient(circle at 18% 12%,rgba(255,98,107,.32),transparent 34%),radial-gradient(circle at 82% 78%,rgba(116,29,66,.48),transparent 42%),linear-gradient(145deg,#170b14,#09080d 62%);color:var(--soft)}.broadside-u .broadside-agenda::after{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(9,8,13,.08),rgba(9,8,13,.42)),linear-gradient(rgba(255,244,244,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,244,244,.025) 1px,transparent 1px);background-size:auto,64px 64px,64px 64px}.broadside-u .broadside-agenda>.wrap{position:relative;z-index:2}.u-grainient{position:absolute;z-index:0;inset:0;width:100%;height:100%;pointer-events:none;opacity:.96}.broadside-u.u-webgl-fallback .u-grainient{display:none}
+    .broadside-u .broadside-agenda-head{border-color:rgba(255,244,244,.8)}.broadside-u .manifesto-date-lockup{border:1px solid rgba(255,180,184,.28);border-bottom:0;border-radius:22px 0 0 0;background:rgba(9,8,13,.88)}.broadside-u .manifesto-date-lockup strong{color:var(--signal)}.broadside-u .manifesto-agenda-title{border-top:1px solid rgba(255,180,184,.28);border-radius:0 22px 0 0;background:rgba(9,8,13,.52)}.broadside-u .manifesto-agenda-title h2{color:var(--soft)}.broadside-u .manifesto-agenda-title p{color:var(--rose)}
+    .broadside-u .broadside-controls{display:block;padding:16px 0 22px;border-color:rgba(255,244,244,.18)}.u-controls-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px;border:1px solid rgba(255,180,184,.25);border-radius:26px;background:rgba(9,8,13,.82)}.u-period{display:grid;grid-template-columns:repeat(2,minmax(134px,1fr));gap:6px}.broadside-u .u-period button,.broadside-u .u-filter-toggle{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:56px;padding:0 18px;border:1px solid transparent;border-radius:18px;background:transparent;color:var(--soft);cursor:pointer;text-align:left}.broadside-u .u-period button{flex:1}.broadside-u .u-period button span,.broadside-u .u-filter-toggle span{font-weight:800}.broadside-u .u-period button small{color:var(--rose);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.broadside-u .u-period button[aria-pressed=true]{background:var(--signal);color:var(--ink)}.broadside-u .u-period button[aria-pressed=true] small{color:var(--ink)}.broadside-u .u-filter-toggle{min-width:210px;border-color:rgba(255,98,107,.62);background:rgba(116,29,66,.42)}.broadside-u .u-filter-toggle:hover,.broadside-u .u-filter-toggle[aria-expanded=true]{background:var(--wine)}.u-filter-toggle svg{flex:0 0 auto;width:19px;height:19px}.u-filter-badge{display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--signal);color:var(--ink);font-size:11px;font-weight:900}.u-filter-badge[hidden]{display:none}
+    .u-filter-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) auto auto;gap:10px;margin-top:10px;padding:14px;border:1px solid rgba(255,180,184,.22);border-radius:22px;background:rgba(9,8,13,.92)}.u-filter-panel[hidden]{display:none}.u-filter-panel label{display:grid;gap:6px;color:var(--rose);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.u-filter-panel select{min-height:48px;padding:0 42px 0 14px;border:1px solid rgba(255,244,244,.22);border-radius:15px;background:#171019;color:var(--soft);cursor:pointer}.u-filter-panel button{align-self:end;min-height:48px;padding:0 18px;border-radius:15px;cursor:pointer;font-weight:800}.u-filter-apply{border:1px solid var(--signal);background:var(--signal);color:var(--ink)}.u-filter-reset{border:1px solid rgba(255,244,244,.28);background:transparent;color:var(--soft)}
+    .broadside-u .broadside-events{display:grid;gap:12px;border:0}.broadside-u .broadside-event,.broadside-u .broadside-event.featured{overflow:hidden;min-height:148px;margin:0;padding:0;border:1px solid rgba(255,180,184,.2);border-radius:22px;background:rgba(9,8,13,.86);color:var(--soft)}.broadside-u .broadside-event[hidden]{display:none}.broadside-u .broadside-event>time{border-right:1px solid rgba(255,180,184,.22);background:rgba(116,29,66,.42);color:var(--signal)}.broadside-u .broadside-event-main small,.broadside-u .broadside-event.featured small{color:var(--rose)}.broadside-u .broadside-event-place,.broadside-u .broadside-event.featured .broadside-event-place{color:#d7c5ca}.broadside-u .broadside-event a,.broadside-u .broadside-event.featured a{border-color:rgba(255,244,244,.72);color:var(--soft)}.broadside-u .broadside-event a:hover,.broadside-u .broadside-event.featured a:hover{border-color:var(--signal);background:var(--signal);color:var(--ink)}.u-filter-result{margin:12px 0 0;color:var(--rose);font-size:12px}.u-filter-result[hidden]{display:none}
+    @media(max-width:760px){.broadside-u .broadside-ribbon{grid-template-columns:auto minmax(0,1fr);gap:12px;width:min(calc(100% - 28px),1240px);margin-bottom:-20px;padding:12px;border-radius:20px}.u-sport-mark{width:46px;height:46px;border-radius:15px}.u-sport-status{grid-column:1/-1;justify-content:center}.broadside-u .broadside-agenda{padding-top:82px}.broadside-u .manifesto-date-lockup{border-radius:18px 0 0 0}.broadside-u .manifesto-agenda-title{border-radius:0 18px 0 0}.u-controls-row{grid-template-columns:1fr;border-radius:22px}.u-period{grid-template-columns:1fr 1fr}.broadside-u .u-period button,.broadside-u .u-filter-toggle{min-width:0;min-height:52px;padding:0 14px;border-radius:15px}.broadside-u .u-filter-toggle{width:100%}.u-filter-panel{grid-template-columns:1fr}.u-filter-panel button{width:100%}.broadside-u .broadside-event,.broadside-u .broadside-event.featured{border-radius:18px}.broadside-u .broadside-event>time{border-right-color:rgba(255,180,184,.22)}.broadside-u .broadside-event a,.broadside-u .broadside-event.featured a{width:44px;height:44px}}
+    @media(max-width:430px){.u-sport-copy strong{font-size:11px;letter-spacing:.08em}.u-sport-copy span{font-size:12px}.u-period{grid-template-columns:1fr}.broadside-u .u-period button small{display:none}.broadside-u .manifesto-agenda-title h2{font-size:45px}}
+
+    /* V: automatic hero rotation */
+    .v-carousel-stage{position:relative;z-index:1;display:grid;isolation:isolate;overflow:hidden}.v-hero-slide{grid-area:1/1;z-index:0;opacity:0;transform:translate3d(0,20px,0) scale(.985);pointer-events:none;transition:opacity .24s ease,transform .68s cubic-bezier(.16,1,.3,1)}.v-hero-slide.is-active{z-index:1;opacity:1;transform:translate3d(0,0,0) scale(1);pointer-events:auto}.v-carousel-stage.is-switching .v-hero-slide{will-change:opacity,transform}.v-carousel-stage::after{content:"";position:absolute;z-index:4;inset:0;background:var(--signal);transform:scaleX(0);pointer-events:none}.v-carousel-stage.is-switching::after{will-change:transform;animation:v-broadcast-wipe .76s cubic-bezier(.76,0,.24,1) both}.broadside-v .v-manifesto-slide .manifesto-beam{animation:none}.broadside-v .v-simple-stage{min-height:460px;padding:34px 0 24px;border-top:1px solid #3d3d43;border-bottom:1px solid #3d3d43;animation:none}.broadside-v .v-simple-stage .broadside-title{font-size:clamp(96px,12vw,170px)}.broadside-v .v-simple-stage .title-strike,.broadside-v .v-simple-stage .broadside-next{animation:none}.broadside-v .v-simple-stage .broadside-next{align-self:end}.broadside-v .v-simple-stage .broadside-next-label{color:var(--ink)}.broadside-v .v-simple-stage .broadside-next-label::before{background:var(--ink)}.broadside-v .v-simple-stage .broadside-next time{color:var(--signal)}@keyframes v-broadcast-wipe{0%{opacity:0;transform:scaleX(0);transform-origin:left}8%{opacity:1}46%{transform:scaleX(1);transform-origin:left}54%{transform:scaleX(1);transform-origin:right}100%{opacity:1;transform:scaleX(0);transform-origin:right}}
+    @media(max-width:760px){.broadside-v .v-simple-stage{grid-template-columns:1fr;gap:46px;min-height:0;padding:28px 0 18px}.broadside-v .v-simple-stage .broadside-title{font-size:clamp(76px,25vw,104px)}}
+    @media(prefers-reduced-motion:reduce){.v-hero-slide{transform:none;transition:none}.v-carousel-stage::after{display:none}}
+    .broadside-v .broadside-nav a{display:grid;place-items:center}@media(max-width:760px){.broadside-v .broadside-nav>a:not(.broadside-login){display:none}}
+  </style>
+</head>
+<body class="u-world-active">
+  <a class="skip" href="#main-v">Pular para o conteúdo principal</a>
+
+  <section id="v" class="world broadside broadside-t broadside-u broadside-v">
+    <header class="broadside-header">
+      <a class="broadside-brand" href="#"><span class="broadside-mark">B</span>BETUFU</a>
+      <nav class="broadside-nav" aria-label="Navegação principal">
+        <a href="#">Competições</a>
+        <a href="#">Equipes</a>
+        <a href="#">Atletas</a>
+        <a class="broadside-login" href="#">Entrar</a>
+      </nav>
+    </header>
+
+    <main id="main-v" tabindex="-1">
+      <section class="broadside-hero">
+        <div class="arena-court" aria-hidden="true"><span class="arena-goal"></span><span class="arena-goal"></span></div>
+        <div class="arena-ghost-time" aria-hidden="true">18:30</div>
+        <div class="wrap">
+          <nav class="broadside-sports" aria-label="Esportes">
+            <button type="button" class="active" aria-pressed="true">Todos</button>
+            <button type="button" aria-pressed="false">Futsal</button>
+            <button type="button" aria-pressed="false">Voleibol</button>
+            <button type="button" aria-pressed="false">Xadrez</button>
+            <button type="button" aria-pressed="false">Basquete</button>
+            <button type="button" aria-pressed="false">Handebol</button>
+          </nav>
+
+          <div class="v-carousel-stage" data-active-slide="0" role="region" aria-label="Destaques esportivos em rotação automática" aria-live="off">
+            <div class="broadside-hero-grid manifesto-stage v-hero-slide v-manifesto-slide is-active" data-hero-slide="manifesto" aria-hidden="false">
+              <h1 class="manifesto-title"><span>Hoje em</span></h1>
+              <div class="manifesto-next-label"><span>Próximo evento</span><span>27 ago 2026</span></div>
+              <div class="manifesto-beam">
+                <strong>Quadra.</strong>
+                <div class="manifesto-clock"><time datetime="2026-08-27T18:30:00-03:00">18:30</time><span>BRT</span></div>
+              </div>
+              <div class="manifesto-context"><strong>03 eventos publicados</strong><span>Futsal · Vôlei · Xadrez · programação do campus</span></div>
+              <div class="manifesto-match">
+                <h2>Engenharia × Direito</h2>
+                <p>Futsal · Masculino · Semifinal · Ginásio 1</p>
+                <a href="#">Abrir evento</a>
+              </div>
+            </div>
+
+            <div class="broadside-hero-grid v-hero-slide v-simple-stage" data-hero-slide="simple" aria-hidden="true" inert>
+              <h1 class="broadside-title"><span class="title-line">Hoje em</span><span class="title-strike">quadra.</span></h1>
+              <aside class="broadside-next">
+                <div class="broadside-next-label">Próximo evento</div>
+                <time datetime="2026-08-27T18:30:00-03:00">18:30</time>
+                <h2>Engenharia × Direito</h2>
+                <p>Futsal · Masculino · Semifinal · Ginásio 1</p>
+                <a href="#">Abrir evento</a>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="broadside-ticker" aria-label="Resumo dos eventos de hoje">
+        <div class="broadside-ticker-track">
+          <span><b>Na sequência · 20:00</b> Medicina × Computação · Voleibol · Grupo B</span>
+          <span><b>Depois · 21:15</b> Rodada suíça · Xadrez · Rodada 3</span>
+          <span aria-hidden="true"><b>Na sequência · 20:00</b> Medicina × Computação · Voleibol · Grupo B</span>
+          <span aria-hidden="true"><b>Depois · 21:15</b> Rodada suíça · Xadrez · Rodada 3</span>
+        </div>
+      </div>
+
+      <div class="broadside-ribbon">
+        <span class="u-sport-mark" aria-hidden="true">B</span>
+        <span class="u-sport-copy"><strong>Futsal · Vôlei · Xadrez</strong><span>Competições do campus em um só lugar</span></span>
+        <span class="u-sport-status"><i aria-hidden="true"></i>Agenda publicada</span>
+      </div>
+
+      <section class="broadside-agenda">
+        <canvas class="u-grainient" aria-hidden="true"></canvas>
+        <div class="wrap">
+          <header class="broadside-agenda-head">
+            <div class="manifesto-date-lockup"><strong>27</strong><span>Agosto<br>2026</span></div>
+            <div class="manifesto-agenda-title"><h2>Jogos de hoje</h2><p>Horário de Brasília<br>Agenda publicada</p></div>
+          </header>
+
+          <div class="broadside-controls">
+            <div class="u-controls-row">
+              <div class="u-period" role="group" aria-label="Período da agenda">
+                <button type="button" aria-pressed="true"><span>Hoje</span><small>03 jogos</small></button>
+                <button type="button" aria-pressed="false"><span>Próximos</span><small>Em breve</small></button>
+              </div>
+              <button type="button" class="u-filter-toggle" aria-expanded="false" aria-controls="v-filter-panel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1.5v-7.3L4 5Z"/></svg>
+                <span>Filtrar agenda</span>
+                <span class="u-filter-badge" hidden></span>
+              </button>
+            </div>
+
+            <form class="u-filter-panel" id="v-filter-panel" hidden>
+              <label>Modalidade<select name="sport"><option value="all">Todas</option><option value="futsal">Futsal</option><option value="voleibol">Voleibol</option><option value="xadrez">Xadrez</option></select></label>
+              <label>Local<select name="place"><option value="all">Todos</option><option value="ginasio">Ginásio 1</option><option value="sabiazinho">Sabiazinho</option><option value="indefinido">A definir</option></select></label>
+              <button class="u-filter-apply" type="submit">Aplicar</button>
+              <button class="u-filter-reset" type="button">Limpar</button>
+            </form>
+            <p class="u-filter-result" role="status" aria-live="polite" hidden></p>
+          </div>
+
+          <div class="broadside-events">
+            <article class="broadside-event featured" data-sport="futsal" data-place="ginasio">
+              <time datetime="2026-08-27T18:30:00-03:00">18:30</time>
+              <div class="broadside-event-main"><small>Evento em destaque · Futsal · Masculino · Semifinal</small><h3>Engenharia × Direito</h3></div>
+              <div class="broadside-event-place">Ginásio 1<br>Olimpíada Universitária</div>
+              <a href="#" aria-label="Abrir Engenharia contra Direito">→</a>
+            </article>
+            <article class="broadside-event" data-sport="voleibol" data-place="sabiazinho">
+              <time datetime="2026-08-27T20:00:00-03:00">20:00</time>
+              <div class="broadside-event-main"><small>Voleibol · Feminino · Grupo B</small><h3>Medicina × Computação</h3></div>
+              <div class="broadside-event-place">Sabiazinho · Quadra 2</div>
+              <a href="#" aria-label="Abrir Medicina contra Computação">→</a>
+            </article>
+            <article class="broadside-event" data-sport="xadrez" data-place="indefinido">
+              <time datetime="2026-08-27T21:15:00-03:00">21:15</time>
+              <div class="broadside-event-main"><small>Xadrez · Geral · Rodada 3</small><h3>Rodada suíça</h3></div>
+              <div class="broadside-event-place">Local a definir</div>
+              <a href="#" aria-label="Abrir rodada suíça">→</a>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="broadside-footer"><span>BETUFU é um projeto independente e não representa oficialmente a UFU.</span><a href="#">Sobre o projeto</a></footer>
+  </section>
+
+  <script>
+    const root=document.querySelector('#v');
+    const stage=root.querySelector('.v-carousel-stage');
+    const agenda=root.querySelector('.broadside-agenda');
+    const canvas=root.querySelector('.u-grainient');
+    const filterToggle=root.querySelector('.u-filter-toggle');
+    const filterPanel=root.querySelector('.u-filter-panel');
+    const filterBadge=root.querySelector('.u-filter-badge');
+    const filterResult=root.querySelector('.u-filter-result');
+    const events=[...root.querySelectorAll('.broadside-event')];
+
+    root.querySelectorAll('.broadside-sports button').forEach(button=>button.addEventListener('click',()=>{
+      root.querySelectorAll('.broadside-sports button').forEach(item=>{const selected=item===button;item.classList.toggle('active',selected);item.setAttribute('aria-pressed',String(selected));});
+    }));
+    root.querySelectorAll('.u-period button').forEach(button=>button.addEventListener('click',()=>{
+      root.querySelectorAll('.u-period button').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+    }));
+
+    const setFilterOpen=open=>{
+      const returnFocus=!open&&filterPanel.contains(document.activeElement);
+      filterPanel.hidden=!open;
+      filterToggle.setAttribute('aria-expanded',String(open));
+      if(open)filterPanel.querySelector('select').focus();
+      else if(returnFocus)filterToggle.focus();
+    };
+    const clearFilters=()=>{
+      filterPanel.reset();
+      events.forEach(event=>event.hidden=false);
+      filterBadge.hidden=true;
+      filterBadge.textContent='';
+      filterResult.hidden=true;
+      filterResult.textContent='';
+    };
+
+    filterToggle.addEventListener('click',()=>setFilterOpen(filterToggle.getAttribute('aria-expanded')!=='true'));
+    filterPanel.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();setFilterOpen(false);}});
+    filterPanel.addEventListener('submit',event=>{
+      event.preventDefault();
+      const data=new FormData(filterPanel);
+      const sport=data.get('sport');
+      const place=data.get('place');
+      let visible=0;
+      events.forEach(item=>{const matches=(sport==='all'||item.dataset.sport===sport)&&(place==='all'||item.dataset.place===place);item.hidden=!matches;if(matches)visible+=1;});
+      const activeFilters=Number(sport!=='all')+Number(place!=='all');
+      filterBadge.textContent=String(activeFilters);
+      filterBadge.hidden=activeFilters===0;
+      filterResult.textContent=visible===1?'1 evento encontrado':visible+' eventos encontrados';
+      filterResult.hidden=false;
+      setFilterOpen(false);
+    });
+    root.querySelector('.u-filter-reset').addEventListener('click',()=>{clearFilters();setFilterOpen(false);});
+
+    const createAutoHero=stage=>{
+      const slides=[...stage.querySelectorAll('.v-hero-slide')];
+      const motion=matchMedia('(prefers-reduced-motion: reduce)');
+      let active=false,visible=true,hovered=false,focused=false,index=0,cycleTimer=0,swapTimer=0,finishTimer=0,destroyed=false;
+      const clearTimers=()=>{clearTimeout(cycleTimer);clearTimeout(swapTimer);clearTimeout(finishTimer);cycleTimer=swapTimer=finishTimer=0;};
+      const pause=()=>{clearTimers();stage.classList.remove('is-switching');};
+      const show=next=>{index=next;stage.dataset.activeSlide=String(index);slides.forEach((slide,slideIndex)=>{const selected=slideIndex===index;slide.classList.toggle('is-active',selected);slide.setAttribute('aria-hidden',String(!selected));slide.inert=!selected;});};
+      const canRun=()=>active&&visible&&!hovered&&!focused&&!document.hidden&&!motion.matches&&!destroyed;
+      const schedule=()=>{clearTimeout(cycleTimer);cycleTimer=0;if(canRun())cycleTimer=setTimeout(transition,5200);};
+      const transition=()=>{cycleTimer=0;if(!canRun())return;stage.classList.add('is-switching');swapTimer=setTimeout(()=>{swapTimer=0;if(canRun())show((index+1)%slides.length);},330);finishTimer=setTimeout(()=>{finishTimer=0;stage.classList.remove('is-switching');if(canRun())schedule();},780);};
+      const sync=()=>{if(motion.matches){pause();show(0);return;}if(!canRun()){pause();return;}schedule();};
+      const onEnter=()=>{hovered=true;sync();};const onLeave=()=>{hovered=false;sync();};
+      const onFocusIn=()=>{focused=true;sync();};const onFocusOut=event=>{if(!stage.contains(event.relatedTarget)){focused=false;sync();}};
+      const onVisibility=()=>sync();const onMotion=()=>sync();
+      stage.addEventListener('pointerenter',onEnter,{passive:true});stage.addEventListener('pointerleave',onLeave,{passive:true});stage.addEventListener('focusin',onFocusIn);stage.addEventListener('focusout',onFocusOut);document.addEventListener('visibilitychange',onVisibility);motion.addEventListener('change',onMotion);
+      const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;sync();},{threshold:.15});observer.observe(stage);
+      return{activate(){if(destroyed)return;active=true;sync();},deactivate(){active=false;pause();},destroy(){if(destroyed)return;destroyed=true;active=false;pause();observer.disconnect();stage.removeEventListener('pointerenter',onEnter);stage.removeEventListener('pointerleave',onLeave);stage.removeEventListener('focusin',onFocusIn);stage.removeEventListener('focusout',onFocusOut);document.removeEventListener('visibilitychange',onVisibility);motion.removeEventListener('change',onMotion);}};
+    };
+
+    const grainientVertex=`#version 300 es
+      precision highp float;
+      const vec2 positions[3]=vec2[](vec2(-1.0,-1.0),vec2(3.0,-1.0),vec2(-1.0,3.0));
+      void main(){gl_Position=vec4(positions[gl_VertexID],0.0,1.0);}`;
+    const grainientFragment=`#version 300 es
+      precision highp float;
+      uniform vec2 iResolution;uniform float iTime;uniform float uTimeSpeed;uniform float uColorBalance;uniform float uWarpStrength;uniform float uWarpFrequency;uniform float uWarpSpeed;uniform float uWarpAmplitude;uniform float uBlendAngle;uniform float uBlendSoftness;uniform float uRotationAmount;uniform float uNoiseScale;uniform float uGrainAmount;uniform float uGrainScale;uniform float uContrast;uniform float uGamma;uniform float uSaturation;uniform vec2 uCenterOffset;uniform float uZoom;uniform vec3 uColor1;uniform vec3 uColor2;uniform vec3 uColor3;out vec4 fragColor;
+      #define S(a,b,t) smoothstep(a,b,t)
+      mat2 Rot(float a){float s=sin(a),c=cos(a);return mat2(c,-s,s,c);}vec2 hash(vec2 p){p=vec2(dot(p,vec2(2127.1,81.17)),dot(p,vec2(1269.5,283.37)));return fract(sin(p)*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.0-2.0*f);float n=mix(mix(dot(-1.0+2.0*hash(i),f),dot(-1.0+2.0*hash(i+vec2(1.0,0.0)),f-vec2(1.0,0.0)),u.x),mix(dot(-1.0+2.0*hash(i+vec2(0.0,1.0)),f-vec2(0.0,1.0)),dot(-1.0+2.0*hash(i+vec2(1.0)),f-vec2(1.0)),u.x),u.y);return .5+.5*n;}
+      void main(){float t=iTime*uTimeSpeed;vec2 uv=gl_FragCoord.xy/iResolution.xy;float ratio=iResolution.x/iResolution.y;vec2 tuv=uv-.5+uCenterOffset;tuv/=max(uZoom,.001);float degree=noise(vec2(t*.1,tuv.x*tuv.y)*uNoiseScale);tuv.y/=ratio;tuv*=Rot(radians((degree-.5)*uRotationAmount+180.0));tuv.y*=ratio;float amplitude=uWarpAmplitude/max(uWarpStrength,.001);float warpTime=t*uWarpSpeed;tuv.x+=sin(tuv.y*uWarpFrequency+warpTime)/amplitude;tuv.y+=sin(tuv.x*(uWarpFrequency*1.5)+warpTime)/(amplitude*.5);float b=uColorBalance,s=max(uBlendSoftness,0.0);float blendX=(tuv*Rot(radians(uBlendAngle))).x;float edge0=-.3-b-s,edge1=.2-b+s;vec3 layer1=mix(uColor3,uColor2,S(edge0,edge1,blendX));vec3 layer2=mix(uColor2,uColor1,S(edge0,edge1,blendX));float vertical=1.0-S(-.3-b-s,.5-b+s,tuv.y);vec3 col=mix(layer1,layer2,vertical);float grain=fract(sin(dot(uv*max(uGrainScale,.001),vec2(12.9898,78.233)))*43758.5453);col+=(grain-.5)*uGrainAmount;col=(col-.5)*uContrast+.5;float luma=dot(col,vec3(.2126,.7152,.0722));col=mix(vec3(luma),col,uSaturation);col=pow(max(col,0.0),vec3(1.0/max(uGamma,.001)));fragColor=vec4(clamp(col,0.0,1.0),1.0);}`;
+    const createGrainientBackground=(canvas,host,world)=>{
+      const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false,powerPreference:'low-power'});
+      if(!gl){world.classList.add('u-webgl-fallback');return{activate(){},deactivate(){},destroy(){}};}
+      let program=null,vao=null,uniforms=null,frame=0,lastFrame=0,startedAt=performance.now(),active=false,intersecting=true,contextLost=false,destroyed=false;
+      const motion=matchMedia('(prefers-reduced-motion: reduce)');
+      const cancel=()=>{if(frame){cancelAnimationFrame(frame);frame=0;}};
+      const compile=(type,source)=>{const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){gl.deleteShader(shader);return null;}return shader;};
+      const build=()=>{const vertex=compile(gl.VERTEX_SHADER,grainientVertex),fragment=compile(gl.FRAGMENT_SHADER,grainientFragment);if(!vertex||!fragment)return false;const nextProgram=gl.createProgram();gl.attachShader(nextProgram,vertex);gl.attachShader(nextProgram,fragment);gl.linkProgram(nextProgram);gl.deleteShader(vertex);gl.deleteShader(fragment);if(!gl.getProgramParameter(nextProgram,gl.LINK_STATUS)){gl.deleteProgram(nextProgram);return false;}if(program)gl.deleteProgram(program);if(vao)gl.deleteVertexArray(vao);program=nextProgram;vao=gl.createVertexArray();uniforms={resolution:gl.getUniformLocation(program,'iResolution'),time:gl.getUniformLocation(program,'iTime')};gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'uTimeSpeed'),.12);gl.uniform1f(gl.getUniformLocation(program,'uColorBalance'),-.04);gl.uniform1f(gl.getUniformLocation(program,'uWarpStrength'),.72);gl.uniform1f(gl.getUniformLocation(program,'uWarpFrequency'),3.4);gl.uniform1f(gl.getUniformLocation(program,'uWarpSpeed'),.42);gl.uniform1f(gl.getUniformLocation(program,'uWarpAmplitude'),78.0);gl.uniform1f(gl.getUniformLocation(program,'uBlendAngle'),-18.0);gl.uniform1f(gl.getUniformLocation(program,'uBlendSoftness'),.16);gl.uniform1f(gl.getUniformLocation(program,'uRotationAmount'),150.0);gl.uniform1f(gl.getUniformLocation(program,'uNoiseScale'),1.45);gl.uniform1f(gl.getUniformLocation(program,'uGrainAmount'),.035);gl.uniform1f(gl.getUniformLocation(program,'uGrainScale'),1.8);gl.uniform1f(gl.getUniformLocation(program,'uContrast'),1.24);gl.uniform1f(gl.getUniformLocation(program,'uGamma'),1.04);gl.uniform1f(gl.getUniformLocation(program,'uSaturation'),.92);gl.uniform2f(gl.getUniformLocation(program,'uCenterOffset'),-.06,.08);gl.uniform1f(gl.getUniformLocation(program,'uZoom'),.82);gl.uniform3f(gl.getUniformLocation(program,'uColor1'),1.0,.384,.42);gl.uniform3f(gl.getUniformLocation(program,'uColor2'),.455,.114,.259);gl.uniform3f(gl.getUniformLocation(program,'uColor3'),.035,.031,.051);return true;};
+      const resize=()=>{const rect=host.getBoundingClientRect();if(rect.width<1||rect.height<1)return false;const cssWidth=Math.max(1,Math.round(rect.width)),cssHeight=Math.max(1,Math.round(rect.height));const scale=Math.min(window.devicePixelRatio||1,1,Math.sqrt(900000/(cssWidth*cssHeight)));const width=Math.max(1,Math.floor(cssWidth*scale)),height=Math.max(1,Math.floor(cssHeight*scale));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height);}return true;};
+      const draw=now=>{if(!program||contextLost||!resize())return;gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform2f(uniforms.resolution,canvas.width,canvas.height);gl.uniform1f(uniforms.time,motion.matches?0:(now-startedAt)*.001);gl.drawArrays(gl.TRIANGLES,0,3);};
+      const shouldAnimate=()=>active&&intersecting&&!document.hidden&&!motion.matches&&!contextLost&&!destroyed&&!!program;
+      const loop=now=>{frame=0;if(!shouldAnimate())return;if(now-lastFrame>=1000/30){lastFrame=now-((now-lastFrame)%(1000/30));draw(now);}frame=requestAnimationFrame(loop);};
+      const sync=()=>{cancel();if(!active||document.hidden||contextLost||destroyed)return;if(motion.matches){draw(startedAt);return;}if(intersecting)frame=requestAnimationFrame(loop);};
+      const resizeObserver=new ResizeObserver(()=>{if(active){draw(performance.now());sync();}});resizeObserver.observe(host);
+      const intersectionObserver=new IntersectionObserver(([entry])=>{intersecting=entry.isIntersecting;sync();},{threshold:0});intersectionObserver.observe(host);
+      const onVisibility=()=>sync();const onMotion=()=>sync();
+      const onContextLost=event=>{event.preventDefault();contextLost=true;cancel();program=null;vao=null;uniforms=null;world.classList.add('u-webgl-fallback');};
+      const onContextRestored=()=>{contextLost=false;if(build()){world.classList.remove('u-webgl-fallback');sync();}};
+      document.addEventListener('visibilitychange',onVisibility);motion.addEventListener('change',onMotion);canvas.addEventListener('webglcontextlost',onContextLost);canvas.addEventListener('webglcontextrestored',onContextRestored);
+      if(!build())world.classList.add('u-webgl-fallback');
+      return{activate(){if(destroyed)return;active=true;startedAt=performance.now();world.classList.toggle('u-webgl-fallback',!program);draw(startedAt);sync();},deactivate(){active=false;cancel();},destroy(){if(destroyed)return;destroyed=true;cancel();resizeObserver.disconnect();intersectionObserver.disconnect();document.removeEventListener('visibilitychange',onVisibility);motion.removeEventListener('change',onMotion);canvas.removeEventListener('webglcontextlost',onContextLost);canvas.removeEventListener('webglcontextrestored',onContextRestored);if(program)gl.deleteProgram(program);if(vao)gl.deleteVertexArray(vao);}};
+    };
+
+    const heroController=createAutoHero(stage);
+    const grainientController=createGrainientBackground(canvas,agenda,root);
+    let activationFrame=0;
+    const activateControllers=()=>{cancelAnimationFrame(activationFrame);activationFrame=requestAnimationFrame(()=>{activationFrame=0;grainientController.activate();heroController.activate();});};
+    activateControllers();
+    window.addEventListener('pagehide',event=>{cancelAnimationFrame(activationFrame);activationFrame=0;grainientController.deactivate();heroController.deactivate();if(!event.persisted){grainientController.destroy();heroController.destroy();}});
+    window.addEventListener('pageshow',event=>{if(event.persisted)activateControllers();});
+  </script>
+</body>
+</html>

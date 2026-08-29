@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 2/17 plans executed
+**Plans**: 3/20 plans executed
 
 Plans:
 **Wave 1**
@@ -262,63 +262,75 @@ Plans:
 
 - [x] 03-02-PLAN.md — provar migration, autorização e API pública do tracer
 
-**Wave 3** *(pronta para preflight interativo)*
+**Wave 3** *(concluída documentalmente em 2026-08-28: variante V, A2, B2 e C2 aprovados; nenhum requisito de produto concluído)*
 
-- [ ] 03-03-PLAN.md — levar o tracer ao contrato Angular e navegador
+- [x] 03-18-PLAN.md — reconciliar atomicamente contexto visual, UI-SPEC e planos incompletos; fechar B2/C2 com pareceres frescos
 
-**Wave 4** *(blocked on Wave 3 completion)*
+**Wave 4** *(próxima execução interativa; depende do 03-18 documental concluído)*
 
-- [ ] 03-04-PLAN.md — expandir catálogo genérico e locais reutilizáveis
+- [ ] 03-03-PLAN.md — entregar tracer vertical com listagem pública real mínima, contrato e navegador
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 03-05-PLAN.md — criar organizações/equipes e reconciliar favorito
+- [ ] 03-04-PLAN.md — expandir workspace/catálogo O1 e locais reutilizáveis
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 03-06-PLAN.md — criar atleta global e seam HMAC transitório
+- [ ] 03-05-PLAN.md — criar organizações/equipes e reconciliar favorito
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 03-07-PLAN.md — entregar propostas e revisão de vínculo
+- [ ] 03-06-PLAN.md — criar atleta global e seam HMAC transitório
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 03-08-PLAN.md — publicar elencos versionados
+- [ ] 03-07-PLAN.md — entregar propostas e revisão de vínculo
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 03-09-PLAN.md — importar CSV atomicamente
+- [ ] 03-08-PLAN.md — publicar elencos versionados
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 03-10-PLAN.md — versionar eventos, resultados e fontes
+- [ ] 03-09-PLAN.md — importar CSV atomicamente
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 03-11-PLAN.md — completar agenda e páginas públicas
+- [ ] 03-10-PLAN.md — versionar eventos, resultados e fontes
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
-- [ ] 03-12-PLAN.md — derivar chaveamento dos eventos
+- [ ] 03-11-PLAN.md — completar agenda e páginas públicas
 
 **Wave 13** *(blocked on Wave 12 completion)*
 
-- [ ] 03-13-PLAN.md — publicar classificação manual versionada
+- [ ] 03-12-PLAN.md — derivar chaveamento dos eventos
 
 **Wave 14** *(blocked on Wave 13 completion)*
 
-- [ ] 03-14-PLAN.md — entregar perfil esportivo textual/social owner-only
+- [ ] 03-13-PLAN.md — publicar classificação manual versionada
 
 **Wave 15** *(blocked on Wave 14 completion)*
 
-- [ ] 03-15-PLAN.md — processar e armazenar foto com segurança
+- [ ] 03-14-PLAN.md — entregar perfil esportivo textual/social owner-only
 
 **Wave 16** *(blocked on Wave 15 completion)*
 
-- [ ] 03-16-PLAN.md — consolidar capabilities e workspace O1–O8
+- [ ] 03-15-PLAN.md — processar e armazenar foto com segurança
 
 **Wave 17** *(blocked on Wave 16 completion)*
+
+- [ ] 03-16-PLAN.md — consolidar capabilities e workspace O1–O8
+
+**Wave 18** *(blocked on Wave 17 completion)*
+
+- [ ] 03-19-PLAN.md — convergir perfil incompleto, perfil e matrícula para o Console pessoal sem alterar lógica
+
+**Wave 19** *(blocked on Wave 18 completion)*
+
+- [ ] 03-20-PLAN.md — convergir operação legada e aposentar o AuthenticatedLayoutComponent com prova equivalente
+
+**Wave 20** *(blocked on Wave 19 completion)*
 
 - [ ] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação
 
@@ -404,7 +416,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 2/17 | In Progress | - |
+| 3. Experiência Esportiva do Piloto | 3/20 | In Progress | - |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
