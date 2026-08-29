@@ -35,7 +35,7 @@ Este contrato preserva D-53–D-80, AUTH-01 e SPRT-01–SPRT-16. Ele muda a ling
 1. **Transmissão, não dashboard genérico.** A Arena pública usa hierarquia de placar/editorial: tipografia condensada, horário, confronto, data e faixa de programação formam a imagem principal.
 2. **Uma identidade, dois ritmos.** Arena é expansiva e dramática; Console é preciso e denso. Cor, tipografia, raios, foco, estados e voz permanecem compartilhados.
 3. **O dado esportivo é o espetáculo.** Evento real, horário, fase, local e estado ocupam o protagonismo. Efeito visual nunca compete com leitura ou inventa conteúdo.
-4. **Coral é sinal, não preenchimento indiscriminado.** O acento marca ação, seleção, horário e momentos editoriais; superfícies vinho/preto sustentam contraste e profundidade.
+4. **Coral é sinal, vermelho profundo é superfície.** O coral marca ação, seleção, horário e detalhes; `#910008` sustenta faixas e planos vermelhos de impacto, enquanto ink/canvas preservam contraste e profundidade.
 5. **Movimento explica mudança.** Entrada, troca do hero e atualização de estado têm intenção. Nenhuma animação é requisito para compreender, navegar ou agir.
 6. **Honestidade operacional.** Loading, vazio, parcial, stale, conflito e 403 possuem composição própria; nenhum deles se parece com sucesso.
 
@@ -65,8 +65,13 @@ Os nomes são o contrato. Os planos podem adequar a sintaxe ao `_tokens.scss`, m
 | `--bt-surface-raised` | `#21131D` | hover, seleção, diálogo e painel elevado |
 | `--bt-wine` | `#741D42` | profundidade editorial e apoio ao Grainient; nunca texto sozinho |
 | `--bt-signal` | `#FF626B` | CTA primário, item ativo, horário e faixa de destaque |
+| `--bt-signal-deep` | `#910008` | superfícies vermelhas de impacto, beam do hero, fitas e lockups; não substitui canvas/surface em toda a aplicação |
 | `--bt-signal-soft` | `#FFB4B8` | metadado editorial e borda enfatizada |
 | `--bt-text` | `#FFF4F4` | texto principal |
+| `--bt-display` | `#FFC4C4` | títulos editoriais da agenda, incluindo `Jogos de hoje` e nomes de eventos sobre fundo escuro |
+| `--bt-hero-cream` | `#E8E6E3` | títulos principais do hero sobre ink/canvas, como `Hoje em` |
+| `--bt-hero-on-deep` | `#E1DFDB` | display e texto de alto destaque sobre `--bt-signal-deep`, como `Quadra.`, horário e `BRT` |
+| `--bt-hero-muted` | `#B5AEA5` | rótulos, data, contexto e texto auxiliar do hero sobre fundo escuro |
 | `--bt-text-muted` | `#CDBFC5` | texto secundário que ainda precisa passar AA |
 | `--bt-border` | `rgba(255,244,244,.18)` | divisores e campos em repouso |
 | `--bt-border-strong` | `rgba(255,180,184,.38)` | seleção, agrupamento e foco adjacente |
@@ -75,9 +80,9 @@ Os nomes são o contrato. Os planos podem adequar a sintaxe ao `_tokens.scss`, m
 | `--bt-warning` | `#F5C95C` | rascunho, revisão, adiado e stale |
 | `--bt-danger` | `#FF7A82` | erro, rejeição e ação destrutiva |
 
-Combinações obrigatórias: `--bt-text` sobre `--bt-ink|canvas|surface`; `--bt-ink` sobre `--bt-signal`; `--bt-focus` como outline de 3px. Texto comum alcança 4,5:1 e texto grande/gráfico 3:1. Cor nunca é o único sinal.
+Combinações obrigatórias: `--bt-text` sobre `--bt-ink|canvas|surface`; `--bt-ink` sobre `--bt-signal`; `--bt-hero-cream|hero-muted|display` sobre `--bt-ink|canvas`; `--bt-hero-on-deep` sobre `--bt-signal-deep`; `--bt-focus` como outline de 3px. Texto comum alcança 4,5:1 e texto grande/gráfico 3:1. Cor nunca é o único sinal.
 
-Distribuição visual aproximada: **60%** `ink/canvas` como campo dominante, **30%** `surface/wine` para estrutura e profundidade e **10%** `signal/signal-soft` para ação e ênfase. `success`, `warning` e `danger` são exceções semânticas de estado e não entram como decoração na proporção.
+Distribuição visual aproximada: **60%** `ink/canvas` como campo dominante, **30%** `surface/wine/signal-deep` para estrutura, profundidade e grandes recortes editoriais e **10%** `signal/signal-soft/display/hero-*` para ação, leitura e ênfase. `success`, `warning` e `danger` são exceções semânticas de estado e não entram como decoração na proporção.
 
 ### Tipografia
 
@@ -90,13 +95,13 @@ Fontes locais existentes: Barlow Condensed 600 para display e Inter 400/600 para
 | `body` | `1rem` | `1.5` | instrução, valor, mensagem e texto de controle principal |
 | `label` | `.875rem` | `1.3` | botão, filtro, cabeçalho, kicker e metadado; kicker pode usar caixa alta/tracking, não tamanho extra |
 
-Display usa tracking negativo leve; kicker usa tracking positivo. Nomes essenciais quebram linha e nunca são truncados. Números de horário/placar usam `font-variant-numeric: tabular-nums`.
+Os quatro papéis são semânticos: variações ópticas responsivas por contêiner e breakpoint são permitidas dentro do mesmo papel, mas não criam um quinto nível ou token ad hoc. Display usa tracking negativo leve; kicker usa tracking positivo. Nomes essenciais quebram linha e nunca são truncados. Números de horário/placar usam `font-variant-numeric: tabular-nums`.
 
 ### Espaço, grid, raio e profundidade
 
 | Token | Valor | Contrato |
 |---|---:|---|
-| `space-1/2/4/6/8/12/16` | `4/8/16/24/32/48/64px` | única escala de espaçamento; qualquer valor intermediário deve ser arredondado para esta grade |
+| `space-1/2/4/6/8/12/16` | `4/8/16/24/32/48/64px` | única escala para `margin`, `padding` e `gap`; qualquer valor intermediário nesses usos deve ser arredondado para esta grade |
 | `container` | `min(calc(100% - 32px), 1240px)` | 16px laterais em mobile; desktop pode usar padding interno de 24px ou 32px |
 | `form-max` | `640px` | formulários e leitura longa |
 | `radius-control` | `999px` | botões, tabs segmentadas, chips e filtros compactos |
@@ -134,6 +139,8 @@ Os nomes abaixo indicam responsabilidades; nomes de arquivos/classes serão defi
 - `ConsoleShell`: mesma marca/paleta, título do contexto, retorno `Arena` e duas variantes semânticas. A variante pessoal organiza conta/perfil/matrícula; a operacional apresenta destinos por capability e escopo. Não exibe rota sem autorização nem cria um terceiro tema.
 - `SportRail`: lista horizontal de modalidades com `aria-pressed`; overflow rolável dentro do componente, não na página.
 - `SkipLink`, foco pós-rota no `h1` e rodapé de independência são compartilhados.
+
+Quando um destino ainda não existir na rota ou a API ainda não fornecer modalidades, o shell e o rail não criam links mortos nem rótulos fictícios: exibem somente `Competições`/`Entrar` e o contexto estático disponível. No 03-03, `SportRibbon` mantém a marca, a contagem e o estado da publicação; modalidades e detalhes ausentes ficam reservados aos planos que sustentam esses campos.
 
 ### Hero e sinalização esportiva
 
@@ -698,4 +705,6 @@ Critérios transversais `L/R/O/T` são verificados em todas as 26 superfícies; 
 
 **Approval anterior:** o gate A de 20 superfícies foi aprovado em 2026-08-28, ledger `7 → 2 → 0` em `03-VALIDATION.md`.
 
-**Estado da reabertura:** PASS A2 — o `gsd-ui-checker` fresco aprovou as 26 superfícies e as decisões D-95–D-100 com `actionable_count: 0` (`BLOCK=0`, `FLAG=0`). O parecer anterior de 20 superfícies permanece apenas histórico; B2/C2 continuam independentes e pendentes.
+**Estado da reabertura:** PASS A2 — o `gsd-ui-checker` fresco aprovou as 26 superfícies e as decisões D-95–D-100 com `actionable_count: 0` (`BLOCK=0`, `FLAG=0`). O parecer anterior de 20 superfícies permanece apenas histórico; B2/C2 foram fechados posteriormente em `03-VALIDATION.md`.
+
+**Refinamento do 03-03:** a implementação da Arena V preserva o contrato estrutural e acrescenta os papéis cromáticos `signal-deep`, `display` e `hero-*` registrados acima. O responsável aprovou visualmente essa versão em 2026-08-29. A auditoria fresca final do snapshot implementado retornou `PASS`, sem achados P0/P1/P2; evidências, limitações e suítes estão registradas em `03-VALIDATION.md`.

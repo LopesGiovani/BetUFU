@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: Wave 3 plan 03-18 closed documentalmente; A2/B2/C2 passed; next 03-03/W4 briefing
-last_updated: "2026-08-28T23:35:34-03:00"
-last_activity: 2026-08-28
-last_activity_desc: Registro pós-push do 03-18 atualizado; master e origin/master estão sincronizadas, sem alteração de lógica de negócio.
+stopped_at: Wave 4 technical and documentation commits complete locally; awaiting post-commit verification and integration approval
+last_updated: "2026-08-29T08:40:51-03:00"
+last_activity: 2026-08-29
+last_activity_desc: 03-03 concluiu agenda pública real e Arena V; commit técnico 9399a7c e este commit documental formalizam a worktree, sem push ou integração.
 state_head: 22bf1678a7a3045d5e61e8106528a21216856d82
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 66
+  completed_plans: 67
 milestone_name: milestone
 ---
 
@@ -24,17 +24,23 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** briefing interativo do próximo plano técnico 03-03/W4, após o fechamento documental do 03-18
+**Current focus:** verificar os dois commits locais do 03-03/W4 e registrar o SHA documental na próxima passada de estado; depois, integrar a onda antes do briefing interativo do 03-04/W5
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 3 de 20 concluídos; o 03-18 está concluído exclusivamente como plano documental e o 03-03 continua sendo o próximo plano técnico.
-Status: In progress — A2, B2 e C2 passaram com pareceres frescos e a integridade do índice foi reconciliada; nenhum requisito de produto foi concluído.
-Last activity: 2026-08-28 — a reabertura do 03-18 acrescentou os planos 03-19/03-20, corrigiu o contrato de 26 superfícies e preservou APIs, stores, guards, permissões e regras de negócio.
+Plan: 4 de 20 concluídos; o 03-03 está completo na worktree isolada e o 03-04/W5 é o próximo plano técnico após revisão e integração.
+Status: In progress — Wave 4 passou backend, Node, Angular, build, Playwright e auditoria fresca; os commits técnico e documental estão completos localmente e aguardam integração separada.
+Last activity: 2026-08-29 — agenda pública real, cliente governado e Arena V foram concluídos sem antecipar O1 nem alterar regras de negócio existentes.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
-Git — Fase 3: Wave 1, Wave 2 e sua formalização foram enviadas; o fechamento documental do 03-18 foi integrado, a worktree temporária foi removida e a publicação em `origin/master` foi concluída. As refs estão sincronizadas, o sketch V está versionado com regra `LF` e nenhuma alteração de código foi realizada.
+Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 vive somente em `worktree-agent-03-03`, criada a partir de `7d3cbc6`; o commit técnico local `9399a7c` contém exatamente 44 paths e este commit documental contém os seis documentos GSD. `master` não foi alterada por este plano; integração, limpeza e push continuam pendentes de aprovação específica.
+
+Git — Fase 3 / Wave 4 (snapshot local aprovado, 2026-08-29): o 03-03 entrega a agenda pública paginada, o candidato OpenAPI aprovado `0B631F67A415BEE7BC95ECF209BD240C922A93ED47B69385B969B093D464AB95`, o cliente governado e a Arena V. O gate final passou Surefire `251/251`, Failsafe `343/343`, Node `623/623`, gerador `72/72`, Angular `241/241`, build produtivo e Playwright `2/2`; a auditoria fresca terminou `PASS`, P0=P1=P2=0. `frontend/angular.json` não possui diff de conteúdo e fica fora da allowlist final. Os temporários locais de `.playwright-cli/` foram removidos antes do handoff.
+
+Git — Fase 3 / Wave 4 (commit técnico, 2026-08-29): o commit `9399a7c13af45280e001f0f0d6e3bc77a8c4b3e1`, filho direto de `7d3cbc6bfdfbec52bd9e78e4eeef916b846de11c`, contém exatamente os 44 paths técnicos certificados; `git diff --cached --check` passou antes do commit. Os seis documentos GSD permanecem fora do índice para o commit documental separado; os quatro metadados candidatos continuam ignorados, `frontend/angular.json` não possui diff de conteúdo e `frontend/src/app/api/generated/index.ts` permaneceu inalterado. Nenhum commit documental, integração, limpeza ou push foi executado.
+
+Git — Fase 3 / Wave 4 (commit documental, 2026-08-29): este commit contém exatamente `03-03-PLAN.md`, `03-03-SUMMARY.md`, `03-UI-SPEC.md`, `03-VALIDATION.md`, `ROADMAP.md` e `STATE.md`, como filho direto do commit técnico `9399a7c`. Por regra anti-autorreferência, seu próprio SHA não aparece dentro dele e será registrado na próxima passada de estado. `frontend/angular.json`, os quatro metadados candidatos e qualquer path técnico ficaram fora deste segundo commit. Nenhuma integração, limpeza ou push foi executado.
 
 Git — Fase 3 / Wave 2 (concluída, enviada e limpa, 2026-08-27): a `master` recebeu o commit técnico `2be1b0f`, contendo exatamente os 14 paths técnicos certificados, seguido pela formalização documental com `03-02-PLAN.md`, `03-02-SUMMARY.md`, `03-VALIDATION.md`, `STATE.md` e `ROADMAP.md`. A árvore passou `SportsTracerIT` 9/9, `ModulithArchitectureTests` 2/2, Surefire 251/251, Failsafe 342/342, Node 623/623 e Maven `clean verify` com `BUILD SUCCESS`. A mutação de escopo ficou vermelha e o service foi restaurado ao SHA-256 `552921E19D2B9ED51DE813470DE8EA90F67E65947C2B88C59A71CBAEDBB05261`. A revisão Codex retornou `PASS`, P0=P1=P2=0. Os 14 hashes da worktree revisada permaneceram aprovados e o conteúdo Git integrado ficou idêntico em 14/14 paths. A worktree e a branch temporárias foram removidas; `.gitignore` foi atualizado para ignorar somente o cache local de pesquisa, e `master`/`origin/master` chegaram juntas a `12d8f01`.
 
@@ -78,13 +84,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [██░░░░░░░░] 3/20 planos da Fase 3 (15%)
+Progress: [██░░░░░░░░] 4/20 planos da Fase 3 (20%)
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 66
+- Total de planos concluídos: 67
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -94,11 +100,11 @@ Progress: [██░░░░░░░░] 3/20 planos da Fase 3 (15%)
 |------|--------|-------|-------------|
 | 1 | 31 | não mensurado | não mensurada |
 | 2 | 32 | não mensurado | não mensurada |
-| 3 | 3 | não mensurado | não mensurada |
+| 3 | 4 | não mensurado | não mensurada |
 
 **Tendência recente:**
 
-- Últimos planos: 02-27, 03-01, 03-02 e 03-18; o último foi exclusivamente documental e não altera métricas de produto
+- Últimos planos: 03-01, 03-02, 03-18 e 03-03; o 03-18 foi exclusivamente documental e o 03-03 reabriu a execução técnica na Wave 4
 - Correção de registro: esta seção declarava 14 planos e uma lista defasada enquanto o frontmatter já dizia 18. Reconciliada no fechamento do 01-24.
 - Tendência: ainda não estabelecida sem duração contínua mensurada
 
@@ -107,6 +113,8 @@ Progress: [██░░░░░░░░] 3/20 planos da Fase 3 (15%)
 ### Decisões
 
 - A variante V autenticada por SHA-256 é a referência visual canônica da Fase 3; a identidade única se expressa como `Arena pública` e `Console operacional` em Angular nativo.
+- A Arena V aprovada usa `#910008` para superfícies vermelhas profundas, `#FF626B` para sinal/ação, `#FFC4C4` para títulos editoriais e off-white/creme no hero; esses papéis são tokens semânticos, não cores ad hoc.
+- A agenda calcula a próxima fronteira temporal por Signal e timer único: eventos vencidos deixam hero e ticker sem polling nem nova chamada à API.
 - O 03-03 preserva o tracer vertical e entrega a listagem pública real mínima ponta a ponta; a expansão operacional completa do workspace/catálogo O1 permanece exclusivamente no 03-04.
 - Consumidores do cliente OpenAPI seguem a ordem candidato read-only, aprovação humana de inventário/digest, geração governada e somente então consumo Angular.
 - O replanejamento técnico fica serializado de W4 a W20: 03-19 converge o Console pessoal, 03-20 converge a operação legada/retira o shell antigo e 03-17 certifica 26 superfícies. D-95 proíbe alterar lógica de negócio durante essa migração visual.
@@ -218,7 +226,7 @@ Progress: [██░░░░░░░░] 3/20 planos da Fase 3 (15%)
 
 ### Bloqueios e pontos de atenção
 
- - ~~A Wave 3 permanecia bloqueada até integração e limpeza do 03-02.~~ **Resolvido em 2026-08-28:** o 03-18 foi reaberto para cobrir a convergência visual legada e agora está fechado. **Ordem corrente:** A2/B2/C2 passaram; o tracer 03-03 fica elegível para briefing interativo na W4; 03-19/W18 e 03-20/W19 entram antes da certificação 03-17/W20. Nenhuma execução técnica foi iniciada.
+ - ~~A Wave 3 permanecia bloqueada até integração e limpeza do 03-02.~~ **Resolvido em 2026-08-28:** o 03-18 foi reaberto para cobrir a convergência visual legada e agora está fechado. **Ordem corrente:** A2/B2/C2 passaram; o 03-03/W4 foi implementado, testado e aprovado na worktree isolada; após as operações Git separadas, o próximo plano é 03-04/W5. 03-19/W18 e 03-20/W19 entram antes da certificação 03-17/W20.
 
 - Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
 - ~~Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.~~ **Resolvido em 2026-08-26:** a Fase 3 adotou catálogo esportivo genérico, registrou as modalidades conhecidas apenas como dados iniciais e definiu página oficial, regulamento e boletins oficiais como fontes autoritativas; detalhes de 2026 serão dados operacionais, não bloqueio arquitetural.
@@ -239,9 +247,9 @@ Progress: [██░░░░░░░░] 3/20 planos da Fase 3 (15%)
 
 ## Session Continuity
 
-Last session: 2026-08-28T17:40:16.168-03:00
-Stopped at: Wave 3 plan 03-18 closed documentalmente; Gates A2/B2/C2 passed; next 03-03/W4 briefing
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-03-PLAN.md
+Last session: 2026-08-29T08:40:51-03:00
+Stopped at: Wave 4 technical and documentation commits complete locally; awaiting post-commit verification and integration approval
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-03-SUMMARY.md
 
 ## Accumulated Context
 
@@ -257,3 +265,4 @@ Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-03-PLAN.md
 | Phase 03 P01 | 20 min | 2 tasks | 3 files |
 | Phase 03 P02 | 5h13 elapsed | 2 tasks | 15 snapshot paths |
 | Phase 03 P18 | 7h28 elapsed | 3 tasks | 23 planning paths |
+| Phase 03 P03 | multi-session | 5 tasks | 54 snapshot paths |
