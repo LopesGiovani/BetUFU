@@ -10,3 +10,4 @@ frontend/src/app/api/generated/** text eol=lf whitespace=-blank-at-eol
 frontend/src/assets/fonts/*.woff2 binary
 frontend/src/assets/fonts/*-ofl.txt text eol=lf
 frontend/src/assets/fonts/material-symbols-apache-license.txt text eol=lf
+.planning/sketches/004-identity-lab/index.html text eol=lf
