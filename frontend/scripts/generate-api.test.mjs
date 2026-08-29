@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import {
   mkdir,
   mkdtemp,
+  readdir,
   readFile,
   rm,
   stat,
@@ -18,10 +19,15 @@ import { fileURLToPath } from 'node:url';
 import {
   APPROVED_GENERATED_DIGEST,
   APPROVED_GENERATED_FILES,
+  PUBLIC_GENERATOR_API_TAGS,
+  PUBLIC_GENERATOR_GLOBAL_PROPERTY,
+  PUBLIC_GENERATOR_MODELS,
   GenerateApiContractError,
   assertApprovedGeneratedManifest,
   executeGenerateApi,
   hardenGeneratedTypeScript,
+  inspectGeneratedOpenApiContract,
+  inspectOpenApiContract,
   normalizeGeneratedText,
   readTreeManifest,
   sanitizeError,
@@ -151,6 +157,7 @@ async function execute(fixture, options = {}) {
     adapters: adapters(options.adapters),
     generatedManifestContract: options.generatedManifestContract ?? null,
     mode: options.mode ?? 'generate',
+    candidateDirectory: options.candidateDirectory ?? null,
   });
 }
 
@@ -260,6 +267,25 @@ test('manifesto recusa bytes com URL absoluta escondida depois de regex literal'
   );
 });
 
+test('geracao publica seleciona somente SportsPublic e seus schemas compartilhados', () => {
+  assert.deepEqual(PUBLIC_GENERATOR_API_TAGS, [
+    'Diagnostic',
+    'Enrollment',
+    'Identity',
+    'OperationalCapabilities',
+    'OperationalPanel',
+    'PasswordResetRecovery',
+    'Profile',
+    'Role',
+    'Session',
+    'SportsPublic',
+  ]);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicSportsEventPage'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventFormat'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCompetitionCreateRequest'), false);
+  assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsOperations'), false);
+});
+
 test('manifesto aprovado identifica exatamente a arvore TypeScript versionada', async () => {
   const generatedRoot = join(projectRoot, 'frontend', 'src', 'app', 'api', 'generated');
   const manifest = await readTreeManifest(generatedRoot);
@@ -294,6 +320,136 @@ test('manifesto aprovado recusa arquivo, servico e bytes extras', async () => {
         && error.rule === 'GENERATED_MANIFEST',
     );
   }
+});
+
+test('inspeciona endpoints e schemas do contrato sem depender do gerador', () => {
+  const inventory = inspectOpenApiContract([
+    'openapi: 3.1.0',
+    'paths:',
+    '  /api/v1/public/sports/events:',
+    '    get:',
+    '      operationId: listPublishedSportsEvents',
+    'components:',
+    '  schemas:',
+    '    PublicSportsEventPage:',
+    '      type: object',
+    '    SportsEventFormat:',
+    '      type: string',
+    '',
+  ].join('\n'));
+
+  assert.deepEqual(inventory.endpoints, [{
+    path: '/api/v1/public/sports/events',
+    methods: ['GET'],
+  }]);
+  assert.deepEqual(inventory.schemas, ['PublicSportsEventPage', 'SportsEventFormat']);
+  assert.deepEqual(inventory.publicSchemas, ['PublicSportsEventPage']);
+});
+
+test('inventario gerado exclui comandos esportivos fora do cliente publico', () => {
+  const inventory = inspectGeneratedOpenApiContract([
+    'openapi: 3.1.0',
+    'paths:',
+    '  /api/v1/operations/sports/competitions:',
+    '    post:',
+    '      operationId: createSportsCompetition',
+    '  /api/v1/public/sports/events:',
+    '    get:',
+    '      operationId: listPublishedSportsEvents',
+    'components:',
+    '  schemas:',
+    '    SportsCompetitionCreateRequest:',
+    '      type: object',
+    '    PublicSportsEventPage:',
+    '      type: object',
+    '',
+  ].join('\n'));
+
+  assert.deepEqual(inventory, {
+    endpoints: [{ path: '/api/v1/public/sports/events', methods: ['GET'] }],
+    schemas: ['PublicSportsEventPage'],
+    publicSchemas: ['PublicSportsEventPage'],
+  });
+});
+
+test('modo candidato persiste somente metadados e nao toca a arvore governada', async () => {
+  await withFixture('candidate', async (fixture) => {
+    const candidateDirectory = join(fixture.frontendRoot, 'target', 'api-candidate', '03-03');
+    const governedBefore = await readTreeManifest(fixture.target);
+    let scratchDirectory;
+    const result = await execute(fixture, {
+      mode: 'candidate',
+      candidateDirectory,
+      adapters: {
+        generate: async ({ outputDirectory }) => {
+          scratchDirectory = outputDirectory;
+          await writeGeneratedBaseService(outputDirectory);
+          await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\n');
+          await writeText(join(outputDirectory, 'README.md'), 'raw auxiliary output\n');
+        },
+      },
+    });
+
+    assert.equal(result.mode, 'candidate');
+    assert.equal(result.governedBefore, governedBefore.digest);
+    assert.equal(result.governedAfter, governedBefore.digest);
+    assert.equal(await snapshotTree(fixture.target), governedBefore.digest);
+    assert.deepEqual((await readdir(candidateDirectory)).sort(), [
+      'digest.sha256',
+      'governed-after.sha256',
+      'governed-before.sha256',
+      'inventory.json',
+    ]);
+    const inventory = JSON.parse(await readFile(join(candidateDirectory, 'inventory.json'), 'utf8'));
+    assert.equal(inventory.digest, result.digest);
+    assert.deepEqual(inventory.files, result.files);
+    assert.equal(await readFile(join(candidateDirectory, 'digest.sha256'), 'utf8'), `${result.digest}\n`);
+    assert.equal(
+      await readFile(join(candidateDirectory, 'governed-before.sha256'), 'utf8'),
+      `${governedBefore.digest}\n`,
+    );
+    assert.equal(
+      await readFile(join(candidateDirectory, 'governed-after.sha256'), 'utf8'),
+      `${governedBefore.digest}\n`,
+    );
+    assert.equal((await readdir(candidateDirectory)).some((entry) => entry.endsWith('.ts')), false);
+    await assert.rejects(stat(scratchDirectory), { code: 'ENOENT' });
+  });
+});
+
+test('modo candidato bloqueia campo proibido em schema publico antes do digest', async () => {
+  await withFixture('candidate-forbidden-field', async (fixture) => {
+    await writeFile(
+      join(fixture.root, 'backend', 'openapi', 'betufu.yaml'),
+      [
+        'openapi: 3.1.0',
+        'paths:',
+        '  /api/v1/public/example:',
+        '    get:',
+        '      operationId: getExample',
+        'components:',
+        '  schemas:',
+        '    PublicExample:',
+        '      type: object',
+        '      properties:',
+        '        matricula:',
+        '          type: string',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    const candidateDirectory = join(fixture.frontendRoot, 'target', 'api-candidate', '03-03');
+    await assert.rejects(
+      execute(fixture, {
+        mode: 'candidate',
+        candidateDirectory,
+      }),
+      (error) => error instanceof GenerateApiContractError
+        && error.rule === 'PUBLIC_SCHEMA_FORBIDDEN_FIELD'
+        && error.message.includes('matricula'),
+    );
+    await assert.rejects(stat(candidateDirectory), { code: 'ENOENT' });
+  });
 });
 
 test('manifesto divergente bloqueia publicacao e preserva a arvore valida', async () => {

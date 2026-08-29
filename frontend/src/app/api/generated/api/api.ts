@@ -16,4 +16,6 @@ export * from './role.service';
 import { RoleService } from './role.service';
 export * from './session.service';
 import { SessionService } from './session.service';
-export const APIS = [DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService];
+export * from './sports-public.service';
+import { SportsPublicService } from './sports-public.service';
+export const APIS = [DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsPublicService];

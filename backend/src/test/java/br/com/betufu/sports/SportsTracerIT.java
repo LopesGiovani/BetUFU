@@ -76,6 +76,7 @@ class SportsTracerIT {
     private static final String ISSUER = "https://idp.invalid";
     private static final String COMPETITIONS = "/api/v1/operations/sports/competitions";
     private static final String ROLE_GRANTS = "/api/v1/operations/roles/grants";
+    private static final String PUBLIC_EVENTS = "/api/v1/public/sports/events";
 
     private static final DockerImageName POSTGRES_IMAGE = DockerImageName.parse(
                     "docker.io/library/postgres:18.4-trixie@sha256:"
@@ -195,6 +196,91 @@ class SportsTracerIT {
         assertThat(publicBody.size())
                 .as("the anonymous DTO must contain only the approved public fields")
                 .isEqualTo(15);
+    }
+
+    @Test
+    @DisplayName("Agenda publica lista somente publicados com filtros e paginação estáveis")
+    void listsPublishedEventsWithStableFiltersAndPagination() throws Exception {
+        UUID competitionA = createCompetition("Competicao Agenda A", "competicao-agenda-a");
+        UUID editionA = createEdition(competitionA, "Edicao Agenda A", "edicao-agenda-a");
+        UUID competitionB = createCompetition("Competicao Agenda B", "competicao-agenda-b");
+        UUID editionB = createEdition(competitionB, "Edicao Agenda B", "edicao-agenda-b");
+        grantRoleDirect(competitionAdminId, "ADMINISTRADOR_COMPETICAO", competitionA);
+        grantRoleDirect(competitionAdminId, "ADMINISTRADOR_COMPETICAO", competitionB);
+
+        UUID first = createEvent(
+                editionA,
+                "competition-admin-sub",
+                "Primeiro evento",
+                "2026-08-22T16:00:00Z");
+        UUID second = createEvent(
+                editionA,
+                "competition-admin-sub",
+                "Segundo evento",
+                "2026-08-23T16:00:00Z");
+        UUID otherCompetition = createEvent(
+                editionB,
+                "competition-admin-sub",
+                "Outra competição",
+                "2026-08-22T12:00:00Z");
+        createEvent(
+                editionA,
+                "competition-admin-sub",
+                "Rascunho invisivel",
+                "2026-08-22T10:00:00Z");
+        publishEvent(first);
+        publishEvent(second);
+        publishEvent(otherCompetition);
+
+        MvcResult firstPage = mockMvc.perform(get(PUBLIC_EVENTS)
+                        .param("competitionId", competitionA.toString())
+                        .param("editionId", editionA.toString())
+                        .param("from", "2026-08-22T00:00:00Z")
+                        .param("to", "2026-08-23T23:59:59Z")
+                        .param("page", "0")
+                        .param("size", "1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(1))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.hasNext").value(true))
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].eventId").value(first.toString()))
+                .andExpect(jsonPath("$.items[0].title").value("Primeiro evento"))
+                .andExpect(jsonPath("$.items[0].slots.length()").value(2))
+                .andExpect(jsonPath("$.items[0].publicationId").doesNotExist())
+                .andExpect(jsonPath("$.items[0].versionNo").doesNotExist())
+                .andExpect(jsonPath("$.items[0].sourceReference").doesNotExist())
+                .andReturn();
+
+        JsonNode summary = objectMapper.readTree(firstPage.getResponse().getContentAsByteArray())
+                .path("items")
+                .get(0);
+        assertThat(summary.size())
+                .as("the agenda summary must contain only approved public fields")
+                .isEqualTo(11);
+
+        mockMvc.perform(get(PUBLIC_EVENTS)
+                        .param("competitionId", competitionA.toString())
+                        .param("editionId", editionA.toString())
+                        .param("page", "1")
+                        .param("size", "1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].eventId").value(second.toString()))
+                .andExpect(jsonPath("$.hasNext").value(false));
+
+        mockMvc.perform(get(PUBLIC_EVENTS)
+                        .param("competitionId", competitionA.toString())
+                        .param("from", "2030-01-01T00:00:00Z")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0))
+                .andExpect(jsonPath("$.totalElements").value(0))
+                .andExpect(jsonPath("$.totalPages").value(0))
+                .andExpect(jsonPath("$.hasNext").value(false));
     }
 
     @Test
@@ -412,27 +498,46 @@ class SportsTracerIT {
     }
 
     private UUID createEvent(UUID editionId, String subject, String title) throws Exception {
+        return createEvent(editionId, subject, title, "2026-08-22T16:00:00Z");
+    }
+
+    private UUID createEvent(UUID editionId, String subject, String title, String scheduledAt) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/operations/sports/editions/" + editionId + "/events")
                         .with(oidcPrincipal(subject))
                         .with(csrf())
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(eventBody(title)))
+                        .content(eventBody(title, scheduledAt)))
                 .andExpect(status().isCreated())
                 .andReturn();
         return uuid(result, "eventId");
     }
 
     private static String eventBody(String title) {
-        return "{\"title\":\"" + title + "\","
-                + "\"format\":\"HEAD_TO_HEAD\","
-                + "\"scheduledAt\":\"2026-08-22T16:00:00Z\","
-                + "\"zoneId\":\"America/Sao_Paulo\","
-                + "\"venueState\":\"LOCAL_A_DEFINIR\","
-                + "\"sourceReference\":\"https://example.invalid/boletim-1\","
-                + "\"slots\":["
-                + "{\"slotNo\":1,\"displayLabel\":\"Direito\"},"
-                + "{\"slotNo\":2,\"displayLabel\":\"Computacao\"}]}";
+        return eventBody(title, "2026-08-22T16:00:00Z");
+    }
+
+    private static String eventBody(String title, String scheduledAt) {
+        return String.format(
+                "{\"title\":\"%s\",\"format\":\"HEAD_TO_HEAD\","
+                        + "\"scheduledAt\":\"%s\",\"zoneId\":\"America/Sao_Paulo\","
+                        + "\"venueState\":\"LOCAL_A_DEFINIR\","
+                        + "\"sourceReference\":\"https://example.invalid/boletim-1\","
+                        + "\"slots\":["
+                        + "{\"slotNo\":1,\"displayLabel\":\"Direito\"},"
+                        + "{\"slotNo\":2,\"displayLabel\":\"Computacao\"}]}",
+                title,
+                scheduledAt);
+    }
+
+    private void publishEvent(UUID eventId) throws Exception {
+        mockMvc.perform(post("/api/v1/operations/sports/events/" + eventId + "/publications")
+                        .with(oidcPrincipal("competition-admin-sub"))
+                        .with(csrf())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"expectedLockVersion\":0}"))
+                .andExpect(status().isCreated());
     }
 
     private UUID uuid(MvcResult result, String field) throws Exception {

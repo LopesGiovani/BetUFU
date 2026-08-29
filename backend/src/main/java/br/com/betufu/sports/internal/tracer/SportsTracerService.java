@@ -2,6 +2,7 @@ package br.com.betufu.sports.internal.tracer;
 
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventCreateReques
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventSlotRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventResponse;
+import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSportsEventPage;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ class SportsTracerService {
 
     private static final String GENERAL_ADMIN = "ADMINISTRADOR_GERAL";
     private static final String COMPETITION_ADMIN = "ADMINISTRADOR_COMPETICAO";
+    static final int MAX_PUBLIC_PAGE_SIZE = 50;
 
     private final SportsTracerRepository repository;
     private final OperationalIdentityLookup identityLookup;
@@ -134,6 +137,56 @@ class SportsTracerService {
         Objects.requireNonNull(eventId, "eventId must not be null");
         return repository.findLatestPublication(eventId)
                 .orElseThrow(SportsTracerService::notFound);
+    }
+
+    PublicSportsEventPage getPublishedEvents(
+            UUID competitionId,
+            UUID editionId,
+            Instant from,
+            Instant to,
+            int page,
+            int size) {
+        if (page < 0 || size < 1 || size > MAX_PUBLIC_PAGE_SIZE) {
+            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+        }
+        if (from != null && to != null && to.isBefore(from)) {
+            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+        }
+
+        try {
+            Math.multiplyExact((long) page, size);
+        } catch (ArithmeticException ex) {
+            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+        }
+
+        PublicSportsEventPage pageResponse = transactions.execute(status -> {
+            SportsTracerRepository.PublishedEventsPageData result = repository.findPublishedEvents(
+                    competitionId,
+                    editionId,
+                    from,
+                    to,
+                    page,
+                    size);
+            long totalElements = result.totalElements();
+            long totalPagesLong = totalElements == 0
+                    ? 0
+                    : ((totalElements - 1) / size) + 1;
+            int totalPages;
+            try {
+                totalPages = Math.toIntExact(totalPagesLong);
+            } catch (ArithmeticException ex) {
+                throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+            }
+            boolean hasNext = ((long) page + 1) * size < totalElements;
+            return new PublicSportsEventPage(
+                    result.items(),
+                    page,
+                    size,
+                    totalElements,
+                    totalPages,
+                    hasNext);
+        });
+        return Objects.requireNonNull(pageResponse, "public agenda transaction returned null");
     }
 
     private OperationalIdentity resolveIdentity(String issuer, String subject) {

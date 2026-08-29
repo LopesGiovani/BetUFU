@@ -70,6 +70,61 @@ const APPROVED_GENERATOR = Object.freeze({
     hideGenerationTimestamp: true,
   }),
 });
+export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
+  'Diagnostic',
+  'Enrollment',
+  'Identity',
+  'OperationalCapabilities',
+  'OperationalPanel',
+  'PasswordResetRecovery',
+  'Profile',
+  'Role',
+  'Session',
+  'SportsPublic',
+]);
+export const PUBLIC_GENERATOR_MODELS = Object.freeze([
+  'AdministrativeCorrectionEventDto',
+  'AdministrativeCorrectionsBlock',
+  'BetufuFieldViolation',
+  'BetufuProblemDetails',
+  'CurrentDeviceLogoutResponse',
+  'CurrentIdentityResponse',
+  'CurrentProfileResponse',
+  'DiagnosticComponent',
+  'DiagnosticResponse',
+  'DiagnosticStatus',
+  'EnrollmentCorrectionRequest',
+  'EnrollmentCorrectionResponse',
+  'EnrollmentRegistrationRequest',
+  'EnrollmentStatusResponse',
+  'OperationalCapabilitiesResponse',
+  'OperationalCapability',
+  'OperationalPanelResponse',
+  'OperationalRole',
+  'PasswordResetEventRecoveryPageResponse',
+  'PasswordResetEventRecoveryResponse',
+  'ProfileUpdateRequest',
+  'PublicSportsEventPage',
+  'PublicSportsEventResponse',
+  'PublicSportsEventSlotResponse',
+  'PublicSportsEventSummary',
+  'RejectedEnrollmentsBlock',
+  'RoleChangeEventDto',
+  'RoleChangesBlock',
+  'RoleGrantRequest',
+  'RoleGrantResponse',
+  'RoleStatusDto',
+  'SessionStateResponse',
+  'SportsEventFormat',
+  'SportsVenueState',
+  'TimeWindow',
+  'UnregisteredEnrollmentsBlock',
+]);
+export const PUBLIC_GENERATOR_GLOBAL_PROPERTY = [
+  `apis=${PUBLIC_GENERATOR_API_TAGS.join(':')}`,
+  `models=${PUBLIC_GENERATOR_MODELS.join(':')}`,
+  'supportingFiles=',
+].join(',');
 const GENERATED_BASE_SERVICE_PATH = 'api.base.service.ts';
 const GENERATED_API_MODULE_PATH = 'api.module.ts';
 const GENERATED_BASE_PATH_SOURCE = "    protected basePath = 'http://localhost';";
@@ -80,6 +135,7 @@ const GENERATED_API_MODULE_DIAGNOSTIC = [
   "            'See also https://github.com/angular/angular/issues/20575');",
   '        }',
 ].join('\n');
+const PUBLIC_SCHEMA_FORBIDDEN_FIELDS = Object.freeze(['matricula']);
 
 export const APPROVED_GENERATED_FILES = Object.freeze([
   'api.base.service.ts',
@@ -94,6 +150,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/profile.service.ts',
   'api/role.service.ts',
   'api/session.service.ts',
+  'api/sports-public.service.ts',
   'configuration.ts',
   'encoder.ts',
   'index.ts',
@@ -119,6 +176,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/password-reset-event-recovery-page-response.ts',
   'model/password-reset-event-recovery-response.ts',
   'model/profile-update-request.ts',
+  'model/public-sports-event-page.ts',
+  'model/public-sports-event-response.ts',
+  'model/public-sports-event-slot-response.ts',
+  'model/public-sports-event-summary.ts',
   'model/rejected-enrollments-block.ts',
   'model/role-change-event-dto.ts',
   'model/role-changes-block.ts',
@@ -126,6 +187,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/role-grant-response.ts',
   'model/role-status-dto.ts',
   'model/session-state-response.ts',
+  'model/sports-event-format.ts',
+  'model/sports-venue-state.ts',
   'model/time-window.ts',
   'model/unregistered-enrollments-block.ts',
   'param.ts',
@@ -145,7 +208,11 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 //
 // BDF0... foi produzido pelo mesmo motor 7.24.0 fixado, depois da paridade OpenAPI, da
 // conferencia humana do inventario e da prova isolada de GENERATED_MANIFEST_DIGEST.
-export const APPROVED_GENERATED_DIGEST = 'BDF0CA8BDBC4118DA74FA0E5B0FFF47D4C0FF636DC9309751F550161F8EE4E71';
+//
+// 0B63... preserva os 50 caminhos anteriores e acrescenta somente o servico SportsPublic,
+// quatro DTOs publicos e dois enums compartilhados. O candidato read-only foi aprovado
+// literalmente pelo responsavel em 2026-08-29; SportsOperations permanece fora da arvore.
+export const APPROVED_GENERATED_DIGEST = '0B631F67A415BEE7BC95ECF209BD240C922A93ED47B69385B969B093D464AB95';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -641,6 +708,118 @@ export async function readTreeManifest(root) {
     entries,
     files: entries.map((entry) => entry.path),
   };
+}
+
+function escapeRegularExpression(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+/** Read only the contract inventory needed for a candidate approval. */
+export function inspectOpenApiContract(source) {
+  const normalized = String(source).replace(/\r\n?/gu, '\n');
+  const pathsSection = normalized.match(/^paths:\n([\s\S]*?)(?=^components:\n|(?![\s\S]))/m)?.[1] ?? '';
+  const endpoints = [];
+  const pathPattern = /^  (\/[^:\n]+):\n([\s\S]*?)(?=^  \S|(?![\s\S]))/gmu;
+  for (const match of pathsSection.matchAll(pathPattern)) {
+    const methods = [...match[2].matchAll(/^    (get|post|put|patch|delete|head|options|trace):/gimu)]
+      .map((method) => method[1].toUpperCase())
+      .sort();
+    endpoints.push({ path: match[1], methods });
+  }
+
+  const schemasSection = normalized.match(/^  schemas:\n([\s\S]*)$/m)?.[1] ?? '';
+  const schemas = [];
+  const schemaPattern = /^    ([A-Za-z][A-Za-z0-9_-]*):\n([\s\S]*?)(?=^    [A-Za-z][A-Za-z0-9_-]*:\n|(?![\s\S]))/gmu;
+  for (const match of schemasSection.matchAll(schemaPattern)) {
+    schemas.push(match[1]);
+  }
+
+  return {
+    endpoints,
+    schemas: schemas.sort(),
+    publicSchemas: schemas.filter((schema) => schema.startsWith('Public')).sort(),
+  };
+}
+
+export function inspectGeneratedOpenApiContract(source) {
+  const inventory = inspectOpenApiContract(source);
+  return {
+    endpoints: inventory.endpoints.filter(
+      ({ path }) => !path.startsWith('/api/v1/operations/sports/'),
+    ),
+    schemas: inventory.schemas.filter((schema) => PUBLIC_GENERATOR_MODELS.includes(schema)),
+    publicSchemas: inventory.publicSchemas.filter(
+      (schema) => PUBLIC_GENERATOR_MODELS.includes(schema),
+    ),
+  };
+}
+
+export function assertPublicSchemaAllowlist(source) {
+  const normalized = String(source).replace(/\r\n?/gu, '\n');
+  const schemasSection = normalized.match(/^  schemas:\n([\s\S]*)$/m)?.[1] ?? '';
+  const schemaPattern = /^    ([A-Za-z][A-Za-z0-9_-]*):\n([\s\S]*?)(?=^    [A-Za-z][A-Za-z0-9_-]*:\n|(?![\s\S]))/gmu;
+  for (const match of schemasSection.matchAll(schemaPattern)) {
+    const schemaName = match[1];
+    if (!schemaName.startsWith('Public')) {
+      continue;
+    }
+    for (const field of PUBLIC_SCHEMA_FORBIDDEN_FIELDS) {
+      const fieldPattern = new RegExp(`^        ${escapeRegularExpression(field)}:\\s*(?:#.*)?$`, 'mu');
+      if (fieldPattern.test(match[2])) {
+        fail('PUBLIC_SCHEMA_FORBIDDEN_FIELD', field);
+      }
+    }
+  }
+  return true;
+}
+
+function resolveCandidateDirectory(projectRoot, candidateDirectory) {
+  if (typeof candidateDirectory !== 'string' || candidateDirectory.trim() === '') {
+    fail('CANDIDATE_PATH_MISSING', 'diretorio candidato obrigatorio.');
+  }
+  if (!isAbsolute(candidateDirectory) && candidateDirectory.split(/[\\/]/u).includes('..')) {
+    fail('UNSAFE_PATH', 'diretorio candidato fora do escopo permitido.');
+  }
+  const resolvedCandidate = isAbsolute(candidateDirectory)
+    ? resolve(candidateDirectory)
+    : resolve(projectRoot, candidateDirectory);
+  if (
+    resolvedCandidate === projectRoot
+    || !isContained(projectRoot, resolvedCandidate)
+  ) {
+    fail('UNSAFE_PATH', 'diretorio candidato fora do escopo permitido.');
+  }
+  return resolvedCandidate;
+}
+
+async function persistCandidateMetadata(
+  candidateDirectory,
+  metadata,
+  governedBefore,
+  governedAfter,
+  nonce,
+  projectRoot,
+) {
+  const parent = dirname(candidateDirectory);
+  await mkdir(parent, { recursive: true });
+  await assertNoLinks(projectRoot, parent);
+  const prepared = join(parent, `.${parse(candidateDirectory).base}.prepare-${nonce}`);
+  await mkdir(prepared, { recursive: false, mode: 0o700 });
+  try {
+    await writeJson(join(prepared, 'inventory.json'), metadata);
+    await writeFile(join(prepared, 'digest.sha256'), `${metadata.digest}\n`, 'utf8');
+    await writeFile(join(prepared, 'governed-before.sha256'), `${governedBefore}\n`, 'utf8');
+    await writeFile(join(prepared, 'governed-after.sha256'), `${governedAfter}\n`, 'utf8');
+    await assertNoLinks(projectRoot, candidateDirectory);
+    if (await pathExists(candidateDirectory)) {
+      await rm(candidateDirectory, { recursive: true, force: false });
+    }
+    await rename(prepared, candidateDirectory);
+  } finally {
+    if (await pathExists(prepared)) {
+      await rm(prepared, { recursive: true, force: true });
+    }
+  }
 }
 
 export function assertApprovedGeneratedManifest(
@@ -1148,6 +1327,8 @@ async function runOpenApiGenerator({ configuration, enginePath, frontendRoot, in
     outputDirectory,
     '--additional-properties',
     properties,
+    '--global-property',
+    PUBLIC_GENERATOR_GLOBAL_PROPERTY,
   ];
 
   const javaEnvironment = safeJavaEnvironment();
@@ -1422,10 +1603,14 @@ export async function executeGenerateApi({
   mode = 'generate',
   contract = APPROVED_ENGINE,
   generatedManifestContract = APPROVED_GENERATED_MANIFEST,
+  candidateDirectory = null,
   adapters: adapterOverrides = {},
 } = {}) {
-  if (!['generate', 'check'].includes(mode)) {
-    fail('MODE_INVALID', 'modo deve ser generate ou check.');
+  if (!['generate', 'check', 'candidate'].includes(mode)) {
+    fail('MODE_INVALID', 'modo deve ser generate, check ou candidate.');
+  }
+  if (mode === 'candidate' && candidateDirectory === null) {
+    fail('CANDIDATE_PATH_MISSING', 'diretorio candidato obrigatorio.');
   }
   const adapters = { ...createDefaultAdapters(), ...adapterOverrides };
   const nonce = adapters.nonce();
@@ -1438,6 +1623,21 @@ export async function executeGenerateApi({
     projectRoot: resolve(projectRoot),
   };
   context.journalPath = join(context.workspace, JOURNAL_FILE);
+  const approvedManifest = mode === 'candidate' ? null : generatedManifestContract;
+  let governedBeforeManifest;
+  if (mode === 'candidate') {
+    context.candidateDirectory = resolveCandidateDirectory(
+      context.projectRoot,
+      candidateDirectory,
+    );
+    await assertNoLinks(context.projectRoot, context.candidateDirectory);
+    if (
+      isContained(context.target, context.candidateDirectory)
+      || isContained(context.candidateDirectory, context.target)
+    ) {
+      fail('UNSAFE_PATH', 'diretorio candidato nao pode coincidir com a arvore governada.');
+    }
+  }
 
   const targetVolume = await adapters.volumeOf(context.target);
   const workspaceVolume = await adapters.volumeOf(context.workspace);
@@ -1447,6 +1647,18 @@ export async function executeGenerateApi({
 
   await verifyRegularFile(context.inputSpec, 'SPEC_MISSING', 'SPEC_INVALID');
   await verifyEngine(context.enginePath, contract);
+  if (mode === 'candidate') {
+    const openApiSource = await readFile(context.inputSpec, 'utf8');
+    assertPublicSchemaAllowlist(openApiSource);
+    try {
+      governedBeforeManifest = await readTreeManifest(context.target);
+    } catch (error) {
+      if (isMissing(error)) {
+        fail('GENERATED_DRIFT', 'arvore governada esta ausente antes do candidato.');
+      }
+      throw error;
+    }
+  }
   await mkdir(context.workspace, { recursive: true });
   await assertNoLinks(context.projectRoot, context.workspace);
 
@@ -1505,10 +1717,48 @@ export async function executeGenerateApi({
       fail('GENERATOR_FAILED', 'motor OpenAPI terminou com falha.');
     }
 
+    if (mode === 'candidate') {
+      const openApiSource = await readFile(context.inputSpec, 'utf8');
+      assertPublicSchemaAllowlist(openApiSource);
+    }
     await materializeTypeScript(operation.raw, operation.candidate);
     const candidateManifest = await readTreeManifest(operation.candidate);
-    if (generatedManifestContract !== null) {
-      assertApprovedGeneratedManifest(candidateManifest, generatedManifestContract);
+    if (mode === 'candidate') {
+      const governedAfterManifest = await readTreeManifest(context.target);
+      if (governedAfterManifest.digest !== governedBeforeManifest.digest) {
+        fail('GENERATED_DRIFT', 'arvore governada mudou durante a geracao candidata.');
+      }
+      const openApiInventory = inspectGeneratedOpenApiContract(
+        await readFile(context.inputSpec, 'utf8'),
+      );
+      const metadata = {
+        version: 1,
+        generatedTarget: context.configuration.generator.target,
+        files: candidateManifest.files,
+        digest: candidateManifest.digest,
+        endpoints: openApiInventory.endpoints,
+        schemas: openApiInventory.schemas,
+        publicSchemas: openApiInventory.publicSchemas,
+      };
+      await persistCandidateMetadata(
+        context.candidateDirectory,
+        metadata,
+        governedBeforeManifest.digest,
+        governedAfterManifest.digest,
+        nonce,
+        context.projectRoot,
+      );
+      return {
+        mode,
+        digest: candidateManifest.digest,
+        files: candidateManifest.files,
+        candidateDirectory: context.candidateDirectory,
+        governedBefore: governedBeforeManifest.digest,
+        governedAfter: governedAfterManifest.digest,
+      };
+    }
+    if (approvedManifest !== null) {
+      assertApprovedGeneratedManifest(candidateManifest, approvedManifest);
     }
     if (mode === 'check') {
       await compareWithTarget(candidateManifest, context.target);
@@ -1524,7 +1774,7 @@ export async function executeGenerateApi({
       context,
       operation,
       candidateManifest,
-      generatedManifestContract,
+      approvedManifest,
     );
     return {
       mode,
@@ -1565,20 +1815,22 @@ export function sanitizeError(error) {
 async function main() {
   const argumentsList = process.argv.slice(2);
   const mode = argumentsList.length === 0
-    ? 'generate'
+    ? { mode: 'generate' }
     : argumentsList.length === 1 && argumentsList[0] === '--check'
-      ? 'check'
-      : null;
+      ? { mode: 'check' }
+      : argumentsList.length === 2 && argumentsList[0] === '--candidate'
+        ? { mode: 'candidate', candidateDirectory: argumentsList[1] }
+        : null;
 
   if (mode === null) {
-    console.error('Uso: node frontend/scripts/generate-api.mjs [--check]');
+    console.error('Uso: node frontend/scripts/generate-api.mjs [--check] | [--candidate <dir>]');
     process.exitCode = 2;
     return;
   }
 
   try {
-    await executeGenerateApi({ projectRoot: defaultProjectRoot, mode });
-    console.log(`[generate-api] OK: modo ${mode} concluido.`);
+    await executeGenerateApi({ projectRoot: defaultProjectRoot, ...mode });
+    console.log(`[generate-api] OK: modo ${mode.mode} concluido.`);
   } catch (error) {
     console.error(`[generate-api] ERRO: ${sanitizeError(error)}`);
     process.exitCode = 1;

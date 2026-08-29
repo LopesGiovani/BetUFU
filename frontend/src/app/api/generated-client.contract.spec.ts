@@ -12,6 +12,8 @@ import { firstValueFrom } from 'rxjs';
 import {
   CurrentIdentityResponse,
   IdentityService,
+  PublicSportsEventPage,
+  SportsPublicService,
   provideApi,
 } from './generated';
 
@@ -19,6 +21,7 @@ describe('Generated BETUFU API client contract', () => {
   const xsrfToken = 'task-01-20-xsrf-token';
   let httpTesting: HttpTestingController;
   let identityService: IdentityService;
+  let sportsPublicService: SportsPublicService;
 
   function configureClient(includeApiProvider: boolean): void {
     document.cookie = 'XSRF-TOKEN=' + xsrfToken + '; path=/';
@@ -38,6 +41,7 @@ describe('Generated BETUFU API client contract', () => {
 
     httpTesting = TestBed.inject(HttpTestingController);
     identityService = TestBed.inject(IdentityService);
+    sportsPublicService = TestBed.inject(SportsPublicService);
   }
 
   afterEach(() => {
@@ -77,5 +81,44 @@ describe('Generated BETUFU API client contract', () => {
   it('fails safe to the relative PUT contract without BASE_PATH and keeps native XSRF', async () => {
     configureClient(false);
     await expectRelativePutContract();
+  });
+
+  it('uses a relative anonymous GET for the published sports agenda', async () => {
+    configureClient(true);
+    const response: PublicSportsEventPage = {
+      items: [],
+      page: 2,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+      hasNext: false,
+    };
+    const resultPromise = firstValueFrom(sportsPublicService.listPublishedSportsEvents({
+      competitionId: '5a9bd592-1df4-4620-a33d-23ec59beb5fe',
+      editionId: '969088ef-42b9-47bc-8a45-427647b01f0d',
+      from: '2026-08-29T12:00:00Z',
+      to: '2026-08-30T12:00:00Z',
+      page: 2,
+      size: 20,
+    }));
+
+    const request = httpTesting.expectOne(
+      '/api/v1/public/sports/events'
+      + '?competitionId=5a9bd592-1df4-4620-a33d-23ec59beb5fe'
+      + '&editionId=969088ef-42b9-47bc-8a45-427647b01f0d'
+      + '&from=2026-08-29T12%3A00%3A00Z'
+      + '&to=2026-08-30T12%3A00%3A00Z'
+      + '&page=2&size=20',
+    );
+
+    expect(request.request.method).toBe('GET');
+    expect(request.request.headers.has('Authorization')).toBe(false);
+    expect(request.request.headers.has('Cookie')).toBe(false);
+    expect(request.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    expect(request.request.withCredentials).toBe(false);
+
+    request.flush(response);
+
+    await expect(resultPromise).resolves.toEqual(response);
   });
 });

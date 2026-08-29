@@ -99,6 +99,38 @@ public final class SportsTracerModels {
     public record PublicSlotResponse(int slotNo, String displayLabel) {
     }
 
+    /** Public agenda projection; publication internals never cross this boundary. */
+    public record PublicSportsEventSummary(
+            UUID eventId,
+            UUID competitionId,
+            UUID editionId,
+            String competitionName,
+            String editionName,
+            String title,
+            EventFormat format,
+            Instant scheduledAt,
+            String zoneId,
+            VenueState venueState,
+            List<PublicSlotResponse> slots) {
+
+        public PublicSportsEventSummary {
+            slots = slots == null ? List.of() : List.copyOf(slots);
+        }
+    }
+
+    public record PublicSportsEventPage(
+            List<PublicSportsEventSummary> items,
+            int page,
+            int size,
+            long totalElements,
+            int totalPages,
+            boolean hasNext) {
+
+        public PublicSportsEventPage {
+            items = items == null ? List.of() : List.copyOf(items);
+        }
+    }
+
     public record PublicEventResponse(
             UUID publicationId,
             UUID eventId,

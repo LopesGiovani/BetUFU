@@ -2,6 +2,7 @@ package br.com.betufu.sports.internal.tracer;
 
 import java.net.URI;
 import java.net.URL;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.EditionResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventCreateRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventResponse;
+import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSportsEventPage;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublishEventRequest;
 import jakarta.validation.Valid;
 import org.springframework.context.annotation.Profile;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,6 +40,7 @@ public class SportsTracerController {
     static final String EDITIONS_PATH = "/api/v1/operations/sports/competitions/{competitionId}/editions";
     static final String EVENTS_PATH = "/api/v1/operations/sports/editions/{editionId}/events";
     static final String PUBLICATIONS_PATH = "/api/v1/operations/sports/events/{eventId}/publications";
+    static final String PUBLIC_EVENTS_PATH = "/api/v1/public/sports/events";
     static final String PUBLIC_EVENT_PATH = "/api/v1/public/sports/events/{eventId}";
 
     private final SportsTracerService service;
@@ -101,6 +105,23 @@ public class SportsTracerController {
     @GetMapping(path = PUBLIC_EVENT_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<PublicEventResponse> getPublishedEvent(@PathVariable UUID eventId) {
         return ResponseEntity.ok(service.getPublishedEvent(eventId));
+    }
+
+    @GetMapping(path = PUBLIC_EVENTS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PublicSportsEventPage> listPublishedEvents(
+            @RequestParam(required = false) UUID competitionId,
+            @RequestParam(required = false) UUID editionId,
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(service.getPublishedEvents(
+                competitionId,
+                editionId,
+                from,
+                to,
+                page,
+                size));
     }
 
     private static ActorClaims requireActor(OidcUser oidcUser) {

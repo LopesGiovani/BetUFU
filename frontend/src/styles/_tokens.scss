@@ -1,80 +1,52 @@
-// =============================================================================
-// BETUFU — Sistema de Design: Tokens Oficiais (D-01 & UI-SPEC)
-// =============================================================================
+// BETUFU visual contract: one identity, expressed as Arena and Console modes.
 
-// -----------------------------------------------------------------------------
-// 1. Cores e Superfícies (Dark Theme Exclusivo)
-// -----------------------------------------------------------------------------
+$color-ink: #09080d;
+$color-canvas: #120b12;
+$color-surface: #171018;
+$color-surface-raised: #21131d;
+$color-wine: #741d42;
+$color-accent: #ff626b;
+$color-accent-deep: #910008;
+$color-accent-soft: #ffb4b8;
+$color-on-accent: #09080d;
+$color-on-accent-deep: #fff4f4;
+$color-text: #fff4f4;
+$color-display: #ffc4c4;
+$color-hero-cream: #e8e6e3;
+$color-hero-on-deep: #e1dfdb;
+$color-hero-muted: #b5aea5;
+$color-text-muted: #cdbfc5;
+$color-border: rgba(255, 244, 244, 0.18);
+$color-border-strong: rgba(255, 180, 184, 0.38);
+$color-focus: #ffd2d4;
+$color-available: #72d6a0;
+$color-degraded: #f5c95c;
+$color-unavailable: #ff7a82;
 
-// Dominante (60%): Fundo base da aplicação
-$color-canvas: #0B1220;
-
-// Secundária (30%): Cabeçalho, cartões, menus, áreas de conteúdo
-$color-surface: #142033;
-
-// Superfície elevada: Hover, foco, resumo elevado
-$color-surface-raised: #1C2C42;
-
-// Acento (10%): CTA primário e ênfase específica (nunca em excesso)
-$color-accent: #FF8A3D;
-
-// Contraste sobre o acento (texto/ícone em botão primário)
-$color-on-accent: #0B1220;
-
-// Tipografia
-$color-text: #F8FAFC;
-$color-text-muted: #C5D1E0;
-
-// Estrutura e Foco
-$color-border: #52657D;
-$color-focus: #FFC08A;
-
-// Estados de Diagnóstico (sempre acompanhados de ícone e texto)
-$color-available: #56D19C;
-$color-degraded: #F6C453;
-$color-unavailable: #FF6B6B;
-
-// -----------------------------------------------------------------------------
-// 2. Escala de Espaçamento (Sempre múltiplos de 4px)
-// -----------------------------------------------------------------------------
-
-$space-1: 4px;   // Vão de ícone/texto, microajuste
-$space-2: 8px;   // Itens compactos, etiquetas, linhas de formulário
-$space-4: 16px;  // Espaçamento padrão entre controles e conteúdo de cartão
-$space-6: 24px;  // Padding de cartão, distância entre grupos
-$space-8: 32px;  // Padding lateral desktop, lacuna da grade
-$space-12: 48px; // Separação de blocos principais
-$space-16: 64px; // Respiro superior/inferior de página completa
-
-// -----------------------------------------------------------------------------
-// 3. Dimensões Mínimas e Acessibilidade (WCAG 2.2 AA)
-// -----------------------------------------------------------------------------
+$space-1: 4px;
+$space-2: 8px;
+$space-4: 16px;
+$space-6: 24px;
+$space-8: 32px;
+$space-12: 48px;
+$space-16: 64px;
 
 $min-touch-target: 44px;
 $focus-outline-width: 3px;
 $focus-outline-offset: 3px;
 
-// -----------------------------------------------------------------------------
-// 4. Raios de Borda (Forma)
-// -----------------------------------------------------------------------------
+$radius-sm: 12px;
+$radius-md: 16px;
+$radius-field: 16px;
+$radius-card: 16px;
+$radius-feature: 24px;
+$radius-full: 999px;
 
-$radius-sm: 4px;    // Chips, etiquetas de estado
-$radius-md: 8px;    // Cartões, campos, botões
-$radius-full: 999px; // Avatar, indicadores circulares
-
-// -----------------------------------------------------------------------------
-// 5. Elevação e Sombras
-// -----------------------------------------------------------------------------
-
-$shadow-raised: 0 8px 24px rgba(0, 0, 0, 0.24);
-
-// -----------------------------------------------------------------------------
-// 6. Breakpoints de Layout
-// -----------------------------------------------------------------------------
+$shadow-raised: 0 18px 52px rgba(9, 8, 13, 0.36);
 
 $breakpoint-mobile-max: 599px;
 $breakpoint-tablet-min: 600px;
 $breakpoint-tablet-max: 899px;
 $breakpoint-desktop-min: 900px;
-$container-max-width: 1200px;
+$container-max-width: 1240px;
 $form-max-width: 640px;

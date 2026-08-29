@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,6 +19,7 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventFormat;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventSlotRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventResponse;
+import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSportsEventSummary;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSlotResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.VenueState;
 import org.springframework.context.annotation.Profile;
@@ -323,6 +325,96 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                 slots));
     }
 
+    PublishedEventsPageData findPublishedEvents(
+            UUID competitionId,
+            UUID editionId,
+            Instant from,
+            Instant to,
+            int page,
+            int size) {
+        StringBuilder filters = new StringBuilder(" WHERE ev.status = 'PUBLICADO'");
+        List<Object> filterParameters = new ArrayList<>();
+        if (competitionId != null) {
+            filters.append(" AND p.competition_id = ?");
+            filterParameters.add(competitionId);
+        }
+        if (editionId != null) {
+            filters.append(" AND p.edition_id = ?");
+            filterParameters.add(editionId);
+        }
+        if (from != null) {
+            filters.append(" AND p.scheduled_at >= ?");
+            filterParameters.add(Timestamp.from(from));
+        }
+        if (to != null) {
+            filters.append(" AND p.scheduled_at <= ?");
+            filterParameters.add(Timestamp.from(to));
+        }
+
+        String latestJoin = " FROM public.sports_event_publication p "
+                + "JOIN public.sports_event ev ON ev.event_id = p.event_id "
+                + "JOIN (SELECT event_id, max(version_no) AS version_no "
+                + "FROM public.sports_event_publication GROUP BY event_id) latest "
+                + "ON latest.event_id = p.event_id AND latest.version_no = p.version_no";
+        String countSql = "SELECT count(*)" + latestJoin + filters;
+        Long total = jdbcTemplate.queryForObject(
+                countSql,
+                Long.class,
+                filterParameters.toArray());
+
+        long offset = Math.multiplyExact((long) page, size);
+        String itemsSql = "SELECT p.publication_id, p.event_id, p.competition_id, p.edition_id, "
+                + "p.competition_name, p.edition_name, p.title, p.event_format, "
+                + "p.scheduled_at, p.zone_id, p.venue_state"
+                + latestJoin
+                + filters
+                + " ORDER BY p.scheduled_at ASC, p.event_id ASC LIMIT ? OFFSET ?";
+        List<Object> itemParameters = new ArrayList<>(filterParameters);
+        itemParameters.add(size);
+        itemParameters.add(offset);
+        List<PublicAgendaProjection> projections = jdbcTemplate.query(
+                itemsSql,
+                (rs, rowNum) -> new PublicAgendaProjection(
+                        rs.getObject("publication_id", UUID.class),
+                        rs.getObject("event_id", UUID.class),
+                        rs.getObject("competition_id", UUID.class),
+                        rs.getObject("edition_id", UUID.class),
+                        rs.getString("competition_name"),
+                        rs.getString("edition_name"),
+                        rs.getString("title"),
+                        EventFormat.valueOf(rs.getString("event_format")),
+                        rs.getTimestamp("scheduled_at").toInstant(),
+                        rs.getString("zone_id"),
+                        VenueState.valueOf(rs.getString("venue_state"))),
+                itemParameters.toArray());
+
+        List<PublicSportsEventSummary> items = projections.stream()
+                .map(row -> new PublicSportsEventSummary(
+                        row.eventId(),
+                        row.competitionId(),
+                        row.editionId(),
+                        row.competitionName(),
+                        row.editionName(),
+                        row.title(),
+                        row.format(),
+                        row.scheduledAt(),
+                        row.zoneId(),
+                        row.venueState(),
+                        findPublicationSlots(row.publicationId())))
+                .toList();
+        return new PublishedEventsPageData(items, total == null ? 0 : total);
+    }
+
+    private List<PublicSlotResponse> findPublicationSlots(UUID publicationId) {
+        return jdbcTemplate.query(
+                "SELECT slot_no, display_label FROM public.sports_event_publication_slot "
+                        + "WHERE publication_id = ? ORDER BY slot_no",
+                (rs, rowNum) -> new PublicSlotResponse(
+                        rs.getInt("slot_no"),
+                        rs.getString("display_label")),
+                publicationId);
+    }
+
     private static Date sqlDate(LocalDate value) {
         return value == null ? null : Date.valueOf(value);
     }
@@ -365,5 +457,24 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
             VenueState venueState,
             String sourceReference,
             Instant publishedAt) {
+    }
+
+    record PublishedEventsPageData(
+            List<PublicSportsEventSummary> items,
+            long totalElements) {
+    }
+
+    private record PublicAgendaProjection(
+            UUID publicationId,
+            UUID eventId,
+            UUID competitionId,
+            UUID editionId,
+            String competitionName,
+            String editionName,
+            String title,
+            EventFormat format,
+            Instant scheduledAt,
+            String zoneId,
+            VenueState venueState) {
     }
 }

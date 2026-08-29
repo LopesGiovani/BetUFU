@@ -1,0 +1,226 @@
+@if (store.nextEvent(); as nextEvent) {
+  <app-auto-event-hero
+    [event]="nextEvent"
+    [eventCount]="store.totalElements()"
+    [paused]="motionPaused()"
+    [sharedPaused]="tickerInteractionPaused()"
+    (pausedChange)="motionPaused.set($event)"
+    (interactionPausedChange)="heroInteractionPaused.set($event)"
+  />
+} @else {
+  <section class="empty-hero">
+    <div class="empty-hero__court" aria-hidden="true"></div>
+    <div class="empty-hero__content">
+      <nav class="empty-hero__sports" aria-label="Agenda pública">
+        <span class="is-active">Agenda pública</span>
+        <app-highlight-motion-control
+          [paused]="motionPaused()"
+          (pausedChange)="motionPaused.set($event)"
+        />
+      </nav>
+      <div class="empty-hero__stage">
+        <h1><span>Hoje em</span><strong>quadra.</strong></h1>
+        @if (store.isLoading()) {
+          <div class="empty-hero__message" role="status">
+            <span class="loading-mark" aria-hidden="true"></span>
+            <h2>Preparando a agenda</h2>
+            <p>{{ store.isRetrying() ? 'Reconectando à publicação esportiva…' : 'Buscando os eventos publicados…' }}</p>
+          </div>
+        } @else if (store.isError()) {
+          <div class="empty-hero__message">
+            <h2>Agenda indisponível</h2>
+            <p>O campo continua pronto, mas os dados publicados não puderam ser carregados.</p>
+          </div>
+        } @else if (store.isStale()) {
+          <div class="empty-hero__message">
+            <h2>Agenda desatualizada</h2>
+            <p>A última publicação válida foi preservada enquanto uma nova consulta não é concluída.</p>
+          </div>
+        } @else if (store.hasEvents()) {
+          <div class="empty-hero__message">
+            <h2>Nenhum próximo evento</h2>
+            <p>{{ noNextEventCopy() }}</p>
+          </div>
+        } @else if (store.hasActiveFilters()) {
+          <div class="empty-hero__message">
+            <h2>Nenhum evento encontrado</h2>
+            <p>Ajuste ou limpe os filtros para ver outros eventos publicados.</p>
+          </div>
+        } @else {
+          <div class="empty-hero__message">
+            <h2>Nenhum evento publicado</h2>
+            <p>A programação aparecerá aqui assim que uma publicação esportiva estiver disponível.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<app-broadcast-ticker
+  [events]="tickerEvents()"
+  [paused]="composedMotionPaused()"
+  (interactionPausedChange)="tickerInteractionPaused.set($event)"
+/>
+<app-sport-ribbon
+  [published]="store.publishedResponseReceived()"
+  [eventCount]="store.totalElements()"
+  [filtered]="store.hasActiveFilters()"
+  [stale]="store.isStale()"
+  [loading]="store.isLoading()"
+/>
+
+<section id="agenda" class="agenda" [attr.aria-busy]="store.isLoading()">
+  <app-grainient-background [paused]="composedMotionPaused()" />
+  <div class="agenda__veil" aria-hidden="true"></div>
+
+  <div class="agenda__content">
+    @if (store.isStale()) {
+      <div class="stale-banner" role="status">
+        <strong>Agenda da última atualização</strong>
+        <span>Não foi possível atualizar os eventos. O conteúdo anterior foi preservado.</span>
+        <button type="button" (click)="retry()">Tentar novamente</button>
+      </div>
+    }
+
+    <header class="agenda-head">
+      <div class="date-lockup" aria-hidden="true">
+        <strong>{{ dateLockup().day }}</strong>
+        <span>{{ dateLockup().monthYear }}</span>
+      </div>
+      <div class="agenda-title-block">
+        <h2 #agendaTitle id="agenda-title" tabindex="-1">{{ agendaTitleText() }}</h2>
+        <p>
+          {{ agendaZoneHeading() }}<br>
+          {{ agendaPublicationLabel() }}
+        </p>
+      </div>
+    </header>
+
+    <div class="agenda-controls">
+      <div class="agenda-controls__row">
+        <div class="period-segment" role="group" aria-label="Período da agenda">
+          <button
+            type="button"
+            [attr.aria-pressed]="store.query().period === 'today'"
+            (click)="selectPeriod('today')"
+          >
+            <span>Hoje</span>
+            <small>{{ periodCountLabel('today') }}</small>
+          </button>
+          <button
+            type="button"
+            [attr.aria-pressed]="store.query().period === 'upcoming'"
+            (click)="selectPeriod('upcoming')"
+          >
+            <span>Próximos</span>
+            <small>{{ periodCountLabel('upcoming') }}</small>
+          </button>
+        </div>
+
+        @if (store.competitions().length > 0 || activeFilterCount() > 0) {
+          <button
+            #filterToggle
+            type="button"
+            class="filter-toggle"
+            [attr.aria-expanded]="filtersOpen()"
+            aria-controls="agenda-filter-panel"
+            (click)="toggleFilters()"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1.5v-7.3L4 5Z" /></svg>
+            <span>Filtrar agenda</span>
+            @if (activeFilterCount() > 0) {
+              <strong aria-label="Filtros ativos">{{ activeFilterCount() }}</strong>
+            }
+          </button>
+        }
+      </div>
+
+      @if (filtersOpen()) {
+        <form
+          id="agenda-filter-panel"
+          class="filter-panel"
+          [formGroup]="filterForm"
+          (submit)="applyFilters(); $event.preventDefault()"
+          (keydown.escape)="closeFilters($event)"
+        >
+          <label>
+            <span>Competição</span>
+            <select formControlName="competitionId" (change)="onCompetitionChange()">
+              <option value="">Todas as competições</option>
+              @if (filterForm.controls.competitionId.value && !hasCompetitionOption(filterForm.controls.competitionId.value)) {
+                <option [value]="filterForm.controls.competitionId.value">Competição selecionada (detalhes indisponíveis)</option>
+              }
+              @for (competition of store.competitions(); track competition.id) {
+                <option [value]="competition.id">{{ competition.label }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span>Edição</span>
+            <select formControlName="editionId">
+              <option value="">Todas as edições</option>
+              @if (filterForm.controls.editionId.value && !hasEditionOption(filterForm.controls.editionId.value)) {
+                <option [value]="filterForm.controls.editionId.value">Edição selecionada (detalhes indisponíveis)</option>
+              }
+              @for (edition of store.editionsForCompetition(filterForm.controls.competitionId.value || undefined); track edition.id) {
+                <option [value]="edition.id">{{ edition.label }}</option>
+              }
+            </select>
+          </label>
+          <div class="filter-panel__actions">
+            <button type="submit" class="filter-apply">Aplicar filtros</button>
+            <button type="button" class="filter-clear" (click)="clearFilters()">Limpar filtros</button>
+          </div>
+        </form>
+      }
+      <p class="sr-only" role="status" aria-live="polite">{{ filterAnnouncement() }}</p>
+    </div>
+
+    <div id="agenda-events" class="agenda-events">
+      @if (store.isLoading() && store.displayEvents().length === 0) {
+        <div class="state-panel" role="status">
+          <span class="loading-mark" aria-hidden="true"></span>
+          <h3>Carregando eventos publicados</h3>
+          <p>A lista será exibida assim que a consulta pública terminar.</p>
+        </div>
+      } @else if (store.isError()) {
+        <div class="state-panel state-panel--error" role="alert">
+          <h3>Não foi possível carregar a agenda</h3>
+          <p>{{ store.errorMessage() }}</p>
+          <button type="button" (click)="retry()">Tentar novamente</button>
+        </div>
+      } @else if (store.isEmpty()) {
+        <div class="state-panel">
+          <h3>{{ store.hasActiveFilters() ? 'Nenhum evento encontrado' : 'Nenhum evento publicado' }}</h3>
+          <p>
+            {{ store.hasActiveFilters()
+              ? 'Ajuste ou limpe os filtros para ver outros eventos.'
+              : 'Ainda não há eventos publicados para acompanhar.' }}
+          </p>
+          @if (store.hasActiveFilters()) {
+            <button type="button" (click)="clearFilters()">Limpar filtros</button>
+          }
+        </div>
+      } @else {
+        @for (group of store.eventGroups(); track group.dateKey; let first = $first) {
+          <section
+            class="event-group"
+            [attr.aria-label]="first ? group.dateLabel : null"
+            [attr.aria-labelledby]="first ? null : 'date-' + group.dateKey"
+          >
+            @if (!first) {
+              <header class="event-group__header">
+                <p [id]="'date-' + group.dateKey">{{ group.dateLabel }}</p>
+                <span>{{ group.events.length }} {{ group.events.length === 1 ? 'evento' : 'eventos' }}</span>
+              </header>
+            }
+            @for (event of group.events; track event.id) {
+              <app-event-row [event]="event" [featured]="isFeatured(event.id)" />
+            }
+          </section>
+        }
+      }
+    </div>
+  </div>
+</section>

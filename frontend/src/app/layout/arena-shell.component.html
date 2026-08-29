@@ -1,0 +1,29 @@
+<a class="skip-link" href="#arena-main">Pular para o conteúdo principal</a>
+
+<header class="arena-header">
+  <div class="arena-header__inner">
+    <a class="arena-brand" routerLink="/" aria-label="BETUFU — início">
+      <span class="arena-brand__mark" aria-hidden="true">B</span>
+      <span>BETUFU</span>
+    </a>
+
+    <nav class="arena-nav" aria-label="Navegação principal">
+      <a routerLink="/" fragment="agenda">Competições</a>
+      <a class="arena-nav__login" href="/oauth2/authorization/keycloak">Entrar</a>
+    </nav>
+
+    <div class="arena-mobile-actions">
+      <a class="arena-mobile-actions__link" routerLink="/" fragment="agenda">Competições</a>
+      <a class="arena-nav__login" href="/oauth2/authorization/keycloak">Entrar</a>
+    </div>
+  </div>
+</header>
+
+<main id="arena-main" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer class="arena-footer">
+  <span>BETUFU é um projeto independente e não representa oficialmente a UFU.</span>
+  <span class="arena-footer__about">Sobre o projeto</span>
+</footer>

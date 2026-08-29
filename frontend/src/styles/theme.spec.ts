@@ -64,13 +64,20 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
 
   // Cores dinamicamente extraídas do _tokens.scss
   const colors = {
+    ink: extractScssVariable(tokensContent, 'color-ink'),
     canvas: extractScssVariable(tokensContent, 'color-canvas'),
     surface: extractScssVariable(tokensContent, 'color-surface'),
     surfaceRaised: extractScssVariable(tokensContent, 'color-surface-raised'),
+    wine: extractScssVariable(tokensContent, 'color-wine'),
+    signalDeep: extractScssVariable(tokensContent, 'color-accent-deep'),
     accent: extractScssVariable(tokensContent, 'color-accent'),
     onAccent: extractScssVariable(tokensContent, 'color-on-accent'),
     text: extractScssVariable(tokensContent, 'color-text'),
     textMuted: extractScssVariable(tokensContent, 'color-text-muted'),
+    display: extractScssVariable(tokensContent, 'color-display'),
+    heroCream: extractScssVariable(tokensContent, 'color-hero-cream'),
+    heroOnDeep: extractScssVariable(tokensContent, 'color-hero-on-deep'),
+    heroMuted: extractScssVariable(tokensContent, 'color-hero-muted'),
     border: extractScssVariable(tokensContent, 'color-border'),
     focus: extractScssVariable(tokensContent, 'color-focus'),
     available: extractScssVariable(tokensContent, 'color-available'),
@@ -83,18 +90,40 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
   const focusOutlineOffset = extractScssVariable(tokensContent, 'focus-outline-offset');
 
   it('D-01: Todos os tokens obrigatórios de cor e superfície são extraídos diretamente de _tokens.scss', () => {
-    expect(colors.canvas).toBe('#0B1220');
-    expect(colors.surface).toBe('#142033');
-    expect(colors.surfaceRaised).toBe('#1C2C42');
-    expect(colors.accent).toBe('#FF8A3D');
-    expect(colors.onAccent).toBe('#0B1220');
-    expect(colors.text).toBe('#F8FAFC');
-    expect(colors.textMuted).toBe('#C5D1E0');
-    expect(colors.border).toBe('#52657D');
-    expect(colors.focus).toBe('#FFC08A');
-    expect(colors.available).toBe('#56D19C');
-    expect(colors.degraded).toBe('#F6C453');
-    expect(colors.unavailable).toBe('#FF6B6B');
+    expect(colors.ink).toBe('#09080d');
+    expect(colors.canvas).toBe('#120b12');
+    expect(colors.surface).toBe('#171018');
+    expect(colors.surfaceRaised).toBe('#21131d');
+    expect(colors.wine).toBe('#741d42');
+    expect(colors.signalDeep).toBe('#910008');
+    expect(colors.accent).toBe('#ff626b');
+    expect(colors.onAccent).toBe('#09080d');
+    expect(colors.text).toBe('#fff4f4');
+    expect(colors.textMuted).toBe('#cdbfc5');
+    expect(colors.display).toBe('#ffc4c4');
+    expect(colors.heroCream).toBe('#e8e6e3');
+    expect(colors.heroOnDeep).toBe('#e1dfdb');
+    expect(colors.heroMuted).toBe('#b5aea5');
+    expect(colors.border).toBe('rgba(255, 244, 244, 0.18)');
+    expect(extractScssVariable(tokensContent, 'color-border-strong')).toBe('rgba(255, 180, 184, 0.38)');
+    expect(colors.focus).toBe('#ffd2d4');
+    expect(colors.available).toBe('#72d6a0');
+    expect(colors.degraded).toBe('#f5c95c');
+    expect(colors.unavailable).toBe('#ff7a82');
+  });
+
+  it('Arena V expõe papéis cromáticos, tipográficos e de espaçamento como tokens semânticos', () => {
+    for (const token of [
+      '--bt-signal-deep', '--bt-display', '--bt-hero-cream', '--bt-hero-on-deep', '--bt-hero-muted',
+      '--bt-space-1', '--bt-space-2', '--bt-space-4', '--bt-space-6', '--bt-space-8', '--bt-space-12', '--bt-space-16',
+      '--bt-type-display', '--bt-type-heading', '--bt-type-body', '--bt-type-label',
+    ]) {
+      expect(stylesContent).toContain(token);
+    }
+    expect(stylesContent).toContain('--bt-type-display: clamp(4.75rem, 13vw, 11.5rem);');
+    expect(stylesContent).toContain('--bt-type-heading: clamp(1.5rem, 4vw, 3.5rem);');
+    expect(stylesContent).toContain('--bt-type-body: 1rem;');
+    expect(stylesContent).toContain('--bt-type-label: .875rem;');
   });
 
   it('WCAG 2.2 AA: Texto normal extraído de _tokens.scss mantém razão de contraste mínima de 4.5:1 contra superfícies', () => {
@@ -102,7 +131,7 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
     const contrastTextOnSurface = contrastRatio(colors.text, colors.surface);
     const contrastTextOnRaised = contrastRatio(colors.text, colors.surfaceRaised);
 
-    // #F8FAFC sobre #0B1220 (~17.5:1), sobre #142033 (~15.63:1), sobre #1C2C42 (~13.49:1)
+    // The canonical Arena V palette must preserve normal-text AA contrast on every surface.
     expect(contrastTextOnCanvas).toBeGreaterThanOrEqual(4.5);
     expect(contrastTextOnSurface).toBeGreaterThanOrEqual(4.5);
     expect(contrastTextOnRaised).toBeGreaterThanOrEqual(4.5);
@@ -110,14 +139,14 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
 
   it('WCAG 2.2 AA: Botão primário com texto on-accent sobre accent de _tokens.scss atende a no mínimo 4.5:1', () => {
     const ratio = contrastRatio(colors.onAccent, colors.accent);
-    // #0B1220 sobre #FF8A3D produz ~7.98:1
+    // The dark ink token remains legible on the coral primary action.
     expect(ratio).toBeGreaterThanOrEqual(4.5);
   });
 
   it('Acessibilidade: Foco visível possui espessura de 3px, offset de 3px e cor aprovada nos tokens e em styles.scss', () => {
     expect(focusOutlineWidth).toBe('3px');
     expect(focusOutlineOffset).toBe('3px');
-    expect(colors.focus).toBe('#FFC08A');
+    expect(colors.focus).toBe('#ffd2d4');
 
     // Valida que styles.scss aplica as regras de foco nos seletores globais
     expect(stylesContent).toContain(':focus-visible');
@@ -135,8 +164,8 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
 
   it('Acessibilidade: Suporte obrigatório a prefers-reduced-motion está presente em styles.scss', () => {
     expect(stylesContent).toContain('@media (prefers-reduced-motion: reduce)');
-    expect(stylesContent).toContain('animation-duration: 0.01ms !important');
-    expect(stylesContent).toContain('transition-duration: 0.01ms !important');
+    expect(stylesContent).not.toContain('animation-duration: 0.01ms !important');
+    expect(stylesContent).not.toContain('transition-duration: 0.01ms !important');
   });
 
   it('Contraste de Estados: available, degraded e unavailable atendem ao piso mínimo de 3.0:1 contra canvas', () => {

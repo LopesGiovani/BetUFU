@@ -1,17 +1,51 @@
-// =============================================================================
-// BETUFU — Estilos Globais, Reset e Acessibilidade (D-01, WCAG 2.2 AA)
-// =============================================================================
-
 @use './styles/tokens' as tokens;
 @use './styles/fonts' as fonts;
 @use './styles/material-theme' as material;
 
-// Injeta estilos do tema Angular Material
 @include material.apply-theme();
 
-// -----------------------------------------------------------------------------
-// Reset e Layout Base (Dark Theme Imutável)
-// -----------------------------------------------------------------------------
+:root {
+  color-scheme: dark;
+  --bt-ink: #{tokens.$color-ink};
+  --bt-canvas: #{tokens.$color-canvas};
+  --bt-surface: #{tokens.$color-surface};
+  --bt-surface-raised: #{tokens.$color-surface-raised};
+  --bt-wine: #{tokens.$color-wine};
+  --bt-signal: #{tokens.$color-accent};
+  --bt-signal-deep: #{tokens.$color-accent-deep};
+  --bt-signal-soft: #{tokens.$color-accent-soft};
+  --bt-on-signal-deep: #{tokens.$color-on-accent-deep};
+  --bt-text: #{tokens.$color-text};
+  --bt-display: #{tokens.$color-display};
+  --bt-hero-cream: #{tokens.$color-hero-cream};
+  --bt-hero-on-deep: #{tokens.$color-hero-on-deep};
+  --bt-hero-muted: #{tokens.$color-hero-muted};
+  --bt-text-muted: #{tokens.$color-text-muted};
+  --bt-border: #{tokens.$color-border};
+  --bt-border-strong: #{tokens.$color-border-strong};
+  --bt-focus: #{tokens.$color-focus};
+  --bt-success: #{tokens.$color-available};
+  --bt-warning: #{tokens.$color-degraded};
+  --bt-danger: #{tokens.$color-unavailable};
+  --bt-container: min(calc(100% - 32px), #{tokens.$container-max-width});
+  --bt-radius-control: #{tokens.$radius-full};
+  --bt-radius-field: #{tokens.$radius-field};
+  --bt-radius-card: #{tokens.$radius-card};
+  --bt-radius-feature: #{tokens.$radius-feature};
+  --bt-shadow-raised: #{tokens.$shadow-raised};
+  --bt-min-touch-target: #{tokens.$min-touch-target};
+  --bt-space-1: #{tokens.$space-1};
+  --bt-space-2: #{tokens.$space-2};
+  --bt-space-4: #{tokens.$space-4};
+  --bt-space-6: #{tokens.$space-6};
+  --bt-space-8: #{tokens.$space-8};
+  --bt-space-12: #{tokens.$space-12};
+  --bt-space-16: #{tokens.$space-16};
+  --bt-type-display: clamp(4.75rem, 13vw, 11.5rem);
+  --bt-type-heading: clamp(1.5rem, 4vw, 3.5rem);
+  --bt-type-body: 1rem;
+  --bt-type-label: .875rem;
+}
 
 *,
 *::before,
@@ -19,118 +53,262 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: tokens.$color-canvas;
+  scroll-behavior: smooth;
+}
+
 body {
-  height: 100%;
+  min-width: 320px;
+  min-height: 100%;
   margin: 0;
-  padding: 0;
-  background-color: tokens.$color-canvas;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 12% -10%, rgba(116, 29, 66, 0.2), transparent 34rem),
+    tokens.$color-canvas;
   color: tokens.$color-text;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-// -----------------------------------------------------------------------------
-// Acessibilidade: Foco Visível Obrigatório (3px solid #FFC08A)
-// -----------------------------------------------------------------------------
+::selection {
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+}
+
+* {
+  scrollbar-color: tokens.$color-wine tokens.$color-ink;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: tokens.$color-ink;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid tokens.$color-ink;
+  border-radius: tokens.$radius-full;
+  background: tokens.$color-wine;
+}
 
 :focus-visible {
   outline: tokens.$focus-outline-width solid tokens.$color-focus;
   outline-offset: tokens.$focus-outline-offset;
 }
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-[role="button"]:focus-visible,
-[tabindex]:focus-visible {
-  outline: tokens.$focus-outline-width solid tokens.$color-focus;
-  outline-offset: tokens.$focus-outline-offset;
-}
-
-// -----------------------------------------------------------------------------
-// Acessibilidade: Alvos de Toque Mínimos (44x44px)
-// -----------------------------------------------------------------------------
-
 button,
 a,
-input[type="button"],
-input[type="submit"],
-input[type="reset"],
-[role="button"] {
-  min-height: tokens.$min-touch-target;
+input[type='button'],
+input[type='submit'],
+input[type='reset'],
+[role='button'] {
   min-width: tokens.$min-touch-target;
+  min-height: tokens.$min-touch-target;
 }
 
-// -----------------------------------------------------------------------------
-// Links e Tipografia Base
-// -----------------------------------------------------------------------------
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
 
 a {
-  color: tokens.$color-text;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-
-  &:hover {
-    color: tokens.$color-accent;
-  }
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 600;
-  line-height: 1.2;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin-top: 0;
   color: tokens.$color-text;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
 }
-
-h1 {
-  font-size: 32px;
-}
-
-h2 {
-  font-size: 24px;
-}
-
-// -----------------------------------------------------------------------------
-// Responsividade e Layout Containers (320px+)
-// -----------------------------------------------------------------------------
 
 .container {
-  width: 100%;
-  max-width: tokens.$container-max-width;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: tokens.$space-4;
-  padding-right: tokens.$space-4;
-
-  @media (min-width: #{tokens.$breakpoint-tablet-min}) {
-    padding-left: tokens.$space-6;
-    padding-right: tokens.$space-6;
-  }
-
-  @media (min-width: #{tokens.$breakpoint-desktop-min}) {
-    padding-left: tokens.$space-8;
-    padding-right: tokens.$space-8;
-  }
+  width: var(--bt-container);
+  margin-inline: auto;
 }
 
-// -----------------------------------------------------------------------------
-// Acessibilidade: Prefers Reduced Motion (Desativa Animações/Transições)
-// -----------------------------------------------------------------------------
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+app-public-agenda-page .empty-hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--bt-space-8) 0 var(--bt-space-12);
+  background: tokens.$color-ink;
+}
+
+app-public-agenda-page .empty-hero__court {
+  position: absolute;
+  top: 118px;
+  right: -8vw;
+  width: min(76vw, 1080px);
+  height: 540px;
+  border: 1px solid var(--bt-border);
+  opacity: .62;
+}
+
+app-public-agenda-page .empty-hero__court::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  border-left: 1px solid var(--bt-border);
+}
+
+app-public-agenda-page .empty-hero__court::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 170px;
+  height: 170px;
+  border: 1px solid var(--bt-border);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+app-public-agenda-page .empty-hero__content {
+  position: relative;
+  width: var(--bt-container);
+  margin-inline: auto;
+}
+
+app-public-agenda-page .empty-hero__sports {
+  display: flex;
+  gap: var(--bt-space-2);
+  margin-bottom: var(--bt-space-8);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+app-public-agenda-page .empty-hero__sports::-webkit-scrollbar { display: none; }
+
+app-public-agenda-page .empty-hero__sports > span {
+  display: grid;
+  min-height: 38px;
+  padding: 0 var(--bt-space-4);
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--bt-border-strong);
+  border-radius: 999px;
+  color: var(--bt-text-muted);
+  font-size: var(--bt-type-label);
+  font-weight: 600;
+}
+
+app-public-agenda-page .empty-hero__sports > span.is-active {
+  border-color: tokens.$color-accent;
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+}
+
+app-public-agenda-page .empty-hero__stage {
+  display: grid;
+  min-height: 460px;
+  padding: var(--bt-space-8) 0 var(--bt-space-6);
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr);
+  align-items: end;
+  gap: var(--bt-space-12);
+  border-block: 1px solid var(--bt-border);
+}
+
+app-public-agenda-page .empty-hero h1 {
+  margin: 0;
+  color: tokens.$color-hero-cream;
+  font-size: var(--bt-type-display);
+  line-height: 0.72;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+
+app-public-agenda-page .empty-hero h1 span,
+app-public-agenda-page .empty-hero h1 strong {
+  display: block;
+}
+
+app-public-agenda-page .empty-hero h1 strong {
+  width: fit-content;
+  margin-top: var(--bt-space-2);
+  padding: 0 var(--bt-space-2) var(--bt-space-2);
+  background: tokens.$color-accent-deep;
+  color: tokens.$color-hero-on-deep;
+  transform: rotate(-2deg);
+  box-shadow: 18px 0 0 tokens.$color-accent-deep, -18px 0 0 tokens.$color-accent-deep;
+}
+
+app-public-agenda-page .empty-hero__message {
+  padding: var(--bt-space-6);
+  border: 1px solid var(--bt-border-strong);
+  background: rgba(11, 11, 13, .88);
+}
+
+app-public-agenda-page .empty-hero__message h2 {
+  margin-bottom: tokens.$space-2;
+  color: tokens.$color-hero-cream;
+  font-size: var(--bt-type-heading);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+app-public-agenda-page .empty-hero__message p {
+  margin: 0;
+  color: tokens.$color-hero-muted;
+}
+
+@media (max-width: 760px) {
+  app-public-agenda-page .empty-hero {
+    padding: var(--bt-space-6) 0 var(--bt-space-8);
+  }
+
+  app-public-agenda-page .empty-hero__court {
+    top: 160px;
+    right: -260px;
+    width: 600px;
+    height: 430px;
+  }
+
+  app-public-agenda-page .empty-hero__sports { margin-bottom: var(--bt-space-6); }
+
+  app-public-agenda-page .empty-hero__stage {
+    min-height: 0;
+    padding: var(--bt-space-8) 0 var(--bt-space-4);
+    grid-template-columns: 1fr;
+    gap: var(--bt-space-12);
+  }
+
+  app-public-agenda-page .empty-hero h1 strong { box-shadow: 8px 0 0 tokens.$color-accent-deep, -8px 0 0 tokens.$color-accent-deep; }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  html {
+    scroll-behavior: auto;
   }
 }
