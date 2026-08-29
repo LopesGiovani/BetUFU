@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: Wave 4 technical and documentation commits complete locally; awaiting post-commit verification and integration approval
-last_updated: "2026-08-29T08:40:51-03:00"
+stopped_at: Wave 4 integrated in master; awaiting push and exact worktree cleanup approvals
+last_updated: "2026-08-29T16:50:40-03:00"
 last_activity: 2026-08-29
-last_activity_desc: 03-03 concluiu agenda pública real e Arena V; commit técnico 9399a7c e este commit documental formalizam a worktree, sem push ou integração.
-state_head: 22bf1678a7a3045d5e61e8106528a21216856d82
+last_activity_desc: 03-03 concluiu agenda pública real e Arena V; os commits técnico 9399a7c e documental 3368d73 foram integrados linearmente na master, sem push.
+state_head: 3368d7374fb77d99007c712c80875e79d2c46d9c
 progress:
   total_phases: 7
   completed_phases: 2
@@ -24,23 +24,23 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** verificar os dois commits locais do 03-03/W4 e registrar o SHA documental na próxima passada de estado; depois, integrar a onda antes do briefing interativo do 03-04/W5
+**Current focus:** publicar os dois commits integrados do 03-03/W4 e limpar somente a worktree/branch exatas após aprovação; depois, briefing interativo do 03-04/W5
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
 Plan: 4 de 20 concluídos; o 03-03 está completo na worktree isolada e o 03-04/W5 é o próximo plano técnico após revisão e integração.
-Status: In progress — Wave 4 passou backend, Node, Angular, build, Playwright e auditoria fresca; os commits técnico e documental estão completos localmente e aguardam integração separada.
+Status: In progress — Wave 4 passou backend, Node, Angular, build, Playwright e auditoria fresca; os commits técnico e documental foram integrados na master e aguardam push e limpeza separados.
 Last activity: 2026-08-29 — agenda pública real, cliente governado e Arena V foram concluídos sem antecipar O1 nem alterar regras de negócio existentes.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
-Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 vive somente em `worktree-agent-03-03`, criada a partir de `7d3cbc6`; o commit técnico local `9399a7c` contém exatamente 44 paths e este commit documental contém os seis documentos GSD. `master` não foi alterada por este plano; integração, limpeza e push continuam pendentes de aprovação específica.
+Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 foi criada na `worktree-agent-03-03` a partir de `7d3cbc6`; o commit técnico `9399a7c` contém exatamente 44 paths e o documental `3368d73` contém os seis documentos GSD. A integração fast-forward levou ambos para `master`; limpeza da worktree/branch e push continuam pendentes de aprovação específica.
 
 Git — Fase 3 / Wave 4 (snapshot local aprovado, 2026-08-29): o 03-03 entrega a agenda pública paginada, o candidato OpenAPI aprovado `0B631F67A415BEE7BC95ECF209BD240C922A93ED47B69385B969B093D464AB95`, o cliente governado e a Arena V. O gate final passou Surefire `251/251`, Failsafe `343/343`, Node `623/623`, gerador `72/72`, Angular `241/241`, build produtivo e Playwright `2/2`; a auditoria fresca terminou `PASS`, P0=P1=P2=0. `frontend/angular.json` não possui diff de conteúdo e fica fora da allowlist final. Os temporários locais de `.playwright-cli/` foram removidos antes do handoff.
 
-Git — Fase 3 / Wave 4 (commit técnico, 2026-08-29): o commit `9399a7c13af45280e001f0f0d6e3bc77a8c4b3e1`, filho direto de `7d3cbc6bfdfbec52bd9e78e4eeef916b846de11c`, contém exatamente os 44 paths técnicos certificados; `git diff --cached --check` passou antes do commit. Os seis documentos GSD permanecem fora do índice para o commit documental separado; os quatro metadados candidatos continuam ignorados, `frontend/angular.json` não possui diff de conteúdo e `frontend/src/app/api/generated/index.ts` permaneceu inalterado. Nenhum commit documental, integração, limpeza ou push foi executado.
+Git — Fase 3 / Wave 4 (commit técnico, 2026-08-29): o commit `9399a7c13af45280e001f0f0d6e3bc77a8c4b3e1`, filho direto de `7d3cbc6bfdfbec52bd9e78e4eeef916b846de11c`, contém exatamente os 44 paths técnicos certificados; `git diff --cached --check` passou antes do commit. Os seis documentos GSD foram formalizados no commit documental seguinte; os quatro metadados candidatos continuam ignorados, `frontend/angular.json` não possui diff de conteúdo e `frontend/src/app/api/generated/index.ts` permaneceu inalterado.
 
-Git — Fase 3 / Wave 4 (commit documental, 2026-08-29): este commit contém exatamente `03-03-PLAN.md`, `03-03-SUMMARY.md`, `03-UI-SPEC.md`, `03-VALIDATION.md`, `ROADMAP.md` e `STATE.md`, como filho direto do commit técnico `9399a7c`. Por regra anti-autorreferência, seu próprio SHA não aparece dentro dele e será registrado na próxima passada de estado. `frontend/angular.json`, os quatro metadados candidatos e qualquer path técnico ficaram fora deste segundo commit. Nenhuma integração, limpeza ou push foi executado.
+Git — Fase 3 / Wave 4 (commit documental, 2026-08-29): o commit `3368d7374fb77d99007c712c80875e79d2c46d9c`, filho direto de `9399a7c13af45280e001f0f0d6e3bc77a8c4b3e1`, contém exatamente `03-03-PLAN.md`, `03-03-SUMMARY.md`, `03-UI-SPEC.md`, `03-VALIDATION.md`, `ROADMAP.md` e `STATE.md`. Por regra anti-autorreferência, seu próprio SHA é registrado nesta passada posterior. `frontend/angular.json`, os quatro metadados candidatos e qualquer path técnico ficaram fora deste segundo commit. A integração fast-forward foi concluída; limpeza e push continuam pendentes.
 
 Git — Fase 3 / Wave 2 (concluída, enviada e limpa, 2026-08-27): a `master` recebeu o commit técnico `2be1b0f`, contendo exatamente os 14 paths técnicos certificados, seguido pela formalização documental com `03-02-PLAN.md`, `03-02-SUMMARY.md`, `03-VALIDATION.md`, `STATE.md` e `ROADMAP.md`. A árvore passou `SportsTracerIT` 9/9, `ModulithArchitectureTests` 2/2, Surefire 251/251, Failsafe 342/342, Node 623/623 e Maven `clean verify` com `BUILD SUCCESS`. A mutação de escopo ficou vermelha e o service foi restaurado ao SHA-256 `552921E19D2B9ED51DE813470DE8EA90F67E65947C2B88C59A71CBAEDBB05261`. A revisão Codex retornou `PASS`, P0=P1=P2=0. Os 14 hashes da worktree revisada permaneceram aprovados e o conteúdo Git integrado ficou idêntico em 14/14 paths. A worktree e a branch temporárias foram removidas; `.gitignore` foi atualizado para ignorar somente o cache local de pesquisa, e `master`/`origin/master` chegaram juntas a `12d8f01`.
 
@@ -247,8 +247,8 @@ Progress: [██░░░░░░░░] 4/20 planos da Fase 3 (20%)
 
 ## Session Continuity
 
-Last session: 2026-08-29T08:40:51-03:00
-Stopped at: Wave 4 technical and documentation commits complete locally; awaiting post-commit verification and integration approval
+Last session: 2026-08-29T16:50:40-03:00
+Stopped at: Wave 4 integrated in master; awaiting push and exact worktree cleanup approvals
 Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-03-SUMMARY.md
 
 ## Accumulated Context
