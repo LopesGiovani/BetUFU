@@ -5,10 +5,10 @@ current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
 stopped_at: Wave 3 plan 03-18 closed documentalmente; A2/B2/C2 passed; next 03-03/W4 briefing
-last_updated: "2026-08-28T23:30:53-03:00"
+last_updated: "2026-08-28T23:35:34-03:00"
 last_activity: 2026-08-28
-last_activity_desc: Plano documental 03-18 integrado por fast-forward na master; cleanup e push permanecem pendentes, sem alteração de lógica de negócio.
-state_head: a5e226dfcaa895d81e41cdde3aa7bc9060ec5940
+last_activity_desc: Registro pós-push do 03-18 atualizado; master e origin/master estão sincronizadas, sem alteração de lógica de negócio.
+state_head: 22bf1678a7a3045d5e61e8106528a21216856d82
 progress:
   total_phases: 7
   completed_phases: 2
@@ -34,7 +34,7 @@ Status: In progress — A2, B2 e C2 passaram com pareceres frescos e a integrida
 Last activity: 2026-08-28 — a reabertura do 03-18 acrescentou os planos 03-19/03-20, corrigiu o contrato de 26 superfícies e preservou APIs, stores, guards, permissões e regras de negócio.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
-Git — Fase 3: Wave 1, Wave 2 e sua formalização foram enviadas; `master` recebeu o fechamento documental do 03-18 por fast-forward em `a5e226d`, enquanto `origin/master` permanece em `12d8f0126acf866685a1ac164b6d848d420f4424`. A integração foi verificada com árvore limpa e o sketch V está versionado com regra `LF`; cleanup da worktree `worktree-agent-03-18` e push permanecem pendentes.
+Git — Fase 3: Wave 1, Wave 2 e sua formalização foram enviadas; o fechamento documental do 03-18 foi integrado, a worktree temporária foi removida e a publicação em `origin/master` foi concluída. As refs estão sincronizadas, o sketch V está versionado com regra `LF` e nenhuma alteração de código foi realizada.
 
 Git — Fase 3 / Wave 2 (concluída, enviada e limpa, 2026-08-27): a `master` recebeu o commit técnico `2be1b0f`, contendo exatamente os 14 paths técnicos certificados, seguido pela formalização documental com `03-02-PLAN.md`, `03-02-SUMMARY.md`, `03-VALIDATION.md`, `STATE.md` e `ROADMAP.md`. A árvore passou `SportsTracerIT` 9/9, `ModulithArchitectureTests` 2/2, Surefire 251/251, Failsafe 342/342, Node 623/623 e Maven `clean verify` com `BUILD SUCCESS`. A mutação de escopo ficou vermelha e o service foi restaurado ao SHA-256 `552921E19D2B9ED51DE813470DE8EA90F67E65947C2B88C59A71CBAEDBB05261`. A revisão Codex retornou `PASS`, P0=P1=P2=0. Os 14 hashes da worktree revisada permaneceram aprovados e o conteúdo Git integrado ficou idêntico em 14/14 paths. A worktree e a branch temporárias foram removidas; `.gitignore` foi atualizado para ignorar somente o cache local de pesquisa, e `master`/`origin/master` chegaram juntas a `12d8f01`.
 
