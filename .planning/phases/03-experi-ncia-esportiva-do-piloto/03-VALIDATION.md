@@ -9,7 +9,7 @@ created: 2026-08-26
 
 # Phase 3 — Validation Strategy
 
-> Contrato de validacao da experiencia esportiva, reconciliado com 20 PLANs: os planos tecnicos 03-02, 03-03, 03-04 e 03-05 foram executados, o preplano documental 03-18 foi fechado na Wave 3 e os planos seguintes permanecem pendentes nas Waves 7-20.
+> Contrato de validacao da experiencia esportiva, reconciliado com 20 PLANs: os planos tecnicos 03-02 a 03-06 foram executados, o preplano documental 03-18 foi fechado na Wave 3 e os planos seguintes permanecem pendentes nas Waves 8-20.
 
 O 03-18 usa `requirements: []`: ele governa a reconstrução do contrato visual, a cobertura e a validação dos planos, mas sua execução não conclui AUTH-01 nem qualquer SPRT. A reabertura amplia o manifesto para 17/17 e exige checkers frescos sobre 26 superfícies e o DAG W4–W20; os pareceres históricos permanecem evidência, não aprovação automática do novo alcance.
 
@@ -205,7 +205,7 @@ O limite da evidência permanece explícito: o checker foi somente leitura e nã
 | 03-03 | Tracer público vertical com listagem real mínima, contrato e navegador. | AUTH-01, SPRT-12 | 55 paths | 03-18 | 4 | Arena P1 / home V | SportsTracerIT, candidato/digest, generate-api e Playwright `@03-03-home-v` | T-03-03-PUBLIC, CONTRACT, MOTION, FOCUS | PASS |
 | 03-04 | Expansão operacional do workspace/catálogo O1–O2 e locais reutilizáveis. | SPRT-01, SPRT-10, SPRT-12 | 43 paths | 03-03 | 5 | Console O1–O2 + filtros P1 | Catálogo/capability/Flyway IT, contrato e specs O1/O2/agenda | T-03-04-IDOR, RACE, BOOT, CONTRACT | PASS |
 | 03-05 | Organizacoes, equipes por edicao e reconciliacao preservadora do favorito. | SPRT-02, SPRT-13, SPRT-15 | 52 paths | 03-04 | 6 | Console O3 / perfil | Organization/Profile/Flyway IT, contrato, specs O3/perfil e browser Arena/Console | T-03-05-IDOR, MIG, CONTRACT | PASS |
-| 03-06 | Atleta global e seam de matrícula transitória/HMAC. | SPRT-02–05 | 32 paths | 03-05 | 7 | Console O4 | Athlete/HMAC/Flyway IT, Privacy/Modulith e spec O4 | T-03-06-PII, IDOR, MODULE, CONTRACT | PASS |
+| 03-06 | Atleta global e seam de matrícula transitória/HMAC. | SPRT-02–05 | 32 paths | 03-05 | 7 | Console O4 | Athlete/HMAC/Flyway IT, Privacy/Modulith, spec O4, build e Playwright esportivo | T-03-06-PII, IDOR, MODULE, CONTRACT | PASS |
 | 03-07 | Propostas, aceite/rejeição/contestação owner-only e revisão segura O8. | SPRT-06–08 | 40 paths | 03-06 | 8 | Conta owner + Console O8 | Proposal/concurrency/Flyway IT, contrato e stores/specs owner/O8 | T-03-07-TAKEOVER, RACE, REPLAY, CONTEST, ENUM, CONTRACT | PASS |
 | 03-08 | Elencos versionados, snapshot publicado e correção manual. | SPRT-02, SPRT-09 | 29 paths | 03-07 | 9 | Console O4 / RosterView | Roster/concurrency/Flyway IT, contrato e specs store/O4 | T-03-08-PUBLISH, IDOR, PII, CONTRACT | PASS |
 | 03-09 | Importação CSV UTF-8 atômica, validada e sem retry perigoso. | SPRT-02 | 38 paths | 03-08 | 10 | Console O5 | dependency tree, parser/import IT, contrato e specs store/O5 | T-03-09-SC, DOS, FORMULA, PARTIAL | PASS |
@@ -240,6 +240,28 @@ As cinco falhas Angular sao uma lacuna historica da tela de administracao de
 papeis e nao foram mascaradas. A fixture E2E do painel operacional foi
 atualizada somente para incluir `favoriteOrganizationId: null`, conforme
 autorizacao explicita do responsavel.
+
+### Execucao do 03-06/W7
+
+O plano 03-06 foi executado na worktree `worktree-agent-03-06` sobre o HEAD
+`9f664be`. O candidato OpenAPI foi aprovado com o digest
+`111FEA082473D8D6541BAD51A44D5D00DABB160316EF7625A564CDAA55101818`; os
+hashes governados before/after permaneceram iguais nesse mesmo digest.
+
+| Controle | Resultado |
+|---|---|
+| Backend completo | PASS - Maven `251/251` Surefire + `359/359` Failsafe = `610/610`, sem failures/errors/skips. |
+| Node completo | PASS - `625/625`, incluindo mutacoes negativas dos guards. |
+| Contrato OpenAPI | PASS - candidato regenerado e `generate-api --check` OK. |
+| Angular focal | PASS - spec O4 `11/11`; cliente contratual incluido no conjunto. |
+| Angular completo | PARCIAL - `261/266`; cinco falhas apenas em `role-admin-page.component.spec.ts`, baseline reproduzido na master limpa. |
+| Builds | PASS - production; warnings de budget SCSS permanecem informativos. |
+| Playwright | PASS - esportivo `2/2` em desktop e 320 px. |
+| Integridade | PASS - `git diff --check`; aviso LF -> CRLF do checkout Windows. |
+
+O4 limpa a matricula imediatamente no submit, sucesso, erro e cancelamento;
+V12 persiste somente fingerprint HMAC versionado. A pagina publica P6 e o
+vinculo atleta-conta continuam atribuidos aos planos 03-07, 03-08 e 03-11.
 
 ### Auditoria multifuente
 
@@ -486,8 +508,8 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 - [ ] 03-03/T1 e 03-17/T1 — `frontend/playwright.sports.config.ts` e `frontend/e2e/sports-pilot.spec.ts` com 320px, 1280px, teclado e sessão ausente. **Parcela 03-03: ✅ green; certificação ampliada do 03-17 permanece pendente.**
 - [ ] 03-09/T2 — `backend/src/test/resources/sports/csv/` com válido, erro tardio, BOM/encoding, quoting, duplicata, referência ausente e limites.
 - [ ] 03-15/T2 — `backend/src/test/resources/sports/media/` com válida, MIME falso, truncada, pixels excessivos, metadados e falha de storage.
-- [ ] 03-06/T2 — compatibilidade da porta HMAC e extensão estreita de `PrivacyArchitectureTest`.
-- [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V19. **V9: ✅ green no 03-02; V10/V11: green; V12-V19 permanecem pendentes.**
+- [x] 03-06/T2 — compatibilidade da porta HMAC e extensão estreita de `PrivacyArchitectureTest`. **Green - V12, atleta/HMAC, privacidade e Modulith certificados na Wave 7.**
+- [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V19. **V9: green no 03-02; V10/V11/V12: green; V13-V19 permanecem pendentes.**
 - [x] 03-02/T1 — teste de existência de competição ao conceder papel escopado. **Provado por `rejectsGrantForUnknownCompetition()`.**
 - [ ] 03-03/T2 a 03-15/T3, com inventário/digest final no 03-17/T1 — gate do gerador OpenAPI e checkpoint humano de inventário/digest. **Parcela 03-03: ✅ candidato aprovado e geração governada verde; planos posteriores permanecem pendentes.**
 
@@ -517,4 +539,4 @@ Esses itens não precisam estar todos no primeiro plano. Cada PLAN deve possuir 
 - [x] Mutações negativas são discriminantes e restauradas por hash.
 - [x] `nyquist_compliant: true` foi mantido somente depois de os PLANs preencherem IDs, comandos e arquivos reais.
 
-**Approval:** Gates B2/C2 permanecem fechados; 03-03/W4, 03-04/W5 e 03-05/W6 foram implementados e certificados nas worktrees isoladas. W5 e W6 ainda aguardam as operacoes Git separadas; o proximo plano tecnico e `03-06/W7`. `AUTH-01` e `SPRT-12` permanecem `pending` no nivel global da fase.
+**Approval:** Gates B2/C2 permanecem fechados; 03-03/W4 a 03-06/W7 foram implementados, certificados e o 03-06 foi integrado linearmente na master. O proximo plano tecnico e `03-07/W8`; `AUTH-01` e `SPRT-12` permanecem `pending` no nivel global da fase.

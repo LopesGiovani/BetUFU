@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 5/20 plans executed
+**Plans**: 6/20 plans executed
 
 Plans:
 **Wave 1**
@@ -278,9 +278,9 @@ Plans:
 
 - [x] 03-05-PLAN.md ? criar organizacoes/equipes, reconciliar favorito e ampliar perfil/rotas/guard
 
-**Wave 7** *(blocked on Wave 6 completion)*
+**Wave 7** *(concluida e integrada em 2026-08-30; push e limpeza exata pendentes nesta formalizacao)*
 
-- [ ] 03-06-PLAN.md — criar atleta global e seam HMAC transitório
+- [x] 03-06-PLAN.md — criar atleta global e seam HMAC transitório
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
