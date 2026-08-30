@@ -278,7 +278,7 @@ Plans:
 
 - [x] 03-05-PLAN.md ? criar organizacoes/equipes, reconciliar favorito e ampliar perfil/rotas/guard
 
-**Wave 7** *(concluida e integrada em 2026-08-30; push e limpeza exata pendentes nesta formalizacao)*
+**Wave 7** *(concluida, integrada, enviada e limpa em 2026-08-30)*
 
 - [x] 03-06-PLAN.md — criar atleta global e seam HMAC transitório
 
