@@ -48,6 +48,9 @@ export class ProfilePageComponent implements OnInit {
   readonly successMessage = signal<string | null>(null);
   readonly copyStatus = signal<'idle' | 'copied' | 'error'>('idle');
   readonly copyFeedbackMessage = signal<string | null>(null);
+  readonly favoriteForm = new FormGroup({
+    organizationId: new FormControl('', { nonNullable: true }),
+  });
 
   readonly isMatriculaRegistrada = computed(() => {
     return this.store.displayProfile()?.matriculaStatus === 'REGISTRADA';
@@ -59,11 +62,16 @@ export class ProfilePageComponent implements OnInit {
       if (currentNickname !== null && this.form.controls.nickname.pristine) {
         this.form.controls.nickname.setValue(currentNickname, { emitEvent: false });
       }
+      const favoriteOrganizationId = this.store.favoriteOrganizationId() ?? '';
+      if (this.favoriteForm.controls.organizationId.pristine) {
+        this.favoriteForm.controls.organizationId.setValue(favoriteOrganizationId, { emitEvent: false });
+      }
     });
   }
 
   ngOnInit(): void {
     void this.store.loadProfile();
+    void this.store.loadFavoriteOrganizations();
   }
 
   async onRetry(): Promise<void> {
@@ -133,6 +141,25 @@ export class ProfilePageComponent implements OnInit {
       }, 4000);
     } else {
       // D-16 / UI Consideration partial: o valor digitado permanece no formulário
+    }
+  }
+
+  async onSaveFavorite(): Promise<void> {
+    const organizationId = this.favoriteForm.controls.organizationId.value || null;
+    if (!organizationId || this.store.isSavingFavorite()) return;
+    if (await this.store.saveFavoriteOrganization(organizationId)) {
+      this.favoriteForm.markAsPristine();
+      this.successMessage.set('Organizacao favorita atualizada.');
+    }
+  }
+
+  async onRemoveFavorite(): Promise<void> {
+    const name = this.store.favoriteOrganizationName() ?? 'esta organizacao';
+    if (this.store.isSavingFavorite() || !window.confirm(`Remover ${name} dos favoritos? Voce podera escolher novamente depois.`)) return;
+    if (await this.store.saveFavoriteOrganization(null)) {
+      this.favoriteForm.reset({ organizationId: '' });
+      this.favoriteForm.markAsPristine();
+      this.successMessage.set('Organizacao favorita removida.');
     }
   }
 

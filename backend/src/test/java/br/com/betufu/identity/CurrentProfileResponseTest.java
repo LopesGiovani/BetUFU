@@ -19,11 +19,12 @@ class CurrentProfileResponseTest {
             "identityId",
             "nickname",
             "nicknameUpdatedAt",
-            "matriculaStatus"
+            "matriculaStatus",
+            "favoriteOrganizationId"
     );
 
     @Test
-    @DisplayName("Garante allowlist estrita de 4 componentes em CurrentProfileResponse contra vazamento de PRIV-01 e PROF-02")
+    @DisplayName("Garante allowlist estrita de 5 componentes em CurrentProfileResponse contra vazamento de PRIV-01 e PROF-02")
     void enforcesStrictAllowlistOnRecordComponents() {
         assertThat(CurrentProfileResponse.class.isRecord()).isTrue();
 
@@ -50,6 +51,7 @@ class CurrentProfileResponseTest {
                 case "nickname" -> assertThat(component.getType()).isEqualTo(String.class);
                 case "nicknameUpdatedAt" -> assertThat(component.getType()).isEqualTo(Instant.class);
                 case "matriculaStatus" -> assertThat(component.getType()).isEqualTo(String.class);
+                case "favoriteOrganizationId" -> assertThat(component.getType()).isEqualTo(UUID.class);
                 default -> throw new AssertionError("Componente não autorizado na allowlist: " + component.getName());
             }
         }

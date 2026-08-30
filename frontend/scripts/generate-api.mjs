@@ -81,6 +81,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Role',
   'Session',
   'SportsCatalog',
+  'SportsOrganization',
   'SportsPublic',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
@@ -98,6 +99,7 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'EnrollmentCorrectionResponse',
   'EnrollmentRegistrationRequest',
   'EnrollmentStatusResponse',
+  'FavoriteOrganizationRequest',
   'OperationalCapabilitiesResponse',
   'OperationalCapability',
   'OperationalPanelResponse',
@@ -126,8 +128,10 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'SportsEditionSummary',
   'SportsEventFormat',
   'SportsNameSlugRequest',
+  'SportsOrganizationSummary',
   'SportsPhaseSummary',
   'SportsSportSummary',
+  'SportsTeamSummary',
   'SportsVenueState',
   'SportsVenueSpaceSummary',
   'SportsVenueSummary',
@@ -165,6 +169,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/role.service.ts',
   'api/session.service.ts',
   'api/sports-catalog.service.ts',
+  'api/sports-organization.service.ts',
   'api/sports-public.service.ts',
   'configuration.ts',
   'encoder.ts',
@@ -183,6 +188,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/enrollment-correction-response.ts',
   'model/enrollment-registration-request.ts',
   'model/enrollment-status-response.ts',
+  'model/favorite-organization-request.ts',
   'model/models.ts',
   'model/operational-capabilities-response.ts',
   'model/operational-capability.ts',
@@ -212,8 +218,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/sports-edition-summary.ts',
   'model/sports-event-format.ts',
   'model/sports-name-slug-request.ts',
+  'model/sports-organization-summary.ts',
   'model/sports-phase-summary.ts',
   'model/sports-sport-summary.ts',
+  'model/sports-team-summary.ts',
   'model/sports-venue-space-summary.ts',
   'model/sports-venue-state.ts',
   'model/sports-venue-summary.ts',
@@ -240,7 +248,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // 21C9... preserva o cliente publico e acrescenta o cliente escopado SportsCatalog. O
 // candidato foi aprovado literalmente pelo responsavel em 2026-08-29; comandos do tracer
 // continuam fora da arvore.
-export const APPROVED_GENERATED_DIGEST = '21C94593F724A3478B866C4F0F4402B0FACA4EE92FD265A9B9CDEDD6BE5E5F37';
+// 12B2... acrescenta o cliente operacional de organizacoes/equipes e o favorito por
+// organizacao; o candidato foi aprovado literalmente pelo responsavel em 2026-08-29.
+export const APPROVED_GENERATED_DIGEST = '12B2982C70B98D02BD6609BA95AAE350E2BF65999E57F5D16183B65DABBA7201';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -774,7 +784,16 @@ export function inspectGeneratedOpenApiContract(source) {
   return {
     endpoints: inventory.endpoints.filter(
       ({ path }) => !path.startsWith('/api/v1/operations/sports/')
-        || path.startsWith('/api/v1/operations/sports/catalog/'),
+        || path.startsWith('/api/v1/operations/sports/catalog/')
+        || [
+          '/api/v1/operations/sports/organizations',
+          '/api/v1/operations/sports/organizations/{organizationId}',
+          '/api/v1/operations/sports/organizations/{organizationId}/publish',
+          '/api/v1/operations/sports/competitions/{competitionId}/teams',
+          '/api/v1/operations/sports/editions/{editionId}/sports/{sportId}/categories/{categoryId}/organizations/{organizationId}/teams',
+          '/api/v1/operations/sports/teams/{teamId}',
+          '/api/v1/operations/sports/teams/{teamId}/publish',
+        ].includes(path),
     ),
     schemas: inventory.schemas.filter((schema) => PUBLIC_GENERATOR_MODELS.includes(schema)),
     publicSchemas: inventory.publicSchemas.filter(

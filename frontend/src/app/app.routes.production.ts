@@ -22,6 +22,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ SportsCatalogPageComponent }) => SportsCatalogPageComponent,
           ),
       },
+      {
+        path: 'organizacoes',
+        loadComponent: () =>
+          import('./features/sports/operations/organizations/sports-organizations-page.component').then(
+            ({ SportsOrganizationsPageComponent }) => SportsOrganizationsPageComponent,
+          ),
+      },
     ],
   },
   {

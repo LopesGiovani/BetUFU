@@ -7,4 +7,16 @@ public record CurrentProfileResponse(
         UUID identityId,
         String nickname,
         Instant nicknameUpdatedAt,
-        String matriculaStatus) {}
+        String matriculaStatus,
+        UUID favoriteOrganizationId) {
+
+    public CurrentProfileResponse(
+            UUID identityId,
+            String nickname,
+            Instant nicknameUpdatedAt,
+            String matriculaStatus) {
+        this(identityId, nickname, nicknameUpdatedAt, matriculaStatus, null);
+    }
+
+    public record FavoriteOrganizationRequest(UUID organizationId) { }
+}

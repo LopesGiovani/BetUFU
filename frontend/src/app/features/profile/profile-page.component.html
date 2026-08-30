@@ -169,6 +169,40 @@
       </form>
     </article>
 
+    <article class="profile-card favorite-card">
+      <h2 class="card-title">Organização favorita</h2>
+      <p class="favorite-explanation">Escolha uma organização publicada para acompanhar sua identidade esportiva. A escolha vale para a organização inteira.</p>
+      @if (store.isFavoriteLoading()) {
+        <p class="favorite-status" role="status">Carregando organizações disponíveis...</p>
+      } @else if (store.favoriteErrorMessage()) {
+        <p class="favorite-status favorite-status--error" role="alert">{{ store.favoriteErrorMessage() }}</p>
+      } @else if (store.favoriteOrganizationId()) {
+        <p class="favorite-current">Favorita: <strong>{{ store.favoriteOrganizationName() || 'Organização publicada selecionada' }}</strong></p>
+      } @else {
+        <p class="favorite-status">Nenhuma organização favorita escolhida.</p>
+      }
+
+      @if (store.favoriteOrganizations().length > 0) {
+        <form [formGroup]="favoriteForm" (ngSubmit)="onSaveFavorite()" class="favorite-form">
+          <label for="favorite-organization">Escolher organização favorita</label>
+          <select id="favorite-organization" formControlName="organizationId">
+            <option value="">Escolha pelo nome</option>
+            @for (organization of store.favoriteOrganizations(); track organization.organizationId) {
+              <option [value]="organization.organizationId">{{ organization.name }}</option>
+            }
+          </select>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="!favoriteForm.controls.organizationId.value || store.isSavingFavorite()">{{ store.isSavingFavorite() ? 'Salvando...' : 'Salvar organização favorita' }}</button>
+            @if (store.favoriteOrganizationId()) {
+              <button type="button" class="btn-secondary" (click)="onRemoveFavorite()" [disabled]="store.isSavingFavorite()">Remover dos favoritos</button>
+            }
+          </div>
+        </form>
+      } @else if (!store.isFavoriteLoading()) {
+        <p class="favorite-help">Nenhuma organização publicada disponível para escolher agora.</p>
+      }
+    </article>
+
     <!-- Cartão Identificador público (D-43) -->
     <article class="profile-card">
       <h2 class="card-title">Identificador público</h2>

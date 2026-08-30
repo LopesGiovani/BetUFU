@@ -19,6 +19,7 @@ const MOCK_CURRENT_PROFILE: CurrentProfileResponse = {
   nickname: 'jogador_ufu',
   nicknameUpdatedAt: '2026-08-21T10:00:00.000Z',
   matriculaStatus: 'NAO_REGISTRADA',
+  favoriteOrganizationId: null,
 };
 
 const MOCK_UPDATED_PROFILE: CurrentProfileResponse = {
@@ -26,6 +27,7 @@ const MOCK_UPDATED_PROFILE: CurrentProfileResponse = {
   nickname: 'novo_apelido',
   nicknameUpdatedAt: '2026-08-21T12:00:00.000Z',
   matriculaStatus: 'NAO_REGISTRADA',
+  favoriteOrganizationId: null,
 };
 
 @Component({
@@ -44,6 +46,7 @@ describe('ProfilePageComponent (Superfície S2)', () => {
   let mockProfileService: {
     getMyProfile: ReturnType<typeof vi.fn>;
     putMyProfile: ReturnType<typeof vi.fn>;
+    putMyFavoriteOrganization: ReturnType<typeof vi.fn>;
   };
 
   let mockSessionService: {
@@ -55,6 +58,7 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     mockProfileService = {
       getMyProfile: vi.fn().mockReturnValue(of(MOCK_CURRENT_PROFILE)),
       putMyProfile: vi.fn().mockReturnValue(of(MOCK_UPDATED_PROFILE)),
+      putMyFavoriteOrganization: vi.fn().mockReturnValue(of(MOCK_UPDATED_PROFILE)),
     };
 
     mockSessionService = {
@@ -251,6 +255,7 @@ describe('ProfilePageComponent (Superfície S2)', () => {
         nickname: 'jogador_ufu',
         nicknameUpdatedAt: null,
         matriculaStatus: 'REGISTRADA',
+        favoriteOrganizationId: null,
       }),
     );
 
@@ -594,6 +599,7 @@ describe('ProfilePageComponent (Superfície S2)', () => {
       nickname: 'jogador_integrado',
       nicknameUpdatedAt: '2026-08-21T14:00:00.000Z',
       matriculaStatus: 'NAO_REGISTRADA',
+      favoriteOrganizationId: null,
     };
     mockProfileService.putMyProfile.mockReturnValue(of(savedProfile));
     mockProfileService.getMyProfile.mockReturnValue(of(savedProfile));

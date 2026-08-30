@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +23,13 @@ public class BetufuProfileService {
     private static final Duration MINIMUM_CHANGE_INTERVAL = Duration.ofDays(30);
 
     private final BetufuProfileRepository repository;
+    private final JdbcTemplate jdbc;
 
-    public BetufuProfileService(ObjectProvider<BetufuProfileRepository> repositoryProvider) {
+    public BetufuProfileService(
+            ObjectProvider<BetufuProfileRepository> repositoryProvider,
+            ObjectProvider<JdbcTemplate> jdbcProvider) {
         this.repository = (repositoryProvider != null) ? repositoryProvider.getIfAvailable() : null;
+        this.jdbc = (jdbcProvider != null) ? jdbcProvider.getIfAvailable() : null;
     }
 
     @Transactional(readOnly = true)
@@ -65,6 +70,28 @@ public class BetufuProfileService {
                 : now;
         current.changeNickname(trimmedNickname, effectiveChange);
         return current;
+    }
+
+    @Transactional
+    public BetufuProfile saveFavoriteOrganization(UUID identityId, UUID organizationId) {
+        Objects.requireNonNull(identityId, "identityId must not be null");
+        if (organizationId != null) {
+            if (jdbc == null) {
+                throw new IllegalStateException("JdbcTemplate is required to validate favorite organization");
+            }
+            Long count = jdbc.queryForObject(
+                    "SELECT count(*) FROM public.sports_organization "
+                            + "WHERE organization_id = ? AND status = 'PUBLICADO'",
+                    Long.class,
+                    organizationId);
+            if (count == null || count == 0) {
+                throw new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
+            }
+        }
+        BetufuProfile profile = requireRepository().findByIdentityId(identityId)
+                .orElseThrow(() -> new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND));
+        profile.changeFavoriteOrganization(organizationId, Instant.now());
+        return profile;
     }
 
     private BetufuProfileRepository requireRepository() {

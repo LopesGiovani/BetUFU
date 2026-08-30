@@ -65,6 +65,22 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping(
+            path = PROFILE_ME_PATH + "/favorite-organization",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CurrentProfileResponse> putMyFavoriteOrganization(
+            @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser oidcUser,
+            @Valid @RequestBody CurrentProfileResponse.FavoriteOrganizationRequest request) {
+        Optional<OidcClaimsProjection> claims = OidcClaimsProjection.from(oidcUser);
+        if (claims.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        LocalIdentity identity = localIdentityService.persistCurrentIdentity(claims.get().issuer(), claims.get().subject());
+        BetufuProfile profile = profileService.saveFavoriteOrganization(identity.getIdentityId(), request.organizationId());
+        return ResponseEntity.ok(toResponse(identity.getIdentityId(), profile));
+    }
+
     private Optional<CurrentProfileResponse> findProfileByClaims(OidcClaimsProjection claims) {
         return localIdentityRepository.findByNaturalKey(claims.issuer(), claims.subject())
                 .flatMap(identity -> profileService.findProfile(identity.getIdentityId())
@@ -83,6 +99,7 @@ public class ProfileController {
                 identityId,
                 profile.getNickname(),
                 profile.getNicknameUpdatedAt(),
-                DEFAULT_MATRICULA_STATUS);
+                DEFAULT_MATRICULA_STATUS,
+                profile.getFavoriteOrganizationId());
     }
 }

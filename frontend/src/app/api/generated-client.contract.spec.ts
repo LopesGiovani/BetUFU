@@ -12,9 +12,11 @@ import { firstValueFrom } from 'rxjs';
 import {
   CurrentIdentityResponse,
   IdentityService,
+  ProfileService,
   PublicSportsEventPage,
   SportsCatalogService,
   SportsCatalogScope,
+  SportsOrganizationService,
   SportsPublicService,
   provideApi,
 } from './generated';
@@ -25,6 +27,8 @@ describe('Generated BETUFU API client contract', () => {
   let identityService: IdentityService;
   let sportsPublicService: SportsPublicService;
   let sportsCatalogService: SportsCatalogService;
+  let sportsOrganizationService: SportsOrganizationService;
+  let profileService: ProfileService;
 
   function configureClient(includeApiProvider: boolean): void {
     document.cookie = 'XSRF-TOKEN=' + xsrfToken + '; path=/';
@@ -46,6 +50,8 @@ describe('Generated BETUFU API client contract', () => {
     identityService = TestBed.inject(IdentityService);
     sportsPublicService = TestBed.inject(SportsPublicService);
     sportsCatalogService = TestBed.inject(SportsCatalogService);
+    sportsOrganizationService = TestBed.inject(SportsOrganizationService);
+    profileService = TestBed.inject(ProfileService);
   }
 
   afterEach(() => {
@@ -144,5 +150,35 @@ describe('Generated BETUFU API client contract', () => {
     expect(request.request.headers.has('X-XSRF-TOKEN')).toBe(false);
     request.flush(response);
     await expect(resultPromise).resolves.toEqual(response);
+  });
+
+  it('consome O3 e favorito por organizacao com caminhos relativos e IDs explicitos', async () => {
+    configureClient(true);
+    const organizationResult = firstValueFrom(sportsOrganizationService.listSportsOrganizations());
+    const organizationRequest = httpTesting.expectOne('/api/v1/operations/sports/organizations');
+    expect(organizationRequest.request.method).toBe('GET');
+    expect(organizationRequest.request.headers.has('Authorization')).toBe(false);
+    organizationRequest.flush([]);
+    await expect(organizationResult).resolves.toEqual([]);
+
+    const profileResult = firstValueFrom(profileService.putMyFavoriteOrganization({
+      favoriteOrganizationRequest: { organizationId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35' },
+    }));
+    const favoriteRequest = httpTesting.expectOne('/api/v1/profile/me/favorite-organization');
+    expect(favoriteRequest.request.method).toBe('PUT');
+    expect(favoriteRequest.request.body).toEqual({
+      organizationId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35',
+    });
+    expect(favoriteRequest.request.headers.has('Authorization')).toBe(false);
+    favoriteRequest.flush({
+      identityId: '11a70246-3db4-4c53-b2ab-3fdd91a3ea84',
+      nickname: 'jogador',
+      nicknameUpdatedAt: null,
+      matriculaStatus: 'NAO_REGISTRADA',
+      favoriteOrganizationId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35',
+    });
+    await expect(profileResult).resolves.toMatchObject({
+      favoriteOrganizationId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35',
+    });
   });
 });

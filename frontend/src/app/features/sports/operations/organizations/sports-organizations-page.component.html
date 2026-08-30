@@ -1,0 +1,103 @@
+<section class="organizations-page" aria-labelledby="organizations-title">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Console operacional</span>
+      <h1 id="organizations-title">Operacao esportiva</h1>
+      <p>Organizacoes permanentes e equipes vinculadas a uma edicao autorizada.</p>
+    </div>
+    @if (scope.hasSelection()) {
+      <div class="scope-picker">
+        <label for="competition-select">Competicao</label>
+        <select id="competition-select" [value]="competitionId" (change)="changeScope($any($event.target).value)">
+          @for (competition of scope.competitions(); track competition.competitionId) {
+            <option [value]="competition.competitionId">{{ competition.name }}</option>
+          }
+        </select>
+      </div>
+    }
+  </header>
+
+  @if (scope.isDenied() || scope.isEmpty()) {
+    <article class="state-card" role="status">
+      <h2>Nenhuma competicao atribuida</h2>
+      <p>Seu acesso nao possui uma competicao autorizada para administrar organizacoes e equipes.</p>
+    </article>
+  } @else if (scope.isError()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Nao foi possivel carregar as competicoes</h2>
+      <p>{{ scope.errorMessage() }}</p>
+      <button type="button" class="button button--primary" (click)="retry()">Tentar carregar competicoes</button>
+    </article>
+  } @else if (store.isLoading() || treeLoading()) {
+    <article class="state-card" role="status" aria-live="polite">
+      <h2>Carregando organizacoes e equipes...</h2>
+      <p>Aguarde enquanto consultamos os cadastros deste escopo.</p>
+    </article>
+  } @else if (store.isError() || treeError()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Nao foi possivel carregar organizacoes e equipes</h2>
+      <p>{{ store.errorMessage() || treeError() }}</p>
+      <button type="button" class="button button--primary" (click)="loadWorkspace()">Tentar carregar organizacoes e equipes</button>
+    </article>
+  } @else {
+    @if (store.conflictMessage()) {
+      <div class="alert alert--warning" role="alert">{{ store.conflictMessage() }}</div>
+    }
+    @if (store.feedbackMessage()) {
+      <div class="alert alert--success" role="status" aria-live="polite">{{ store.feedbackMessage() }}</div>
+    }
+
+    <section class="workspace-grid" aria-label="Organizacoes e equipes">
+      <article class="panel-card">
+        <header class="card-header">
+          <div><span class="card-code">PERMANENTE</span><h2>Organizacoes esportivas</h2></div>
+          <button type="button" class="button button--primary" (click)="openOrganizationForm()">Cadastrar organizacao</button>
+        </header>
+        @if (store.organizations().length === 0) {
+          <div class="empty-copy"><h3>Nenhuma organizacao cadastrada</h3><p>Cadastre a primeira organizacao esportiva antes de criar equipes para esta edicao.</p><button type="button" class="text-button" (click)="openOrganizationForm()">Cadastrar organizacao</button></div>
+        } @else {
+          <ul class="record-list">
+            @for (organization of store.organizations(); track organization.organizationId) {
+              <li class="record-row">
+                <div><strong>{{ organization.name }}</strong><span>{{ organization.slug }}</span></div>
+                <div class="record-actions"><span class="status-chip" [class.status-chip--published]="organization.status === 'PUBLICADO'">{{ statusLabel(organization.status) }}</span><span class="version">v{{ organization.lockVersion }}</span><button type="button" (click)="previewOrganization(organization)">Pre-visualizar organizacao</button><button type="button" (click)="editOrganization(organization)">Editar</button>@if (organization.status !== 'PUBLICADO') { <button type="button" (click)="publishOrganization(organization)">Publicar organizacao</button> }</div>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+
+      <article class="panel-card panel-card--wide">
+        <header class="card-header">
+          <div><span class="card-code">POR EDICAO</span><h2>Equipes desta competicao</h2></div>
+          <button type="button" class="button button--primary" (click)="openTeamForm()" [disabled]="store.organizations().length === 0">Cadastrar equipe</button>
+        </header>
+        @if (store.teams().length === 0) {
+          <div class="empty-copy"><h3>Nenhuma equipe cadastrada nesta edicao</h3><p>Crie a primeira equipe escolhendo organizacao, esporte e categoria ja cadastrados.</p>@if (store.organizations().length > 0) { <button type="button" class="text-button" (click)="openTeamForm()">Cadastrar equipe</button> }</div>
+        } @else {
+          <ul class="record-list">
+            @for (team of store.teams(); track team.teamId) {
+              <li class="record-row"><div><strong>{{ team.name }}</strong><span>{{ team.organizationName }} · {{ team.sportName }} · {{ team.categoryName }} · {{ editionName(team.editionId) }}</span></div><div class="record-actions"><span class="status-chip" [class.status-chip--published]="team.status === 'PUBLICADO'">{{ statusLabel(team.status) }}</span><span class="version">v{{ team.lockVersion }}</span><button type="button" (click)="previewTeam(team)">Pre-visualizar equipe</button><button type="button" (click)="editTeam(team)">Editar</button>@if (team.status !== 'PUBLICADO') { <button type="button" (click)="publishTeam(team)">Publicar equipe</button> }</div></li>
+            }
+          </ul>
+        }
+      </article>
+    </section>
+  }
+
+  @if (activeForm(); as form) {
+    <aside class="form-panel" aria-labelledby="form-title">
+      <header class="card-header"><div><span class="eyebrow">{{ editingOrganization() || editingTeam() ? 'Editar registro' : 'Novo cadastro' }}</span><h2 id="form-title">{{ form === 'organization' ? 'Organizacao esportiva' : 'Equipe esportiva' }}</h2></div><button type="button" class="close-button" (click)="closeForm()">Fechar</button></header>
+      @if (form === 'organization') {
+        <form [formGroup]="organizationForm" (ngSubmit)="saveOrganization()"><label>Nome<input formControlName="name" autocomplete="off"></label><label>Slug<input formControlName="slug" autocomplete="off" placeholder="exemplo-sem-espacos"></label><div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Cancelar</button><button type="submit" class="button button--primary" [disabled]="organizationForm.invalid || store.isMutating()">Salvar rascunho</button></div></form>
+      } @else {
+        <p class="form-note">A equipe pertence a uma organizacao permanente e exige edicao, modalidade e categoria. A competicao sera derivada pelo servidor.</p>
+        <form [formGroup]="teamForm" (ngSubmit)="saveTeam()"><label>Organizacao<select formControlName="organizationId">@for (organization of store.organizations(); track organization.organizationId) { <option [value]="organization.organizationId">{{ organization.name }}</option> }</select></label><label>Edicao<select formControlName="editionId">@for (edition of tree()?.editions ?? []; track edition.editionId) { <option [value]="edition.editionId">{{ edition.name }}</option> }</select></label><label>Modalidade<select formControlName="sportId">@for (sport of tree()?.sports ?? []; track sport.sportId) { <option [value]="sport.sportId">{{ sport.name }}</option> }</select></label><label>Categoria<select formControlName="categoryId">@for (category of categoriesForEdition(); track category.categoryId) { <option [value]="category.categoryId">{{ category.name }}</option> }</select></label><label>Nome<input formControlName="name" autocomplete="off"></label><label>Slug<input formControlName="slug" autocomplete="off" placeholder="exemplo-sem-espacos"></label><div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Cancelar</button><button type="submit" class="button button--primary" [disabled]="teamForm.invalid || store.isMutating()">Salvar rascunho</button></div></form>
+      }
+    </aside>
+  }
+
+  @if (previewItem(); as preview) {
+    <aside class="preview-panel" aria-labelledby="preview-title"><header class="card-header"><div><span class="eyebrow">Pre-visualizacao nao publicada</span><h2 id="preview-title">{{ preview.name }}</h2></div><button type="button" class="close-button" (click)="closePreview()">Fechar</button></header><dl><div><dt>Tipo</dt><dd>{{ preview.kind === 'organization' ? 'Organizacao permanente' : 'Equipe' }}</dd></div><div><dt>Contexto</dt><dd>{{ preview.scope }}</dd></div><div><dt>Estado</dt><dd>{{ preview.status }}</dd></div><div><dt>Versao</dt><dd>v{{ preview.version }}</dd></div></dl></aside>
+  }
+</section>

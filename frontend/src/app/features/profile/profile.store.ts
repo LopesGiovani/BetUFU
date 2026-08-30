@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, retry, timer } from 'rxjs';
+import { SportsOrganizationSummary } from '../../api/generated/model/sports-organization-summary';
 import { ProfileApiAdapter } from './profile-api.adapter';
 import { ProfileState, ProfileViewModel } from './profile.models';
 
@@ -21,6 +22,10 @@ export class ProfileStore {
   private readonly adapter = inject(ProfileApiAdapter);
 
   private readonly state = signal<ProfileState>(INITIAL_STATE);
+  private readonly favoriteOrganizationsState = signal<readonly SportsOrganizationSummary[]>(Object.freeze([]));
+  private readonly favoriteStatusState = signal<'initial' | 'loading' | 'ready' | 'empty'>('initial');
+  private readonly favoriteErrorState = signal<string | null>(null);
+  private readonly favoriteSavingState = signal(false);
 
   // Seletores reativos públicos (Signals)
   readonly status = computed(() => this.state().status);
@@ -30,6 +35,16 @@ export class ProfileStore {
   readonly errorCorrelationId = computed(() => this.state().errorCorrelationId);
   readonly isSaving = computed(() => this.state().isSaving);
   readonly isRetrying = computed(() => this.state().isRetrying);
+  readonly favoriteOrganizations = computed(() => this.favoriteOrganizationsState());
+  readonly favoriteStatus = computed(() => this.favoriteStatusState());
+  readonly favoriteErrorMessage = computed(() => this.favoriteErrorState());
+  readonly isFavoriteLoading = computed(() => this.favoriteStatus() === 'loading');
+  readonly isSavingFavorite = computed(() => this.favoriteSavingState());
+  readonly favoriteOrganizationId = computed(() => this.displayProfile()?.favoriteOrganizationId ?? null);
+  readonly favoriteOrganizationName = computed(() => {
+    const favoriteId = this.favoriteOrganizationId();
+    return this.favoriteOrganizations().find((organization) => organization.organizationId === favoriteId)?.name ?? null;
+  });
 
   readonly isLoading = computed(() => this.state().status === 'loading');
   readonly isPopulated = computed(() => this.state().status === 'populated');
@@ -167,6 +182,54 @@ export class ProfileStore {
         isSaving: false,
         isRetrying: false,
       });
+      return false;
+    }
+  }
+
+  async loadFavoriteOrganizations(): Promise<void> {
+    this.favoriteStatusState.set('loading');
+    this.favoriteErrorState.set(null);
+    try {
+      const organizations = await firstValueFrom(this.adapter.fetchFavoriteOrganizations());
+      this.favoriteOrganizationsState.set(organizations);
+      this.favoriteStatusState.set(organizations.length === 0 ? 'empty' : 'ready');
+    } catch {
+      this.favoriteOrganizationsState.set(Object.freeze([]));
+      this.favoriteStatusState.set('empty');
+      this.favoriteErrorState.set('As organizacoes favoritas nao estao disponiveis agora.');
+    }
+  }
+
+  async saveFavoriteOrganization(organizationId: string | null): Promise<boolean> {
+    this.favoriteSavingState.set(true);
+    this.favoriteErrorState.set(null);
+    const currentState = this.state();
+    const activeProfile = currentState.profile ?? currentState.previousProfile;
+    try {
+      const adapted = await firstValueFrom(this.adapter.updateFavoriteOrganization(organizationId));
+      this.state.set({
+        status: 'populated',
+        profile: adapted,
+        previousProfile: adapted,
+        errorMessage: null,
+        errorCorrelationId: null,
+        isSaving: false,
+        isRetrying: false,
+      });
+      this.favoriteSavingState.set(false);
+      return true;
+    } catch (error: unknown) {
+      const sanitized = this.sanitizeSaveError(error);
+      this.state.set({
+        ...currentState,
+        profile: currentState.profile,
+        previousProfile: activeProfile,
+        errorMessage: sanitized.message,
+        errorCorrelationId: sanitized.correlationId,
+        isSaving: false,
+        isRetrying: false,
+      });
+      this.favoriteSavingState.set(false);
       return false;
     }
   }

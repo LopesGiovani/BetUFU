@@ -16,6 +16,7 @@ export interface ProfileViewModel {
   readonly nickname: string;
   readonly nicknameUpdatedAt: string | null;
   readonly matriculaStatus: string;
+  readonly favoriteOrganizationId: string | null;
 }
 
 export interface ProfileState {

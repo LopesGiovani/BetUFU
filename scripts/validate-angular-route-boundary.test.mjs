@@ -17,10 +17,26 @@ const profileGuardPath = 'frontend/src/app/core/profile/profile-completion.guard
 
 const CANONICAL_GUARDED_APP_ROUTES = [
   "import type { Routes } from '@angular/router';",
+  '',
   "import { profileCompletionGuard } from './core/profile/profile-completion.guard';",
   "import { BUILD_SPECIFIC_ROUTES } from './app.routes.development';",
+  "import { ArenaShellComponent } from './layout/arena-shell.component';",
   '',
   'export const APP_ROUTES: Routes = [',
+  '  {',
+  "    path: '',",
+  '    component: ArenaShellComponent,',
+  '    children: [',
+  '      {',
+  "        path: '',",
+  "        pathMatch: 'full',",
+  '        loadComponent: () =>',
+  "          import('./features/sports/public-agenda/public-agenda-page.component').then(",
+  '            ({ PublicAgendaPageComponent }) => PublicAgendaPageComponent,',
+  '          ),',
+  '      },',
+  '    ],',
+  '  },',
   '  {',
   "    path: '',",
   '    canActivateChild: [profileCompletionGuard],',
@@ -124,12 +140,53 @@ const CANONICAL_OPERATIONS_ROUTE_ENTRY = [
   '  },',
 ].join('\n');
 
+const CANONICAL_CONSOLE_CATALOG_ROOT_ROUTE_ENTRY = [
+  '      {',
+  "        path: '',",
+  "        pathMatch: 'full',",
+  '        loadComponent: () =>',
+  "          import('./features/sports/operations/catalog/sports-catalog-page.component').then(",
+  '            ({ SportsCatalogPageComponent }) => SportsCatalogPageComponent,',
+  '          ),',
+  '      },',
+].join('\n');
+
+const CANONICAL_CONSOLE_CATALOG_ROUTE_ENTRY = [
+  '      {',
+  "        path: 'catalogo',",
+  '        loadComponent: () =>',
+  "          import('./features/sports/operations/catalog/sports-catalog-page.component').then(",
+  '            ({ SportsCatalogPageComponent }) => SportsCatalogPageComponent,',
+  '          ),',
+  '      },',
+].join('\n');
+
+const CANONICAL_CONSOLE_ORGANIZATIONS_ROUTE_ENTRY = [
+  '      {',
+  "        path: 'organizacoes',",
+  '        loadComponent: () =>',
+  "          import('./features/sports/operations/organizations/sports-organizations-page.component').then(",
+  '            ({ SportsOrganizationsPageComponent }) => SportsOrganizationsPageComponent,',
+  '          ),',
+  '      },',
+].join('\n');
+
 function canonicalAuthenticatedRoutes(routeEntries) {
   return [
     "import type { Routes } from '@angular/router';",
     "import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';",
+    "import { ConsoleShellComponent } from './layout/console-shell.component';",
     '',
     'export const BUILD_SPECIFIC_ROUTES: Routes = [',
+    '  {',
+    "    path: 'operacao/esportes',",
+    '    component: ConsoleShellComponent,',
+    '    children: [',
+    CANONICAL_CONSOLE_CATALOG_ROOT_ROUTE_ENTRY,
+    CANONICAL_CONSOLE_CATALOG_ROUTE_ENTRY,
+    CANONICAL_CONSOLE_ORGANIZATIONS_ROUTE_ENTRY,
+    '    ],',
+    '  },',
     '  {',
     "    path: '',",
     '    component: AuthenticatedLayoutComponent,',
@@ -164,71 +221,6 @@ const EAGER_TRACER_ROUTES = [
   '',
 ].join('\n');
 
-const CANONICAL_GENERATED_API_TS = [
-  "export * from './diagnostic.service';",
-  "import { DiagnosticService } from './diagnostic.service';",
-  "export * from './enrollment.service';",
-  "import { EnrollmentService } from './enrollment.service';",
-  "export * from './identity.service';",
-  "import { IdentityService } from './identity.service';",
-  "export * from './operational-capabilities.service';",
-  "import { OperationalCapabilitiesService } from './operational-capabilities.service';",
-  "export * from './operational-panel.service';",
-  "import { OperationalPanelService } from './operational-panel.service';",
-  "export * from './password-reset-recovery.service';",
-  "import { PasswordResetRecoveryService } from './password-reset-recovery.service';",
-  "export * from './profile.service';",
-  "import { ProfileService } from './profile.service';",
-  "export * from './role.service';",
-  "import { RoleService } from './role.service';",
-  "export * from './session.service';",
-  "import { SessionService } from './session.service';",
-  "export * from './sports-public.service';",
-  "import { SportsPublicService } from './sports-public.service';",
-  'export const APIS = [DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsPublicService];',
-  '',
-].join('\n');
-
-const CANONICAL_GENERATED_MODELS_TS = [
-  "export * from './administrative-correction-event-dto';",
-  "export * from './administrative-corrections-block';",
-  "export * from './betufu-field-violation';",
-  "export * from './betufu-problem-details';",
-  "export * from './current-device-logout-response';",
-  "export * from './current-identity-response';",
-  "export * from './current-profile-response';",
-  "export * from './diagnostic-component';",
-  "export * from './diagnostic-response';",
-  "export * from './diagnostic-status';",
-  "export * from './enrollment-correction-request';",
-  "export * from './enrollment-correction-response';",
-  "export * from './enrollment-registration-request';",
-  "export * from './enrollment-status-response';",
-  "export * from './operational-capabilities-response';",
-  "export * from './operational-capability';",
-  "export * from './operational-panel-response';",
-  "export * from './operational-role';",
-  "export * from './password-reset-event-recovery-page-response';",
-  "export * from './password-reset-event-recovery-response';",
-  "export * from './profile-update-request';",
-  "export * from './public-sports-event-page';",
-  "export * from './public-sports-event-response';",
-  "export * from './public-sports-event-slot-response';",
-  "export * from './public-sports-event-summary';",
-  "export * from './rejected-enrollments-block';",
-  "export * from './role-change-event-dto';",
-  "export * from './role-changes-block';",
-  "export * from './role-grant-request';",
-  "export * from './role-grant-response';",
-  "export * from './role-status-dto';",
-  "export * from './session-state-response';",
-  "export * from './sports-event-format';",
-  "export * from './sports-venue-state';",
-  "export * from './time-window';",
-  "export * from './unregistered-enrollments-block';",
-  '',
-].join('\n');
-
 const generatedFixturePaths = APPROVED_GENERATED_FILES.map(
   (relativePath) => `frontend/src/app/api/generated/${relativePath}`,
 );
@@ -256,12 +248,6 @@ const canonicalFiles = new Map(
       }
       if (relativePath === profileGuardPath) {
         return [relativePath, CANONICAL_PROFILE_GUARD];
-      }
-      if (relativePath === 'frontend/src/app/api/generated/api/api.ts') {
-        return [relativePath, CANONICAL_GENERATED_API_TS];
-      }
-      if (relativePath === 'frontend/src/app/api/generated/model/models.ts') {
-        return [relativePath, CANONICAL_GENERATED_MODELS_TS];
       }
       return [
         relativePath,
@@ -358,6 +344,37 @@ test('aceita uma fixture canonica isolada', async () => {
 
     assert.equal(result.status, 0, result.stderr);
     assert.match(result.stdout, /\[validate-angular-route-boundary\] OK:/u);
+  });
+});
+
+test('recusa modulo publico divergente na Arena', async () => {
+  await withFixture('public-arena-module-outside-allowlist', async (fixtureRoot) => {
+    await mutateText(
+      fixtureRoot,
+      appRoutesPath,
+      (source) => source.replace(
+        './features/sports/public-agenda/public-agenda-page.component',
+        './features/sports/public-agenda/other-page.component',
+      ),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DYNAMIC_IMPORT_FORBIDDEN');
+  });
+});
+
+test('recusa rota fora da allowlist no Console esportivo', async () => {
+  await withFixture('console-route-outside-allowlist', async (fixtureRoot) => {
+    await mutateText(
+      fixtureRoot,
+      developmentRoutesPath,
+      (source) => source.replace("path: 'organizacoes'", "path: 'nao-aprovada'"),
+    );
+
+    const result = runValidator(fixtureRoot);
+
+    expectValidationFailure(result, 'DEVELOPMENT_CONSOLE_ROUTES');
   });
 });
 
@@ -792,14 +809,17 @@ const layoutRouteMutations = [
   {
     name: 'path pai autenticado diferente de vazio',
     rule: 'DEVELOPMENT_ROUTES_SHAPE',
-    mutate: (source) => source.replace("path: ''", "path: 'auth'"),
+    mutate: (source) => source.replace(
+      "    path: '',\n    component: AuthenticatedLayoutComponent,",
+      "    path: 'auth',\n    component: AuthenticatedLayoutComponent,",
+    ),
   },
   {
     name: 'rota filha extra dentro de layout autenticado',
     rule: 'DEVELOPMENT_ROUTES_SHAPE',
     mutate: (source) => source.replace(
-      'children: [',
-      "children: [\n      { path: 'leak', loadComponent: () => null },",
+      '    component: AuthenticatedLayoutComponent,\n    children: [',
+      "    component: AuthenticatedLayoutComponent,\n    children: [\n      { path: 'leak', loadComponent: () => null },",
     ),
   },
 ];

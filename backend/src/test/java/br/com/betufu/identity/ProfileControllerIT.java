@@ -149,21 +149,23 @@ class ProfileControllerIT {
                         .content("{\"nickname\":\"giovani_99\"}"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", aMapWithSize(4)))
+                .andExpect(jsonPath("$", aMapWithSize(5)))
                 .andExpect(jsonPath("$.identityId").value(matchesPattern(UUID_PATTERN)))
                 .andExpect(jsonPath("$.nickname").value("giovani_99"))
                 .andExpect(jsonPath("$.nicknameUpdatedAt").value(emptyOrNullString()))
-                .andExpect(jsonPath("$.matriculaStatus").value("NAO_REGISTRADA"));
+                .andExpect(jsonPath("$.matriculaStatus").value("NAO_REGISTRADA"))
+                .andExpect(jsonPath("$.favoriteOrganizationId").value(emptyOrNullString()));
 
         // 2. Relê o perfil
         mockMvc.perform(get(PROFILE_ME_PATH)
                         .with(oidcPrincipal(issuer, subject)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", aMapWithSize(4)))
+                .andExpect(jsonPath("$", aMapWithSize(5)))
                 .andExpect(jsonPath("$.identityId").value(matchesPattern(UUID_PATTERN)))
                 .andExpect(jsonPath("$.nickname").value("giovani_99"))
                 .andExpect(jsonPath("$.nicknameUpdatedAt").value(emptyOrNullString()))
-                .andExpect(jsonPath("$.matriculaStatus").value("NAO_REGISTRADA"));
+                .andExpect(jsonPath("$.matriculaStatus").value("NAO_REGISTRADA"))
+                .andExpect(jsonPath("$.favoriteOrganizationId").value(emptyOrNullString()));
     }
 
     @Test
@@ -377,11 +379,12 @@ class ProfileControllerIT {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nickname\":\"clean_user\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", aMapWithSize(4)))
+                .andExpect(jsonPath("$", aMapWithSize(5)))
                 .andExpect(jsonPath("$.identityId").exists())
                 .andExpect(jsonPath("$.nickname").value("clean_user"))
                 .andExpect(jsonPath("$.nicknameUpdatedAt").doesNotExist())
                 .andExpect(jsonPath("$.matriculaStatus").value("NAO_REGISTRADA"))
+                .andExpect(jsonPath("$.favoriteOrganizationId").value(emptyOrNullString()))
                 .andExpect(jsonPath("$.email").doesNotExist())
                 .andExpect(jsonPath("$.matricula").doesNotExist())
                 .andExpect(jsonPath("$.hmac").doesNotExist())

@@ -100,7 +100,8 @@ class ProfilePersistenceIT {
                 "favorite_team_id",
                 "nickname_updated_at",
                 "created_at",
-                "updated_at");
+                "updated_at",
+                "favorite_organization_id");
 
         List<String> constraints = jdbcTemplate.queryForList(
                 """
@@ -244,6 +245,41 @@ class ProfilePersistenceIT {
                 UUID.class,
                 identity2);
         assertThat(savedTeamId).isEqualTo(arbitraryTeamId);
+    }
+
+    @Test
+    @DisplayName("V11 preserva o legado e aceita favorito de organização somente com FK válida")
+    void favoriteOrganizationRequiresExistingOrganizationAndLegacyRemainsUntouched() {
+        UUID identity = createLocalIdentity("https://idp.invalid", "user-organization-favorite");
+        insertProfile(identity, "nick_org");
+        UUID arbitraryLegacy = UUID.randomUUID();
+        jdbcTemplate.update(
+                "UPDATE public.betufu_profile SET favorite_team_id = ? WHERE identity_id = ?",
+                arbitraryLegacy, identity);
+
+        UUID organizationId = UUID.randomUUID();
+        DataIntegrityViolationException missingOrganization = catchThrowableOfType(
+                () -> jdbcTemplate.update(
+                        "UPDATE public.betufu_profile SET favorite_organization_id = ? WHERE identity_id = ?",
+                        organizationId, identity),
+                DataIntegrityViolationException.class);
+        assertSqlStateAndConstraint(
+                missingOrganization, "23503", "fk_betufu_profile_favorite_organization");
+
+        jdbcTemplate.update(
+                "INSERT INTO public.sports_organization (organization_id, name, slug, status) "
+                        + "VALUES (?, ?, ?, 'PUBLICADO')",
+                organizationId, "Organização Favorita", "organizacao-favorita");
+        jdbcTemplate.update(
+                "UPDATE public.betufu_profile SET favorite_organization_id = ? WHERE identity_id = ?",
+                organizationId, identity);
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT favorite_organization_id FROM public.betufu_profile WHERE identity_id = ?",
+                UUID.class, identity)).isEqualTo(organizationId);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT favorite_team_id FROM public.betufu_profile WHERE identity_id = ?",
+                UUID.class, identity)).isEqualTo(arbitraryLegacy);
     }
 
     private void assertPatternViolation(UUID identity, String invalidNickname) {

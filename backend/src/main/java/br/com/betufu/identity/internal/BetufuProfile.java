@@ -32,8 +32,8 @@ public class BetufuProfile {
     @Column(name = "nickname", nullable = false, length = 20)
     private String nickname;
 
-    @Column(name = "favorite_team_id")
-    private UUID favoriteTeamId;
+    @Column(name = "favorite_organization_id")
+    private UUID favoriteOrganizationId;
 
     @Column(
             name = "nickname_updated_at",
@@ -67,8 +67,8 @@ public class BetufuProfile {
         return nickname;
     }
 
-    public UUID getFavoriteTeamId() {
-        return favoriteTeamId;
+    public UUID getFavoriteOrganizationId() {
+        return favoriteOrganizationId;
     }
 
     public Instant getNicknameUpdatedAt() {
@@ -88,5 +88,10 @@ public class BetufuProfile {
         Instant effectiveChange = Objects.requireNonNull(changedAt, "changedAt must not be null");
         this.nicknameUpdatedAt = effectiveChange;
         this.updatedAt = effectiveChange;
+    }
+
+    void changeFavoriteOrganization(UUID organizationId, Instant changedAt) {
+        this.favoriteOrganizationId = organizationId;
+        this.updatedAt = Objects.requireNonNull(changedAt, "changedAt must not be null");
     }
 }

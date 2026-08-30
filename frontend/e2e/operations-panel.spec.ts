@@ -91,6 +91,7 @@ test.describe('E2E Operations Panel Surface S4 (OPER-06, S4 Responsividade 320px
           nickname: 'admin_geral_01',
           nicknameUpdatedAt: null,
           matriculaStatus: 'REGISTRADA',
+          favoriteOrganizationId: null,
         }),
       });
     });

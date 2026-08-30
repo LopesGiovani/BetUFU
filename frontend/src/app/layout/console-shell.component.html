@@ -16,6 +16,7 @@
       @if (hasSportsCatalog()) {
         <a routerLink="/operacao/esportes" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Escopo</a>
         <a routerLink="/operacao/esportes/catalogo" routerLinkActive="is-active">Catalogo</a>
+        <a routerLink="/operacao/esportes/organizacoes" routerLinkActive="is-active">Organizacoes e equipes</a>
       }
       <a routerLink="/" (click)="closeMenu()">Arena</a>
       <button type="button" class="console-nav__account" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()">

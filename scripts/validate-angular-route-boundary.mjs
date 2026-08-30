@@ -44,14 +44,43 @@ function canonicalDynamicImportPattern(modulePath) {
   return new RegExp(String.raw`\bimport\s*\(\s*'${escapedModulePath}'\s*\)`, 'u');
 }
 
-function approvedRoute(path, modulePath, component) {
+function approvedRoute(path, modulePath, component, pathMatch = null) {
   return Object.freeze({
     path,
     modulePath,
     component,
+    pathMatch,
     dynamicImportPattern: canonicalDynamicImportPattern(modulePath),
   });
 }
+
+const APPROVED_PUBLIC_ROUTES = Object.freeze([
+  approvedRoute(
+    '',
+    './features/sports/public-agenda/public-agenda-page.component',
+    'PublicAgendaPageComponent',
+    'full',
+  ),
+]);
+
+const APPROVED_CONSOLE_ROUTES = Object.freeze([
+  approvedRoute(
+    '',
+    './features/sports/operations/catalog/sports-catalog-page.component',
+    'SportsCatalogPageComponent',
+    'full',
+  ),
+  approvedRoute(
+    'catalogo',
+    './features/sports/operations/catalog/sports-catalog-page.component',
+    'SportsCatalogPageComponent',
+  ),
+  approvedRoute(
+    'organizacoes',
+    './features/sports/operations/organizations/sports-organizations-page.component',
+    'SportsOrganizationsPageComponent',
+  ),
+]);
 
 const APPROVED_PRODUCT_ROUTES = Object.freeze([
   approvedRoute(
@@ -99,8 +128,15 @@ const APPROVED_TECHNICAL_ROUTES = Object.freeze([
   ),
 ]);
 
-const AUTHENTICATED_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\.\/layout\/authenticated-layout\.component'\s*;\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*AuthenticatedLayoutComponent\s*,\s*children\s*:\s*\[(?<children>[\s\S]*)\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
-const LAZY_CHILD_ROUTE_PATTERN = /\{\s*path\s*:\s*'(?<path>[^']+)'\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'(?<modulePath>[^']+)'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*(?<component>[A-Za-z_$][\w$]*)\s*\}\s*\)\s*=>\s*\k<component>\s*,?\s*\)\s*,?\s*\}\s*,?/gu;
+const APP_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*import\s*\{\s*ArenaShellComponent\s*\}\s*from\s*'\.\/layout\/arena-shell\.component'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*ArenaShellComponent\s*,\s*children\s*:\s*\[(?<publicChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*BUILD_SPECIFIC_ROUTES\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
+const BUILD_SPECIFIC_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\.\/layout\/authenticated-layout\.component'\s*;\s*import\s*\{\s*ConsoleShellComponent\s*\}\s*from\s*'\.\/layout\/console-shell\.component'\s*;\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*'operacao\/esportes'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*children\s*:\s*\[(?<consoleChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*AuthenticatedLayoutComponent\s*,\s*children\s*:\s*\[(?<authenticatedChildren>[\s\S]*?)\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
+const LAZY_CHILD_ROUTE_PATTERN = /\{\s*path\s*:\s*'(?<path>[^']*)'\s*,\s*(?:pathMatch\s*:\s*'(?<pathMatch>full)'\s*,\s*)?loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'(?<modulePath>[^']+)'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*(?<component>[A-Za-z_$][\w$]*)\s*\}\s*\)\s*=>\s*\k<component>\s*,?\s*\)\s*,?\s*\}\s*,?/gu;
+
+const ROUTE_SOURCE_PATHS = new Set([
+  PATHS.seam,
+  PATHS.development,
+  PATHS.production,
+]);
 
 const HOST_SOURCE_PATHS = Object.freeze([
   PATHS.main,
@@ -542,6 +578,60 @@ function decodeUrlEscapes(source) {
     .replace(/\\\//gu, '/');
 }
 
+function approvedDynamicImportsFor(relativePath) {
+  if (relativePath === PATHS.seam) {
+    return APPROVED_PUBLIC_ROUTES;
+  }
+  if (relativePath === PATHS.development) {
+    return [
+      ...APPROVED_CONSOLE_ROUTES,
+      ...APPROVED_PRODUCT_ROUTES,
+      ...APPROVED_TECHNICAL_ROUTES,
+    ];
+  }
+  if (relativePath === PATHS.production) {
+    return [...APPROVED_CONSOLE_ROUTES, ...APPROVED_PRODUCT_ROUTES];
+  }
+  return null;
+}
+
+function validateApprovedDynamicImports(relativePath, code, executableCode) {
+  const approvedRoutes = approvedDynamicImportsFor(relativePath);
+  const dynamicImportCount = countMatches(executableCode, /\bimport\s*\(/u);
+
+  if (approvedRoutes === null) {
+    expect(
+      dynamicImportCount === 0,
+      'DYNAMIC_IMPORT_FORBIDDEN',
+      `${relativePath} nao pode usar import dinamico fora das rotas lazy aprovadas.`,
+    );
+    return;
+  }
+
+  const limitsByModule = new Map();
+  for (const route of approvedRoutes) {
+    const current = limitsByModule.get(route.modulePath);
+    limitsByModule.set(route.modulePath, {
+      route,
+      limit: (current?.limit ?? 0) + 1,
+    });
+  }
+
+  let approvedImportCount = 0;
+  let withinLimits = true;
+  for (const { route, limit } of limitsByModule.values()) {
+    const count = countActiveImports(code, route.dynamicImportPattern);
+    approvedImportCount += count;
+    withinLimits = withinLimits && count <= limit;
+  }
+
+  expect(
+    withinLimits && dynamicImportCount === approvedImportCount,
+    'DYNAMIC_IMPORT_FORBIDDEN',
+    `${relativePath} aceita somente imports dinamicos literais das rotas lazy aprovadas.`,
+  );
+}
+
 function validateScriptLexicalSafety(sources) {
   for (const [relativePath, source] of sources) {
     if (!relativePath.endsWith('.ts')) {
@@ -560,33 +650,7 @@ function validateScriptLexicalSafety(sources) {
       'UNSUPPORTED_SCRIPT_ESCAPE',
       `${relativePath} nao pode conter escape fora de comentario; o subconjunto do host nao aceita escapes em codigo nem strings.`,
     );
-    const dynamicImportCount = countMatches(executableCode, /\bimport\s*\(/u);
-
-    if (relativePath === PATHS.development || relativePath === PATHS.production) {
-      const approvedRoutes = relativePath === PATHS.development
-        ? [...APPROVED_PRODUCT_ROUTES, ...APPROVED_TECHNICAL_ROUTES]
-        : APPROVED_PRODUCT_ROUTES;
-      const approvedImportCounts = approvedRoutes.map((route) => countActiveImports(
-        code,
-        route.dynamicImportPattern,
-      ));
-      const totalApprovedImports = approvedImportCounts.reduce(
-        (total, count) => total + count,
-        0,
-      );
-      expect(
-        approvedImportCounts.every((count) => count <= 1)
-          && dynamicImportCount === totalApprovedImports,
-        'DYNAMIC_IMPORT_FORBIDDEN',
-        `${relativePath} aceita somente um import dinamico literal canonico por rota aprovada.`,
-      );
-    } else {
-      expect(
-        dynamicImportCount === 0,
-        'DYNAMIC_IMPORT_FORBIDDEN',
-        `${relativePath} nao pode usar import dinamico fora da seam development aprovada.`,
-      );
-    }
+    validateApprovedDynamicImports(relativePath, code, executableCode);
   }
 }
 
@@ -1438,15 +1502,7 @@ function expectRoutesTypeImport(source, relativePath) {
   );
 }
 
-function parseAuthenticatedRoutes(source, rule, environmentLabel) {
-  const match = AUTHENTICATED_ROUTES_PATTERN.exec(source);
-  expect(
-    match !== null,
-    rule,
-    `${environmentLabel} deve declarar um unico layout autenticado como pai das rotas.`,
-  );
-
-  const children = match.groups.children;
+function parseLazyRoutes(children, rule, environmentLabel) {
   const routeMatches = [...children.matchAll(LAZY_CHILD_ROUTE_PATTERN)];
   const unparsedChildren = children.replace(LAZY_CHILD_ROUTE_PATTERN, '').trim();
   expect(
@@ -1459,13 +1515,37 @@ function parseAuthenticatedRoutes(source, rule, environmentLabel) {
     path: routeMatch.groups.path,
     modulePath: routeMatch.groups.modulePath,
     component: routeMatch.groups.component,
+    pathMatch: routeMatch.groups.pathMatch ?? null,
   }));
+}
+
+function parseBuildSpecificRoutes(source, rule, environmentLabel) {
+  const match = BUILD_SPECIFIC_ROUTES_PATTERN.exec(source);
+  expect(
+    match !== null,
+    rule,
+    `${environmentLabel} deve declarar ConsoleShell e AuthenticatedLayout como raizes canonicas.`,
+  );
+
+  return Object.freeze({
+    consoleRoutes: parseLazyRoutes(
+      match.groups.consoleChildren,
+      rule,
+      `${environmentLabel}/Console`,
+    ),
+    authenticatedRoutes: parseLazyRoutes(
+      match.groups.authenticatedChildren,
+      rule,
+      `${environmentLabel}/conta`,
+    ),
+  });
 }
 
 function routeMatchesDescriptor(route, descriptor) {
   return route.path === descriptor.path
     && route.modulePath === descriptor.modulePath
-    && route.component === descriptor.component;
+    && route.component === descriptor.component
+    && route.pathMatch === descriptor.pathMatch;
 }
 
 function expectApprovedRoutes(routes, approvedRoutes, rule, environmentLabel) {
@@ -1482,6 +1562,18 @@ function expectApprovedRoutes(routes, approvedRoutes, rule, environmentLabel) {
     )),
     rule,
     `${environmentLabel} contem uma rota fora do conjunto fechado aprovado.`,
+  );
+}
+
+function expectExactApprovedRoutes(routes, approvedRoutes, rule, environmentLabel) {
+  expectApprovedRoutes(routes, approvedRoutes, rule, environmentLabel);
+  expect(
+    routes.length === approvedRoutes.length
+      && approvedRoutes.every((descriptor) => routes.some(
+        (route) => routeMatchesDescriptor(route, descriptor),
+      )),
+    rule,
+    `${environmentLabel} deve conter exatamente o conjunto fechado aprovado.`,
   );
 }
 
@@ -1521,10 +1613,28 @@ function validateRouteSources(sources) {
     'DEVELOPMENT_ROUTE_IMPORT',
     'import da lista development pela seam',
   );
+  expectExactlyOnceActiveImport(
+    seam,
+    /^\s*import\s*\{\s*ArenaShellComponent\s*\}\s*from\s*['"]\.\/layout\/arena-shell\.component['"]\s*;/mu,
+    'ARENA_SHELL_IMPORT',
+    'import do shell publico da Arena',
+  );
+  const appRoutesMatch = APP_ROUTES_PATTERN.exec(seam);
   expect(
-    /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*BUILD_SPECIFIC_ROUTES\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u.test(seam),
+    appRoutesMatch !== null,
     'PROFILE_GUARD_COMPOSITION',
-    'APP_ROUTES deve ter uma unica raiz vazia, protegida pela guarda de perfil, envolvendo BUILD_SPECIFIC_ROUTES.',
+    'APP_ROUTES deve separar a Arena publica da raiz protegida que envolve BUILD_SPECIFIC_ROUTES.',
+  );
+  const publicRoutes = parseLazyRoutes(
+    appRoutesMatch.groups.publicChildren,
+    'PUBLIC_ARENA_ROUTES',
+    'Arena publica',
+  );
+  expectExactApprovedRoutes(
+    publicRoutes,
+    APPROVED_PUBLIC_ROUTES,
+    'PUBLIC_ARENA_ROUTES',
+    'Arena publica',
   );
   expect(
     /const\s+PROFILE_COMPLETION_URL\s*=\s*'\/conta\/perfil\/completar'\s*;/u.test(profileGuard)
@@ -1562,11 +1672,12 @@ function validateRouteSources(sources) {
     'production deve exportar o simbolo BUILD_SPECIFIC_ROUTES tipado exatamente uma vez.',
   );
 
-  const productionRoutes = parseAuthenticatedRoutes(
+  const productionRouteGroups = parseBuildSpecificRoutes(
     production,
     'PRODUCTION_AUTHENTICATED_LAYOUT',
     'production',
   );
+  const productionRoutes = productionRouteGroups.authenticatedRoutes;
   expect(
     productionRoutes.length > 0,
     'PRODUCTION_ROUTES_ALLOWLIST',
@@ -1578,17 +1689,30 @@ function validateRouteSources(sources) {
     'PRODUCTION_ROUTES_ALLOWLIST',
     'production',
   );
+  expectExactApprovedRoutes(
+    productionRouteGroups.consoleRoutes,
+    APPROVED_CONSOLE_ROUTES,
+    'PRODUCTION_CONSOLE_ROUTES',
+    'Console production',
+  );
 
-  const developmentRoutes = parseAuthenticatedRoutes(
+  const developmentRouteGroups = parseBuildSpecificRoutes(
     development,
     'DEVELOPMENT_ROUTES_SHAPE',
     'development',
   );
+  const developmentRoutes = developmentRouteGroups.authenticatedRoutes;
   expectApprovedRoutes(
     developmentRoutes,
     [...APPROVED_PRODUCT_ROUTES, ...APPROVED_TECHNICAL_ROUTES],
     'DEVELOPMENT_ROUTES_ALLOWLIST',
     'development',
+  );
+  expectExactApprovedRoutes(
+    developmentRouteGroups.consoleRoutes,
+    APPROVED_CONSOLE_ROUTES,
+    'DEVELOPMENT_CONSOLE_ROUTES',
+    'Console development',
   );
   expect(
     productionRoutes.every((productionRoute) => developmentRoutes.some(
@@ -1683,11 +1807,11 @@ function validateTracerRuntimeBoundary(runtimeSources) {
     const activeSource = activeRuntimeSource(relativePath, source);
     const decodedSource = decodeUrlEscapes(activeSource);
 
-    if (relativePath.endsWith('.ts') && relativePath !== PATHS.production) {
+    if (relativePath.endsWith('.ts') && !ROUTE_SOURCE_PATHS.has(relativePath)) {
       expect(
         countMatches(maskScriptStrings(activeSource), /\bimport\s*\(/u) === 0,
         'DYNAMIC_IMPORT_FORBIDDEN',
-        `${relativePath} nao pode usar import dinamico fora da lazy route development canonica.`,
+        `${relativePath} nao pode usar import dinamico fora das rotas lazy canonicas.`,
       );
     }
 

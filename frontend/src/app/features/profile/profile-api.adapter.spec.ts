@@ -12,6 +12,7 @@ const MOCK_VALID_PROFILE_RESPONSE: CurrentProfileResponse = {
   nickname: 'usuario_teste',
   nicknameUpdatedAt: '2026-08-20T12:00:00.000Z',
   matriculaStatus: 'REGISTRADA',
+  favoriteOrganizationId: null,
 };
 
 describe('ProfileApiAdapter & ProfileStore', () => {
@@ -20,12 +21,14 @@ describe('ProfileApiAdapter & ProfileStore', () => {
   let mockProfileService: {
     getMyProfile: ReturnType<typeof vi.fn>;
     putMyProfile: ReturnType<typeof vi.fn>;
+    putMyFavoriteOrganization: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
     mockProfileService = {
       getMyProfile: vi.fn(),
       putMyProfile: vi.fn(),
+      putMyFavoriteOrganization: vi.fn(),
     };
 
     TestBed.configureTestingModule({
@@ -63,6 +66,7 @@ describe('ProfileApiAdapter & ProfileStore', () => {
           nickname: 'valido',
           nicknameUpdatedAt: null,
           matriculaStatus: 'NAO_REGISTRADA',
+          favoriteOrganizationId: null,
         }),
       ).toThrow(/CONTRATO_PERFIL_INVALIDO/);
 
@@ -72,6 +76,7 @@ describe('ProfileApiAdapter & ProfileStore', () => {
           nickname: '',
           nicknameUpdatedAt: null,
           matriculaStatus: 'NAO_REGISTRADA',
+          favoriteOrganizationId: null,
         }),
       ).toThrow(/CONTRATO_PERFIL_INVALIDO/);
     });
@@ -89,6 +94,7 @@ describe('ProfileApiAdapter & ProfileStore', () => {
         nickname: 'usuario_teste',
         nicknameUpdatedAt: '2026-08-20T12:00:00.000Z',
         matriculaStatus: 'REGISTRADA',
+        favoriteOrganizationId: null,
       });
     });
 
@@ -107,6 +113,7 @@ describe('ProfileApiAdapter & ProfileStore', () => {
         nickname: 'usuario_teste',
         nicknameUpdatedAt: '2026-08-20T12:00:00.000Z',
         matriculaStatus: 'REGISTRADA',
+        favoriteOrganizationId: null,
       });
     });
   });

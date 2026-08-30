@@ -82,7 +82,7 @@ class FlywayMigrationIT {
     }
 
     @Test
-    @DisplayName("Aplica V1 a V9 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
+    @DisplayName("Aplica V1 a V11 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
     void appliesV1AndV2MigrationsSequentially() {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
@@ -91,10 +91,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(11);
+        assertThat(result.migrationsExecuted).isEqualTo(12);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(11);
+        assertThat(applied).hasSize(12);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -129,6 +129,9 @@ class FlywayMigrationIT {
         assertThat(applied[10].getVersion().getVersion()).isEqualTo("10");
         assertThat(applied[10].getState()).isEqualTo(MigrationState.SUCCESS);
 
+        assertThat(applied[11].getVersion().getVersion()).isEqualTo("11");
+        assertThat(applied[11].getState()).isEqualTo(MigrationState.SUCCESS);
+
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
                 Integer.class);
@@ -144,7 +147,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(11);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(12);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -153,7 +156,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(11);
+        assertThat(applied).hasSize(12);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -191,7 +194,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(11);
+            assertThat(totalExecuted).isEqualTo(12);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -199,7 +202,7 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(11);
+            assertThat(applied).hasSize(12);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();

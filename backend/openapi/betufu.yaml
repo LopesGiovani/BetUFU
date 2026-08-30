@@ -136,6 +136,34 @@ paths:
         "422":
           description: Violação da regra de negócio (ex. cooldown de 30 dias ativo).
 
+  /api/v1/profile/me/favorite-organization:
+    put:
+      tags:
+        - Profile
+      operationId: putMyFavoriteOrganization
+      summary: Escolher ou remover a organização favorita
+      description: >-
+        Atualiza o favorito da conta autenticada para uma organização publicada.
+        Enviar organizationId nulo remove o favorito. A organização é validada pelo
+        servidor; nenhum identificador de equipe ou escopo livre é aceito.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FavoriteOrganizationRequest"
+      responses:
+        "200":
+          description: Favorito atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrentProfileResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+        "404":
+          description: Perfil ou organização publicada não encontrada.
+
   /api/v1/enrollment/me:
     get:
       tags:
@@ -1079,6 +1107,299 @@ paths:
         "409":
           description: Versao stale; nenhuma alteracao e sobrescrita.
 
+  /api/v1/operations/sports/organizations:
+    get:
+      tags:
+        - SportsOrganization
+      operationId: listSportsOrganizations
+      summary: Listar organizações esportivas operacionais
+      description: >-
+        Lista organizações permanentes disponíveis para a operação. A autorização
+        vem das capabilities da sessão; a organização não é um escopo de competição.
+      responses:
+        "200":
+          description: Organizações ordenadas por nome.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsOrganizationSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Capability de catálogo ausente.
+    post:
+      tags:
+        - SportsOrganization
+      operationId: createSportsOrganization
+      summary: Criar organização esportiva permanente
+      description: >-
+        Cria uma organização em RASCUNHO. O identificador é sempre gerado pelo
+        servidor e o registro só fica público após publicação explícita.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "201":
+          description: Organização criada em rascunho.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsOrganizationSummary"
+        "400":
+          description: Nome ou slug inválido.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Capability de catálogo ausente.
+
+  /api/v1/operations/sports/organizations/{organizationId}:
+    put:
+      tags:
+        - SportsOrganization
+      operationId: updateSportsOrganization
+      summary: Atualizar organização esportiva
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "200":
+          description: Organização atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsOrganizationSummary"
+        "400":
+          description: Dados ou versão esperada inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Capability de catálogo ausente.
+        "404":
+          description: Organização não encontrada.
+        "409":
+          description: Versão stale; nenhuma alteração é sobrescrita.
+
+  /api/v1/operations/sports/organizations/{organizationId}/publish:
+    post:
+      tags:
+        - SportsOrganization
+      operationId: publishSportsOrganization
+      summary: Publicar organização esportiva
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        "200":
+          description: Organização publicada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsOrganizationSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Capability de catálogo ausente.
+        "404":
+          description: Organização não encontrada.
+        "409":
+          description: Versão stale; nenhuma alteração é sobrescrita.
+
+  /api/v1/operations/sports/competitions/{competitionId}/teams:
+    get:
+      tags:
+        - SportsOrganization
+      operationId: listSportsTeams
+      summary: Listar equipes da competição autorizada
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Equipes cuja edição pertence à competição selecionada.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsTeamSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Competição fora do escopo autorizado.
+
+  /api/v1/operations/sports/editions/{editionId}/sports/{sportId}/categories/{categoryId}/organizations/{organizationId}/teams:
+    post:
+      tags:
+        - SportsOrganization
+      operationId: createSportsTeam
+      summary: Criar equipe em edição, modalidade e categoria
+      description: >-
+        A competição não é recebida pelo cliente: o servidor a deriva da edição
+        persistida antes de validar o grant do administrador.
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: sportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "201":
+          description: Equipe criada em rascunho.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsTeamSummary"
+        "400":
+          description: Referências incompatíveis ou dados inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo autorizado.
+        "404":
+          description: Edição, categoria ou organização não encontrada.
+
+  /api/v1/operations/sports/teams/{teamId}:
+    put:
+      tags:
+        - SportsOrganization
+      operationId: updateSportsTeam
+      summary: Atualizar equipe
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "200":
+          description: Equipe atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsTeamSummary"
+        "400":
+          description: Dados ou versão esperada inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Equipe não encontrada.
+        "409":
+          description: Versão stale; nenhuma alteração é sobrescrita.
+
+  /api/v1/operations/sports/teams/{teamId}/publish:
+    post:
+      tags:
+        - SportsOrganization
+      operationId: publishSportsTeam
+      summary: Publicar equipe
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        "200":
+          description: Equipe publicada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsTeamSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Equipe não encontrada.
+        "409":
+          description: Versão stale; nenhuma alteração é sobrescrita.
+
   /api/v1/operations/sports/competitions:
     post:
       tags:
@@ -1399,6 +1720,7 @@ components:
         - nickname
         - nicknameUpdatedAt
         - matriculaStatus
+        - favoriteOrganizationId
       properties:
         identityId:
           type: string
@@ -1414,6 +1736,10 @@ components:
         matriculaStatus:
           type: string
           description: Estado de verificação de vínculo institucional.
+        favoriteOrganizationId:
+          type: [string, "null"]
+          format: uuid
+          description: Organização esportiva favorita, ou nulo quando não escolhida.
 
     ProfileUpdateRequest:
       type: object
@@ -1429,6 +1755,17 @@ components:
             Apelido desejado com 3 a 20 caracteres (ASCII letras, números,
             hífen ou sublinhado); caracteres de U+0000 a U+0020 nas pontas são
             removidos antes da validação, como em String.trim() no Java.
+
+    FavoriteOrganizationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - organizationId
+      properties:
+        organizationId:
+          type: [string, "null"]
+          format: uuid
+          description: ID estável da organização publicada; nulo remove o favorito.
 
     EnrollmentStatusResponse:
       type: object
@@ -2116,6 +2453,89 @@ components:
           type: string
           enum:
             - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsOrganizationSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - organizationId
+        - name
+        - slug
+        - status
+        - lockVersion
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - RASCUNHO
+            - PUBLICADO
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsTeamSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - teamId
+        - organizationId
+        - organizationName
+        - competitionId
+        - editionId
+        - sportId
+        - sportName
+        - categoryId
+        - categoryName
+        - name
+        - slug
+        - status
+        - lockVersion
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        organizationName:
+          type: string
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        sportId:
+          type: string
+          format: uuid
+        sportName:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - RASCUNHO
+            - PUBLICADO
         lockVersion:
           type: integer
           format: int64

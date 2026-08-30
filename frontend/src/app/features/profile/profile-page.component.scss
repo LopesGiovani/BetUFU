@@ -195,6 +195,42 @@
   gap: tokens.$space-6;
 }
 
+.favorite-card {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-4;
+}
+
+.favorite-explanation,
+.favorite-status,
+.favorite-current,
+.favorite-help {
+  margin: 0;
+  color: tokens.$color-text-muted;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.favorite-status--error {
+  color: tokens.$color-unavailable;
+}
+
+.favorite-form {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$space-2;
+}
+
+.favorite-form select {
+  font: inherit;
+  min-height: tokens.$min-touch-target;
+  padding: tokens.$space-2 tokens.$space-4;
+  background: tokens.$color-canvas;
+  color: tokens.$color-text;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-md;
+}
+
 .form-field-group {
   display: flex;
   flex-direction: column;

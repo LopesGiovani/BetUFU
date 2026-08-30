@@ -267,7 +267,7 @@ test('manifesto recusa bytes com URL absoluta escondida depois de regex literal'
   );
 });
 
-test('geracao seleciona SportsCatalog, SportsPublic e seus schemas compartilhados', () => {
+test('geracao seleciona catalogo, organizacoes, SportsPublic e schemas compartilhados', () => {
   assert.deepEqual(PUBLIC_GENERATOR_API_TAGS, [
     'Diagnostic',
     'Enrollment',
@@ -279,14 +279,19 @@ test('geracao seleciona SportsCatalog, SportsPublic e seus schemas compartilhado
     'Role',
     'Session',
     'SportsCatalog',
+    'SportsOrganization',
     'SportsPublic',
   ]);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicSportsEventPage'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventFormat'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCatalogScope'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsVenueSummary'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsOrganizationSummary'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTeamSummary'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCompetitionCreateRequest'), false);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsCatalog'), true);
+  assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsOrganization'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsOperations'), false);
 });
 
@@ -363,11 +368,23 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
     '  /api/v1/public/sports/events:',
     '    get:',
     '      operationId: listPublishedSportsEvents',
+    '  /api/v1/operations/sports/organizations:',
+    '    get:',
+    '      operationId: listSportsOrganizations',
+    '    post:',
+    '      operationId: createSportsOrganization',
+    '  /api/v1/operations/sports/teams/{teamId}/publish:',
+    '    post:',
+    '      operationId: publishSportsTeam',
     'components:',
     '  schemas:',
     '    SportsCompetitionCreateRequest:',
     '      type: object',
     '    PublicSportsEventPage:',
+    '      type: object',
+    '    SportsOrganizationSummary:',
+    '      type: object',
+    '    FavoriteOrganizationRequest:',
     '      type: object',
     '',
   ].join('\n'));
@@ -376,8 +393,10 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
     endpoints: [
       { path: '/api/v1/operations/sports/catalog/scope', methods: ['GET'] },
       { path: '/api/v1/public/sports/events', methods: ['GET'] },
+      { path: '/api/v1/operations/sports/organizations', methods: ['GET', 'POST'] },
+      { path: '/api/v1/operations/sports/teams/{teamId}/publish', methods: ['POST'] },
     ],
-    schemas: ['PublicSportsEventPage'],
+    schemas: ['FavoriteOrganizationRequest', 'PublicSportsEventPage', 'SportsOrganizationSummary'],
     publicSchemas: ['PublicSportsEventPage'],
   });
 });

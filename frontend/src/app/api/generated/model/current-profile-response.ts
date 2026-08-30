@@ -26,4 +26,8 @@ export interface CurrentProfileResponse {
      * Estado de verificação de vínculo institucional.
      */
     matriculaStatus: string;
+    /**
+     * Organização esportiva favorita, ou nulo quando não escolhida.
+     */
+    favoriteOrganizationId: string | null;
 }

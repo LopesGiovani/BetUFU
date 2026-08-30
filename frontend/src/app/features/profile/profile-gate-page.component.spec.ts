@@ -14,6 +14,7 @@ const MOCK_SAVED_PROFILE_RESPONSE: CurrentProfileResponse = {
   nickname: 'meu_apelido',
   nicknameUpdatedAt: '2026-08-21T12:00:00.000Z',
   matriculaStatus: 'NAO_REGISTRADA',
+  favoriteOrganizationId: null,
 };
 
 describe('ProfileGatePageComponent (Superfície S1)', () => {
