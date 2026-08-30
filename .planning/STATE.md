@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: Wave 4 integrated in master; awaiting push and exact worktree cleanup approvals
-last_updated: "2026-08-29T16:50:40-03:00"
+stopped_at: Wave 6 implementada e certificada na worktree; aguardando commits, integracao e limpeza Git autorizados
+last_updated: "2026-08-29T23:51:25-03:00"
 last_activity: 2026-08-29
-last_activity_desc: 03-03 concluiu agenda pública real e Arena V; os commits técnico 9399a7c e documental 3368d73 foram integrados linearmente na master, sem push.
-state_head: 3368d7374fb77d99007c712c80875e79d2c46d9c
+last_activity_desc: 03-05 concluiu organizacoes/equipes, favorito por organizacao, perfil, rotas e guard Node; suites materiais passaram com a lacuna Angular historica registrada.
+state_head: 72d8854d3585142ee69734e1d2b2520d56000e0e
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 67
+  completed_plans: 69
 milestone_name: milestone
 ---
 
@@ -24,17 +24,19 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** publicar os dois commits integrados do 03-03/W4 e limpar somente a worktree/branch exatas após aprovação; depois, briefing interativo do 03-04/W5
+**Current focus:** formalizar e integrar os commits dos planos 03-04/W5 e 03-05/W6, limpar somente as worktrees exatas apos aprovacao Git; depois, briefing interativo do 03-06/W7
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 4 de 20 concluídos; o 03-03 está completo na worktree isolada e o 03-04/W5 é o próximo plano técnico após revisão e integração.
-Status: In progress — Wave 4 passou backend, Node, Angular, build, Playwright e auditoria fresca; os commits técnico e documental foram integrados na master e aguardam push e limpeza separados.
-Last activity: 2026-08-29 — agenda pública real, cliente governado e Arena V foram concluídos sem antecipar O1 nem alterar regras de negócio existentes.
+Plan: 6 de 20 concluidos; 03-04/W5 e 03-05/W6 estao certificados nas worktrees isoladas e 03-06/W7 e o proximo plano tecnico.
+Status: In progress ? Wave 6 passou backend, Node, OpenAPI, Angular focal, builds e Playwright; a suite Angular completa conserva 5 falhas historicas fora da allowlist. Commits, integracao, limpeza e push continuam separados.
+Last activity: 2026-08-29 ? V11, favorito por organizacao, O3, perfil, rotas e guard Node foram concluidos e certificados sem alterar regras de negocio anteriores.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 foi criada na `worktree-agent-03-03` a partir de `7d3cbc6`; o commit técnico `9399a7c` contém exatamente 44 paths e o documental `3368d73` contém os seis documentos GSD. A integração fast-forward levou ambos para `master`; limpeza da worktree/branch e push continuam pendentes de aprovação específica.
+
+Git ? Fase 3 / Wave 6 (snapshot certificado, 2026-08-29): o 03-05 foi executado na `worktree-agent-03-05` sobre `72d8854`. O candidato aprovado e `12B2982C70B98D02BD6609BA95AAE350E2BF65999E57F5D16183B65DABBA7201`; hashes governados before/after `21C94593F724A3478B866C4F0F4402B0FACA4EE92FD265A9B9CDEDD6BE5E5F37`. Node `625/625`, Maven `350/350`, Playwright Arena `2/2` e Console `1/1` passaram; Angular completo `248/253` conserva cinco falhas historicas fora do escopo.
 
 Git — Fase 3 / Wave 4 (snapshot local aprovado, 2026-08-29): o 03-03 entrega a agenda pública paginada, o candidato OpenAPI aprovado `0B631F67A415BEE7BC95ECF209BD240C922A93ED47B69385B969B093D464AB95`, o cliente governado e a Arena V. O gate final passou Surefire `251/251`, Failsafe `343/343`, Node `623/623`, gerador `72/72`, Angular `241/241`, build produtivo e Playwright `2/2`; a auditoria fresca terminou `PASS`, P0=P1=P2=0. `frontend/angular.json` não possui diff de conteúdo e fica fora da allowlist final. Os temporários locais de `.playwright-cli/` foram removidos antes do handoff.
 
@@ -196,8 +198,8 @@ Progress: [██░░░░░░░░] 4/20 planos da Fase 3 (20%)
 
 ### Pendências
 
-- **P3 do 03-02 — slug duplicado.** A V9 protege unicidade no banco, mas a resposta amigável e específica para conflito de slug pertence ao catálogo completo do plano 03-04.
-- **P3 do 03-02 — expansão da fronteira pública.** Qualquer nova rota GET sob `/api/v1/public/sports/**` nasce anônima pelo matcher atual e precisa manter DTO allowlist estrito e leitura exclusiva de dados publicados.
+- **P3 do 03-02 ? slug duplicado.** Resolvido pelo catalogo O2 do 03-04; a V10 preserva unicidade e os comandos reportam conflito sem heuristica textual.
+- **P3 do 03-02 ? expansao da fronteira publica.** Resolvida pelo catalogo e filtros reais do 03-04; novas leituras continuam sob DTO allowlist e dados publicados.
 
 - ~~As 27 regras semânticas de `validate-angular-route-boundary` não tinham controle válido.~~ **Resolvido pelo Plano 02-18.** As 27 mutações agora exigem sua regra declarada e são avaliadas antes do digest final; as duas mutações de URL absoluta também receberam rótulos semânticos. O digest permanece ativo como controle de integridade residual.
 - **P3 da Wave 10 — vocabulário dos exemplos OpenAPI.** Dois exemplos ainda usam `PERMITTED`/`BLOCKED`, enquanto o runtime usa `PERMITIDO`/`BLOQUEADO`. Tipos e comportamento estão corretos; falta alinhar apenas os exemplos documentais.
@@ -213,6 +215,7 @@ Progress: [██░░░░░░░░] 4/20 planos da Fase 3 (20%)
 - Os beans opcionais de filtro e lifecycle podem degradar silenciosamente quando ausentes; a opcionalidade necessária aos contextos focais de teste deve ser reavaliada antes de novas integrações de segurança.
 - `hasApprovedActivity` está efetivamente inativo porque os nomes de atributo ocultam o marcador; decidir se o método deve ser conectado ao contrato ou removido em manutenção futura.
 - Os avisos de Mockito/Byte Buddy sobre agente dinâmico futuro, reconnect do Lettuce durante o teardown e conversão Git LF→CRLF permanecem não bloqueantes e não invalidaram as provas.
+- A suite Angular completa do 03-05 ficou em 248/253 por cinco falhas historicas de `role-admin-page.component.spec.ts`; o foco O3/perfil e o navegador Arena/Console estao verdes.
 - Nenhum plano da Fase 1 assumiu os gatilhos `ADMINISTRATIVE`/`SECURITY`. `01-CONTEXT.md:75` delega essas regras a agentes posteriores, mas a delegação está sem destinatário; enquanto isso durar, o `SessionInvalidationListener` do 01-07 permanece sem consumidor em produção.
 - O refresh token vive em `InMemoryOAuth2AuthorizedClientService`, que não sobrevive a restart nem é compartilhado entre réplicas, ao contrário da sessão que o 01-06 moveu para o Redis. Aceito como pendência conhecida, a resolver antes de existir qualquer disparo real de revogação; registrado com os demais P3 em `01-22-PLAN.md`.
 - ~~Cinco regressões negativas dos validadores Node inertes em checkout Windows.~~ **Medido no 01-31: era uma, não cinco.** Os dois validadores que mutam texto têm guarda de fixture-mudou, então mutação inerte falha em vez de passar escondida, e o terceiro muta objeto JSON. A única inerte foi corrigida por `replaceAcrossLines`, que casa `\r?\n` e preserva o CRLF real da fixture. **A causa raiz permanece:** `core.autocrlf=true` segue ativo e `.gitattributes` não cobre `backend/src/main/java/**`, portanto mutação multilinha nova sobre fonte Java deve usar aquele helper. A contagem de cinco no `CLAUDE.md` está superestimada e merece correção.
@@ -247,9 +250,9 @@ Progress: [██░░░░░░░░] 4/20 planos da Fase 3 (20%)
 
 ## Session Continuity
 
-Last session: 2026-08-29T16:50:40-03:00
-Stopped at: Wave 4 integrated in master; awaiting push and exact worktree cleanup approvals
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-03-SUMMARY.md
+Last session: 2026-08-29T23:51:25-03:00
+Stopped at: Wave 6 certificada na worktree; aguardando commits, integracao e limpeza Git autorizados
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-05-SUMMARY.md
 
 ## Accumulated Context
 
@@ -266,3 +269,5 @@ Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-03-SUMMARY.m
 | Phase 03 P02 | 5h13 elapsed | 2 tasks | 15 snapshot paths |
 | Phase 03 P18 | 7h28 elapsed | 3 tasks | 23 planning paths |
 | Phase 03 P03 | multi-session | 5 tasks | 54 snapshot paths |
+| Phase 03 P04 | multi-session | 6 tasks | 52 allowlist paths |
+| Phase 03 P05 | multi-session | 6 tasks | 52 allowlist paths |

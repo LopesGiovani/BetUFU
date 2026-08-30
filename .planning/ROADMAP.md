@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 4/20 plans executed
+**Plans**: 5/20 plans executed
 
 Plans:
 **Wave 1**
@@ -270,13 +270,13 @@ Plans:
 
 - [x] 03-03-PLAN.md — entregar tracer vertical com listagem pública real mínima, contrato e navegador
 
-**Wave 5** *(próxima após revisão e integração da Wave 4)*
+**Wave 5** *(concluida na worktree; integracao Git permanece separada)*
 
-- [ ] 03-04-PLAN.md — expandir workspace/catálogo O1 e locais reutilizáveis
+- [x] 03-04-PLAN.md ? expandir workspace/catalogo O1 e locais reutilizaveis
 
-**Wave 6** *(blocked on Wave 5 completion)*
+**Wave 6** *(concluida na worktree; integracao Git permanece separada)*
 
-- [ ] 03-05-PLAN.md — criar organizações/equipes e reconciliar favorito
+- [x] 03-05-PLAN.md ? criar organizacoes/equipes, reconciliar favorito e ampliar perfil/rotas/guard
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
