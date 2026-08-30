@@ -10,6 +10,10 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
 import {
+  AthleteLinkDecisionRequest,
+  AthleteLinkProposal,
+  AthleteLinkReviewPage,
+  AthleteLinkService,
   CurrentIdentityResponse,
   IdentityService,
   ProfileService,
@@ -33,6 +37,7 @@ describe('Generated BETUFU API client contract', () => {
   let sportsCatalogService: SportsCatalogService;
   let sportsOrganizationService: SportsOrganizationService;
   let profileService: ProfileService;
+  let athleteLinkService: AthleteLinkService;
 
   function configureClient(includeApiProvider: boolean): void {
     document.cookie = 'XSRF-TOKEN=' + xsrfToken + '; path=/';
@@ -57,6 +62,7 @@ describe('Generated BETUFU API client contract', () => {
     sportsCatalogService = TestBed.inject(SportsCatalogService);
     sportsOrganizationService = TestBed.inject(SportsOrganizationService);
     profileService = TestBed.inject(ProfileService);
+    athleteLinkService = TestBed.inject(AthleteLinkService);
   }
 
   afterEach(() => {
@@ -291,6 +297,47 @@ describe('Generated BETUFU API client contract', () => {
       status: 'PUBLICADO',
       lockVersion: 2,
     });
+  });
+
+  it('consome proposta owner e fila O8 pelos endpoints gerados sem dados privados', async () => {
+    configureClient(true);
+    const proposal: AthleteLinkProposal = {
+      proposalId: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      athleteName: 'Atleta Um',
+      athleteSlug: 'atleta-um',
+      status: AthleteLinkProposal.StatusEnum.Pendente,
+      createdAt: '2026-08-30T10:00:00Z',
+      updatedAt: '2026-08-30T10:00:00Z',
+      expiresAt: '2026-09-30T10:00:00Z',
+      decidedAt: null,
+    };
+
+    const proposalResult = firstValueFrom(athleteLinkService.getMyAthleteLinkProposal());
+    const proposalRequest = httpTesting.expectOne('/api/v1/me/sports/athlete-links/proposal');
+    expect(proposalRequest.request.method).toBe('GET');
+    expect(proposalRequest.request.headers.has('Authorization')).toBe(false);
+    proposalRequest.flush(proposal);
+    await expect(proposalResult).resolves.toEqual(proposal);
+
+    const decisionResult = firstValueFrom(athleteLinkService.decideAthleteLinkProposal({
+      proposalId: proposal.proposalId,
+      athleteLinkDecisionRequest: { decision: AthleteLinkDecisionRequest.DecisionEnum.Contest },
+    }));
+    const decisionRequest = httpTesting.expectOne('/api/v1/me/sports/athlete-links/' + proposal.proposalId + '/decision');
+    expect(decisionRequest.request.method).toBe('PUT');
+    expect(decisionRequest.request.body).toEqual({ decision: 'CONTEST' });
+    expect(decisionRequest.request.headers.has('Authorization')).toBe(false);
+    decisionRequest.flush({ ...proposal, status: AthleteLinkProposal.StatusEnum.Contestada });
+    await expect(decisionResult).resolves.toMatchObject({ status: 'CONTESTADA' });
+
+    const page: AthleteLinkReviewPage = { items: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false };
+    const reviewResult = firstValueFrom(athleteLinkService.listAthleteLinkReviews({ page: 0, size: 20 }));
+    const reviewRequest = httpTesting.expectOne('/api/v1/operations/sports/athlete-link-reviews?page=0&size=20');
+    expect(reviewRequest.request.method).toBe('GET');
+    expect(reviewRequest.request.headers.has('Authorization')).toBe(false);
+    reviewRequest.flush(page);
+    await expect(reviewResult).resolves.toEqual(page);
   });
 
   it('assegura assimetria de privacidade: matricula restrita ao request e ausencia total de HMAC', () => {

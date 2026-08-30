@@ -82,7 +82,7 @@ class FlywayMigrationIT {
     }
 
     @Test
-    @DisplayName("Aplica V1 a V12 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
+    @DisplayName("Aplica V1 a V14 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
     void appliesV1AndV2MigrationsSequentially() {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
@@ -91,10 +91,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(13);
+        assertThat(result.migrationsExecuted).isEqualTo(15);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(13);
+        assertThat(applied).hasSize(15);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -135,6 +135,12 @@ class FlywayMigrationIT {
         assertThat(applied[12].getVersion().getVersion()).isEqualTo("12");
         assertThat(applied[12].getState()).isEqualTo(MigrationState.SUCCESS);
 
+        assertThat(applied[13].getVersion().getVersion()).isEqualTo("13");
+        assertThat(applied[13].getState()).isEqualTo(MigrationState.SUCCESS);
+
+        assertThat(applied[14].getVersion().getVersion()).isEqualTo("14");
+        assertThat(applied[14].getState()).isEqualTo(MigrationState.SUCCESS);
+
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
                 Integer.class);
@@ -150,7 +156,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(13);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(15);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -159,7 +165,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(13);
+        assertThat(applied).hasSize(15);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -197,7 +203,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(13);
+            assertThat(totalExecuted).isEqualTo(15);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -205,7 +211,7 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(13);
+            assertThat(applied).hasSize(15);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();
@@ -223,9 +229,9 @@ class FlywayMigrationIT {
                 .load()
                 .migrate();
 
-        java.util.UUID identityId = jdbcTemplate.queryForObject(
+        UUID identityId = jdbcTemplate.queryForObject(
                 "INSERT INTO public.local_identity (issuer, subject) VALUES (?, ?) RETURNING identity_id",
-                java.util.UUID.class,
+                UUID.class,
                 "https://example.invalid/realms/betufu-check",
                 "subject-scope-check");
 
@@ -268,50 +274,50 @@ class FlywayMigrationIT {
         TransactionTemplate transaction = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
         UUID publicationId = transaction.execute(status -> {
             UUID identityId = jdbcTemplate.queryForObject(
-                    "INSERT INTO public.local_identity (issuer, subject) VALUES (?, ?) RETURNING identity_id",
-                    UUID.class,
-                    "https://example.invalid/realms/betufu-sports",
-                    "sports-publisher");
+                "INSERT INTO public.local_identity (issuer, subject) VALUES (?, ?) RETURNING identity_id",
+                UUID.class,
+                "https://example.invalid/realms/betufu-sports",
+                "sports-publisher");
             UUID competitionId = jdbcTemplate.queryForObject(
-                    "INSERT INTO public.sports_competition (name, slug) "
-                            + "VALUES ('Competicao', 'competicao') RETURNING competition_id",
-                    UUID.class);
+                "INSERT INTO public.sports_competition (name, slug) "
+                        + "VALUES ('Competicao', 'competicao') RETURNING competition_id",
+                UUID.class);
             UUID editionId = jdbcTemplate.queryForObject(
-                    "INSERT INTO public.sports_edition (competition_id, name, slug) "
-                            + "VALUES (?, 'Edicao', 'edicao') RETURNING edition_id",
-                    UUID.class,
-                    competitionId);
+                "INSERT INTO public.sports_edition (competition_id, name, slug) "
+                        + "VALUES (?, 'Edicao', 'edicao') RETURNING edition_id",
+                UUID.class,
+                competitionId);
             UUID eventId = jdbcTemplate.queryForObject(
-                    "INSERT INTO public.sports_event "
-                            + "(competition_id, edition_id, title, event_format, scheduled_at, zone_id, "
-                            + "venue_state, source_reference) "
-                            + "VALUES (?, ?, 'Evento', 'HEAD_TO_HEAD', CURRENT_TIMESTAMP, "
-                            + "'America/Sao_Paulo', 'LOCAL_A_DEFINIR', 'https://example.invalid/source') "
-                            + "RETURNING event_id",
-                    UUID.class,
-                    competitionId,
-                    editionId);
+                "INSERT INTO public.sports_event "
+                        + "(competition_id, edition_id, title, event_format, scheduled_at, zone_id, "
+                        + "venue_state, source_reference) "
+                        + "VALUES (?, ?, 'Evento', 'HEAD_TO_HEAD', CURRENT_TIMESTAMP, "
+                        + "'America/Sao_Paulo', 'LOCAL_A_DEFINIR', 'https://example.invalid/source') "
+                        + "RETURNING event_id",
+                UUID.class,
+                competitionId,
+                editionId);
             UUID createdPublicationId = jdbcTemplate.queryForObject(
-                    "INSERT INTO public.sports_event_publication "
-                            + "(event_id, competition_id, edition_id, version_no, competition_name, "
-                            + "edition_name, title, event_format, scheduled_at, zone_id, venue_state, "
-                            + "source_reference, published_by_identity_id, base_lock_version) "
-                            + "VALUES (?, ?, ?, 1, 'Competicao', 'Edicao', 'Evento', 'HEAD_TO_HEAD', "
-                            + "CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', "
-                            + "'https://example.invalid/source', ?, 0) RETURNING publication_id",
-                    UUID.class,
-                    eventId,
-                    competitionId,
-                    editionId,
-                    identityId);
+                "INSERT INTO public.sports_event_publication "
+                        + "(event_id, competition_id, edition_id, version_no, competition_name, "
+                        + "edition_name, title, event_format, scheduled_at, zone_id, venue_state, "
+                        + "source_reference, published_by_identity_id, base_lock_version) "
+                        + "VALUES (?, ?, ?, 1, 'Competicao', 'Edicao', 'Evento', 'HEAD_TO_HEAD', "
+                        + "CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', "
+                        + "'https://example.invalid/source', ?, 0) RETURNING publication_id",
+                UUID.class,
+                eventId,
+                competitionId,
+                editionId,
+                identityId);
             jdbcTemplate.update(
-                    "INSERT INTO public.sports_event_publication_slot "
-                            + "(publication_id, slot_no, display_label) VALUES (?, 1, 'Equipe A')",
-                    createdPublicationId);
+                "INSERT INTO public.sports_event_publication_slot "
+                        + "(publication_id, slot_no, display_label) VALUES (?, 1, 'Equipe A')",
+                createdPublicationId);
             jdbcTemplate.update(
-                    "INSERT INTO public.sports_event_publication_slot "
-                            + "(publication_id, slot_no, display_label) VALUES (?, 2, 'Equipe B')",
-                    createdPublicationId);
+                "INSERT INTO public.sports_event_publication_slot "
+                        + "(publication_id, slot_no, display_label) VALUES (?, 2, 'Equipe B')",
+                createdPublicationId);
             return createdPublicationId;
         });
 
@@ -392,5 +398,140 @@ class FlywayMigrationIT {
                 "INSERT INTO public.sports_athlete (athlete_id, name, slug, status) "
                         + "VALUES (gen_random_uuid(), 'Quinto Atleta', 'quinto-atleta', 'INVALIDO')"))
                 .hasMessageContaining("ck_sports_athlete_status");
+    }
+
+    @Test
+    @DisplayName("V13 garante constraints de propostas de vínculo e fila de revisão no próprio banco")
+    void v13EnforcesAthleteLinkProposalsAndReviewsConstraints() {
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        UUID identity1 = jdbcTemplate.queryForObject(
+                "INSERT INTO public.local_identity (issuer, subject) VALUES ('https://idp.v13', 'sub-1') RETURNING identity_id",
+                UUID.class);
+        UUID identity2 = jdbcTemplate.queryForObject(
+                "INSERT INTO public.local_identity (issuer, subject) VALUES ('https://idp.v13', 'sub-2') RETURNING identity_id",
+                UUID.class);
+
+        UUID athlete1 = UUID.randomUUID();
+        UUID athlete2 = UUID.randomUUID();
+        jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, status) VALUES (?, 'Atleta 1', 'atleta-1', 'PUBLICADO')",
+                athlete1);
+        jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, status) VALUES (?, 'Atleta 2', 'atleta-2', 'PUBLICADO')",
+                athlete2);
+
+        // Inserção de proposta válida
+        UUID proposal1 = UUID.randomUUID();
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_proposal (proposal_id, athlete_id, identity_id, status) "
+                        + "VALUES (?, ?, ?, 'PENDENTE')",
+                proposal1, athlete1, identity1)).isEqualTo(1);
+
+        // Status de proposta inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_proposal (proposal_id, athlete_id, identity_id, status) "
+                        + "VALUES (gen_random_uuid(), ?, ?, 'INVALIDO')",
+                athlete2, identity2))
+                .hasMessageContaining("ck_sports_athlete_link_proposal_decision_metadata");
+
+        // Duas propostas pendentes para o mesmo par (athlete1, identity1) violam uq_sports_athlete_link_proposal_pending_pair
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_proposal (proposal_id, athlete_id, identity_id, status) "
+                        + "VALUES (gen_random_uuid(), ?, ?, 'PENDENTE')",
+                athlete1, identity1))
+                .hasMessageContaining("uq_sports_athlete_link_proposal_pending_pair");
+
+        // Aceita proposal1
+        jdbcTemplate.update(
+                "UPDATE public.sports_athlete_link_proposal "
+                        + "SET status = 'ACEITA', decided_by_identity_id = ?, decided_at = CURRENT_TIMESTAMP(6) "
+                        + "WHERE proposal_id = ?",
+                identity1, proposal1);
+
+        // Dois vínculos ACEITA para o mesmo athlete1 violam uq_sports_athlete_link_proposal_accepted_athlete
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_proposal "
+                        + "(proposal_id, athlete_id, identity_id, status, decided_by_identity_id, decided_at) "
+                        + "VALUES (gen_random_uuid(), ?, ?, 'ACEITA', ?, CURRENT_TIMESTAMP(6))",
+                athlete1, identity2, identity2))
+                .hasMessageContaining("uq_sports_athlete_link_proposal_accepted_athlete");
+
+        // Dois vínculos ACEITA para o mesmo identity1 violam uq_sports_athlete_link_proposal_accepted_identity
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_proposal "
+                        + "(proposal_id, athlete_id, identity_id, status, decided_by_identity_id, decided_at) "
+                        + "VALUES (gen_random_uuid(), ?, ?, 'ACEITA', ?, CURRENT_TIMESTAMP(6))",
+                athlete2, identity1, identity1))
+                .hasMessageContaining("uq_sports_athlete_link_proposal_accepted_identity");
+
+        // Inserção de revisão válida
+        UUID reviewId = UUID.randomUUID();
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_review (review_id, proposal_id, athlete_id, identity_id, reason_code, status) "
+                        + "VALUES (?, ?, ?, ?, 'CONTESTED', 'PENDENTE')",
+                reviewId, proposal1, athlete1, identity1)).isEqualTo(1);
+
+        // Reason code de revisão inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_review (review_id, athlete_id, reason_code, status) "
+                        + "VALUES (gen_random_uuid(), ?, 'INVALID_REASON', 'PENDENTE')",
+                athlete2))
+                .hasMessageContaining("ck_sports_athlete_link_review_reason");
+
+        // Duplicidade de revisão por proposal_id
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_review (review_id, proposal_id, athlete_id, identity_id, reason_code, status) "
+                        + "VALUES (gen_random_uuid(), ?, ?, ?, 'CONTESTED', 'PENDENTE')",
+                proposal1, athlete1, identity1))
+                .hasMessageContaining("uq_sports_athlete_link_review_proposal");
+    }
+
+    @Test
+    @DisplayName("V14 exige validade e metadados coerentes para decisões de vínculo")
+    void v14EnforcesAthleteLinkDecisionMetadata() {
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .cleanDisabled(false)
+                .load()
+                .clean();
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        UUID identityId = jdbcTemplate.queryForObject(
+                "INSERT INTO public.local_identity (issuer, subject) VALUES ('https://idp.invalid', ?) RETURNING identity_id",
+                UUID.class,
+                "v14-link-sub");
+        UUID athleteId = jdbcTemplate.queryForObject(
+                "INSERT INTO public.sports_athlete (name, slug) VALUES ('Atleta V14', 'atleta-v14') RETURNING athlete_id",
+                UUID.class);
+        UUID proposalId = UUID.randomUUID();
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_link_proposal (proposal_id, athlete_id, identity_id) VALUES (?, ?, ?)",
+                proposalId, athleteId, identityId)).isEqualTo(1);
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT expires_at > created_at FROM public.sports_athlete_link_proposal WHERE proposal_id = ?",
+                Boolean.class,
+                proposalId)).isTrue();
+
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_link_proposal SET status = 'ACEITA' WHERE proposal_id = ?",
+                proposalId))
+                .hasMessageContaining("ck_sports_athlete_link_proposal_decision_metadata");
+
+        assertThat(jdbcTemplate.update(
+                "UPDATE public.sports_athlete_link_proposal "
+                        + "SET status = 'ACEITA', decided_by_identity_id = ?, decided_at = CURRENT_TIMESTAMP(6) "
+                        + "WHERE proposal_id = ?",
+                identityId, proposalId)).isEqualTo(1);
     }
 }

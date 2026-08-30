@@ -16,6 +16,8 @@ import br.com.betufu.sports.EnrollmentFingerprintPort.Fingerprint;
 import br.com.betufu.sports.internal.catalog.SportsCatalogModels.NameSlugRequest;
 import br.com.betufu.sports.internal.athlete.SportsAthleteModels.SportsAthleteCreateRequest;
 import br.com.betufu.sports.internal.athlete.SportsAthleteModels.SportsAthleteSummary;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -35,17 +37,21 @@ class SportsAthleteService {
     private final EnrollmentFingerprintPort fingerprintPort;
     private final OperationalIdentityLookup identityLookup;
     private final TransactionTemplate transactions;
+    private final ApplicationEventPublisher eventPublisher;
 
+    @Autowired
     SportsAthleteService(
             SportsAthleteRepository repository,
             EnrollmentFingerprintPort fingerprintPort,
             OperationalIdentityLookup identityLookup,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager,
+            ApplicationEventPublisher eventPublisher) {
         this.repository = Objects.requireNonNull(repository, "repository must not be null");
         this.fingerprintPort = Objects.requireNonNull(fingerprintPort, "fingerprintPort must not be null");
         this.identityLookup = Objects.requireNonNull(identityLookup, "identityLookup must not be null");
         this.transactions = new TransactionTemplate(Objects.requireNonNull(transactionManager,
                 "transactionManager must not be null"));
+        this.eventPublisher = eventPublisher;
     }
 
     List<SportsAthleteSummary> listAthletes(String issuer, String subject) {
@@ -75,12 +81,19 @@ class SportsAthleteService {
         byte[] hash = fingerprint != null ? fingerprint.hash() : null;
         Short version = fingerprint != null ? fingerprint.version() : null;
 
+        SportsAthleteSummary summary;
         try {
-            return transactions.execute(status -> repository.createAthlete(
+            summary = transactions.execute(status -> repository.createAthlete(
                     UUID.randomUUID(), clean(request.name()), request.slug(), hash, version));
         } catch (DataIntegrityViolationException e) {
             throw new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.VALIDATION_FAILED);
         }
+
+        if (eventPublisher != null && summary != null) {
+            eventPublisher.publishEvent(new SportsAthleteCreated(summary.athleteId()));
+        }
+
+        return summary;
     }
 
     SportsAthleteSummary updateAthlete(

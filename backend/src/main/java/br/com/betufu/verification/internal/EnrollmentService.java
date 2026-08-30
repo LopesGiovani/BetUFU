@@ -14,8 +14,10 @@ import br.com.betufu.audit.AuditRecorder;
 import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
 import br.com.betufu.verification.EnrollmentEligibility;
+import br.com.betufu.verification.EnrollmentVerified;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -35,13 +37,23 @@ public class EnrollmentService implements EnrollmentEligibility {
     private final MatriculaHmacKeyProperties keyProperties;
     private final AuditRecorder auditRecorder;
     private final TransactionOperations transactionOperations;
+    private final ApplicationEventPublisher eventPublisher;
 
     public EnrollmentService(
             UfuEnrollmentRepository enrollmentRepository,
             MatriculaHmac matriculaHmac,
             MatriculaHmacKeyProperties keyProperties,
             AuditRecorder auditRecorder) {
-        this(enrollmentRepository, matriculaHmac, keyProperties, auditRecorder, (PlatformTransactionManager) null);
+        this(enrollmentRepository, matriculaHmac, keyProperties, auditRecorder, null, null);
+    }
+
+    public EnrollmentService(
+            UfuEnrollmentRepository enrollmentRepository,
+            MatriculaHmac matriculaHmac,
+            MatriculaHmacKeyProperties keyProperties,
+            AuditRecorder auditRecorder,
+            PlatformTransactionManager transactionManager) {
+        this(enrollmentRepository, matriculaHmac, keyProperties, auditRecorder, transactionManager, null);
     }
 
     @Autowired
@@ -50,12 +62,14 @@ public class EnrollmentService implements EnrollmentEligibility {
             MatriculaHmac matriculaHmac,
             MatriculaHmacKeyProperties keyProperties,
             AuditRecorder auditRecorder,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager,
+            ApplicationEventPublisher eventPublisher) {
         this.enrollmentRepository = Objects.requireNonNull(
                 enrollmentRepository, "enrollmentRepository must not be null");
         this.matriculaHmac = matriculaHmac;
         this.keyProperties = keyProperties;
         this.auditRecorder = auditRecorder;
+        this.eventPublisher = eventPublisher;
         this.transactionOperations = transactionManager != null
                 ? new TransactionTemplate(transactionManager)
                 : TransactionOperations.withoutTransaction();
@@ -158,6 +172,10 @@ public class EnrollmentService implements EnrollmentEligibility {
             } else {
                 throw ex;
             }
+        }
+
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new EnrollmentVerified(identityId));
         }
 
         return response;

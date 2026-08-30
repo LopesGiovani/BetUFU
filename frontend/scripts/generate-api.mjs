@@ -71,6 +71,7 @@ const APPROVED_GENERATOR = Object.freeze({
   }),
 });
 export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
+  'AthleteLink',
   'Diagnostic',
   'Enrollment',
   'Identity',
@@ -88,6 +89,10 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'AdministrativeCorrectionEventDto',
   'AdministrativeCorrectionsBlock',
+  'AthleteLinkDecisionRequest',
+  'AthleteLinkProposal',
+  'AthleteLinkReviewPage',
+  'AthleteLinkReviewSummary',
   'BetufuFieldViolation',
   'BetufuProblemDetails',
   'CurrentDeviceLogoutResponse',
@@ -162,6 +167,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api.base.service.ts',
   'api.module.ts',
   'api/api.ts',
+  'api/athlete-link.service.ts',
   'api/diagnostic.service.ts',
   'api/enrollment.service.ts',
   'api/identity.service.ts',
@@ -180,6 +186,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'index.ts',
   'model/administrative-correction-event-dto.ts',
   'model/administrative-corrections-block.ts',
+  'model/athlete-link-decision-request.ts',
+  'model/athlete-link-proposal.ts',
+  'model/athlete-link-review-page.ts',
+  'model/athlete-link-review-summary.ts',
   'model/betufu-field-violation.ts',
   'model/betufu-problem-details.ts',
   'model/current-device-logout-response.ts',
@@ -256,8 +266,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // continuam fora da arvore.
 // 12B2... acrescenta o cliente operacional de organizacoes/equipes e o favorito por
 // organizacao; o candidato foi aprovado literalmente pelo responsavel em 2026-08-29.
-// Inventario de 76 -> 79 caminhos na Wave 7 (03-06) para o contrato de atleta.
-export const APPROVED_GENERATED_DIGEST = '111FEA082473D8D6541BAD51A44D5D00DABB160316EF7625A564CDAA55101818';
+// 111FEA... acrescenta o cliente operacional de atletas na Wave 7 (03-06).
+// B751... acrescenta o schema nomeado AthleteLinkReviewSummary e corrige a resposta
+// CurrentIdentityResponse na Wave 8 (03-07), aprovado literalmente pelo responsavel.
+export const APPROVED_GENERATED_DIGEST = 'B75187EFECB25E0D4809F6ED5D0354D329D9175DB9ACE3BCEB1BBA4ECDB7A8B2';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -793,6 +805,7 @@ export function inspectGeneratedOpenApiContract(source) {
       ({ path }) => !path.startsWith('/api/v1/operations/sports/')
         || path.startsWith('/api/v1/operations/sports/catalog/')
         || [
+          '/api/v1/operations/sports/athlete-link-reviews',
           '/api/v1/operations/sports/athletes',
           '/api/v1/operations/sports/athletes/{athleteId}',
           '/api/v1/operations/sports/athletes/{athleteId}/publish',

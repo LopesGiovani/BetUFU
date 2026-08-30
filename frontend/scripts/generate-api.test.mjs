@@ -269,6 +269,7 @@ test('manifesto recusa bytes com URL absoluta escondida depois de regex literal'
 
 test('geracao seleciona catalogo, organizacoes, atletas, SportsPublic e schemas compartilhados', () => {
   assert.deepEqual(PUBLIC_GENERATOR_API_TAGS, [
+    'AthleteLink',
     'Diagnostic',
     'Enrollment',
     'Identity',

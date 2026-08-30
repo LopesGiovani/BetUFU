@@ -1,3 +1,5 @@
+export * from './athlete-link.service';
+import { AthleteLinkService } from './athlete-link.service';
 export * from './diagnostic.service';
 import { DiagnosticService } from './diagnostic.service';
 export * from './enrollment.service';
@@ -24,4 +26,4 @@ export * from './sports-organization.service';
 import { SportsOrganizationService } from './sports-organization.service';
 export * from './sports-public.service';
 import { SportsPublicService } from './sports-public.service';
-export const APIS = [DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsCatalogService, SportsOrganizationService, SportsPublicService];
+export const APIS = [AthleteLinkService, DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsCatalogService, SportsOrganizationService, SportsPublicService];

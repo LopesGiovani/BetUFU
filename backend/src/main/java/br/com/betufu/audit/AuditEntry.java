@@ -30,6 +30,8 @@ public record AuditEntry(
     public static final String ACTION_CONSULTA_OPERACIONAL = "CONSULTA_OPERACIONAL";
     public static final String ACTION_SEMENTE_ADMINISTRADOR_INICIAL = "SEMENTE_ADMINISTRADOR_INICIAL";
     public static final String ACTION_REPROCESSAMENTO_RESET_SENHA = "REPROCESSAMENTO_RESET_SENHA";
+    public static final String ACTION_VINCULO_ATLETA_DECIDIDO = "VINCULO_ATLETA_DECIDIDO";
+    public static final String ACTION_REVISAO_VINCULO_ATLETA_CRIADA = "REVISAO_VINCULO_ATLETA_CRIADA";
 
     public static final Set<String> ALLOWED_ACTIONS = Set.of(
             ACTION_PAPEL_CONCEDIDO,
@@ -42,7 +44,9 @@ public record AuditEntry(
             ACTION_LOGIN_EFETUADO,
             ACTION_CONSULTA_OPERACIONAL,
             ACTION_SEMENTE_ADMINISTRADOR_INICIAL,
-            ACTION_REPROCESSAMENTO_RESET_SENHA);
+            ACTION_REPROCESSAMENTO_RESET_SENHA,
+            ACTION_VINCULO_ATLETA_DECIDIDO,
+            ACTION_REVISAO_VINCULO_ATLETA_CRIADA);
 
     public AuditEntry {
         Objects.requireNonNull(action, "action must not be null");
