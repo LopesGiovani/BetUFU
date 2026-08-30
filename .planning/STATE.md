@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: Wave 7 implementada, integrada, enviada e limpa; proximo plano 03-07/W8
-last_updated: "2026-08-30T09:29:28-03:00"
+stopped_at: Wave 8 implementada e certificada na worktree; proximo passo e resolver a colisao V14 antes do 03-08
+last_updated: "2026-08-30T13:25:00-03:00"
 last_activity: 2026-08-30
-last_activity_desc: 03-06 concluiu atleta global, seam HMAC transitoria e O4; suites materiais passaram com a lacuna Angular historica registrada.
-state_head: 455f75ed5a4dc99d3617ba446348665ea90ab5b7
+last_activity_desc: 03-07 concluiu propostas, contestacao owner-only e fila O8; suites materiais passaram com a lacuna Angular historica registrada.
+state_head: 11fd3b8f509208451a582ac2f8082049a740ffc5
 progress:
   total_phases: 7
   completed_phases: 2
@@ -24,14 +24,14 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** briefing interativo do 03-07/W8
+**Current focus:** snapshot certificado do 03-07/W8 e colisao de versao V14 do proximo plano
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 6 de 20 concluidos; 03-06/W7 esta implementado, certificado e integrado; 03-07/W8 e o proximo plano tecnico.
-Status: In progress ? Wave 7 passou backend, Node, OpenAPI, Angular focal, build e Playwright; a suite Angular completa conserva 5 falhas historicas fora da allowlist. Push e limpeza exata do 03-06 foram concluidos.
-Last activity: 2026-08-30 ? atleta global, seam HMAC, O4 e cliente governado foram concluidos e certificados sem alterar regras de negocio anteriores.
+Plan: 7 de 20 concluidos; 03-07/W8 esta implementado e certificado na worktree; 03-08/W9 aguarda correcao da colisao V14.
+Status: In progress ? Wave 8 passou backend, Node, OpenAPI, Angular focal, build e Playwright; a suite Angular completa conserva 5 falhas historicas fora da allowlist. Stage, commits, integracao, limpeza e push desta wave permanecem separados.
+Last activity: 2026-08-30 ? propostas explicitas, contestacao owner-only, reconciliacao pos-commit e fila O8 foram concluidas e certificadas sem alterar regras de negocio anteriores.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 foi criada na `worktree-agent-03-03` a partir de `7d3cbc6`; o commit técnico `9399a7c` contém exatamente 44 paths e o documental `3368d73` contém os seis documentos GSD. A integração fast-forward levou ambos para `master`; limpeza da worktree/branch e push continuam pendentes de aprovação específica.
@@ -39,6 +39,8 @@ Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados
 Git ? Fase 3 / Wave 6 (snapshot certificado, 2026-08-29): o 03-05 foi executado na `worktree-agent-03-05` sobre `72d8854`. O candidato aprovado e `12B2982C70B98D02BD6609BA95AAE350E2BF65999E57F5D16183B65DABBA7201`; hashes governados before/after `21C94593F724A3478B866C4F0F4402B0FACA4EE92FD265A9B9CDEDD6BE5E5F37`. Node `625/625`, Maven `350/350`, Playwright Arena `2/2` e Console `1/1` passaram; Angular completo `248/253` conserva cinco falhas historicas fora do escopo.
 
 Git ? Fase 3 / Wave 7 (concluida, enviada e limpa, 2026-08-30): o 03-06 foi executado na `worktree-agent-03-06` sobre `9f664be`. Os commits tecnico `6c8d74f`, documental `01afe86` e de formalizacao `455f75e` foram integrados por fast-forward; `master` e `origin/master` estao em `455f75e`. O candidato aprovado e `111FEA082473D8D6541BAD51A44D5D00DABB160316EF7625A564CDAA55101818`. Maven `610/610`, Node `625/625`, Angular focal O4 `11/11`, build production e Playwright esportivo `2/2` passaram; Angular completo `261/266` conserva cinco falhas historicas fora do escopo. A worktree e a branch exatas foram removidas.
+
+Git ? Fase 3 / Wave 8 (concluida na worktree, 2026-08-30): o 03-07 foi executado na `worktree-agent-03-07` sobre `11fd3b8`. O candidato aprovado e `B75187EFECB25E0D4809F6ED5D0354D329D9175DB9ACE3BCEB1BBA4ECDB7A8B2`; hashes governados before/after `DB17FF4C4B1058BED0836C51F1922922D621E78CC3DFA35C001C682ADED5DC24`. Maven `625/625`, Node `625/625`, Angular focal `10/10`, build production e Playwright esportivo `2/2` passaram; Angular completo `272/277` conserva cinco falhas historicas fora do escopo. Nenhum stage, commit, integracao, limpeza ou push foi executado. A proxima wave tem colisao documental V14 entre este plano e `03-08`.
 
 Git — Fase 3 / Wave 4 (snapshot local aprovado, 2026-08-29): o 03-03 entrega a agenda pública paginada, o candidato OpenAPI aprovado `0B631F67A415BEE7BC95ECF209BD240C922A93ED47B69385B969B093D464AB95`, o cliente governado e a Arena V. O gate final passou Surefire `251/251`, Failsafe `343/343`, Node `623/623`, gerador `72/72`, Angular `241/241`, build produtivo e Playwright `2/2`; a auditoria fresca terminou `PASS`, P0=P1=P2=0. `frontend/angular.json` não possui diff de conteúdo e fica fora da allowlist final. Os temporários locais de `.playwright-cli/` foram removidos antes do handoff.
 
@@ -253,8 +255,8 @@ Progress: [███░░░░░░░] 6/20 planos da Fase 3 (30%)
 ## Session Continuity
 
 Last session: 2026-08-30T09:29:28-03:00
-Stopped at: Wave 7 integrada, enviada e limpa; pronto para briefing do 03-07/W8
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-06-SUMMARY.md
+Stopped at: Wave 8 implementada e certificada na worktree; colisao V14 identificada antes do 03-08
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-07-SUMMARY.md
 
 ## Accumulated Context
 

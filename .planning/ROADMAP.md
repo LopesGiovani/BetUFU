@@ -282,9 +282,9 @@ Plans:
 
 - [x] 03-06-PLAN.md — criar atleta global e seam HMAC transitório
 
-**Wave 8** *(blocked on Wave 7 completion)*
+**Wave 8** *(concluida na worktree em 2026-08-30; integracao Git permanece separada)*
 
-- [ ] 03-07-PLAN.md — entregar propostas e revisão de vínculo
+- [x] 03-07-PLAN.md — entregar propostas e revisão de vínculo
 
 **Wave 9** *(blocked on Wave 8 completion)*
 

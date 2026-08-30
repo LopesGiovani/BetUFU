@@ -263,6 +263,35 @@ O4 limpa a matricula imediatamente no submit, sucesso, erro e cancelamento;
 V12 persiste somente fingerprint HMAC versionado. A pagina publica P6 e o
 vinculo atleta-conta continuam atribuidos aos planos 03-07, 03-08 e 03-11.
 
+### Execucao do 03-07/W8
+
+O plano 03-07 foi executado na worktree `worktree-agent-03-07` sobre o HEAD
+`11fd3b8`. O candidato OpenAPI foi aprovado com o digest
+`B75187EFECB25E0D4809F6ED5D0354D329D9175DB9ACE3BCEB1BBA4ECDB7A8B2`; os
+hashes governados before/after permaneceram iguais em
+`DB17FF4C4B1058BED0836C51F1922922D621E78CC3DFA35C001C682ADED5DC24`.
+
+| Controle | Resultado |
+|---|---|
+| Backend completo | PASS - Maven `251/251` Surefire + `374/374` Failsafe = `625/625`, sem failures/errors/skips. |
+| Node completo | PASS - `625/625`, incluindo contratos, guards e mutacoes negativas. |
+| Contrato OpenAPI | PASS - candidato aprovado, hashes before/after iguais e `generate-api --check` OK. |
+| Angular focal | PASS - stores/componentes owner/O8 `10/10`. |
+| Angular completo | PARCIAL - `272/277`; cinco falhas apenas em `role-admin-page.component.spec.ts`, lacuna historica fora da allowlist. |
+| Builds | PASS - production; warnings de budget SCSS permanecem informativos. |
+| Playwright | PASS - esportivo `2/2` em desktop e 320 px. |
+| Integridade | PASS - `git diff --check`; aviso LF -> CRLF do checkout Windows. |
+
+As propostas usam V13/V14, FKs, indices parciais, optimistic locking, estados
+terminais e revisao O8 sem enumeracao de matricula/HMAC/e-mail. Os eventos
+`EnrollmentVerified(identityId)` e `SportsAthleteCreated(athleteId)` sao
+publicados depois do commit e a reconciliacao e idempotente nos dois sentidos.
+
+O snapshot identificou uma colisao de versao para a proxima wave: `03-07`
+usa `V14__harden_athlete_link_proposals.sql`, enquanto `03-08-PLAN.md` ainda
+declara `V14__create_sports_rosters.sql`. Flyway nao aceita duas migrations
+com a mesma versao; o plano seguinte precisa ser renumerado antes da execucao.
+
 ### Auditoria multifuente
 
 | Fonte | Universo | Resultado | Evidência |
