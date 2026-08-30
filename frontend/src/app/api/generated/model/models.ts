@@ -31,6 +31,8 @@ export * from './role-grant-request';
 export * from './role-grant-response';
 export * from './role-status-dto';
 export * from './session-state-response';
+export * from './sports-athlete-create-request';
+export * from './sports-athlete-summary';
 export * from './sports-catalog-edition-request';
 export * from './sports-catalog-scope';
 export * from './sports-catalog-tree';

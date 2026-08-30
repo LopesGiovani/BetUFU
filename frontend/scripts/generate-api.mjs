@@ -80,6 +80,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Profile',
   'Role',
   'Session',
+  'SportsAthlete',
   'SportsCatalog',
   'SportsOrganization',
   'SportsPublic',
@@ -118,6 +119,8 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'RoleGrantResponse',
   'RoleStatusDto',
   'SessionStateResponse',
+  'SportsAthleteCreateRequest',
+  'SportsAthleteSummary',
   'SportsCatalogEditionRequest',
   'SportsCatalogScope',
   'SportsCatalogTree',
@@ -168,6 +171,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/profile.service.ts',
   'api/role.service.ts',
   'api/session.service.ts',
+  'api/sports-athlete.service.ts',
   'api/sports-catalog.service.ts',
   'api/sports-organization.service.ts',
   'api/sports-public.service.ts',
@@ -208,6 +212,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/role-grant-response.ts',
   'model/role-status-dto.ts',
   'model/session-state-response.ts',
+  'model/sports-athlete-create-request.ts',
+  'model/sports-athlete-summary.ts',
   'model/sports-catalog-edition-request.ts',
   'model/sports-catalog-scope.ts',
   'model/sports-catalog-tree.ts',
@@ -250,7 +256,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // continuam fora da arvore.
 // 12B2... acrescenta o cliente operacional de organizacoes/equipes e o favorito por
 // organizacao; o candidato foi aprovado literalmente pelo responsavel em 2026-08-29.
-export const APPROVED_GENERATED_DIGEST = '12B2982C70B98D02BD6609BA95AAE350E2BF65999E57F5D16183B65DABBA7201';
+// Inventario de 76 -> 79 caminhos na Wave 7 (03-06) para o contrato de atleta.
+export const APPROVED_GENERATED_DIGEST = '111FEA082473D8D6541BAD51A44D5D00DABB160316EF7625A564CDAA55101818';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -786,12 +793,16 @@ export function inspectGeneratedOpenApiContract(source) {
       ({ path }) => !path.startsWith('/api/v1/operations/sports/')
         || path.startsWith('/api/v1/operations/sports/catalog/')
         || [
+          '/api/v1/operations/sports/athletes',
+          '/api/v1/operations/sports/athletes/{athleteId}',
+          '/api/v1/operations/sports/athletes/{athleteId}/publish',
+          '/api/v1/operations/sports/competitions/{competitionId}/teams',
+          '/api/v1/operations/sports/editions/{editionId}/sports/{sportId}/categories/{categoryId}/organizations/{organizationId}/teams',
           '/api/v1/operations/sports/organizations',
           '/api/v1/operations/sports/organizations/{organizationId}',
           '/api/v1/operations/sports/organizations/{organizationId}/publish',
-          '/api/v1/operations/sports/competitions/{competitionId}/teams',
-          '/api/v1/operations/sports/editions/{editionId}/sports/{sportId}/categories/{categoryId}/organizations/{organizationId}/teams',
           '/api/v1/operations/sports/teams/{teamId}',
+          '/api/v1/operations/sports/teams/{teamId}/athletes',
           '/api/v1/operations/sports/teams/{teamId}/publish',
         ].includes(path),
     ),

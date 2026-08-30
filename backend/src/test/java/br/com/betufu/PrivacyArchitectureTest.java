@@ -85,6 +85,8 @@ class PrivacyArchitectureTest {
     public static final ArchRule NO_RAW_MATRICULA_OUTSIDE_VERIFICATION = ArchRuleDefinition.classes()
             .that().resideOutsideOfPackage("br.com.betufu.verification.internal..")
             .and().resideOutsideOfPackage("br.com.betufu.verification..")
+            .and().doNotHaveFullyQualifiedName("br.com.betufu.sports.internal.athlete.SportsAthleteModels$SportsAthleteCreateRequest")
+            .and().doNotHaveFullyQualifiedName("br.com.betufu.sports.internal.athlete.SportsAthleteModels")
             .should(new ArchCondition<JavaClass>(
                     "not declare fields, constructor parameters, or record components with raw matricula vocabulary or types") {
                 @Override

@@ -82,7 +82,7 @@ class FlywayMigrationIT {
     }
 
     @Test
-    @DisplayName("Aplica V1 a V11 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
+    @DisplayName("Aplica V1 a V12 sequencialmente no PostgreSQL 18 e verifica histórico autoritativo")
     void appliesV1AndV2MigrationsSequentially() {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
@@ -91,10 +91,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(12);
+        assertThat(result.migrationsExecuted).isEqualTo(13);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(12);
+        assertThat(applied).hasSize(13);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -132,6 +132,9 @@ class FlywayMigrationIT {
         assertThat(applied[11].getVersion().getVersion()).isEqualTo("11");
         assertThat(applied[11].getState()).isEqualTo(MigrationState.SUCCESS);
 
+        assertThat(applied[12].getVersion().getVersion()).isEqualTo("12");
+        assertThat(applied[12].getState()).isEqualTo(MigrationState.SUCCESS);
+
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
                 Integer.class);
@@ -147,7 +150,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(12);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(13);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -156,7 +159,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(12);
+        assertThat(applied).hasSize(13);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -194,7 +197,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(12);
+            assertThat(totalExecuted).isEqualTo(13);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -202,7 +205,7 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(12);
+            assertThat(applied).hasSize(13);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();
@@ -338,5 +341,56 @@ class FlywayMigrationIT {
                         + "WHERE publication_id = ? AND slot_no = 1",
                 publicationId))
                 .hasMessageContaining("snapshots are immutable");
+    }
+
+    @Test
+    @DisplayName("V12 garante integridade e constraints de public.sports_athlete no proprio banco")
+    void v12EnforcesSportsAthleteConstraints() {
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        UUID athleteId = UUID.randomUUID();
+        byte[] validHmac = new byte[32];
+        java.util.Arrays.fill(validHmac, (byte) 7);
+
+        // Inserção válida com HMAC e versão
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, matricula_hmac, hmac_version, status) "
+                        + "VALUES (?, 'Carlos Atleta', 'carlos-atleta', ?, 1, 'RASCUNHO')",
+                athleteId, validHmac)).isEqualTo(1);
+
+        // Duplicidade de slug
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, status) "
+                        + "VALUES (gen_random_uuid(), 'Outro Nome', 'carlos-atleta', 'RASCUNHO')"))
+                .hasMessageContaining("uq_sports_athlete_slug");
+
+        // Duplicidade de nome normalizado
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, status) "
+                        + "VALUES (gen_random_uuid(), '  carlos atleta  ', 'outro-slug', 'RASCUNHO')"))
+                .hasMessageContaining("uq_sports_athlete_name_normalized");
+
+        // Duplicidade de matricula_hmac
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, matricula_hmac, hmac_version, status) "
+                        + "VALUES (gen_random_uuid(), 'Terceiro Atleta', 'terceiro-atleta', ?, 1, 'RASCUNHO')",
+                validHmac))
+                .hasMessageContaining("uq_sports_athlete_matricula_hmac");
+
+        // HMAC com tamanho inválido (< 32 bytes)
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, matricula_hmac, hmac_version, status) "
+                        + "VALUES (gen_random_uuid(), 'Quarto Atleta', 'quarto-atleta', 'short'::bytea, 1, 'RASCUNHO')"))
+                .hasMessageContaining("ck_sports_athlete_hmac_octets");
+
+        // Status inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete (athlete_id, name, slug, status) "
+                        + "VALUES (gen_random_uuid(), 'Quinto Atleta', 'quinto-atleta', 'INVALIDO')"))
+                .hasMessageContaining("ck_sports_athlete_status");
     }
 }

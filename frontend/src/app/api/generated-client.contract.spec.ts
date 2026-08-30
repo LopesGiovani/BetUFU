@@ -14,6 +14,9 @@ import {
   IdentityService,
   ProfileService,
   PublicSportsEventPage,
+  SportsAthleteCreateRequest,
+  SportsAthleteService,
+  SportsAthleteSummary,
   SportsCatalogService,
   SportsCatalogScope,
   SportsOrganizationService,
@@ -25,6 +28,7 @@ describe('Generated BETUFU API client contract', () => {
   const xsrfToken = 'task-01-20-xsrf-token';
   let httpTesting: HttpTestingController;
   let identityService: IdentityService;
+  let sportsAthleteService: SportsAthleteService;
   let sportsPublicService: SportsPublicService;
   let sportsCatalogService: SportsCatalogService;
   let sportsOrganizationService: SportsOrganizationService;
@@ -48,6 +52,7 @@ describe('Generated BETUFU API client contract', () => {
 
     httpTesting = TestBed.inject(HttpTestingController);
     identityService = TestBed.inject(IdentityService);
+    sportsAthleteService = TestBed.inject(SportsAthleteService);
     sportsPublicService = TestBed.inject(SportsPublicService);
     sportsCatalogService = TestBed.inject(SportsCatalogService);
     sportsOrganizationService = TestBed.inject(SportsOrganizationService);
@@ -180,5 +185,131 @@ describe('Generated BETUFU API client contract', () => {
     await expect(profileResult).resolves.toMatchObject({
       favoriteOrganizationId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35',
     });
+  });
+
+  it('consome endpoints operacionais de atleta com caminhos relativos e escopo derivado', async () => {
+    configureClient(true);
+
+    const listResult = firstValueFrom(sportsAthleteService.listSportsAthletes());
+    const listRequest = httpTesting.expectOne('/api/v1/operations/sports/athletes');
+    expect(listRequest.request.method).toBe('GET');
+    expect(listRequest.request.headers.has('Authorization')).toBe(false);
+    listRequest.flush([
+      {
+        athleteId: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+        name: 'Atleta Um',
+        slug: 'atleta-um',
+        status: SportsAthleteSummary.StatusEnum.Rascunho,
+        lockVersion: 0,
+      },
+    ]);
+    await expect(listResult).resolves.toEqual([
+      {
+        athleteId: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
+        name: 'Atleta Um',
+        slug: 'atleta-um',
+        status: 'RASCUNHO',
+        lockVersion: 0,
+      },
+    ]);
+
+    const createPayload: SportsAthleteCreateRequest = {
+      name: 'Atleta Dois',
+      slug: 'atleta-dois',
+      matricula: '12345678',
+    };
+    const createResult = firstValueFrom(sportsAthleteService.createSportsAthlete({
+      teamId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35',
+      sportsAthleteCreateRequest: createPayload,
+    }));
+    const createRequest = httpTesting.expectOne('/api/v1/operations/sports/teams/72de12f3-8e26-43a0-b8e0-08c5f5ed9b35/athletes');
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual({
+      name: 'Atleta Dois',
+      slug: 'atleta-dois',
+      matricula: '12345678',
+    });
+    expect(createRequest.request.headers.has('Authorization')).toBe(false);
+    createRequest.flush({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      name: 'Atleta Dois',
+      slug: 'atleta-dois',
+      status: SportsAthleteSummary.StatusEnum.Rascunho,
+      lockVersion: 0,
+    });
+    await expect(createResult).resolves.toEqual({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      name: 'Atleta Dois',
+      slug: 'atleta-dois',
+      status: 'RASCUNHO',
+      lockVersion: 0,
+    });
+
+    const updateResult = firstValueFrom(sportsAthleteService.updateSportsAthlete({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      expectedLockVersion: 0,
+      sportsNameSlugRequest: { name: 'Atleta Dois Atualizado', slug: 'atleta-dois-atualizado' },
+    }));
+    const updateRequest = httpTesting.expectOne('/api/v1/operations/sports/athletes/b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e?expectedLockVersion=0');
+    expect(updateRequest.request.method).toBe('PUT');
+    expect(updateRequest.request.body).toEqual({
+      name: 'Atleta Dois Atualizado',
+      slug: 'atleta-dois-atualizado',
+    });
+    updateRequest.flush({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      name: 'Atleta Dois Atualizado',
+      slug: 'atleta-dois-atualizado',
+      status: SportsAthleteSummary.StatusEnum.Rascunho,
+      lockVersion: 1,
+    });
+    await expect(updateResult).resolves.toEqual({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      name: 'Atleta Dois Atualizado',
+      slug: 'atleta-dois-atualizado',
+      status: 'RASCUNHO',
+      lockVersion: 1,
+    });
+
+    const publishResult = firstValueFrom(sportsAthleteService.publishSportsAthlete({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      expectedLockVersion: 1,
+    }));
+    const publishRequest = httpTesting.expectOne('/api/v1/operations/sports/athletes/b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e/publish?expectedLockVersion=1');
+    expect(publishRequest.request.method).toBe('POST');
+    publishRequest.flush({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      name: 'Atleta Dois Atualizado',
+      slug: 'atleta-dois-atualizado',
+      status: SportsAthleteSummary.StatusEnum.Publicado,
+      lockVersion: 2,
+    });
+    await expect(publishResult).resolves.toEqual({
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      name: 'Atleta Dois Atualizado',
+      slug: 'atleta-dois-atualizado',
+      status: 'PUBLICADO',
+      lockVersion: 2,
+    });
+  });
+
+  it('assegura assimetria de privacidade: matricula restrita ao request e ausencia total de HMAC', () => {
+    const athleteRequest: SportsAthleteCreateRequest = {
+      name: 'Atleta Teste',
+      slug: 'atleta-teste',
+      matricula: '12345678',
+    };
+    expect(athleteRequest.matricula).toBe('12345678');
+
+    const athleteSummary: SportsAthleteSummary = {
+      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+      name: 'Atleta Teste',
+      slug: 'atleta-teste',
+      status: SportsAthleteSummary.StatusEnum.Rascunho,
+      lockVersion: 0,
+    };
+    expect('matricula' in athleteSummary).toBe(false);
+    expect('fingerprint' in athleteSummary).toBe(false);
+    expect('hmac' in athleteSummary).toBe(false);
   });
 });

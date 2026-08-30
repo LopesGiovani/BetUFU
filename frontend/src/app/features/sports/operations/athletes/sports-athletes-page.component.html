@@ -1,0 +1,145 @@
+<section class="athletes-page" aria-labelledby="athletes-title">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Console operacional</span>
+      <h1 id="athletes-title">Operacao esportiva</h1>
+      <p>Atletas globais e registros vinculados a uma equipe autorizada.</p>
+    </div>
+    @if (scope.hasSelection()) {
+      <div class="scope-picker">
+        <label for="competition-select">Competicao</label>
+        <select id="competition-select" [value]="competitionId" (change)="changeScope($any($event.target).value)">
+          @for (competition of scope.competitions(); track competition.competitionId) {
+            <option [value]="competition.competitionId">{{ competition.name }}</option>
+          }
+        </select>
+      </div>
+    }
+  </header>
+
+  @if (scope.isDenied() || scope.isEmpty()) {
+    <article class="state-card" role="status">
+      <h2>Nenhuma competicao atribuida</h2>
+      <p>Seu acesso nao possui uma competicao autorizada para administrar atletas.</p>
+    </article>
+  } @else if (scope.isError()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Nao foi possivel carregar as competicoes</h2>
+      <p>{{ scope.errorMessage() }}</p>
+      <button type="button" class="button button--primary" (click)="retry()">Tentar carregar competicoes</button>
+    </article>
+  } @else if (store.isLoading() || teamsLoading()) {
+    <article class="state-card" role="status" aria-live="polite">
+      <h2>Carregando atletas...</h2>
+      <p>Aguarde enquanto consultamos os cadastros deste escopo.</p>
+    </article>
+  } @else if (store.isError() || teamsError()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Nao foi possivel carregar atletas e elencos</h2>
+      <p>{{ store.errorMessage() || teamsError() }}</p>
+      <button type="button" class="button button--primary" (click)="loadWorkspace()">Tentar carregar atletas e elencos</button>
+    </article>
+  } @else {
+    @if (store.conflictMessage()) {
+      <div class="alert alert--warning" role="alert">{{ store.conflictMessage() }}</div>
+    }
+    @if (store.feedbackMessage()) {
+      <div class="alert alert--success" role="status" aria-live="polite">{{ store.feedbackMessage() }}</div>
+    }
+
+    <section class="workspace-grid" aria-label="Atletas esportivos">
+      <article class="panel-card panel-card--wide">
+        <header class="card-header">
+          <div><span class="card-code">GLOBAL</span><h2>Atletas cadastrados</h2></div>
+          <button type="button" class="button button--primary" (click)="openAthleteForm()" [disabled]="teams().length === 0">Cadastrar atleta</button>
+        </header>
+        @if (store.athletes().length === 0) {
+          <div class="empty-copy">
+            <h3>Nenhum atleta cadastrado</h3>
+            <p>Cadastre o primeiro atleta individualmente ou use o modelo CSV BETUFU para criar rascunhos em lote.</p>
+            @if (teams().length > 0) {
+              <button type="button" class="text-button" (click)="openAthleteForm()">Cadastrar atleta</button>
+            }
+          </div>
+        } @else {
+          <ul class="record-list">
+            @for (athlete of store.athletes(); track athlete.athleteId) {
+              <li class="record-row">
+                <div><strong>{{ athlete.name }}</strong><span>{{ athlete.slug }} · Atleta global</span></div>
+                <div class="record-actions">
+                  <span class="status-chip" [class.status-chip--published]="athlete.status === 'PUBLICADO'">{{ statusLabel(athlete.status) }}</span>
+                  <span class="version">v{{ athlete.lockVersion }}</span>
+                  <button type="button" (click)="previewAthlete(athlete)">Pre-visualizar atleta</button>
+                  <button type="button" (click)="editAthlete(athlete)">Editar</button>
+                  @if (athlete.status !== 'PUBLICADO') {
+                    <button type="button" (click)="publishAthlete(athlete)">Publicar atleta</button>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </article>
+    </section>
+  }
+
+  @if (activeForm(); as form) {
+    <aside class="form-panel" aria-labelledby="form-title">
+      <header class="card-header">
+        <div>
+          <span class="eyebrow">{{ editingAthlete() ? 'Editar registro' : 'Novo cadastro' }}</span>
+          <h2 id="form-title">Atleta esportivo</h2>
+        </div>
+        <button type="button" class="close-button" (click)="closeForm()">Fechar</button>
+      </header>
+      @if (editingAthlete()) {
+        <form [formGroup]="athleteForm" (ngSubmit)="saveAthlete()">
+          <label>Nome<input formControlName="name" autocomplete="off"></label>
+          <label>Slug<input formControlName="slug" autocomplete="off" placeholder="exemplo-sem-espacos"></label>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">Cancelar</button>
+            <button type="submit" class="button button--primary" [disabled]="athleteForm.controls.name.invalid || athleteForm.controls.slug.invalid || store.isMutating()">Salvar alteracoes</button>
+          </div>
+        </form>
+      } @else {
+        <p class="form-note">O atleta possui registro global. A autorizacao e o escopo sao derivados da equipe selecionada.</p>
+        <form [formGroup]="athleteForm" (ngSubmit)="saveAthlete()">
+          <label>
+            Equipe responsavel
+            <select formControlName="teamId">
+              @for (team of teams(); track team.teamId) {
+                <option [value]="team.teamId">{{ team.name }} ({{ team.organizationName }} · {{ team.sportName }})</option>
+              }
+            </select>
+          </label>
+          <label>Nome esportivo<input formControlName="name" autocomplete="off"></label>
+          <label>Slug<input formControlName="slug" autocomplete="off" placeholder="exemplo-sem-espacos"></label>
+          <label>
+            Matricula institucional (opcional)
+            <input formControlName="matricula" autocomplete="off" placeholder="Apenas numeros" type="text">
+            <small class="field-help">A matricula sera usada somente para gerar uma impressao protegida e nao sera exibida ou armazenada de forma consultavel.</small>
+          </label>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">Cancelar</button>
+            <button type="submit" class="button button--primary" [disabled]="athleteForm.invalid || store.isMutating()">Salvar rascunho</button>
+          </div>
+        </form>
+      }
+    </aside>
+  }
+
+  @if (previewItem(); as preview) {
+    <aside class="preview-panel" aria-labelledby="preview-title">
+      <header class="card-header">
+        <div><span class="eyebrow">Pre-visualizacao nao publicada</span><h2 id="preview-title">{{ preview.name }}</h2></div>
+        <button type="button" class="close-button" (click)="closePreview()">Fechar</button>
+      </header>
+      <dl>
+        <div><dt>Tipo</dt><dd>Atleta global</dd></div>
+        <div><dt>Contexto</dt><dd>{{ preview.scope }}</dd></div>
+        <div><dt>Estado</dt><dd>{{ preview.status }}</dd></div>
+        <div><dt>Versao</dt><dd>v{{ preview.version }}</dd></div>
+      </dl>
+    </aside>
+  }
+</section>

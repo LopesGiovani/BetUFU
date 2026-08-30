@@ -1400,6 +1400,150 @@ paths:
         "409":
           description: Versão stale; nenhuma alteração é sobrescrita.
 
+  /api/v1/operations/sports/athletes:
+    get:
+      tags:
+        - SportsAthlete
+      operationId: listSportsAthletes
+      summary: Listar atletas esportivos operacionais
+      description: >-
+        Lista atletas cadastrados no sistema esportivo. A autorização
+        vem das capabilities da sessão (D-58).
+      responses:
+        "200":
+          description: Atletas ordenados por nome.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsAthleteSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Capability de catálogo ausente.
+
+  /api/v1/operations/sports/teams/{teamId}/athletes:
+    post:
+      tags:
+        - SportsAthlete
+      operationId: createSportsAthlete
+      summary: Cadastrar atleta esportivo vinculado ao escopo de equipe
+      description: >-
+        Cadastra um atleta esportivo global derivando a autorização e o escopo da
+        equipe persistida. A matrícula é recebida exclusivamente como entrada transitória
+        em memória para cálculo do HMAC versionado e descartada em seguida (D-58, D-69, D-70).
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsAthleteCreateRequest"
+      responses:
+        "201":
+          description: Atleta criado em rascunho.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsAthleteSummary"
+        "400":
+          description: Dados do atleta inválidos ou formato de matrícula fora do padrão aprovado.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Equipe não encontrada.
+        "409":
+          description: Conflito de slug, nome ou matrícula já registrada.
+
+  /api/v1/operations/sports/athletes/{athleteId}:
+    put:
+      tags:
+        - SportsAthlete
+      operationId: updateSportsAthlete
+      summary: Atualizar atleta esportivo com optimistic locking
+      parameters:
+        - name: athleteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "200":
+          description: Atleta atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsAthleteSummary"
+        "400":
+          description: Dados ou versão esperada inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Capability de catálogo ausente.
+        "404":
+          description: Atleta não encontrado.
+        "409":
+          description: Versão stale; nenhuma alteração é sobrescrita.
+
+  /api/v1/operations/sports/athletes/{athleteId}/publish:
+    post:
+      tags:
+        - SportsAthlete
+      operationId: publishSportsAthlete
+      summary: Publicar atleta esportivo
+      parameters:
+        - name: athleteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        "200":
+          description: Atleta publicado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsAthleteSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Capability de catálogo ausente.
+        "404":
+          description: Atleta não encontrado.
+        "409":
+          description: Versão stale; nenhuma alteração é sobrescrita.
+
   /api/v1/operations/sports/competitions:
     post:
       tags:
@@ -3255,6 +3399,55 @@ components:
           format: uuid
         venueSpaceName:
           type: [string, "null"]
+
+    SportsAthleteCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          maxLength: 96
+        matricula:
+          type: [string, "null"]
+          description: >-
+            Matrícula institucional UFU recebida exclusivamente como entrada transitória
+            em memória. O backend normaliza, calcula o HMAC versionado e descarta o valor
+            bruto sem resposta, log, URL ou persistência consultável (D-69, PRIV-01).
+
+    SportsAthleteSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+        - name
+        - slug
+        - status
+        - lockVersion
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - RASCUNHO
+            - PUBLICADO
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
 
     OperationalCapability:
       type: string
