@@ -288,9 +288,10 @@ terminais e revisao O8 sem enumeracao de matricula/HMAC/e-mail. Os eventos
 publicados depois do commit e a reconciliacao e idempotente nos dois sentidos.
 
 O snapshot identificou uma colisao de versao para a proxima wave: `03-07`
-usa `V14__harden_athlete_link_proposals.sql`, enquanto `03-08-PLAN.md` ainda
-declara `V14__create_sports_rosters.sql`. Flyway nao aceita duas migrations
-com a mesma versao; o plano seguinte precisa ser renumerado antes da execucao.
+usa `V14__harden_athlete_link_proposals.sql`, enquanto `03-08-PLAN.md`
+declarava `V14__create_sports_rosters.sql`. A colisao foi resolvida antes da
+execucao: as migrations futuras foram deslocadas para V15-V20, sem renomear
+V13/V14 ja publicadas.
 
 ### Auditoria multifuente
 
@@ -538,7 +539,7 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 - [ ] 03-09/T2 — `backend/src/test/resources/sports/csv/` com válido, erro tardio, BOM/encoding, quoting, duplicata, referência ausente e limites.
 - [ ] 03-15/T2 — `backend/src/test/resources/sports/media/` com válida, MIME falso, truncada, pixels excessivos, metadados e falha de storage.
 - [x] 03-06/T2 — compatibilidade da porta HMAC e extensão estreita de `PrivacyArchitectureTest`. **Green - V12, atleta/HMAC, privacidade e Modulith certificados na Wave 7.**
-- [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V19. **V9: green no 03-02; V10/V11/V12: green; V13-V19 permanecem pendentes.**
+- [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V20. **V9: green no 03-02; V10/V11/V12: green; V13/V14: green no 03-07; V15-V20 permanecem pendentes.**
 - [x] 03-02/T1 — teste de existência de competição ao conceder papel escopado. **Provado por `rejectsGrantForUnknownCompetition()`.**
 - [ ] 03-03/T2 a 03-15/T3, com inventário/digest final no 03-17/T1 — gate do gerador OpenAPI e checkpoint humano de inventário/digest. **Parcela 03-03: ✅ candidato aprovado e geração governada verde; planos posteriores permanecem pendentes.**
 
