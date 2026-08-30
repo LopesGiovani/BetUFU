@@ -1,0 +1,110 @@
+@use '../../styles/tokens' as tokens;
+
+:host { display: block; min-height: 100%; background: tokens.$color-canvas; }
+
+.skip-link {
+  position: fixed;
+  z-index: 50;
+  top: tokens.$space-2;
+  left: tokens.$space-2;
+  padding: tokens.$space-2 tokens.$space-4;
+  border-radius: tokens.$radius-full;
+  background: tokens.$color-focus;
+  color: tokens.$color-ink;
+  transform: translateY(-180%);
+  &:focus { transform: translateY(0); }
+}
+
+.console-header {
+  position: relative;
+  z-index: 20;
+  border-bottom: 1px solid tokens.$color-border;
+  background: tokens.$color-ink;
+}
+
+.console-header__inner {
+  position: relative;
+  display: flex;
+  width: var(--bt-container);
+  min-height: tokens.$space-16;
+  margin-inline: auto;
+  align-items: center;
+  gap: tokens.$space-6;
+}
+
+.console-brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: tokens.$space-2;
+  color: tokens.$color-text;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.console-brand__mark {
+  display: grid;
+  inline-size: tokens.$min-touch-target;
+  block-size: tokens.$min-touch-target;
+  place-items: center;
+  border-radius: 50%;
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+  font: 600 1.5rem/1 'Barlow Condensed', sans-serif;
+}
+
+.console-context { display: grid; min-width: 0; gap: 2px; }
+.console-context__eyebrow { color: tokens.$color-text-muted; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+.console-context strong { overflow-wrap: anywhere; }
+
+.console-nav {
+  display: flex;
+  min-width: 0;
+  margin-left: auto;
+  align-items: center;
+  gap: tokens.$space-2;
+  a, button {
+    display: inline-flex;
+    min-height: tokens.$min-touch-target;
+    padding: 0 tokens.$space-2;
+    align-items: center;
+    border: 0;
+    border-radius: tokens.$radius-full;
+    background: transparent;
+    color: tokens.$color-text-muted;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    &:hover, &.is-active { background: tokens.$color-surface-raised; color: tokens.$color-text; }
+  }
+  .console-nav__account { border: 1px solid tokens.$color-border-strong; padding-inline: tokens.$space-4; color: tokens.$color-text; }
+}
+
+.console-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% - #{tokens.$space-2});
+  right: 0;
+  display: grid;
+  min-width: 190px;
+  padding: tokens.$space-2;
+  gap: 2px;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-md;
+  background: tokens.$color-surface-raised;
+  box-shadow: tokens.$shadow-raised;
+  a, button { padding: tokens.$space-2 tokens.$space-4; border: 0; border-radius: tokens.$radius-sm; background: transparent; color: tokens.$color-text; font: inherit; text-align: left; text-decoration: none; cursor: pointer; &:hover { background: tokens.$color-wine; } }
+}
+
+.console-menu__hint { padding: tokens.$space-2 tokens.$space-4; color: tokens.$color-accent-soft; font-size: .75rem; text-transform: uppercase; }
+.console-main { width: var(--bt-container); margin-inline: auto; padding-block: tokens.$space-8; }
+
+@media (max-width: 760px) {
+  .console-header__inner { flex-wrap: wrap; gap: tokens.$space-2; padding-block: tokens.$space-2; }
+  .console-context { order: 3; flex-basis: 100%; padding-bottom: tokens.$space-2; }
+  .console-nav { gap: 0; }
+  .console-nav a { display: none; }
+  .console-nav a:last-of-type { display: inline-flex; }
+  .console-main { padding-block: tokens.$space-6; }
+}

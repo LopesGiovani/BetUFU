@@ -16,5 +16,7 @@ package br.com.betufu.platform.operations;
 public enum OperationalCapability {
     VIEW_OPERATIONAL_PANEL,
     MANAGE_ROLES,
-    CORRECT_ENROLLMENT
+    CORRECT_ENROLLMENT,
+    MANAGE_SPORTS_CATALOG,
+    BOOTSTRAP_SPORTS_COMPETITION
 }

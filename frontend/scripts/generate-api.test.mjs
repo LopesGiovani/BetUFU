@@ -267,7 +267,7 @@ test('manifesto recusa bytes com URL absoluta escondida depois de regex literal'
   );
 });
 
-test('geracao publica seleciona somente SportsPublic e seus schemas compartilhados', () => {
+test('geracao seleciona SportsCatalog, SportsPublic e seus schemas compartilhados', () => {
   assert.deepEqual(PUBLIC_GENERATOR_API_TAGS, [
     'Diagnostic',
     'Enrollment',
@@ -278,11 +278,15 @@ test('geracao publica seleciona somente SportsPublic e seus schemas compartilhad
     'Profile',
     'Role',
     'Session',
+    'SportsCatalog',
     'SportsPublic',
   ]);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicSportsEventPage'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventFormat'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCatalogScope'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsVenueSummary'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCompetitionCreateRequest'), false);
+  assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsCatalog'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsOperations'), false);
 });
 
@@ -346,13 +350,16 @@ test('inspeciona endpoints e schemas do contrato sem depender do gerador', () =>
   assert.deepEqual(inventory.publicSchemas, ['PublicSportsEventPage']);
 });
 
-test('inventario gerado exclui comandos esportivos fora do cliente publico', () => {
+test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado', () => {
   const inventory = inspectGeneratedOpenApiContract([
     'openapi: 3.1.0',
     'paths:',
     '  /api/v1/operations/sports/competitions:',
     '    post:',
     '      operationId: createSportsCompetition',
+    '  /api/v1/operations/sports/catalog/scope:',
+    '    get:',
+    '      operationId: getSportsCatalogScope',
     '  /api/v1/public/sports/events:',
     '    get:',
     '      operationId: listPublishedSportsEvents',
@@ -366,7 +373,10 @@ test('inventario gerado exclui comandos esportivos fora do cliente publico', () 
   ].join('\n'));
 
   assert.deepEqual(inventory, {
-    endpoints: [{ path: '/api/v1/public/sports/events', methods: ['GET'] }],
+    endpoints: [
+      { path: '/api/v1/operations/sports/catalog/scope', methods: ['GET'] },
+      { path: '/api/v1/public/sports/events', methods: ['GET'] },
+    ],
     schemas: ['PublicSportsEventPage'],
     publicSchemas: ['PublicSportsEventPage'],
   });

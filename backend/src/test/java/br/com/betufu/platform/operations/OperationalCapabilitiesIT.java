@@ -242,10 +242,12 @@ class OperationalCapabilitiesIT {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.capabilities").isArray())
-                .andExpect(jsonPath("$.capabilities.length()").value(3))
+                .andExpect(jsonPath("$.capabilities.length()").value(5))
                 .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
                 .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_ROLES"))
-                .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"));
+                .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"))
+                .andExpect(jsonPath("$.capabilities[3]").value("MANAGE_SPORTS_CATALOG"))
+                .andExpect(jsonPath("$.capabilities[4]").value("BOOTSTRAP_SPORTS_COMPETITION"));
     }
 
     @Test
@@ -256,8 +258,9 @@ class OperationalCapabilitiesIT {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.capabilities").isArray())
-                .andExpect(jsonPath("$.capabilities.length()").value(1))
-                .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"));
+                .andExpect(jsonPath("$.capabilities.length()").value(2))
+                .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
+                .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_SPORTS_CATALOG"));
     }
 
     @Test
@@ -323,8 +326,9 @@ class OperationalCapabilitiesIT {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.capabilities").isArray())
-                .andExpect(jsonPath("$.capabilities.length()").value(1))
-                .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"));
+                .andExpect(jsonPath("$.capabilities.length()").value(2))
+                .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
+                .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_SPORTS_CATALOG"));
 
         // Usuário com ADMINISTRADOR_GERAL global e MODERADOR escopado
         mockMvc.perform(get(CAPABILITIES_PATH)
@@ -332,10 +336,12 @@ class OperationalCapabilitiesIT {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.capabilities").isArray())
-                .andExpect(jsonPath("$.capabilities.length()").value(3))
+                .andExpect(jsonPath("$.capabilities.length()").value(5))
                 .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
                 .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_ROLES"))
-                .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"));
+                .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"))
+                .andExpect(jsonPath("$.capabilities[3]").value("MANAGE_SPORTS_CATALOG"))
+                .andExpect(jsonPath("$.capabilities[4]").value("BOOTSTRAP_SPORTS_COMPETITION"));
     }
 
     @Test
@@ -374,21 +380,21 @@ class OperationalCapabilitiesIT {
                         .with(oidcPrincipalWithCustomIss(ISSUER, "admin-sub"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.capabilities.length()").value(3));
+                .andExpect(jsonPath("$.capabilities.length()").value(5));
 
         // java.net.URL
         mockMvc.perform(get(CAPABILITIES_PATH)
                         .with(oidcPrincipalWithCustomIss(URI.create(ISSUER).toURL(), "admin-sub"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.capabilities.length()").value(3));
+                .andExpect(jsonPath("$.capabilities.length()").value(5));
 
         // java.net.URI
         mockMvc.perform(get(CAPABILITIES_PATH)
                         .with(oidcPrincipalWithCustomIss(URI.create(ISSUER), "admin-sub"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.capabilities.length()").value(3));
+                .andExpect(jsonPath("$.capabilities.length()").value(5));
     }
 
     @Test
@@ -440,7 +446,7 @@ class OperationalCapabilitiesIT {
         String body = result.getResponse().getContentAsString();
 
         assertThat(body)
-                .contains("\"capabilities\":[\"VIEW_OPERATIONAL_PANEL\",\"MANAGE_ROLES\",\"CORRECT_ENROLLMENT\"]")
+                .contains("\"capabilities\":[\"VIEW_OPERATIONAL_PANEL\",\"MANAGE_ROLES\",\"CORRECT_ENROLLMENT\",\"MANAGE_SPORTS_CATALOG\",\"BOOTSTRAP_SPORTS_COMPETITION\"]")
                 .doesNotContain(adminIdentityId.toString())
                 .doesNotContain("admin_geral")
                 .doesNotContain("ADMINISTRADOR_GERAL")

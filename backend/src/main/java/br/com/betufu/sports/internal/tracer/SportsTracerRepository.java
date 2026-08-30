@@ -103,21 +103,70 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                 .findFirst();
     }
 
-    EventResponse createEvent(EditionScope edition, EventCreateRequest request) {
+    Optional<EventCatalogScope> findEventCatalogScope(UUID editionId, EventCreateRequest request) {
+        return jdbcTemplate.query(
+                        "SELECT e.edition_id, e.competition_id, e.name AS edition_name, "
+                                + "c.name AS competition_name, c.sport_id AS competition_sport_id, "
+                                + "s.sport_id, s.name AS sport_name, cat.category_id, cat.name AS category_name, "
+                                + "ph.phase_id, ph.name AS phase_name, v.venue_id, v.name AS venue_name, "
+                                + "vs.venue_space_id, vs.name AS venue_space_name "
+                                + "FROM public.sports_edition e "
+                                + "JOIN public.sports_competition c ON c.competition_id = e.competition_id "
+                                + "LEFT JOIN public.sports_sport s ON s.sport_id = c.sport_id AND s.sport_id = ? "
+                                + "LEFT JOIN public.sports_category cat ON cat.category_id = ? AND cat.edition_id = e.edition_id "
+                                + "LEFT JOIN public.sports_phase ph ON ph.phase_id = ? AND ph.edition_id = e.edition_id "
+                                + "AND ph.category_id = cat.category_id "
+                                + "LEFT JOIN public.sports_venue v ON v.venue_id = ? AND v.competition_id = e.competition_id "
+                                + "LEFT JOIN public.sports_venue_space vs ON vs.venue_space_id = ? AND vs.venue_id = v.venue_id "
+                                + "WHERE e.edition_id = ?",
+                        (rs, rowNum) -> new EventCatalogScope(
+                                new EditionScope(
+                                        rs.getObject("edition_id", UUID.class),
+                                        rs.getObject("competition_id", UUID.class),
+                                        rs.getString("competition_name"),
+                                        rs.getString("edition_name")),
+                                rs.getObject("competition_sport_id", UUID.class),
+                                rs.getObject("sport_id", UUID.class),
+                                rs.getString("sport_name"),
+                                rs.getObject("category_id", UUID.class),
+                                rs.getString("category_name"),
+                                rs.getObject("phase_id", UUID.class),
+                                rs.getString("phase_name"),
+                                rs.getObject("venue_id", UUID.class),
+                                rs.getString("venue_name"),
+                                rs.getObject("venue_space_id", UUID.class),
+                                rs.getString("venue_space_name")),
+                        request.sportId(),
+                        request.categoryId(),
+                        request.phaseId(),
+                        request.venueId(),
+                        request.venueSpaceId(),
+                        editionId)
+                .stream()
+                .findFirst();
+    }
+
+    EventResponse createEvent(EventCatalogScope scope, EventCreateRequest request) {
         UUID eventId = UUID.randomUUID();
         jdbcTemplate.update(
                 "INSERT INTO public.sports_event "
                         + "(event_id, competition_id, edition_id, title, event_format, scheduled_at, "
-                        + "zone_id, venue_state, source_reference) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        + "zone_id, venue_state, source_reference, sport_id, category_id, phase_id, venue_id, venue_space_id) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 eventId,
-                edition.competitionId(),
-                edition.editionId(),
+                scope.edition().competitionId(),
+                scope.edition().editionId(),
                 request.title().trim(),
                 request.format().name(),
                 Timestamp.from(request.scheduledAt()),
                 request.zoneId(),
                 request.venueState().name(),
-                request.sourceReference().trim());
+                request.sourceReference().trim(),
+                request.sportId(),
+                request.categoryId(),
+                request.phaseId(),
+                request.venueId(),
+                request.venueSpaceId());
 
         for (EventSlotRequest slot : request.slots()) {
             jdbcTemplate.update(
@@ -129,15 +178,25 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
 
         return new EventResponse(
                 eventId,
-                edition.competitionId(),
-                edition.editionId(),
+                scope.edition().competitionId(),
+                scope.edition().editionId(),
                 request.title().trim(),
                 request.format(),
                 "RASCUNHO",
                 request.scheduledAt(),
                 request.zoneId(),
                 request.venueState(),
-                0);
+                0,
+                scope.sportId(),
+                scope.sportName(),
+                scope.categoryId(),
+                scope.categoryName(),
+                scope.phaseId(),
+                scope.phaseName(),
+                scope.venueId(),
+                scope.venueName(),
+                scope.venueSpaceId(),
+                scope.venueSpaceName());
     }
 
     Optional<EventWork> findEventForUpdate(UUID eventId) {
@@ -145,10 +204,18 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                         "SELECT ev.event_id, ev.competition_id, ev.edition_id, "
                                 + "c.name AS competition_name, ed.name AS edition_name, ev.title, "
                                 + "ev.event_format, ev.status, ev.scheduled_at, ev.zone_id, "
-                                + "ev.venue_state, ev.source_reference, ev.lock_version "
+                                + "ev.venue_state, ev.source_reference, ev.lock_version, "
+                                + "ev.sport_id, s.name AS sport_name, ev.category_id, cat.name AS category_name, "
+                                + "ev.phase_id, ph.name AS phase_name, ev.venue_id, v.name AS venue_name, "
+                                + "ev.venue_space_id, vs.name AS venue_space_name "
                                 + "FROM public.sports_event ev "
                                 + "JOIN public.sports_competition c ON c.competition_id = ev.competition_id "
                                 + "JOIN public.sports_edition ed ON ed.edition_id = ev.edition_id "
+                                + "LEFT JOIN public.sports_sport s ON s.sport_id = ev.sport_id "
+                                + "LEFT JOIN public.sports_category cat ON cat.category_id = ev.category_id "
+                                + "LEFT JOIN public.sports_phase ph ON ph.phase_id = ev.phase_id "
+                                + "LEFT JOIN public.sports_venue v ON v.venue_id = ev.venue_id "
+                                + "LEFT JOIN public.sports_venue_space vs ON vs.venue_space_id = ev.venue_space_id "
                                 + "WHERE ev.event_id = ? FOR UPDATE OF ev",
                         (rs, rowNum) -> new EventWork(
                                 rs.getObject("event_id", UUID.class),
@@ -163,7 +230,17 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                                 rs.getString("zone_id"),
                                 VenueState.valueOf(rs.getString("venue_state")),
                                 rs.getString("source_reference"),
-                                rs.getLong("lock_version")),
+                                rs.getLong("lock_version"),
+                                rs.getObject("sport_id", UUID.class),
+                                rs.getString("sport_name"),
+                                rs.getObject("category_id", UUID.class),
+                                rs.getString("category_name"),
+                                rs.getObject("phase_id", UUID.class),
+                                rs.getString("phase_name"),
+                                rs.getObject("venue_id", UUID.class),
+                                rs.getString("venue_name"),
+                                rs.getObject("venue_space_id", UUID.class),
+                                rs.getString("venue_space_name")),
                         eventId)
                 .stream()
                 .findFirst();
@@ -220,8 +297,11 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                         + "(publication_id, event_id, competition_id, edition_id, version_no, "
                         + "competition_name, edition_name, title, event_format, scheduled_at, zone_id, "
                         + "venue_state, source_reference, published_by_identity_id, published_at, "
-                        + "supersedes_publication_id, base_lock_version) "
-                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                        + "supersedes_publication_id, base_lock_version, sport_id, sport_name, category_id, "
+                        + "category_name, phase_id, phase_name, venue_id, venue_name, venue_space_id, venue_space_name) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                        + "?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                        + "?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 publicationId,
                 event.eventId(),
                 event.competitionId(),
@@ -238,7 +318,17 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                 publisherIdentityId,
                 Timestamp.from(publishedAt),
                 supersedesPublicationId,
-                event.lockVersion());
+                event.lockVersion(),
+                event.sportId(),
+                event.sportName(),
+                event.categoryId(),
+                event.categoryName(),
+                event.phaseId(),
+                event.phaseName(),
+                event.venueId(),
+                event.venueName(),
+                event.venueSpaceId(),
+                event.venueSpaceName());
 
         for (EventSlotRequest slot : slots) {
             jdbcTemplate.update(
@@ -266,14 +356,26 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                 publishedAt,
                 slots.stream()
                         .map(slot -> new PublicSlotResponse(slot.slotNo(), slot.displayLabel()))
-                        .toList());
+                        .toList(),
+                event.sportId(),
+                event.sportName(),
+                event.categoryId(),
+                event.categoryName(),
+                event.phaseId(),
+                event.phaseName(),
+                event.venueId(),
+                event.venueName(),
+                event.venueSpaceId(),
+                event.venueSpaceName());
     }
 
     Optional<PublicEventResponse> findLatestPublication(UUID eventId) {
         Optional<PublicationProjection> publication = jdbcTemplate.query(
                         "SELECT publication_id, event_id, competition_id, edition_id, version_no, "
                                 + "competition_name, edition_name, title, event_format, scheduled_at, "
-                                + "zone_id, venue_state, source_reference, published_at "
+                                + "zone_id, venue_state, source_reference, published_at, sport_id, sport_name, "
+                                + "category_id, category_name, phase_id, phase_name, venue_id, venue_name, "
+                                + "venue_space_id, venue_space_name "
                                 + "FROM public.sports_event_publication WHERE event_id = ? "
                                 + "ORDER BY version_no DESC LIMIT 1",
                         (rs, rowNum) -> new PublicationProjection(
@@ -290,7 +392,17 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                                 rs.getString("zone_id"),
                                 VenueState.valueOf(rs.getString("venue_state")),
                                 rs.getString("source_reference"),
-                                rs.getTimestamp("published_at").toInstant()),
+                                rs.getTimestamp("published_at").toInstant(),
+                                rs.getObject("sport_id", UUID.class),
+                                rs.getString("sport_name"),
+                                rs.getObject("category_id", UUID.class),
+                                rs.getString("category_name"),
+                                rs.getObject("phase_id", UUID.class),
+                                rs.getString("phase_name"),
+                                rs.getObject("venue_id", UUID.class),
+                                rs.getString("venue_name"),
+                                rs.getObject("venue_space_id", UUID.class),
+                                rs.getString("venue_space_name")),
                         eventId)
                 .stream()
                 .findFirst();
@@ -322,12 +434,26 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                 row.venueState(),
                 row.sourceReference(),
                 row.publishedAt(),
-                slots));
+                slots,
+                row.sportId(),
+                row.sportName(),
+                row.categoryId(),
+                row.categoryName(),
+                row.phaseId(),
+                row.phaseName(),
+                row.venueId(),
+                row.venueName(),
+                row.venueSpaceId(),
+                row.venueSpaceName()));
     }
 
     PublishedEventsPageData findPublishedEvents(
             UUID competitionId,
             UUID editionId,
+            UUID sportId,
+            UUID categoryId,
+            UUID phaseId,
+            VenueState state,
             Instant from,
             Instant to,
             int page,
@@ -341,6 +467,22 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
         if (editionId != null) {
             filters.append(" AND p.edition_id = ?");
             filterParameters.add(editionId);
+        }
+        if (sportId != null) {
+            filters.append(" AND p.sport_id = ?");
+            filterParameters.add(sportId);
+        }
+        if (categoryId != null) {
+            filters.append(" AND p.category_id = ?");
+            filterParameters.add(categoryId);
+        }
+        if (phaseId != null) {
+            filters.append(" AND p.phase_id = ?");
+            filterParameters.add(phaseId);
+        }
+        if (state != null) {
+            filters.append(" AND p.venue_state = ?");
+            filterParameters.add(state.name());
         }
         if (from != null) {
             filters.append(" AND p.scheduled_at >= ?");
@@ -365,7 +507,9 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
         long offset = Math.multiplyExact((long) page, size);
         String itemsSql = "SELECT p.publication_id, p.event_id, p.competition_id, p.edition_id, "
                 + "p.competition_name, p.edition_name, p.title, p.event_format, "
-                + "p.scheduled_at, p.zone_id, p.venue_state"
+                + "p.scheduled_at, p.zone_id, p.venue_state, p.sport_id, p.sport_name, "
+                + "p.category_id, p.category_name, p.phase_id, p.phase_name, p.venue_id, p.venue_name, "
+                + "p.venue_space_id, p.venue_space_name"
                 + latestJoin
                 + filters
                 + " ORDER BY p.scheduled_at ASC, p.event_id ASC LIMIT ? OFFSET ?";
@@ -385,7 +529,17 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                         EventFormat.valueOf(rs.getString("event_format")),
                         rs.getTimestamp("scheduled_at").toInstant(),
                         rs.getString("zone_id"),
-                        VenueState.valueOf(rs.getString("venue_state"))),
+                        VenueState.valueOf(rs.getString("venue_state")),
+                        rs.getObject("sport_id", UUID.class),
+                        rs.getString("sport_name"),
+                        rs.getObject("category_id", UUID.class),
+                        rs.getString("category_name"),
+                        rs.getObject("phase_id", UUID.class),
+                        rs.getString("phase_name"),
+                        rs.getObject("venue_id", UUID.class),
+                        rs.getString("venue_name"),
+                        rs.getObject("venue_space_id", UUID.class),
+                        rs.getString("venue_space_name")),
                 itemParameters.toArray());
 
         List<PublicSportsEventSummary> items = projections.stream()
@@ -400,7 +554,17 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                         row.scheduledAt(),
                         row.zoneId(),
                         row.venueState(),
-                        findPublicationSlots(row.publicationId())))
+                        findPublicationSlots(row.publicationId()),
+                        row.sportId(),
+                        row.sportName(),
+                        row.categoryId(),
+                        row.categoryName(),
+                        row.phaseId(),
+                        row.phaseName(),
+                        row.venueId(),
+                        row.venueName(),
+                        row.venueSpaceId(),
+                        row.venueSpaceName()))
                 .toList();
         return new PublishedEventsPageData(items, total == null ? 0 : total);
     }
@@ -426,6 +590,21 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
             String editionName) {
     }
 
+    record EventCatalogScope(
+            EditionScope edition,
+            UUID competitionSportId,
+            UUID sportId,
+            String sportName,
+            UUID categoryId,
+            String categoryName,
+            UUID phaseId,
+            String phaseName,
+            UUID venueId,
+            String venueName,
+            UUID venueSpaceId,
+            String venueSpaceName) {
+    }
+
     record EventWork(
             UUID eventId,
             UUID competitionId,
@@ -439,7 +618,17 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
             String zoneId,
             VenueState venueState,
             String sourceReference,
-            long lockVersion) {
+            long lockVersion,
+            UUID sportId,
+            String sportName,
+            UUID categoryId,
+            String categoryName,
+            UUID phaseId,
+            String phaseName,
+            UUID venueId,
+            String venueName,
+            UUID venueSpaceId,
+            String venueSpaceName) {
     }
 
     private record PublicationProjection(
@@ -456,7 +645,17 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
             String zoneId,
             VenueState venueState,
             String sourceReference,
-            Instant publishedAt) {
+            Instant publishedAt,
+            UUID sportId,
+            String sportName,
+            UUID categoryId,
+            String categoryName,
+            UUID phaseId,
+            String phaseName,
+            UUID venueId,
+            String venueName,
+            UUID venueSpaceId,
+            String venueSpaceName) {
     }
 
     record PublishedEventsPageData(
@@ -475,6 +674,16 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
             EventFormat format,
             Instant scheduledAt,
             String zoneId,
-            VenueState venueState) {
+            VenueState venueState,
+            UUID sportId,
+            String sportName,
+            UUID categoryId,
+            String categoryName,
+            UUID phaseId,
+            String phaseName,
+            UUID venueId,
+            String venueName,
+            UUID venueSpaceId,
+            String venueSpaceName) {
     }
 }

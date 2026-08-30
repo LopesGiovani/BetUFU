@@ -158,7 +158,7 @@
           </label>
           <label>
             <span>Edição</span>
-            <select formControlName="editionId">
+            <select formControlName="editionId" (change)="onEditionChange()">
               <option value="">Todas as edições</option>
               @if (filterForm.controls.editionId.value && !hasEditionOption(filterForm.controls.editionId.value)) {
                 <option [value]="filterForm.controls.editionId.value">Edição selecionada (detalhes indisponíveis)</option>
@@ -166,6 +166,34 @@
               @for (edition of store.editionsForCompetition(filterForm.controls.competitionId.value || undefined); track edition.id) {
                 <option [value]="edition.id">{{ edition.label }}</option>
               }
+            </select>
+          </label>
+          <label>
+            <span>Esporte</span>
+            <select formControlName="sportId">
+              <option value="">Todos os esportes</option>
+              @for (sport of store.sports(); track sport.id) { <option [value]="sport.id">{{ sport.label }}</option> }
+            </select>
+          </label>
+          <label>
+            <span>Categoria</span>
+            <select formControlName="categoryId" (change)="onCategoryChange()">
+              <option value="">Todas as categorias</option>
+              @for (category of store.categoriesForEdition(filterForm.controls.editionId.value || undefined); track category.id) { <option [value]="category.id">{{ category.label }}</option> }
+            </select>
+          </label>
+          <label>
+            <span>Fase</span>
+            <select formControlName="phaseId">
+              <option value="">Todas as fases</option>
+              @for (phase of store.phasesForCategory(filterForm.controls.categoryId.value || undefined); track phase.id) { <option [value]="phase.id">{{ phase.label }}</option> }
+            </select>
+          </label>
+          <label>
+            <span>Estado do local</span>
+            <select formControlName="state">
+              <option value="">Qualquer estado</option>
+              @for (state of store.states(); track state.id) { <option [value]="state.id">{{ state.label }}</option> }
             </select>
           </label>
           <div class="filter-panel__actions">

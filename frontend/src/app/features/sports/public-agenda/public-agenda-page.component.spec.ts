@@ -172,6 +172,10 @@ describe('PublicAgendaPageComponent', () => {
     fixture.componentInstance.filterForm.setValue({
       competitionId: 'competition-from-link',
       editionId: 'edition-from-link',
+      sportId: '',
+      categoryId: '',
+      phaseId: '',
+      state: '',
     });
     fixture.detectChanges();
 

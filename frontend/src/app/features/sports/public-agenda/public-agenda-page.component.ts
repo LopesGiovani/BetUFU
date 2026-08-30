@@ -60,6 +60,10 @@ export class PublicAgendaPageComponent implements OnInit {
   readonly filterForm = new FormGroup({
     competitionId: new FormControl('', { nonNullable: true }),
     editionId: new FormControl('', { nonNullable: true }),
+    sportId: new FormControl('', { nonNullable: true }),
+    categoryId: new FormControl('', { nonNullable: true }),
+    phaseId: new FormControl('', { nonNullable: true }),
+    state: new FormControl('', { nonNullable: true }),
   });
 
   readonly agendaTitleText = computed(() => agendaPeriodLabel(this.store.query().period));
@@ -86,7 +90,11 @@ export class PublicAgendaPageComponent implements OnInit {
   );
   readonly activeFilterCount = computed(() =>
     Number(Boolean(this.store.query().competitionId))
-    + Number(Boolean(this.store.query().editionId)),
+    + Number(Boolean(this.store.query().editionId))
+    + Number(Boolean(this.store.query().sportId))
+    + Number(Boolean(this.store.query().categoryId))
+    + Number(Boolean(this.store.query().phaseId))
+    + Number(Boolean(this.store.query().state)),
   );
   readonly tickerEvents = computed(() => {
     const nextId = this.store.nextEvent()?.id;
@@ -123,6 +131,10 @@ export class PublicAgendaPageComponent implements OnInit {
         this.filterForm.reset({
           competitionId: query.competitionId ?? '',
           editionId: query.editionId ?? '',
+          sportId: query.sportId ?? '',
+          categoryId: query.categoryId ?? '',
+          phaseId: query.phaseId ?? '',
+          state: query.state ?? '',
         });
         const queryKey = this.queryKey(query);
         if (queryKey === this.lastRequestedQueryKey && this.store.status() !== 'initial') {
@@ -175,6 +187,23 @@ export class PublicAgendaPageComponent implements OnInit {
       .some((edition) => edition.id === editionId);
     if (!editionStillAvailable) {
       this.filterForm.controls.editionId.setValue('');
+      this.filterForm.controls.categoryId.setValue('');
+      this.filterForm.controls.phaseId.setValue('');
+    }
+  }
+
+  onEditionChange(): void {
+    const editionId = this.filterForm.controls.editionId.value || undefined;
+    if (!this.store.categoriesForEdition(editionId).some((category) => category.id === this.filterForm.controls.categoryId.value)) {
+      this.filterForm.controls.categoryId.setValue('');
+      this.filterForm.controls.phaseId.setValue('');
+    }
+  }
+
+  onCategoryChange(): void {
+    const categoryId = this.filterForm.controls.categoryId.value || undefined;
+    if (!this.store.phasesForCategory(categoryId).some((phase) => phase.id === this.filterForm.controls.phaseId.value)) {
+      this.filterForm.controls.phaseId.setValue('');
     }
   }
 
@@ -183,6 +212,10 @@ export class PublicAgendaPageComponent implements OnInit {
       period: this.store.query().period,
       competitionId: this.filterForm.controls.competitionId.value || undefined,
       editionId: this.filterForm.controls.editionId.value || undefined,
+      sportId: this.filterForm.controls.sportId.value || undefined,
+      categoryId: this.filterForm.controls.categoryId.value || undefined,
+      phaseId: this.filterForm.controls.phaseId.value || undefined,
+      state: this.validVenueState(this.filterForm.controls.state.value),
     };
     const waitingForLoad = await this.syncUrlWithPending(query);
     this.filtersOpen.set(false);
@@ -192,7 +225,7 @@ export class PublicAgendaPageComponent implements OnInit {
   }
 
   async clearFilters(): Promise<void> {
-    this.filterForm.reset({ competitionId: '', editionId: '' });
+    this.filterForm.reset({ competitionId: '', editionId: '', sportId: '', categoryId: '', phaseId: '', state: '' });
     const query = { period: this.store.query().period };
     const waitingForLoad = await this.syncUrlWithPending(query);
     this.filtersOpen.set(false);
@@ -245,6 +278,10 @@ export class PublicAgendaPageComponent implements OnInit {
       period: period === 'upcoming' ? 'upcoming' : 'today',
       competitionId: params?.get('competitionId') || undefined,
       editionId: params?.get('editionId') || undefined,
+      sportId: params?.get('sportId') || undefined,
+      categoryId: params?.get('categoryId') || undefined,
+      phaseId: params?.get('phaseId') || undefined,
+      state: this.validVenueState(params?.get('state')),
     };
   }
 
@@ -256,6 +293,10 @@ export class PublicAgendaPageComponent implements OnInit {
           period: query.period,
           competitionId: query.competitionId ?? null,
           editionId: query.editionId ?? null,
+          sportId: query.sportId ?? null,
+          categoryId: query.categoryId ?? null,
+          phaseId: query.phaseId ?? null,
+          state: query.state ?? null,
         },
       });
       return;
@@ -291,6 +332,10 @@ export class PublicAgendaPageComponent implements OnInit {
   }
 
   private queryKey(query: PublicAgendaQuery): string {
-    return [query.period, query.competitionId ?? '', query.editionId ?? ''].join('|');
+    return [query.period, query.competitionId ?? '', query.editionId ?? '', query.sportId ?? '', query.categoryId ?? '', query.phaseId ?? '', query.state ?? ''].join('|');
+  }
+
+  private validVenueState(value: string | null | undefined): PublicAgendaQuery['state'] {
+    return value === 'LOCAL_A_DEFINIR' || value === 'LOCAL_DEFINIDO' ? value : undefined;
   }
 }

@@ -80,6 +80,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Profile',
   'Role',
   'Session',
+  'SportsCatalog',
   'SportsPublic',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
@@ -115,8 +116,21 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'RoleGrantResponse',
   'RoleStatusDto',
   'SessionStateResponse',
+  'SportsCatalogEditionRequest',
+  'SportsCatalogScope',
+  'SportsCatalogTree',
+  'SportsCatalogVenueRequest',
+  'SportsCatalogVenueSpaceRequest',
+  'SportsCategorySummary',
+  'SportsCompetitionSummary',
+  'SportsEditionSummary',
   'SportsEventFormat',
+  'SportsNameSlugRequest',
+  'SportsPhaseSummary',
+  'SportsSportSummary',
   'SportsVenueState',
+  'SportsVenueSpaceSummary',
+  'SportsVenueSummary',
   'TimeWindow',
   'UnregisteredEnrollmentsBlock',
 ]);
@@ -150,6 +164,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/profile.service.ts',
   'api/role.service.ts',
   'api/session.service.ts',
+  'api/sports-catalog.service.ts',
   'api/sports-public.service.ts',
   'configuration.ts',
   'encoder.ts',
@@ -187,8 +202,21 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/role-grant-response.ts',
   'model/role-status-dto.ts',
   'model/session-state-response.ts',
+  'model/sports-catalog-edition-request.ts',
+  'model/sports-catalog-scope.ts',
+  'model/sports-catalog-tree.ts',
+  'model/sports-catalog-venue-request.ts',
+  'model/sports-catalog-venue-space-request.ts',
+  'model/sports-category-summary.ts',
+  'model/sports-competition-summary.ts',
+  'model/sports-edition-summary.ts',
   'model/sports-event-format.ts',
+  'model/sports-name-slug-request.ts',
+  'model/sports-phase-summary.ts',
+  'model/sports-sport-summary.ts',
+  'model/sports-venue-space-summary.ts',
   'model/sports-venue-state.ts',
+  'model/sports-venue-summary.ts',
   'model/time-window.ts',
   'model/unregistered-enrollments-block.ts',
   'param.ts',
@@ -209,10 +237,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // BDF0... foi produzido pelo mesmo motor 7.24.0 fixado, depois da paridade OpenAPI, da
 // conferencia humana do inventario e da prova isolada de GENERATED_MANIFEST_DIGEST.
 //
-// 0B63... preserva os 50 caminhos anteriores e acrescenta somente o servico SportsPublic,
-// quatro DTOs publicos e dois enums compartilhados. O candidato read-only foi aprovado
-// literalmente pelo responsavel em 2026-08-29; SportsOperations permanece fora da arvore.
-export const APPROVED_GENERATED_DIGEST = '0B631F67A415BEE7BC95ECF209BD240C922A93ED47B69385B969B093D464AB95';
+// 21C9... preserva o cliente publico e acrescenta o cliente escopado SportsCatalog. O
+// candidato foi aprovado literalmente pelo responsavel em 2026-08-29; comandos do tracer
+// continuam fora da arvore.
+export const APPROVED_GENERATED_DIGEST = '21C94593F724A3478B866C4F0F4402B0FACA4EE92FD265A9B9CDEDD6BE5E5F37';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -745,7 +773,8 @@ export function inspectGeneratedOpenApiContract(source) {
   const inventory = inspectOpenApiContract(source);
   return {
     endpoints: inventory.endpoints.filter(
-      ({ path }) => !path.startsWith('/api/v1/operations/sports/'),
+      ({ path }) => !path.startsWith('/api/v1/operations/sports/')
+        || path.startsWith('/api/v1/operations/sports/catalog/'),
     ),
     schemas: inventory.schemas.filter((schema) => PUBLIC_GENERATOR_MODELS.includes(schema)),
     publicSchemas: inventory.publicSchemas.filter(

@@ -82,6 +82,19 @@ test.describe('E2E Operations Panel Surface S4 (OPER-06, S4 Responsividade 320px
     });
 
     // 4. Navega para a rota de produção /operacao/painel
+    await page.route('**/api/v1/profile/me', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          identityId: 'admin-id-01',
+          nickname: 'admin_geral_01',
+          nicknameUpdatedAt: null,
+          matriculaStatus: 'REGISTRADA',
+        }),
+      });
+    });
+
     await page.goto(`${CLIENT_ORIGIN}${OPERATIONS_PATH}`);
 
     // 5. Valida título e presença dos 4 cartões

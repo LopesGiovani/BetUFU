@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 public final class SportsTracerModels {
 
@@ -24,7 +25,8 @@ public final class SportsTracerModels {
     }
 
     public enum VenueState {
-        LOCAL_A_DEFINIR
+        LOCAL_A_DEFINIR,
+        LOCAL_DEFINIDO
     }
 
     public record CompetitionCreateRequest(
@@ -72,13 +74,19 @@ public final class SportsTracerModels {
             @NotBlank @Size(max = 64) String zoneId,
             @NotNull VenueState venueState,
             @NotBlank @Size(max = 2048) String sourceReference,
-            @NotNull @Size(min = 2, max = 2) List<@Valid EventSlotRequest> slots) {
+            @NotNull @Size(min = 2, max = 2) List<@Valid EventSlotRequest> slots,
+            UUID sportId,
+            UUID categoryId,
+            UUID phaseId,
+            UUID venueId,
+            UUID venueSpaceId) {
 
         public EventCreateRequest {
             slots = slots == null ? null : List.copyOf(slots);
         }
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record EventResponse(
             UUID eventId,
             UUID competitionId,
@@ -89,7 +97,17 @@ public final class SportsTracerModels {
             Instant scheduledAt,
             String zoneId,
             VenueState venueState,
-            long lockVersion) {
+            long lockVersion,
+            @JsonInclude(JsonInclude.Include.NON_NULL) UUID sportId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String sportName,
+            @JsonInclude(JsonInclude.Include.NON_NULL) UUID categoryId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String categoryName,
+            @JsonInclude(JsonInclude.Include.NON_NULL) UUID phaseId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String phaseName,
+            @JsonInclude(JsonInclude.Include.NON_NULL) UUID venueId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String venueName,
+            @JsonInclude(JsonInclude.Include.NON_NULL) UUID venueSpaceId,
+            @JsonInclude(JsonInclude.Include.NON_NULL) String venueSpaceName) {
     }
 
     public record PublishEventRequest(
@@ -100,6 +118,7 @@ public final class SportsTracerModels {
     }
 
     /** Public agenda projection; publication internals never cross this boundary. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PublicSportsEventSummary(
             UUID eventId,
             UUID competitionId,
@@ -111,7 +130,17 @@ public final class SportsTracerModels {
             Instant scheduledAt,
             String zoneId,
             VenueState venueState,
-            List<PublicSlotResponse> slots) {
+            List<PublicSlotResponse> slots,
+            UUID sportId,
+            String sportName,
+            UUID categoryId,
+            String categoryName,
+            UUID phaseId,
+            String phaseName,
+            UUID venueId,
+            String venueName,
+            UUID venueSpaceId,
+            String venueSpaceName) {
 
         public PublicSportsEventSummary {
             slots = slots == null ? List.of() : List.copyOf(slots);
@@ -131,6 +160,7 @@ public final class SportsTracerModels {
         }
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PublicEventResponse(
             UUID publicationId,
             UUID eventId,
@@ -146,7 +176,17 @@ public final class SportsTracerModels {
             VenueState venueState,
             String sourceReference,
             Instant publishedAt,
-            List<PublicSlotResponse> slots) {
+            List<PublicSlotResponse> slots,
+            UUID sportId,
+            String sportName,
+            UUID categoryId,
+            String categoryName,
+            UUID phaseId,
+            String phaseName,
+            UUID venueId,
+            String venueName,
+            UUID venueSpaceId,
+            String venueSpaceName) {
 
         public PublicEventResponse {
             slots = slots == null ? List.of() : List.copyOf(slots);

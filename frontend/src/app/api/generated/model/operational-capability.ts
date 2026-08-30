@@ -15,6 +15,8 @@
 export const OperationalCapability = {
     ViewOperationalPanel: 'VIEW_OPERATIONAL_PANEL',
     ManageRoles: 'MANAGE_ROLES',
-    CorrectEnrollment: 'CORRECT_ENROLLMENT'
+    CorrectEnrollment: 'CORRECT_ENROLLMENT',
+    ManageSportsCatalog: 'MANAGE_SPORTS_CATALOG',
+    BootstrapSportsCompetition: 'BOOTSTRAP_SPORTS_COMPETITION'
 } as const;
 export type OperationalCapability = typeof OperationalCapability[keyof typeof OperationalCapability];

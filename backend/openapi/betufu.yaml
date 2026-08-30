@@ -549,6 +549,536 @@ paths:
         "401":
           description: Requisição não autenticada.
 
+  /api/v1/operations/sports/catalog/scope:
+    get:
+      tags:
+        - SportsCatalog
+      operationId: getSportsCatalogScope
+      summary: Listar competicoes autorizadas e disponibilidade de bootstrap
+      description: >-
+        O servidor deriva a lista a partir das capabilities e dos grants
+        persistidos. O cliente escolhe uma competicao por nome; nao envia
+        UUID ou scopeRef livre como autoridade.
+      responses:
+        "200":
+          description: Escopo operacional atual.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsCatalogScope"
+        "401":
+          description: Requisicao nao autenticada.
+
+  /api/v1/operations/sports/catalog/competitions/{competitionId}:
+    get:
+      tags:
+        - SportsCatalog
+      operationId: getSportsCatalogTree
+      summary: Consultar a arvore de catalogo de uma competicao autorizada
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Catalogo e locais pertencentes a competicao.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsCatalogTree"
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Competicao fora do escopo autorizado.
+        "404":
+          description: Competicao nao encontrada.
+
+  /api/v1/operations/sports/catalog/competitions:
+    post:
+      tags:
+        - SportsCatalog
+      operationId: createSportsCatalogCompetition
+      summary: Criar competicao inicial por administrador geral
+      description: >-
+        Bootstrap fail-closed: somente ADMINISTRADOR_GERAL global pode criar
+        a raiz e o servidor confirma o estado persistido antes de habilitar a
+        operacao.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "201":
+          description: Competicao criada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsCompetitionSummary"
+        "400":
+          description: Nome ou slug invalido.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Capability de bootstrap ausente.
+
+  /api/v1/operations/sports/catalog/competitions/{competitionId}/sports:
+    post:
+      tags:
+        - SportsCatalog
+      operationId: createSportsCatalogSport
+      summary: Criar esporte na competicao autorizada
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "201":
+          description: Esporte criado e associado a competicao.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsSportSummary"
+        "400":
+          description: Nome ou slug invalido.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Competicao fora do escopo gravavel.
+        "404":
+          description: Competicao nao encontrada.
+
+  /api/v1/operations/sports/catalog/competitions/{competitionId}/editions:
+    post:
+      tags:
+        - SportsCatalog
+      operationId: createSportsCatalogEdition
+      summary: Criar edicao na competicao autorizada
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsCatalogEditionRequest"
+      responses:
+        "201":
+          description: Edicao criada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEditionSummary"
+        "400":
+          description: Dados da edicao invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Competicao fora do escopo gravavel.
+        "404":
+          description: Competicao nao encontrada.
+
+  /api/v1/operations/sports/catalog/editions/{editionId}/categories:
+    post:
+      tags:
+        - SportsCatalog
+      operationId: createSportsCatalogCategory
+      summary: Criar categoria na edicao autorizada
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "201":
+          description: Categoria criada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsCategorySummary"
+        "400":
+          description: Nome ou slug invalido.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Edicao fora do escopo gravavel.
+        "404":
+          description: Edicao nao encontrada.
+
+  /api/v1/operations/sports/catalog/categories/{categoryId}/phases:
+    post:
+      tags:
+        - SportsCatalog
+      operationId: createSportsCatalogPhase
+      summary: Criar fase na categoria autorizada
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "201":
+          description: Fase criada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsPhaseSummary"
+        "400":
+          description: Nome ou slug invalido.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Categoria fora do escopo gravavel.
+        "404":
+          description: Categoria nao encontrada.
+
+  /api/v1/operations/sports/catalog/competitions/{competitionId}/venues:
+    post:
+      tags:
+        - SportsCatalog
+      operationId: createSportsCatalogVenue
+      summary: Criar local reutilizavel na competicao autorizada
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsCatalogVenueRequest"
+      responses:
+        "201":
+          description: Local criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsVenueSummary"
+        "400":
+          description: Dados do local invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Competicao fora do escopo gravavel.
+        "404":
+          description: Competicao nao encontrada.
+
+  /api/v1/operations/sports/catalog/venues/{venueId}/spaces:
+    post:
+      tags:
+        - SportsCatalog
+      operationId: createSportsCatalogVenueSpace
+      summary: Criar espaco interno em local autorizado
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsCatalogVenueSpaceRequest"
+      responses:
+        "201":
+          description: Espaco criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsVenueSpaceSummary"
+        "400":
+          description: Dados do espaco invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Local fora do escopo gravavel.
+        "404":
+          description: Local nao encontrado.
+
+  /api/v1/operations/sports/catalog/sports/{sportId}:
+    put:
+      tags:
+        - SportsCatalog
+      operationId: updateSportsCatalogSport
+      summary: Atualizar esporte com optimistic locking
+      parameters:
+        - name: sportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "200":
+          description: Esporte atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsSportSummary"
+        "400":
+          description: Dados ou versao esperada invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Esporte fora do escopo gravavel.
+        "404":
+          description: Esporte nao encontrado.
+        "409":
+          description: Versao stale; nenhuma alteracao e sobrescrita.
+
+  /api/v1/operations/sports/catalog/editions/{editionId}:
+    put:
+      tags:
+        - SportsCatalog
+      operationId: updateSportsCatalogEdition
+      summary: Atualizar edicao com optimistic locking
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsCatalogEditionRequest"
+      responses:
+        "200":
+          description: Edicao atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEditionSummary"
+        "400":
+          description: Dados ou versao esperada invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Edicao fora do escopo gravavel.
+        "404":
+          description: Edicao nao encontrada.
+        "409":
+          description: Versao stale; nenhuma alteracao e sobrescrita.
+
+  /api/v1/operations/sports/catalog/categories/{categoryId}:
+    put:
+      tags:
+        - SportsCatalog
+      operationId: updateSportsCatalogCategory
+      summary: Atualizar categoria com optimistic locking
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "200":
+          description: Categoria atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsCategorySummary"
+        "400":
+          description: Dados ou versao esperada invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Categoria fora do escopo gravavel.
+        "404":
+          description: Categoria nao encontrada.
+        "409":
+          description: Versao stale; nenhuma alteracao e sobrescrita.
+
+  /api/v1/operations/sports/catalog/phases/{phaseId}:
+    put:
+      tags:
+        - SportsCatalog
+      operationId: updateSportsCatalogPhase
+      summary: Atualizar fase com optimistic locking
+      parameters:
+        - name: phaseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsNameSlugRequest"
+      responses:
+        "200":
+          description: Fase atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsPhaseSummary"
+        "400":
+          description: Dados ou versao esperada invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Fase fora do escopo gravavel.
+        "404":
+          description: Fase nao encontrada.
+        "409":
+          description: Versao stale; nenhuma alteracao e sobrescrita.
+
+  /api/v1/operations/sports/catalog/venues/{venueId}:
+    put:
+      tags:
+        - SportsCatalog
+      operationId: updateSportsCatalogVenue
+      summary: Atualizar local com optimistic locking
+      parameters:
+        - name: venueId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsCatalogVenueRequest"
+      responses:
+        "200":
+          description: Local atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsVenueSummary"
+        "400":
+          description: Dados ou versao esperada invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Local fora do escopo gravavel.
+        "404":
+          description: Local nao encontrado.
+        "409":
+          description: Versao stale; nenhuma alteracao e sobrescrita.
+
+  /api/v1/operations/sports/catalog/venue-spaces/{spaceId}:
+    put:
+      tags:
+        - SportsCatalog
+      operationId: updateSportsCatalogVenueSpace
+      summary: Atualizar espaco interno com optimistic locking
+      parameters:
+        - name: spaceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsCatalogVenueSpaceRequest"
+      responses:
+        "200":
+          description: Espaco atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsVenueSpaceSummary"
+        "400":
+          description: Dados ou versao esperada invalidos.
+        "401":
+          description: Requisicao nao autenticada.
+        "403":
+          description: Espaco fora do escopo gravavel.
+        "404":
+          description: Espaco nao encontrado.
+        "409":
+          description: Versao stale; nenhuma alteracao e sobrescrita.
+
   /api/v1/operations/sports/competitions:
     post:
       tags:
@@ -732,9 +1262,9 @@ paths:
       description: >-
         Endpoint anônimo orientado por agenda. Retorna somente o snapshot mais
         recente de eventos PUBLICADO, em ordem estável por horário e UUID. Os
-        filtros disponíveis nesta primeira fatia correspondem exclusivamente aos
-        campos persistidos pela V9; modalidade, categoria e fase entram no
-        catálogo posterior.
+        filtros correspondem somente a campos persistidos no snapshot público.
+        Modalidade, categoria, fase e estado são adicionados quando presentes
+        no catálogo V10; eventos V9 sem catálogo continuam compatíveis.
       parameters:
         - name: competitionId
           in: query
@@ -748,6 +1278,29 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: sportId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: phaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: state
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/SportsVenueState"
         - name: from
           in: query
           required: false
@@ -1456,6 +2009,362 @@ components:
           minimum: 0
           description: Contagem agregada de contas sem matrícula ativa.
 
+    SportsNameSlugRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 96
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+
+    SportsCatalogEditionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 96
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+        startDate:
+          type: [string, "null"]
+          format: date
+        endDate:
+          type: [string, "null"]
+          format: date
+        expectedLockVersion:
+          type: [integer, "null"]
+          format: int64
+          minimum: 0
+
+    SportsCatalogVenueRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        address:
+          type: [string, "null"]
+          maxLength: 320
+        mapUrl:
+          type: [string, "null"]
+          maxLength: 2048
+        notes:
+          type: [string, "null"]
+          maxLength: 2000
+        expectedLockVersion:
+          type: [integer, "null"]
+          format: int64
+          minimum: 0
+
+    SportsCatalogVenueSpaceRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        notes:
+          type: [string, "null"]
+          maxLength: 1000
+        expectedLockVersion:
+          type: [integer, "null"]
+          format: int64
+          minimum: 0
+
+    SportsSportSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - sportId
+        - name
+        - slug
+        - status
+        - lockVersion
+      properties:
+        sportId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsCompetitionSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - competitionId
+        - name
+        - slug
+        - status
+        - lockVersion
+        - sportId
+        - sportName
+      properties:
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+        sportId:
+          type: [string, "null"]
+          format: uuid
+        sportName:
+          type: [string, "null"]
+
+    SportsEditionSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - editionId
+        - competitionId
+        - name
+        - slug
+        - startDate
+        - endDate
+        - status
+        - lockVersion
+      properties:
+        editionId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        startDate:
+          type: [string, "null"]
+          format: date
+        endDate:
+          type: [string, "null"]
+          format: date
+        status:
+          type: string
+          enum:
+            - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsCategorySummary:
+      type: object
+      additionalProperties: false
+      required:
+        - categoryId
+        - editionId
+        - name
+        - slug
+        - status
+        - lockVersion
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsPhaseSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - phaseId
+        - editionId
+        - categoryId
+        - name
+        - slug
+        - status
+        - lockVersion
+      properties:
+        phaseId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+          enum:
+            - ATIVA
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsVenueSpaceSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - venueSpaceId
+        - venueId
+        - name
+        - notes
+        - lockVersion
+      properties:
+        venueSpaceId:
+          type: string
+          format: uuid
+        venueId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        notes:
+          type: [string, "null"]
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+
+    SportsVenueSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - venueId
+        - competitionId
+        - name
+        - address
+        - mapUrl
+        - notes
+        - lockVersion
+        - spaces
+      properties:
+        venueId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: [string, "null"]
+        mapUrl:
+          type: [string, "null"]
+        notes:
+          type: [string, "null"]
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+        spaces:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsVenueSpaceSummary"
+
+    SportsCatalogScope:
+      type: object
+      additionalProperties: false
+      required:
+        - competitions
+        - bootstrapAllowed
+      properties:
+        competitions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsCompetitionSummary"
+        bootstrapAllowed:
+          type: boolean
+
+    SportsCatalogTree:
+      type: object
+      additionalProperties: false
+      required:
+        - competition
+        - sports
+        - editions
+        - categories
+        - phases
+        - venues
+      properties:
+        competition:
+          $ref: "#/components/schemas/SportsCompetitionSummary"
+        sports:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsSportSummary"
+        editions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsEditionSummary"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsCategorySummary"
+        phases:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsPhaseSummary"
+        venues:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsVenueSummary"
+
     SportsCompetitionCreateRequest:
       type: object
       additionalProperties: false
@@ -1569,6 +2478,7 @@ components:
       type: string
       enum:
         - LOCAL_A_DEFINIR
+        - LOCAL_DEFINIDO
 
     SportsEventSlotRequest:
       type: object
@@ -1624,6 +2534,21 @@ components:
           maxItems: 2
           items:
             $ref: "#/components/schemas/SportsEventSlotRequest"
+        sportId:
+          type: [string, "null"]
+          format: uuid
+        categoryId:
+          type: [string, "null"]
+          format: uuid
+        phaseId:
+          type: [string, "null"]
+          format: uuid
+        venueId:
+          type: [string, "null"]
+          format: uuid
+        venueSpaceId:
+          type: [string, "null"]
+          format: uuid
 
     SportsEventResponse:
       type: object
@@ -1668,6 +2593,31 @@ components:
           type: integer
           format: int64
           minimum: 0
+        sportId:
+          type: [string, "null"]
+          format: uuid
+        sportName:
+          type: [string, "null"]
+        categoryId:
+          type: [string, "null"]
+          format: uuid
+        categoryName:
+          type: [string, "null"]
+        phaseId:
+          type: [string, "null"]
+          format: uuid
+        phaseName:
+          type: [string, "null"]
+        venueId:
+          type: [string, "null"]
+          format: uuid
+        venueName:
+          type: [string, "null"]
+        venueSpaceId:
+          type: [string, "null"]
+          format: uuid
+        venueSpaceName:
+          type: [string, "null"]
 
     SportsEventPublishRequest:
       type: object
@@ -1739,6 +2689,31 @@ components:
           maxItems: 2
           items:
             $ref: "#/components/schemas/PublicSportsEventSlotResponse"
+        sportId:
+          type: [string, "null"]
+          format: uuid
+        sportName:
+          type: [string, "null"]
+        categoryId:
+          type: [string, "null"]
+          format: uuid
+        categoryName:
+          type: [string, "null"]
+        phaseId:
+          type: [string, "null"]
+          format: uuid
+        phaseName:
+          type: [string, "null"]
+        venueId:
+          type: [string, "null"]
+          format: uuid
+        venueName:
+          type: [string, "null"]
+        venueSpaceId:
+          type: [string, "null"]
+          format: uuid
+        venueSpaceName:
+          type: [string, "null"]
 
     PublicSportsEventPage:
       type: object
@@ -1835,6 +2810,31 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicSportsEventSlotResponse"
+        sportId:
+          type: [string, "null"]
+          format: uuid
+        sportName:
+          type: [string, "null"]
+        categoryId:
+          type: [string, "null"]
+          format: uuid
+        categoryName:
+          type: [string, "null"]
+        phaseId:
+          type: [string, "null"]
+          format: uuid
+        phaseName:
+          type: [string, "null"]
+        venueId:
+          type: [string, "null"]
+          format: uuid
+        venueName:
+          type: [string, "null"]
+        venueSpaceId:
+          type: [string, "null"]
+          format: uuid
+        venueSpaceName:
+          type: [string, "null"]
 
     OperationalCapability:
       type: string
@@ -1842,6 +2842,8 @@ components:
         - VIEW_OPERATIONAL_PANEL
         - MANAGE_ROLES
         - CORRECT_ENROLLMENT
+        - MANAGE_SPORTS_CATALOG
+        - BOOTSTRAP_SPORTS_COMPETITION
       description: Allowlist fechada das capacidades operacionais da BETUFU (OPER-01, OPER-02, OPER-04).
 
     OperationalCapabilitiesResponse:

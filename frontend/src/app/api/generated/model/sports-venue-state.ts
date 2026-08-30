@@ -10,6 +10,7 @@
 
 
 export const SportsVenueState = {
-    LocalADefinir: 'LOCAL_A_DEFINIR'
+    LocalADefinir: 'LOCAL_A_DEFINIR',
+    LocalDefinido: 'LOCAL_DEFINIDO'
 } as const;
 export type SportsVenueState = typeof SportsVenueState[keyof typeof SportsVenueState];

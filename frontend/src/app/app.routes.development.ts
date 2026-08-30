@@ -1,7 +1,29 @@
 import type { Routes } from '@angular/router';
 import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';
+import { ConsoleShellComponent } from './layout/console-shell.component';
 
 export const BUILD_SPECIFIC_ROUTES: Routes = [
+  {
+    path: 'operacao/esportes',
+    component: ConsoleShellComponent,
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/sports/operations/catalog/sports-catalog-page.component').then(
+            ({ SportsCatalogPageComponent }) => SportsCatalogPageComponent,
+          ),
+      },
+      {
+        path: 'catalogo',
+        loadComponent: () =>
+          import('./features/sports/operations/catalog/sports-catalog-page.component').then(
+            ({ SportsCatalogPageComponent }) => SportsCatalogPageComponent,
+          ),
+      },
+    ],
+  },
   {
     path: '',
     component: AuthenticatedLayoutComponent,

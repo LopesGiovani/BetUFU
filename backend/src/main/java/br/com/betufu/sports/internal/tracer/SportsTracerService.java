@@ -24,6 +24,7 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventSlotRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSportsEventPage;
+import br.com.betufu.sports.internal.tracer.SportsTracerModels.VenueState;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -87,8 +88,11 @@ class SportsTracerService {
         OperationalIdentity actor = resolveIdentity(issuer, subject);
         requireCompetitionAdministrator(actor, edition.competitionId());
         validateEvent(request);
+        SportsTracerRepository.EventCatalogScope catalog = repository.findEventCatalogScope(editionId, request)
+                .orElseThrow(SportsTracerService::notFound);
+        validateCatalogReferences(request, catalog);
 
-        EventResponse response = transactions.execute(status -> repository.createEvent(edition, request));
+        EventResponse response = transactions.execute(status -> repository.createEvent(catalog, request));
         return Objects.requireNonNull(response, "event transaction returned null");
     }
 
@@ -142,6 +146,10 @@ class SportsTracerService {
     PublicSportsEventPage getPublishedEvents(
             UUID competitionId,
             UUID editionId,
+            UUID sportId,
+            UUID categoryId,
+            UUID phaseId,
+            VenueState state,
             Instant from,
             Instant to,
             int page,
@@ -163,6 +171,10 @@ class SportsTracerService {
             SportsTracerRepository.PublishedEventsPageData result = repository.findPublishedEvents(
                     competitionId,
                     editionId,
+                    sportId,
+                    categoryId,
+                    phaseId,
+                    state,
                     from,
                     to,
                     page,
@@ -247,6 +259,35 @@ class SportsTracerService {
                 throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
             }
         }
+    }
+
+    private static void validateCatalogReferences(
+            EventCreateRequest request,
+            SportsTracerRepository.EventCatalogScope catalog) {
+        if (request.sportId() != null && !request.sportId().equals(catalog.sportId())) {
+            throw validation();
+        }
+        if (request.categoryId() != null && !request.categoryId().equals(catalog.categoryId())) {
+            throw validation();
+        }
+        if (request.phaseId() != null && !request.phaseId().equals(catalog.phaseId())) {
+            throw validation();
+        }
+        if (request.venueState() == VenueState.LOCAL_A_DEFINIR
+                && (request.venueId() != null || request.venueSpaceId() != null)) {
+            throw validation();
+        }
+        if (request.venueState() == VenueState.LOCAL_DEFINIDO
+                && (request.venueId() == null || !request.venueId().equals(catalog.venueId()))) {
+            throw validation();
+        }
+        if (request.venueSpaceId() != null && !request.venueSpaceId().equals(catalog.venueSpaceId())) {
+            throw validation();
+        }
+    }
+
+    private static ApiProblemException validation() {
+        return new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
     }
 
     private static void requireUtf8Length(String value, int maximumOctets) {

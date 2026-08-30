@@ -17,6 +17,7 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSportsEventPage;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublishEventRequest;
+import br.com.betufu.sports.internal.tracer.SportsTracerModels.VenueState;
 import jakarta.validation.Valid;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -111,6 +112,10 @@ public class SportsTracerController {
     public ResponseEntity<PublicSportsEventPage> listPublishedEvents(
             @RequestParam(required = false) UUID competitionId,
             @RequestParam(required = false) UUID editionId,
+            @RequestParam(required = false) UUID sportId,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) UUID phaseId,
+            @RequestParam(required = false) VenueState state,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to,
             @RequestParam(defaultValue = "0") int page,
@@ -118,6 +123,10 @@ public class SportsTracerController {
         return ResponseEntity.ok(service.getPublishedEvents(
                 competitionId,
                 editionId,
+                sportId,
+                categoryId,
+                phaseId,
+                state,
                 from,
                 to,
                 page,

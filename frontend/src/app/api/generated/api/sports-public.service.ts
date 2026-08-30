@@ -20,6 +20,8 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 import { PublicSportsEventPage } from '../model/public-sports-event-page';
 // @ts-ignore
 import { PublicSportsEventResponse } from '../model/public-sports-event-response';
+// @ts-ignore
+import { SportsVenueState } from '../model/sports-venue-state';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -34,6 +36,10 @@ export interface GetPublishedSportsEventRequestParams {
 export interface ListPublishedSportsEventsRequestParams {
     competitionId?: string;
     editionId?: string;
+    sportId?: string;
+    categoryId?: string;
+    phaseId?: string;
+    state?: SportsVenueState;
     /** Limite inferior inclusivo do horário agendado em UTC. */
     from?: string;
     /** Limite superior inclusivo do horário agendado em UTC. */
@@ -112,7 +118,7 @@ export class SportsPublicService extends BaseService {
 
     /**
      * Listar a agenda pública de eventos publicados
-     * Endpoint anônimo orientado por agenda. Retorna somente o snapshot mais recente de eventos PUBLICADO, em ordem estável por horário e UUID. Os filtros disponíveis nesta primeira fatia correspondem exclusivamente aos campos persistidos pela V9; modalidade, categoria e fase entram no catálogo posterior.
+     * Endpoint anônimo orientado por agenda. Retorna somente o snapshot mais recente de eventos PUBLICADO, em ordem estável por horário e UUID. Os filtros correspondem somente a campos persistidos no snapshot público. Modalidade, categoria, fase e estado são adicionados quando presentes no catálogo V10; eventos V9 sem catálogo continuam compatíveis.
      * @endpoint get /api/v1/public/sports/events
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -125,6 +131,10 @@ export class SportsPublicService extends BaseService {
     public listPublishedSportsEvents(requestParameters?: ListPublishedSportsEventsRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         const competitionId = requestParameters?.competitionId;
         const editionId = requestParameters?.editionId;
+        const sportId = requestParameters?.sportId;
+        const categoryId = requestParameters?.categoryId;
+        const phaseId = requestParameters?.phaseId;
+        const state = requestParameters?.state;
         const from = requestParameters?.from;
         const to = requestParameters?.to;
         const page = requestParameters?.page;
@@ -145,6 +155,42 @@ export class SportsPublicService extends BaseService {
             localVarQueryParameters,
             'editionId',
             <any>editionId,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'sportId',
+            <any>sportId,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'categoryId',
+            <any>categoryId,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'phaseId',
+            <any>phaseId,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'state',
+            <any>state,
             QueryParamStyle.Form,
             true,
         );

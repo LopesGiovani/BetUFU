@@ -75,6 +75,10 @@ public class OperationalCapabilitiesService {
         if (isGlobalAdmin) {
             capabilities.add(OperationalCapability.MANAGE_ROLES);
             capabilities.add(OperationalCapability.CORRECT_ENROLLMENT);
+            capabilities.add(OperationalCapability.MANAGE_SPORTS_CATALOG);
+            capabilities.add(OperationalCapability.BOOTSTRAP_SPORTS_COMPETITION);
+        } else if (isScopedCompAdmin) {
+            capabilities.add(OperationalCapability.MANAGE_SPORTS_CATALOG);
         }
 
         return new OperationalCapabilitiesResponse(capabilities);

@@ -28,6 +28,16 @@ export interface PublicSportsEventResponse {
     sourceReference: string;
     publishedAt: string;
     slots: Array<PublicSportsEventSlotResponse>;
+    sportId?: string | null;
+    sportName?: string | null;
+    categoryId?: string | null;
+    categoryName?: string | null;
+    phaseId?: string | null;
+    phaseName?: string | null;
+    venueId?: string | null;
+    venueName?: string | null;
+    venueSpaceId?: string | null;
+    venueSpaceName?: string | null;
 }
 export namespace PublicSportsEventResponse {
 }
