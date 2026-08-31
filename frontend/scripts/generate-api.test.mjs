@@ -267,7 +267,7 @@ test('manifesto recusa bytes com URL absoluta escondida depois de regex literal'
   );
 });
 
-test('geracao seleciona catalogo, organizacoes, atletas, elencos e importacao tabular', () => {
+test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tabular e eventos/resultados', () => {
   assert.deepEqual(PUBLIC_GENERATOR_API_TAGS, [
     'AthleteLink',
     'Diagnostic',
@@ -281,6 +281,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos e importacao ta
     'Session',
     'SportsAthlete',
     'SportsCatalog',
+    'SportsEventResult',
     'SportsOrganization',
     'SportsPublic',
     'SportsRoster',
@@ -288,7 +289,11 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos e importacao ta
   ]);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicSportsEventPage'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventDetail'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventFormat'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventSlotItem'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsResultScoreItem'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsResultVersion'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCatalogScope'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsVenueSummary'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsOrganizationSummary'), true);
@@ -308,6 +313,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos e importacao ta
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCompetitionCreateRequest'), false);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsAthlete'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsCatalog'), true);
+  assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsEventResult'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsOrganization'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsRoster'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsTabularImport'), true);

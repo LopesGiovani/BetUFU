@@ -1,0 +1,788 @@
+<section class="events-results-page" aria-labelledby="page-title">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Console operacional · O6</span>
+      <h1 id="page-title">Eventos e resultados</h1>
+      <p>Programação de jogos, transições de estado, registro de placar com fonte oficial e histórico versionado.</p>
+    </div>
+    <div class="header-controls">
+      @if (scope.hasSelection()) {
+        <div class="scope-picker">
+          <label for="competition-select">Competição</label>
+          <select id="competition-select" [value]="competitionId" (change)="changeScope($any($event.target).value)">
+            @for (competition of scope.competitions(); track competition.competitionId) {
+              <option [value]="competition.competitionId">{{ competition.name }}</option>
+            }
+          </select>
+        </div>
+      }
+      <a class="arena-link" href="/">Voltar para a Arena</a>
+    </div>
+  </header>
+
+  @if (scope.isDenied()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Acesso encerrado</h2>
+      <p>Você não tem acesso a esta área.</p>
+    </article>
+  } @else if (scope.isEmpty()) {
+    <article class="state-card" role="status">
+      <h2>Nenhuma competição autorizada</h2>
+      <p>Sem uma competição atribuída, nenhum evento privado pode ser administrado.</p>
+    </article>
+  } @else if (scope.isError()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Não foi possível carregar as competições</h2>
+      <p>{{ scope.errorMessage() }}</p>
+      <button type="button" class="button button--primary" (click)="retry()">Tentar carregar competições</button>
+    </article>
+  } @else if (store.isDenied()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Acesso encerrado</h2>
+      <p>Você não tem acesso a esta área.</p>
+    </article>
+  } @else if (store.isError() || catalogError()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Não foi possível carregar eventos e resultados</h2>
+      <p>{{ store.errorMessage() || catalogError() }}</p>
+      <button type="button" class="button button--primary" (click)="loadWorkspace()">Tentar carregar eventos e resultados</button>
+    </article>
+  } @else if (catalogLoading() || (store.isLoading() && !store.hasEvents())) {
+    <article class="state-card" role="status" aria-live="polite">
+      <h2>Carregando eventos e resultados…</h2>
+      <p>Consultando catálogo estrutural e eventos esportivos deste escopo.</p>
+    </article>
+  } @else {
+    @if (editions().length > 1) {
+      <div class="edition-bar">
+        <label for="edition-select">Edição ativa:</label>
+        <select id="edition-select" [value]="selectedEditionId()" (change)="changeEdition($any($event.target).value)">
+          @for (ed of editions(); track ed.editionId) {
+            <option [value]="ed.editionId">{{ ed.name }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @if (store.conflictMessage()) {
+      <div class="notice notice--conflict" role="alert">
+        <div class="notice__content">
+          <strong>Conflito de concorrência</strong>
+          <p>{{ store.conflictMessage() }}</p>
+        </div>
+        <button type="button" class="button button--secondary" (click)="store.reloadAfterConflict()">Recarregar versão atual</button>
+      </div>
+    }
+
+    @if (store.feedbackMessage()) {
+      <div class="notice notice--success" role="status" aria-live="polite">
+        {{ store.feedbackMessage() }}
+      </div>
+    }
+
+    <div class="workspace-grid">
+      <!-- Left Column: Event List -->
+      <section class="panel-card event-list-panel" aria-labelledby="events-list-title">
+        <header class="card-header">
+          <div>
+            <span class="card-code">AGENDA</span>
+            <h2 id="events-list-title">Eventos cadastrados</h2>
+          </div>
+          <button type="button" class="button button--primary" (click)="openCreateEventModal()">
+            Cadastrar evento
+          </button>
+        </header>
+
+        @if (store.events().length === 0) {
+          <div class="empty-copy">
+            <h3>Nenhum evento cadastrado</h3>
+            <p>Cadastre o primeiro evento escolhendo edição, categoria, fase, participantes, horário, fuso e fonte.</p>
+            <button type="button" class="button button--primary" (click)="openCreateEventModal()">
+              Cadastrar evento
+            </button>
+          </div>
+        } @else {
+          <ul class="event-items" role="list">
+            @for (event of store.events(); track event.eventId) {
+              <li
+                class="event-item"
+                [class.event-item--selected]="event.eventId === store.selectedEventId()"
+                (click)="selectEvent(event.eventId)"
+              >
+                <div class="event-item__header">
+                  <span class="event-item__time">{{ event.scheduledAt | slice:0:16 }} ({{ event.zoneId }})</span>
+                  <span class="status-chip {{ statusDisplay(event.status).cssClass }}">
+                    <span class="status-icon" aria-hidden="true">{{ statusDisplay(event.status).icon }}</span>
+                    {{ statusDisplay(event.status).label }}
+                  </span>
+                </div>
+                <h3 class="event-item__title">{{ event.title }}</h3>
+                <div class="event-item__slots">
+                  <span>{{ getSlotLabel(event, 1) }}</span>
+                  <span class="vs">vs</span>
+                  <span>{{ getSlotLabel(event, 2) }}</span>
+                </div>
+                <div class="event-item__footer">
+                  <span class="version-tag">v{{ event.lockVersion }}</span>
+                  <span class="venue-tag">
+                    {{ event.venueState === 'LOCAL_A_DEFINIR' ? 'Local a definir' : (event.venueName || 'Local definido') }}
+                  </span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- Right Column: Event Detail & Result Management -->
+      <section class="detail-column" aria-labelledby="event-detail-title">
+        @if (store.selectedEvent(); as event) {
+          <article class="panel-card event-detail-panel">
+            <header class="card-header">
+              <div>
+                <span class="card-code">{{ event.format }} · v{{ event.lockVersion }}</span>
+                <h2 id="event-detail-title">{{ event.title }}</h2>
+              </div>
+              <span class="status-chip {{ statusDisplay(event.status).cssClass }}">
+                <span class="status-icon" aria-hidden="true">{{ statusDisplay(event.status).icon }}</span>
+                {{ statusDisplay(event.status).label }}
+              </span>
+            </header>
+
+            <div class="meta-grid">
+              <div>
+                <dt>Data e Horário</dt>
+                <dd>{{ event.scheduledAt }} ({{ event.zoneId }})</dd>
+              </div>
+              <div>
+                <dt>Local</dt>
+                <dd>{{ event.venueState === 'LOCAL_A_DEFINIR' ? 'Local a definir' : (event.venueName + (event.venueSpaceName ? ' · ' + event.venueSpaceName : '')) }}</dd>
+              </div>
+              <div>
+                <dt>Estrutura</dt>
+                <dd>{{ event.sportName || 'Esporte livre' }} · {{ event.categoryName || 'Categoria livre' }} · {{ event.phaseName || 'Fase geral' }}</dd>
+              </div>
+              <div>
+                <dt>Fonte Oficial</dt>
+                <dd class="source-ref">{{ event.sourceReference }}</dd>
+              </div>
+              @if (event.statusReason) {
+                <div class="status-reason-block">
+                  <dt>Motivo do Status</dt>
+                  <dd>{{ event.statusReason }}</dd>
+                </div>
+              }
+            </div>
+
+            <div class="matchup-banner">
+              <div class="slot-box">
+                <span class="slot-no">Slot 1</span>
+                <strong>{{ getSlotLabel(event, 1) }}</strong>
+                @if (event.slots[0]?.teamName) {
+                  <small>{{ event.slots[0]?.teamName }}</small>
+                }
+              </div>
+              <div class="matchup-divider">VS</div>
+              <div class="slot-box">
+                <span class="slot-no">Slot 2</span>
+                <strong>{{ getSlotLabel(event, 2) }}</strong>
+                @if (event.slots[1]?.teamName) {
+                  <small>{{ event.slots[1]?.teamName }}</small>
+                }
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button type="button" class="button button--secondary" (click)="previewEvent()">
+                Pré-visualizar evento
+              </button>
+
+              @if (event.status === 'RASCUNHO') {
+                <button type="button" class="button button--secondary" (click)="openEditDraftModal()">
+                  Editar rascunho
+                </button>
+                <button type="button" class="button button--primary" [disabled]="store.isMutating()" (click)="publishEvent()">
+                  Publicar evento
+                </button>
+                <button type="button" class="button button--danger" (click)="openCancelModal()">
+                  Cancelar evento
+                </button>
+              } @else if (event.status === 'PUBLICADO') {
+                <button type="button" class="button button--secondary" (click)="openSuspendModal()">
+                  Suspender evento
+                </button>
+                <button type="button" class="button button--secondary" (click)="openPostponeModal()">
+                  Adiar evento
+                </button>
+                <button type="button" class="button button--danger" (click)="openCancelModal()">
+                  Cancelar evento
+                </button>
+              } @else if (event.status === 'SUSPENSO') {
+                <button type="button" class="button button--primary" [disabled]="store.isMutating()" (click)="publishEvent()">
+                  Re-publicar evento
+                </button>
+                <button type="button" class="button button--secondary" (click)="openPostponeModal()">
+                  Adiar evento
+                </button>
+                <button type="button" class="button button--danger" (click)="openCancelModal()">
+                  Cancelar evento
+                </button>
+              } @else if (event.status === 'ADIADO') {
+                <button type="button" class="button button--secondary" (click)="openPostponeModal()">
+                  Reagendar horário
+                </button>
+                <button type="button" class="button button--primary" [disabled]="store.isMutating()" (click)="publishEvent()">
+                  Publicar evento
+                </button>
+                <button type="button" class="button button--danger" (click)="openCancelModal()">
+                  Cancelar evento
+                </button>
+              } @else if (event.status === 'CANCELADO') {
+                <div class="cancelled-notice">
+                  Evento cancelado de forma irreversível. Nenhuma outra ação é permitida.
+                </div>
+              }
+            </div>
+          </article>
+
+          <!-- Result & Versions Panel -->
+          <article class="panel-card result-panel" aria-labelledby="result-panel-title">
+            <header class="card-header">
+              <div>
+                <span class="card-code">RESULTADO</span>
+                <h2 id="result-panel-title">Placar e histórico oficial</h2>
+              </div>
+              @if (event.status !== 'CANCELADO' && event.status !== 'RASCUNHO') {
+                <div class="result-top-actions">
+                  @if (store.confirmedVersion()) {
+                    <button type="button" class="button button--primary" (click)="openCorrectResultModal()">
+                      Corrigir resultado
+                    </button>
+                  } @else {
+                    <button type="button" class="button button--secondary" (click)="openInformResultModal()">
+                      Salvar rascunho
+                    </button>
+                    <button type="button" class="button button--secondary" (click)="openReviewResultModal()">
+                      Enviar para revisão
+                    </button>
+                    <button type="button" class="button button--primary" (click)="openConfirmResultModal()">
+                      Confirmar resultado
+                    </button>
+                  }
+                </div>
+              }
+            </header>
+
+            @if (store.confirmedVersion(); as confirmed) {
+              <div class="confirmed-score-card">
+                <span class="card-code">VERSÃO OFICIAL VIGENTE · v{{ confirmed.versionNo }}</span>
+                <div class="score-display">
+                  <div class="score-side">
+                    <span class="team-label">{{ getSlotLabel(event, 1) }}</span>
+                    <strong class="score-val">{{ confirmed.scores[0]?.score ?? '-' }}</strong>
+                  </div>
+                  <span class="score-divider">x</span>
+                  <div class="score-side">
+                    <strong class="score-val">{{ confirmed.scores[1]?.score ?? '-' }}</strong>
+                    <span class="team-label">{{ getSlotLabel(event, 2) }}</span>
+                  </div>
+                </div>
+                <div class="confirmed-meta">
+                  <span><strong>Fonte:</strong> {{ confirmed.sourceReference }}</span>
+                  @if (confirmed.reason) {
+                    <span><strong>Motivo da retificação:</strong> {{ confirmed.reason }}</span>
+                  }
+                  <span><strong>Confirmado em:</strong> {{ confirmed.confirmedAt || confirmed.recordedAt }}</span>
+                </div>
+              </div>
+            } @else {
+              <div class="empty-copy">
+                <h3>Nenhum resultado aguardando registro</h3>
+                <p>Quando um evento publicado terminar, abra-o para registrar o resultado com a fonte oficial.</p>
+                @if (event.status === 'PUBLICADO' || event.status === 'SUSPENSO') {
+                  <button type="button" class="button button--primary" (click)="openConfirmResultModal()">
+                    Confirmar resultado
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Timeline of Versions -->
+            @if (store.resultVersions().length > 0) {
+              <section class="timeline-section" aria-labelledby="timeline-title">
+                <h3 id="timeline-title">Linha do tempo de versões auditadas</h3>
+                <ol class="version-timeline">
+                  @for (ver of store.resultVersions(); track ver.versionId) {
+                    <li class="timeline-item">
+                      <div class="timeline-marker"></div>
+                      <div class="timeline-body">
+                        <div class="timeline-header">
+                          <span class="version-badge">v{{ ver.versionNo }}</span>
+                          <span class="status-chip {{ statusDisplay(ver.status).cssClass }}">
+                            <span class="status-icon" aria-hidden="true">{{ statusDisplay(ver.status).icon }}</span>
+                            {{ statusDisplay(ver.status).label }}
+                          </span>
+                          <time class="timeline-time">{{ ver.recordedAt }}</time>
+                        </div>
+                        <div class="timeline-scores">
+                          <span>{{ getSlotLabel(event, 1) }}: <strong>{{ ver.scores[0]?.score }}</strong></span>
+                          <span>—</span>
+                          <span>{{ getSlotLabel(event, 2) }}: <strong>{{ ver.scores[1]?.score }}</strong></span>
+                        </div>
+                        <p class="timeline-source"><strong>Fonte:</strong> {{ ver.sourceReference }}</p>
+                        @if (ver.reason) {
+                          <p class="timeline-reason"><strong>Motivo:</strong> {{ ver.reason }}</p>
+                        }
+                        <div class="timeline-actors">
+                          <small>Registrado por: <code>{{ ver.recordedByIdentityId }}</code></small>
+                          @if (ver.confirmedByIdentityId) {
+                            <small>Confirmado por: <code>{{ ver.confirmedByIdentityId }}</code></small>
+                          }
+                        </div>
+                      </div>
+                    </li>
+                  }
+                </ol>
+              </section>
+            }
+          </article>
+        } @else {
+          <article class="state-card">
+            <h2>Nenhum evento selecionado</h2>
+            <p>Selecione um evento na lista ao lado ou cadastre um novo evento para iniciar a operação.</p>
+          </article>
+        }
+      </section>
+    </div>
+  }
+
+  <!-- MODALS -->
+
+  <!-- Modal: Create Event / Edit Draft -->
+  @if (activeModal() === 'createEvent' || activeModal() === 'editDraft') {
+    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-event-title">
+      <div class="modal-card modal-card--large">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow">{{ activeModal() === 'createEvent' ? 'Novo cadastro' : 'Edição de rascunho' }}</span>
+            <h2 id="modal-event-title">{{ activeModal() === 'createEvent' ? 'Cadastrar evento esportivo' : 'Editar rascunho do evento' }}</h2>
+          </div>
+          <button type="button" class="close-button" (click)="closeModal()">✕</button>
+        </header>
+
+        <form [formGroup]="eventForm" (ngSubmit)="activeModal() === 'createEvent' ? saveCreateEvent() : saveUpdateDraft()">
+          <label>
+            Título do evento
+            <input formControlName="title" placeholder="Ex: Engenharia vs Medicina - Final Futsal" />
+          </label>
+
+          <div class="form-row form-row--3">
+            <label>
+              Esporte
+              <select formControlName="sportId">
+                <option value="">Selecione um esporte</option>
+                @for (sp of tree()?.sports ?? []; track sp.sportId) {
+                  <option [value]="sp.sportId">{{ sp.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Categoria
+              <select formControlName="categoryId">
+                <option value="">Selecione a categoria</option>
+                @for (cat of tree()?.categories ?? []; track cat.categoryId) {
+                  <option [value]="cat.categoryId">{{ cat.name }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              Fase
+              <select formControlName="phaseId">
+                <option value="">Selecione a fase</option>
+                @for (ph of tree()?.phases ?? []; track ph.phaseId) {
+                  <option [value]="ph.phaseId">{{ ph.name }}</option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="form-row form-row--2">
+            <label>
+              Data e Horário
+              <input type="datetime-local" formControlName="scheduledAt" />
+            </label>
+            <label>
+              Fuso Horário
+              <input formControlName="zoneId" placeholder="America/Sao_Paulo" />
+            </label>
+          </div>
+
+          <div class="form-row form-row--3">
+            <label>
+              Estado do Local
+              <select formControlName="venueState">
+                <option value="LOCAL_DEFINIDO">Local definido</option>
+                <option value="LOCAL_A_DEFINIR">Local a definir</option>
+              </select>
+            </label>
+            @if (eventForm.controls.venueState.value === 'LOCAL_DEFINIDO') {
+              <label>
+                Local / Praça
+                <select formControlName="venueId">
+                  <option value="">Selecione o local</option>
+                  @for (v of tree()?.venues ?? []; track v.venueId) {
+                    <option [value]="v.venueId">{{ v.name }}</option>
+                  }
+                </select>
+              </label>
+              <label>
+                Espaço interno (opcional)
+                <select formControlName="venueSpaceId">
+                  <option value="">Selecione o espaço</option>
+                  @for (sp of (tree()?.venues ?? []) | slice:0; track sp.venueId) {
+                    @for (space of sp.spaces ?? []; track space.venueSpaceId) {
+                      <option [value]="space.venueSpaceId">{{ space.name }} ({{ sp.name }})</option>
+                    }
+                  }
+                </select>
+              </label>
+            }
+          </div>
+
+          <fieldset class="slots-fieldset">
+            <legend>Participantes (Head to Head)</legend>
+            <div class="form-row form-row--2">
+              <div class="slot-inputs">
+                <span class="slot-tag">Participante 1 (Slot 1)</span>
+                <label>
+                  Vincular equipe do catálogo (opcional)
+                  <select formControlName="slot1TeamId" (change)="onSlotTeamChange(1, $any($event.target).value)">
+                    <option value="">Nenhuma equipe vinculada</option>
+                    @for (tm of teams(); track tm.teamId) {
+                      <option [value]="tm.teamId">{{ tm.name }} ({{ tm.organizationName }})</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Nome / Rótulo exibido
+                  <input formControlName="slot1Label" placeholder="Ex: Engenharia" />
+                </label>
+              </div>
+
+              <div class="slot-inputs">
+                <span class="slot-tag">Participante 2 (Slot 2)</span>
+                <label>
+                  Vincular equipe do catálogo (opcional)
+                  <select formControlName="slot2TeamId" (change)="onSlotTeamChange(2, $any($event.target).value)">
+                    <option value="">Nenhuma equipe vinculada</option>
+                    @for (tm of teams(); track tm.teamId) {
+                      <option [value]="tm.teamId">{{ tm.name }} ({{ tm.organizationName }})</option>
+                    }
+                  </select>
+                </label>
+                <label>
+                  Nome / Rótulo exibido
+                  <input formControlName="slot2Label" placeholder="Ex: Medicina" />
+                </label>
+              </div>
+            </div>
+          </fieldset>
+
+          <label>
+            Fonte Oficial de Informação
+            <input formControlName="sourceReference" placeholder="Ex: Boletim Oficial nº 04 / Súmula Assinada" />
+            <small class="field-help">A fonte oficial é obrigatória para rastreabilidade do agendamento.</small>
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="button button--primary" [disabled]="eventForm.invalid || store.isMutating()">
+              {{ activeModal() === 'createEvent' ? 'Salvar rascunho' : 'Salvar alterações' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Suspend Event -->
+  @if (activeModal() === 'suspend') {
+    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-suspend-title">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow">Ação operacional</span>
+            <h2 id="modal-suspend-title">Suspender evento esportivo</h2>
+          </div>
+          <button type="button" class="close-button" (click)="closeModal()">✕</button>
+        </header>
+        <p class="form-note">A suspensão pausa o evento na agenda pública sem cancelá-lo definitivamente.</p>
+        <form [formGroup]="suspendForm" (ngSubmit)="saveSuspend()">
+          <label>
+            Motivo da suspensão (opcional)
+            <textarea formControlName="reason" rows="3" placeholder="Ex: Condições climáticas adversas ou paralisação temporária."></textarea>
+          </label>
+          <div class="modal-actions">
+            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="button button--primary" [disabled]="store.isMutating()">Confirmar suspensão</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Postpone Event -->
+  @if (activeModal() === 'postpone') {
+    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-postpone-title">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow">Ação operacional</span>
+            <h2 id="modal-postpone-title">Adiar e reagendar evento</h2>
+          </div>
+          <button type="button" class="close-button" (click)="closeModal()">✕</button>
+        </header>
+        <form [formGroup]="postponeForm" (ngSubmit)="savePostpone()">
+          <div class="form-row form-row--2">
+            <label>
+              Nova data e horário
+              <input type="datetime-local" formControlName="scheduledAt" />
+            </label>
+            <label>
+              Fuso Horário
+              <input formControlName="zoneId" />
+            </label>
+          </div>
+          <label>
+            Motivo do adiamento (opcional)
+            <textarea formControlName="reason" rows="3" placeholder="Ex: Reagendamento por conflito de praça esportiva."></textarea>
+          </label>
+          <div class="modal-actions">
+            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="button button--primary" [disabled]="postponeForm.invalid || store.isMutating()">Confirmar reagendamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Cancel Event (Destructive Action) -->
+  @if (activeModal() === 'cancel') {
+    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title">
+      <div class="modal-card modal-card--destructive">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow eyebrow--danger">Ação destrutiva e irreversível</span>
+            <h2 id="modal-cancel-title">Cancelar evento definitivamente</h2>
+          </div>
+          <button type="button" class="close-button" (click)="closeModal()">✕</button>
+        </header>
+
+        <div class="danger-warning">
+          <strong>Atenção:</strong> O cancelamento tornará o evento <strong>{{ store.selectedEvent()?.title }}</strong> cancelado permanentemente na agenda pública. Esta ação não poderá ser desfeita. Não há movimentação de créditos nesta operação.
+        </div>
+
+        <form [formGroup]="cancelForm" (ngSubmit)="saveCancel()">
+          <label>
+            Motivo do cancelamento (obrigatório)
+            <textarea formControlName="reason" rows="3" placeholder="Informe o motivo oficial do cancelamento definitivo do evento."></textarea>
+          </label>
+          <div class="modal-actions">
+            <button type="button" class="button button--secondary" (click)="closeModal()">Manter evento</button>
+            <button type="submit" class="button button--danger" [disabled]="cancelForm.invalid || store.isMutating()">
+              Confirmar cancelamento
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Inform / Review / Confirm Result -->
+  @if (activeModal() === 'informResult' || activeModal() === 'reviewResult' || activeModal() === 'confirmResult') {
+    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-result-title">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow">
+              @if (activeModal() === 'informResult') { Rascunho de resultado }
+              @else if (activeModal() === 'reviewResult') { Envio para revisão }
+              @else { Confirmação oficial }
+            </span>
+            <h2 id="modal-result-title">
+              @if (activeModal() === 'informResult') { Salvar rascunho de placar }
+              @else if (activeModal() === 'reviewResult') { Enviar resultado para revisão }
+              @else { Confirmar resultado oficial }
+            </h2>
+          </div>
+          <button type="button" class="close-button" (click)="closeModal()">✕</button>
+        </header>
+
+        <form [formGroup]="resultForm" (ngSubmit)="activeModal() === 'informResult' ? saveInformResult() : (activeModal() === 'reviewResult' ? saveReviewResult() : saveConfirmResult())">
+          <div class="score-input-grid">
+            <label>
+              {{ getSlotLabel(store.selectedEvent(), 1) }}
+              <input type="number" min="0" formControlName="slot1Score" placeholder="0" />
+            </label>
+            <span class="x-divider">X</span>
+            <label>
+              {{ getSlotLabel(store.selectedEvent(), 2) }}
+              <input type="number" min="0" formControlName="slot2Score" placeholder="0" />
+            </label>
+          </div>
+
+          <label>
+            Fonte Oficial do Resultado
+            <input formControlName="sourceReference" placeholder="Ex: Súmula Oficial do Árbitro nº 12 / Boletim Final" />
+            <small class="field-help">Informe uma fonte oficial válida antes de publicar.</small>
+          </label>
+
+          <div class="diff-trigger">
+            <button type="button" class="text-button" (click)="previewResultDiff()">
+              Pré-visualizar comparação de versão
+            </button>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="button button--primary" [disabled]="resultForm.invalid || store.isMutating()">
+              @if (activeModal() === 'informResult') { Salvar rascunho }
+              @else if (activeModal() === 'reviewResult') { Enviar para revisão }
+              @else { Confirmar resultado }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal: Correct Result (New Audited Version) -->
+  @if (activeModal() === 'correctResult') {
+    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-correct-title">
+      <div class="modal-card">
+        <header class="modal-header">
+          <div>
+            <span class="eyebrow eyebrow--warning">Nova versão auditada</span>
+            <h2 id="modal-correct-title">Corrigir resultado confirmado</h2>
+          </div>
+          <button type="button" class="close-button" (click)="closeModal()">✕</button>
+        </header>
+
+        <p class="form-note">
+          A correção publica uma nova versão no histórico (CORRIGIDO) sem apagar as versões anteriores.
+        </p>
+
+        <form [formGroup]="correctionForm" (ngSubmit)="saveCorrectResult()">
+          <div class="score-input-grid">
+            <label>
+              {{ getSlotLabel(store.selectedEvent(), 1) }}
+              <input type="number" min="0" formControlName="slot1Score" placeholder="0" />
+            </label>
+            <span class="x-divider">X</span>
+            <label>
+              {{ getSlotLabel(store.selectedEvent(), 2) }}
+              <input type="number" min="0" formControlName="slot2Score" placeholder="0" />
+            </label>
+          </div>
+
+          <label>
+            Motivo da retificação (obrigatório)
+            <textarea formControlName="reason" rows="2" placeholder="Ex: Retificação após conferência de súmula oficial."></textarea>
+          </label>
+
+          <label>
+            Fonte Oficial Retificadora
+            <input formControlName="sourceReference" placeholder="Ex: Boletim Oficial Retificado nº 03" />
+          </label>
+
+          <div class="diff-trigger">
+            <button type="button" class="text-button" (click)="previewResultDiff()">
+              Pré-visualizar comparação de versão
+            </button>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
+            <button type="submit" class="button button--primary" [disabled]="correctionForm.invalid || store.isMutating()">
+              Publicar correção versionada
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal / Drawer: Preview Diff & Event Preview -->
+  @if (activeDiff(); as diff) {
+    <aside class="preview-drawer" aria-labelledby="preview-diff-title">
+      <header class="drawer-header">
+        <div>
+          <span class="eyebrow">Comparação de versão</span>
+          <h2 id="preview-diff-title">Diferença de resultado</h2>
+        </div>
+        <button type="button" class="close-button" (click)="closePreview()">Fechar</button>
+      </header>
+
+      <div class="diff-comparison-grid">
+        <div class="diff-box diff-box--current">
+          <h3>Versão pública atual</h3>
+          @if (diff.current) {
+            <p class="diff-version">v{{ diff.current.versionNo }} · {{ statusDisplay(diff.current.status).label }}</p>
+            <div class="diff-scores">
+              <span>{{ getSlotLabel(store.selectedEvent(), 1) }}: <strong>{{ diff.current.scores[0]?.score ?? '-' }}</strong></span>
+              <span>{{ getSlotLabel(store.selectedEvent(), 2) }}: <strong>{{ diff.current.scores[1]?.score ?? '-' }}</strong></span>
+            </div>
+            <p><strong>Fonte:</strong> {{ diff.current.sourceReference }}</p>
+            @if (diff.current.reason) {
+              <p><strong>Motivo:</strong> {{ diff.current.reason }}</p>
+            }
+          } @else {
+            <p class="diff-empty">Ainda não há versão confirmada publicada.</p>
+          }
+        </div>
+
+        <div class="diff-box diff-box--proposed">
+          <h3>Nova versão</h3>
+          <p class="diff-version">Próxima versão a ser gravada</p>
+          <div class="diff-scores">
+            <span>{{ diff.proposed.scores[0]?.displayLabel }}: <strong>{{ diff.proposed.scores[0]?.score }}</strong></span>
+            <span>{{ diff.proposed.scores[1]?.displayLabel }}: <strong>{{ diff.proposed.scores[1]?.score }}</strong></span>
+          </div>
+          <p><strong>Fonte:</strong> {{ diff.proposed.sourceReference }}</p>
+          @if (diff.proposed.reason) {
+            <p><strong>Motivo:</strong> {{ diff.proposed.reason }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="drawer-actions">
+        <button type="button" class="button button--secondary" (click)="closePreview()">Fechar pré-visualização</button>
+      </div>
+    </aside>
+  } @else if (store.preview(); as preview) {
+    <aside class="preview-drawer" aria-labelledby="preview-event-title">
+      <header class="drawer-header">
+        <div>
+          <span class="eyebrow">Pré-visualização</span>
+          <h2 id="preview-event-title">Detalhe do evento</h2>
+        </div>
+        <button type="button" class="close-button" (click)="store.closePreview()">Fechar</button>
+      </header>
+
+      @if ('title' in preview) {
+        <dl class="preview-dl">
+          <div><dt>Título</dt><dd>{{ preview.title }}</dd></div>
+          <div><dt>Status</dt><dd>{{ statusDisplay(preview.status).label }} (v{{ preview.lockVersion }})</dd></div>
+          <div><dt>Horário</dt><dd>{{ preview.scheduledAt }} ({{ preview.zoneId }})</dd></div>
+          <div><dt>Local</dt><dd>{{ preview.venueState === 'LOCAL_A_DEFINIR' ? 'Local a definir' : (preview.venueName || 'Local definido') }}</dd></div>
+          <div><dt>Participantes</dt><dd>{{ getSlotLabel(preview, 1) }} vs {{ getSlotLabel(preview, 2) }}</dd></div>
+          <div><dt>Fonte</dt><dd>{{ preview.sourceReference }}</dd></div>
+        </dl>
+      }
+
+      <div class="drawer-actions">
+        <button type="button" class="button button--secondary" (click)="store.closePreview()">Fechar pré-visualização</button>
+      </div>
+    </aside>
+  }
+</section>

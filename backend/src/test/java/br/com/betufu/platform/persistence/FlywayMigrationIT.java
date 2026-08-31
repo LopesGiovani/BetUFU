@@ -91,10 +91,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(16);
+        assertThat(result.migrationsExecuted).isEqualTo(17);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(16);
+        assertThat(applied).hasSize(17);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -144,6 +144,9 @@ class FlywayMigrationIT {
         assertThat(applied[15].getVersion().getVersion()).isEqualTo("15");
         assertThat(applied[15].getState()).isEqualTo(MigrationState.SUCCESS);
 
+        assertThat(applied[16].getVersion().getVersion()).isEqualTo("16");
+        assertThat(applied[16].getState()).isEqualTo(MigrationState.SUCCESS);
+
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
                 Integer.class);
@@ -159,7 +162,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(16);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(17);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -168,7 +171,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(16);
+        assertThat(applied).hasSize(17);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -206,7 +209,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(16);
+            assertThat(totalExecuted).isEqualTo(17);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -214,7 +217,7 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(16);
+            assertThat(applied).hasSize(17);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();
@@ -624,6 +627,90 @@ class FlywayMigrationIT {
         assertThatThrownBy(() -> jdbcTemplate.update(
                 "DELETE FROM public.sports_roster_publication_member WHERE publication_id = ?",
                 publicationId))
+                .hasMessageContaining("snapshots are immutable");
+    }
+
+    @Test
+    @DisplayName("V16 impõe restrições de ciclo de vida de eventos e imutabilidade de versões de resultado")
+    void v16EnforcesEventResultVersionsConstraintsAndImmutability() {
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        UUID identityId = jdbcTemplate.queryForObject(
+                "INSERT INTO public.local_identity (issuer, subject) VALUES ('https://idp.invalid', ?) RETURNING identity_id",
+                UUID.class,
+                "v16-event-result-sub");
+        UUID competitionId = jdbcTemplate.queryForObject(
+                "INSERT INTO public.sports_competition (name, slug) VALUES ('Comp V16', 'comp-v16') RETURNING competition_id",
+                UUID.class);
+        UUID editionId = jdbcTemplate.queryForObject(
+                "INSERT INTO public.sports_edition (competition_id, name, slug) VALUES (?, 'Edição V16', 'edicao-v16') RETURNING edition_id",
+                UUID.class, competitionId);
+
+        UUID eventId = UUID.randomUUID();
+        assertThat(jdbcTemplate.update(
+                """
+                INSERT INTO public.sports_event (
+                    event_id, competition_id, edition_id, title, event_format, status,
+                    scheduled_at, zone_id, venue_state, source_reference, lock_version
+                ) VALUES (?, ?, ?, 'Evento V16', 'HEAD_TO_HEAD', 'PUBLICADO', CURRENT_TIMESTAMP(6), 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', 'https://betufu.ufu.br', 0)
+                """,
+                eventId, competitionId, editionId)).isEqualTo(1);
+
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.sports_event_slot (event_id, slot_no, display_label) VALUES (?, 1, 'Equipe 1')",
+                eventId)).isEqualTo(1);
+        assertThat(jdbcTemplate.update(
+                "INSERT INTO public.sports_event_slot (event_id, slot_no, display_label) VALUES (?, 2, 'Equipe 2')",
+                eventId)).isEqualTo(1);
+
+        TransactionTemplate transaction = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
+        UUID versionId = transaction.execute(status -> {
+            UUID resultVersionId = UUID.randomUUID();
+            assertThat(jdbcTemplate.update(
+                    """
+                    INSERT INTO public.sports_result_version (
+                        version_id, event_id, competition_id, edition_id, version_no, status,
+                        source_reference, recorded_by_identity_id, confirmed_by_identity_id,
+                        confirmed_at, base_lock_version
+                    ) VALUES (?, ?, ?, ?, 1, 'CONFIRMADO', 'https://boletim.ufu.br', ?, ?, CURRENT_TIMESTAMP(6), 0)
+                    """,
+                    resultVersionId, eventId, competitionId, editionId, identityId, identityId)).isEqualTo(1);
+
+            assertThat(jdbcTemplate.update(
+                    "INSERT INTO public.sports_result_version_slot (version_id, slot_no, score, display_label) VALUES (?, 1, 2, 'Equipe 1')",
+                    resultVersionId)).isEqualTo(1);
+            assertThat(jdbcTemplate.update(
+                    "INSERT INTO public.sports_result_version_slot (version_id, slot_no, score, display_label) VALUES (?, 2, 1, 'Equipe 2')",
+                    resultVersionId)).isEqualTo(1);
+            return resultVersionId;
+        });
+
+        assertThat(jdbcTemplate.update(
+                "UPDATE public.sports_event SET confirmed_version_id = ? WHERE event_id = ?",
+                versionId, eventId)).isEqualTo(1);
+
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_result_version SET source_reference = 'https://alterado.ufu.br' WHERE version_id = ?",
+                versionId))
+                .hasMessageContaining("snapshots are immutable");
+
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "DELETE FROM public.sports_result_version WHERE version_id = ?",
+                versionId))
+                .hasMessageContaining("snapshots are immutable");
+
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_result_version_slot SET score = 10 WHERE version_id = ?",
+                versionId))
+                .hasMessageContaining("snapshots are immutable");
+
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "DELETE FROM public.sports_result_version_slot WHERE version_id = ?",
+                versionId))
                 .hasMessageContaining("snapshots are immutable");
     }
 }

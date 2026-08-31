@@ -23,8 +23,11 @@ import {
   SportsAthleteSummary,
   SportsCatalogService,
   SportsCatalogScope,
+  SportsEventDetail,
+  SportsEventResultService,
   SportsOrganizationService,
   SportsPublicService,
+  SportsResultVersion,
   provideApi,
 } from './generated';
 
@@ -36,6 +39,7 @@ describe('Generated BETUFU API client contract', () => {
   let sportsPublicService: SportsPublicService;
   let sportsCatalogService: SportsCatalogService;
   let sportsOrganizationService: SportsOrganizationService;
+  let sportsEventResultService: SportsEventResultService;
   let profileService: ProfileService;
   let athleteLinkService: AthleteLinkService;
 
@@ -61,6 +65,7 @@ describe('Generated BETUFU API client contract', () => {
     sportsPublicService = TestBed.inject(SportsPublicService);
     sportsCatalogService = TestBed.inject(SportsCatalogService);
     sportsOrganizationService = TestBed.inject(SportsOrganizationService);
+    sportsEventResultService = TestBed.inject(SportsEventResultService);
     profileService = TestBed.inject(ProfileService);
     athleteLinkService = TestBed.inject(AthleteLinkService);
   }
@@ -358,5 +363,112 @@ describe('Generated BETUFU API client contract', () => {
     expect('matricula' in athleteSummary).toBe(false);
     expect('fingerprint' in athleteSummary).toBe(false);
     expect('hmac' in athleteSummary).toBe(false);
+  });
+
+  it('consome lifecycle completo de evento e resultado pelo SportsEventResultService gerado', async () => {
+    configureClient(true);
+
+    const eventId = 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
+    const editionId = 'ed1a2b3c-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
+    const sampleEvent: SportsEventDetail = {
+      eventId,
+      competitionId: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      competitionName: 'InterUFU',
+      editionId,
+      editionName: '2026',
+      title: 'Futsal Masculino - Final',
+      format: 'HEAD_TO_HEAD',
+      status: 'RASCUNHO',
+      scheduledAt: '2026-09-01T18:00:00Z',
+      zoneId: 'America/Sao_Paulo',
+      venueState: 'LOCAL_DEFINIDO',
+      sourceReference: 'https://boletim.ufu.br/evento/1',
+      lockVersion: 0,
+      slots: [
+        { slotNo: 1, displayLabel: 'Engenharia', teamId: 't1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c', teamName: 'Engenharia' },
+        { slotNo: 2, displayLabel: 'Medicina', teamId: 't2a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c', teamName: 'Medicina' },
+      ],
+      createdAt: '2026-08-30T12:00:00Z',
+      updatedAt: '2026-08-30T12:00:00Z',
+    };
+
+    const listEventsResult = firstValueFrom(sportsEventResultService.listSportsEvents({ editionId }));
+    const listReq = httpTesting.expectOne(`/api/v1/operations/sports/editions/${editionId}/events`);
+    expect(listReq.request.method).toBe('GET');
+    listReq.flush([sampleEvent]);
+    await expect(listEventsResult).resolves.toEqual([sampleEvent]);
+
+    const createResult = firstValueFrom(sportsEventResultService.createSportsEvent({
+      editionId,
+      sportsEventCreateRequest: {
+        title: 'Futsal Masculino - Final',
+        format: 'HEAD_TO_HEAD',
+        scheduledAt: '2026-09-01T18:00:00Z',
+        zoneId: 'America/Sao_Paulo',
+        venueState: 'LOCAL_DEFINIDO',
+        sourceReference: 'https://boletim.ufu.br/evento/1',
+        slots: [
+          { slotNo: 1, displayLabel: 'Engenharia' },
+          { slotNo: 2, displayLabel: 'Medicina' },
+        ],
+      },
+    }));
+    const createReq = httpTesting.expectOne(`/api/v1/operations/sports/editions/${editionId}/events`);
+    expect(createReq.request.method).toBe('POST');
+    createReq.flush(sampleEvent);
+    await expect(createResult).resolves.toEqual(sampleEvent);
+
+    const getDetailResult = firstValueFrom(sportsEventResultService.getSportsEventDetail({ eventId }));
+    const detailReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}`);
+    expect(detailReq.request.method).toBe('GET');
+    detailReq.flush(sampleEvent);
+    await expect(getDetailResult).resolves.toEqual(sampleEvent);
+
+    const publishResult = firstValueFrom(sportsEventResultService.publishSportsEvent({ eventId, expectedLockVersion: 0 }));
+    const publishReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}/publish?expectedLockVersion=0`);
+    expect(publishReq.request.method).toBe('POST');
+    publishReq.flush({ ...sampleEvent, status: 'PUBLICADO', lockVersion: 1 });
+    await expect(publishResult).resolves.toMatchObject({ status: 'PUBLICADO', lockVersion: 1 });
+
+    const sampleResultVersion: SportsResultVersion = {
+      versionId: 'v1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      eventId,
+      competitionId: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      editionId,
+      versionNo: 1,
+      status: 'CONFIRMADO',
+      sourceReference: 'https://boletim.ufu.br/sumula/1.pdf',
+      scores: [
+        { slotNo: 1, displayLabel: 'Engenharia', score: 3 },
+        { slotNo: 2, displayLabel: 'Medicina', score: 2 },
+      ],
+      recordedByIdentityId: 'id1a2b3c-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      confirmedByIdentityId: 'id1a2b3c-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      recordedAt: '2026-08-30T19:00:00Z',
+      confirmedAt: '2026-08-30T19:05:00Z',
+      baseLockVersion: 1,
+    };
+
+    const confirmResult = firstValueFrom(sportsEventResultService.confirmSportsResult({
+      eventId,
+      expectedLockVersion: 1,
+      sportsResultConfirmRequest: {
+        sourceReference: 'https://boletim.ufu.br/sumula/1.pdf',
+        scores: [
+          { slotNo: 1, score: 3 },
+          { slotNo: 2, score: 2 },
+        ],
+      },
+    }));
+    const confirmReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}/results/confirm?expectedLockVersion=1`);
+    expect(confirmReq.request.method).toBe('POST');
+    confirmReq.flush(sampleResultVersion);
+    await expect(confirmResult).resolves.toEqual(sampleResultVersion);
+
+    const listVersionsResult = firstValueFrom(sportsEventResultService.listSportsResultVersions({ eventId }));
+    const listVerReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}/results`);
+    expect(listVerReq.request.method).toBe('GET');
+    listVerReq.flush([sampleResultVersion]);
+    await expect(listVersionsResult).resolves.toEqual([sampleResultVersion]);
   });
 });

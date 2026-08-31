@@ -2024,9 +2024,36 @@ paths:
           description: Competição não encontrada (Problem Details).
 
   /api/v1/operations/sports/editions/{editionId}/events:
+    get:
+      tags:
+        - SportsEventResult
+      operationId: listSportsEvents
+      summary: Listar eventos esportivos de uma edição
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Lista de eventos da edição.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsEventDetail"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Escopo fora da autorização do administrador.
+        "404":
+          description: Edição não encontrada.
     post:
       tags:
-        - SportsOperations
+        - SportsEventResult
       operationId: createSportsEvent
       summary: Criar um evento esportivo em rascunho
       description: >-
@@ -2052,7 +2079,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SportsEventResponse"
+                $ref: "#/components/schemas/SportsEventDetail"
         "400":
           description: Dados do evento inválidos (Problem Details).
         "401":
@@ -2062,11 +2089,455 @@ paths:
         "404":
           description: Edição não encontrada (Problem Details).
 
+  /api/v1/operations/sports/events/{eventId}:
+    get:
+      tags:
+        - SportsEventResult
+      operationId: getSportsEventDetail
+      summary: Consultar detalhe operacional do evento
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Detalhes operacionais do evento.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEventDetail"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+    put:
+      tags:
+        - SportsEventResult
+      operationId: updateSportsEventDraft
+      summary: Atualizar rascunho de evento esportivo
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsEventUpdateRequest"
+      responses:
+        "200":
+          description: Rascunho de evento atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEventDetail"
+        "400":
+          description: Dados inválidos ou evento fora de rascunho.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento ou entidade de catálogo não encontrada.
+        "409":
+          description: Versão stale; nenhuma alteração sobrescrita.
+
+  /api/v1/operations/sports/events/{eventId}/publish:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: publishSportsEvent
+      summary: Publicar evento esportivo
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        "200":
+          description: Evento publicado e snapshot criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEventDetail"
+        "400":
+          description: Evento em estado inválido para publicação.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/events/{eventId}/suspend:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: suspendSportsEvent
+      summary: Suspender evento publicado
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsEventSuspendRequest"
+      responses:
+        "200":
+          description: Evento suspenso com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEventDetail"
+        "400":
+          description: Evento não está publicado.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/events/{eventId}/postpone:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: postponeSportsEvent
+      summary: Adiar/reagendar evento esportivo
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsEventPostponeRequest"
+      responses:
+        "200":
+          description: Evento adiado com nova data/fuso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEventDetail"
+        "400":
+          description: Dados inválidos ou evento em estado não postergável.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/events/{eventId}/cancel:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: cancelSportsEvent
+      summary: Cancelar evento esportivo de forma irreversível
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsEventCancelRequest"
+      responses:
+        "200":
+          description: Evento cancelado definitivamente.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsEventDetail"
+        "400":
+          description: Motivo ausente ou evento já cancelado.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/events/{eventId}/results:
+    get:
+      tags:
+        - SportsEventResult
+      operationId: listSportsResultVersions
+      summary: Listar histórico de versões de resultado do evento
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Linha do tempo de versões de resultado.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsResultVersion"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+
+  /api/v1/operations/sports/events/{eventId}/results/inform:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: informSportsResult
+      summary: Registrar rascunho de resultado (INFORMADO)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsResultInformRequest"
+      responses:
+        "200":
+          description: Versão informada gravada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsResultVersion"
+        "400":
+          description: Placar inválido ou evento não permite resultado.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/events/{eventId}/results/review:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: reviewSportsResult
+      summary: Enviar resultado para revisão (AGUARDANDO_REVISAO)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsResultReviewRequest"
+      responses:
+        "200":
+          description: Versão aguardando revisão gravada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsResultVersion"
+        "400":
+          description: Placar inválido ou evento não permite resultado.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/events/{eventId}/results/confirm:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: confirmSportsResult
+      summary: Confirmar resultado com fonte oficial (CONFIRMADO)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsResultConfirmRequest"
+      responses:
+        "200":
+          description: Resultado confirmado e projeção do evento atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsResultVersion"
+        "400":
+          description: Fonte oficial ausente ou dados inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/events/{eventId}/results/correct:
+    post:
+      tags:
+        - SportsEventResult
+      operationId: correctSportsResult
+      summary: Corrigir resultado confirmado com motivo auditado (CORRIGIDO)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsResultCorrectRequest"
+      responses:
+        "200":
+          description: Nova versão corrigida criada e projeção atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsResultVersion"
+        "400":
+          description: Motivo ausente ou nenhum resultado confirmado previamente.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+        "409":
+          description: Versão stale.
+
   /api/v1/operations/sports/events/{eventId}/publications:
     post:
       tags:
         - SportsOperations
-      operationId: publishSportsEvent
+      operationId: publishSportsEventSnapshot
       summary: Publicar uma versão imutável do evento
       description: >-
         Carrega o evento, deriva sua competição, valida o papel escopado e cria
@@ -3472,6 +3943,9 @@ components:
           type: string
           minLength: 1
           maxLength: 160
+        teamId:
+          type: [string, "null"]
+          format: uuid
 
     SportsEventCreateRequest:
       type: object
@@ -4324,3 +4798,370 @@ components:
           format: int32
         message:
           type: string
+
+    SportsEventSlotItem:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - displayLabel
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+        displayLabel:
+          type: string
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+
+    SportsEventUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - format
+        - scheduledAt
+        - zoneId
+        - venueState
+        - sourceReference
+        - slots
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        format:
+          $ref: "#/components/schemas/SportsEventFormat"
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+          maxLength: 64
+        venueState:
+          $ref: "#/components/schemas/SportsVenueState"
+        sourceReference:
+          type: string
+          maxLength: 2048
+        slots:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SportsEventSlotRequest"
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        venueId:
+          type: string
+          format: uuid
+        venueSpaceId:
+          type: string
+          format: uuid
+
+    SportsEventSuspendRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          maxLength: 1024
+
+    SportsEventPostponeRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - scheduledAt
+        - zoneId
+      properties:
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+          maxLength: 64
+        reason:
+          type: string
+          maxLength: 1024
+
+    SportsEventCancelRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          maxLength: 1024
+
+    SportsEventDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - competitionId
+        - competitionName
+        - editionId
+        - editionName
+        - title
+        - format
+        - status
+        - scheduledAt
+        - zoneId
+        - venueState
+        - sourceReference
+        - lockVersion
+        - slots
+        - createdAt
+        - updatedAt
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        competitionName:
+          type: string
+        editionId:
+          type: string
+          format: uuid
+        editionName:
+          type: string
+        title:
+          type: string
+        format:
+          $ref: "#/components/schemas/SportsEventFormat"
+        status:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+        venueState:
+          $ref: "#/components/schemas/SportsVenueState"
+        sourceReference:
+          type: string
+        lockVersion:
+          type: integer
+          format: int64
+        sportId:
+          type: string
+          format: uuid
+        sportName:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        phaseId:
+          type: string
+          format: uuid
+        phaseName:
+          type: string
+        venueId:
+          type: string
+          format: uuid
+        venueName:
+          type: string
+        venueSpaceId:
+          type: string
+          format: uuid
+        venueSpaceName:
+          type: string
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsEventSlotItem"
+        confirmedVersionId:
+          type: string
+          format: uuid
+        statusReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SportsResultScoreRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - score
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 32
+        score:
+          type: integer
+          format: int32
+          minimum: 0
+
+    SportsResultScoreItem:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - displayLabel
+        - score
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+        displayLabel:
+          type: string
+        score:
+          type: integer
+          format: int32
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+
+    SportsResultInformRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sourceReference
+        - scores
+      properties:
+        sourceReference:
+          type: string
+          maxLength: 2048
+        scores:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SportsResultScoreRequest"
+
+    SportsResultReviewRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sourceReference
+        - scores
+      properties:
+        sourceReference:
+          type: string
+          maxLength: 2048
+        scores:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SportsResultScoreRequest"
+
+    SportsResultConfirmRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sourceReference
+        - scores
+      properties:
+        sourceReference:
+          type: string
+          maxLength: 2048
+        scores:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SportsResultScoreRequest"
+
+    SportsResultCorrectRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+        - sourceReference
+        - scores
+      properties:
+        reason:
+          type: string
+          maxLength: 1024
+        sourceReference:
+          type: string
+          maxLength: 2048
+        scores:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SportsResultScoreRequest"
+
+    SportsResultVersion:
+      type: object
+      additionalProperties: false
+      required:
+        - versionId
+        - eventId
+        - competitionId
+        - editionId
+        - versionNo
+        - status
+        - sourceReference
+        - scores
+        - recordedByIdentityId
+        - recordedAt
+        - baseLockVersion
+      properties:
+        versionId:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        versionNo:
+          type: integer
+          format: int64
+        status:
+          type: string
+        sourceReference:
+          type: string
+        reason:
+          type: string
+        scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsResultScoreItem"
+        recordedByIdentityId:
+          type: string
+          format: uuid
+        confirmedByIdentityId:
+          type: string
+          format: uuid
+        recordedAt:
+          type: string
+          format: date-time
+        confirmedAt:
+          type: string
+          format: date-time
+        supersedesVersionId:
+          type: string
+          format: uuid
+        baseLockVersion:
+          type: integer
+          format: int64

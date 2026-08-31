@@ -12,8 +12,6 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.CompetitionCreate
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.CompetitionResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EditionCreateRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EditionResponse;
-import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventCreateRequest;
-import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSportsEventPage;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublishEventRequest;
@@ -39,7 +37,6 @@ public class SportsTracerController {
 
     static final String COMPETITIONS_PATH = "/api/v1/operations/sports/competitions";
     static final String EDITIONS_PATH = "/api/v1/operations/sports/competitions/{competitionId}/editions";
-    static final String EVENTS_PATH = "/api/v1/operations/sports/editions/{editionId}/events";
     static final String PUBLICATIONS_PATH = "/api/v1/operations/sports/events/{eventId}/publications";
     static final String PUBLIC_EVENTS_PATH = "/api/v1/public/sports/events";
     static final String PUBLIC_EVENT_PATH = "/api/v1/public/sports/events/{eventId}";
@@ -73,19 +70,6 @@ public class SportsTracerController {
         ActorClaims actor = requireActor(oidcUser);
         EditionResponse response = service.createEdition(
                 actor.issuer(), actor.subject(), competitionId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PostMapping(
-            path = EVENTS_PATH,
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<EventResponse> createEvent(
-            @PathVariable UUID editionId,
-            @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser oidcUser,
-            @Valid @RequestBody EventCreateRequest request) {
-        ActorClaims actor = requireActor(oidcUser);
-        EventResponse response = service.createEvent(actor.issuer(), actor.subject(), editionId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
