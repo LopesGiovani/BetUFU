@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: "Completed 03-11-PLAN.md; next: 03-12/W13"
-last_updated: "2026-08-31T08:00:00.000Z"
+stopped_at: "Completed 03-12-PLAN.md; integrated and cleaned, push follows"
+last_updated: "2026-08-31T17:15:00.000Z"
 last_activity: 2026-08-31
-last_activity_desc: 03-11/W12 concluiu Arena publica P1-P6, suites, builds, candidato OpenAPI, integracao, limpeza e push.
-state_head: 1db2d19
+last_activity_desc: 03-12/W13 concluiu chaveamento derivado P7/O7, suites, builds, candidato OpenAPI e commits locais.
+state_head: 7088123
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 74
+  completed_plans: 75
 milestone_name: milestone
 ---
 
@@ -24,18 +24,19 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-11/W12 concluida — Arena publica P1-P6 certificada; proximo plano tecnico: 03-12/W13
+**Current focus:** 03-12/W13 concluida — chaveamento derivado P7/O7 certificado; proximo plano tecnico: 03-13/W14
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-11 de 20 concluido na worktree `worktree-agent-03-11`; proximo plano tecnico: 03-12/W13.
-Status: In progress — Arena publica P1-P6 certificada, integrada e enviada; proximo plano tecnico: 03-12/W13.
-Last activity: 2026-08-31 — suites completas, builds, candidato OpenAPI e implementacao do 03-11 concluidos.
+Plan: 03-12 de 20 concluido; integracao Git e limpeza da worktree/branch concluidas; proximo plano tecnico: 03-13/W14.
+Status: In progress — chaveamento derivado P7/O7 certificado e integrado; push pendente.
+Last activity: 2026-08-31 — suites completas, builds, candidato OpenAPI e implementacao do 03-12 concluidos.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
 Git — Fase 3 / Wave 12 (concluida, enviada e limpa, 2026-08-31): o 03-11 foi executado na `worktree-agent-03-11` sobre `63e0c0e`. Os commits tecnico `36a3d8c` e documental `1db2d19` foram integrados por fast-forward na `master`; Maven focal/completo, Node, Angular, builds e Playwright passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
+Git — Fase 3 / Wave 13 (integrada e limpa, 2026-08-31): o 03-12 foi executado na `worktree-agent-03-12` sobre `b84e3db`; apos rebase sobre o commit legitimo `424d98b`, o tecnico `7088123` contem 42 paths certificados e o documental foi integrado na sequencia. O candidato OpenAPI aprovado e `8BE63578F11D7D3DBC4F771A8A0F03B41482C1B7C00698AAC69165EF1A216396`, com governed-before/after iguais. Maven completo `416/416`, Node `625/625`, Angular `316/316`, Playwright esportivo `3/3`, builds e gerador passaram. A worktree e a branch exatas foram removidas; push pendente.
 Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 foi criada na `worktree-agent-03-03` a partir de `7d3cbc6`; o commit técnico `9399a7c` contém exatamente 44 paths e o documental `3368d73` contém os seis documentos GSD. A integração fast-forward levou ambos para `master`; limpeza da worktree/branch e push continuam pendentes de aprovação específica.
 
 Git ? Fase 3 / Wave 6 (snapshot certificado, 2026-08-29): o 03-05 foi executado na `worktree-agent-03-05` sobre `72d8854`. O candidato aprovado e `12B2982C70B98D02BD6609BA95AAE350E2BF65999E57F5D16183B65DABBA7201`; hashes governados before/after `21C94593F724A3478B866C4F0F4402B0FACA4EE92FD265A9B9CDEDD6BE5E5F37`. Node `625/625`, Maven `350/350`, Playwright Arena `2/2` e Console `1/1` passaram; Angular completo `248/253` conserva cinco falhas historicas fora do escopo.
