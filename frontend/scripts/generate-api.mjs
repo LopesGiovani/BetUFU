@@ -86,6 +86,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'SportsOrganization',
   'SportsPublic',
   'SportsRoster',
+  'SportsTabularImport',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'AdministrativeCorrectionEventDto',
@@ -147,6 +148,10 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'SportsRosterUpdateRequest',
   'SportsSportSummary',
   'SportsTeamSummary',
+  'SportsTabularImportPreview',
+  'SportsTabularImportPreviewError',
+  'SportsTabularImportPreviewSummary',
+  'SportsTabularImportResult',
   'SportsVenueState',
   'SportsVenueSpaceSummary',
   'SportsVenueSummary',
@@ -189,6 +194,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/sports-organization.service.ts',
   'api/sports-public.service.ts',
   'api/sports-roster.service.ts',
+  'api/sports-tabular-import.service.ts',
   'configuration.ts',
   'encoder.ts',
   'index.ts',
@@ -251,6 +257,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/sports-roster-publication.ts',
   'model/sports-roster-update-request.ts',
   'model/sports-sport-summary.ts',
+  'model/sports-tabular-import-preview-error.ts',
+  'model/sports-tabular-import-preview-summary.ts',
+  'model/sports-tabular-import-preview.ts',
+  'model/sports-tabular-import-result.ts',
   'model/sports-team-summary.ts',
   'model/sports-venue-space-summary.ts',
   'model/sports-venue-state.ts',
@@ -285,7 +295,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // CurrentIdentityResponse na Wave 8 (03-07), aprovado literalmente pelo responsavel.
 // 19B1... acrescenta o servico e os seis modelos de roster no 03-08, aprovado literalmente
 // pelo responsavel depois da conferencia dos quatro endpoints e da paridade governada.
-export const APPROVED_GENERATED_DIGEST = '19B1F6C2F78F5C93E25BD1A18C8D027C6D925E12A0AD5435EA5F2D2F53C19974';
+// 05B1... acrescenta o servico e os dois modelos de importacao tabular no 03-09, aprovado
+// literalmente pelo responsavel depois da conferencia dos tres endpoints e da paridade governada.
+// C1B4... nomeia os dois objetos auxiliares do preview e fecha a arvore gerada compilavel.
+export const APPROVED_GENERATED_DIGEST = 'C1B4B3F7F37E84EF63911A6BE31A2B36C949DDC0FB63B84C193D72F19B3D3BB8';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

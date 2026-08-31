@@ -1,0 +1,96 @@
+<section class="tabular-import-page" aria-labelledby="tabular-import-title">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Console operacional · O5</span>
+      <h1 id="tabular-import-title">Importar elenco</h1>
+      <p>Valide um CSV UTF-8 ou XLSX fechado e crie rascunhos de atletas e vínculos em uma única confirmação.</p>
+    </div>
+    <a class="arena-link" href="/">Voltar para a Arena</a>
+  </header>
+
+  @if (scope.isLoading() || contextLoading()) {
+    <article class="state-card" role="status">
+      <h2>Carregando escopo autorizado</h2>
+      <p>O servidor está confirmando a competição e a edição antes de abrir a importação.</p>
+    </article>
+  } @else if (scope.isDenied() || scope.isEmpty()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Nenhuma competição autorizada</h2>
+      <p>Sem competição retornada pelo servidor, nenhum arquivo privado foi aberto.</p>
+    </article>
+  } @else if (scope.isError() || contextError()) {
+    <article class="state-card state-card--error" role="alert">
+      <h2>Contexto indisponível</h2>
+      <p>{{ scope.errorMessage() || contextError() }}</p>
+      <button type="button" class="button button--primary" (click)="retryContext()">Tentar novamente</button>
+    </article>
+  } @else {
+    <section class="scope-panel" aria-labelledby="scope-title">
+      <div>
+        <span class="eyebrow">Escopo validado pelo servidor</span>
+        <h2 id="scope-title">Onde importar</h2>
+        <p>Os nomes abaixo vieram do catálogo autorizado; identificadores não são digitados como autoridade.</p>
+      </div>
+      <div class="scope-fields">
+        <label>Competição
+          <select [value]="scope.selectedCompetitionId()" (change)="changeCompetition($any($event.target).value)">
+            @for (competition of scope.competitions(); track competition.competitionId) {
+              <option [value]="competition.competitionId">{{ competition.name }}</option>
+            }
+          </select>
+        </label>
+        <label>Edição
+          <select [value]="selectedEditionId()" (change)="changeEdition($any($event.target).value)">
+            @for (edition of tree()?.editions ?? []; track edition.editionId) {
+              <option [value]="edition.editionId">{{ edition.name }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <div class="workspace-grid">
+      <article class="panel-card">
+        <header class="card-header">
+          <div><span class="card-code">ARQUIVO</span><h2>Selecione uma planilha</h2></div>
+          <span class="status-chip">{{ selectedEditionName() || 'Edição não selecionada' }}</span>
+        </header>
+        <p class="form-note">O arquivo não é enviado ao selecionar. O envio só acontece depois de clicar em validar.</p>
+        <label class="file-picker">Arquivo CSV ou XLSX
+          <input #fileInput type="file" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="selectFile($event)">
+        </label>
+        @if (store.fileName()) { <p class="selected-file" aria-live="polite">Selecionado: <strong>{{ store.fileName() }}</strong> · {{ store.format() }}</p> }
+        @if (store.errorMessage()) { <div class="notice notice--error" role="alert">{{ store.errorMessage() }}</div> }
+        @if (store.feedbackMessage()) { <div class="notice notice--success" role="status" aria-live="polite">{{ store.feedbackMessage() }}</div> }
+        <div class="form-actions">
+          <button type="button" class="button button--secondary" (click)="downloadTemplate('CSV')">Baixar template CSV</button>
+          <button type="button" class="button button--secondary" (click)="downloadTemplate('XLSX')">Baixar template XLSX</button>
+          <button type="button" class="button button--primary" [disabled]="!store.canValidate()" (click)="validate()">{{ store.isLoading() ? 'Validando…' : 'Validar arquivo' }}</button>
+          <button type="button" class="text-button" [disabled]="!store.hasFile()" (click)="resetFile(fileInput)">Limpar seleção</button>
+        </div>
+      </article>
+
+      <article class="panel-card" aria-labelledby="preview-title">
+        <header class="card-header"><div><span class="card-code">PREVIEW</span><h2 id="preview-title">Resultado seguro</h2></div></header>
+        @if (store.isIndeterminate()) {
+          <div class="notice notice--warning" role="alert"><strong>Estado não confirmado.</strong><p>Não reenvie o arquivo. Consulte o estado no servidor para saber se a confirmação foi concluída.</p><button type="button" class="button button--secondary" (click)="checkStatus()">Consultar estado</button></div>
+        } @else if (store.result(); as result) {
+          <dl><div><dt>Estado</dt><dd>{{ result.status }}</dd></div><div><dt>Atletas criados</dt><dd>{{ result.totalImportedAthletes }}</dd></div><div><dt>Rascunhos de elenco</dt><dd>{{ result.totalImportedRosters }}</dd></div></dl>
+        } @else if (store.preview(); as preview) {
+          <dl><div><dt>Formato</dt><dd>{{ preview.format }}</dd></div><div><dt>Linhas analisadas</dt><dd>{{ preview.totalRows }}</dd></div><div><dt>Linhas válidas</dt><dd>{{ preview.validRows }}</dd></div><div><dt>Erros</dt><dd>{{ preview.errorCount }}</dd></div></dl>
+          @if (preview.errors.length > 0) {
+            <div class="error-list" aria-label="Erros encontrados">
+              <h3>Corrija as linhas indicadas</h3>
+              @for (error of preview.errors; track error.line + '-' + error.field) { <div class="error-item"><strong>Linha {{ error.line }}</strong><span>{{ error.field }} · {{ error.problem }}</span></div> }
+            </div>
+          } @else {
+            <div class="summary-list"><h3>Resumo do rascunho</h3>@for (item of preview.summary; track item.organizationName + item.teamName + item.categoryName) { <div class="summary-item"><strong>{{ item.teamName }}</strong><span>{{ item.organizationName }} · {{ item.sportName }} · {{ item.categoryName }} · {{ item.athleteCount }} atletas</span></div> }</div>
+            <button type="button" class="button button--primary" [disabled]="!store.canCommit()" (click)="commit()">Confirmar criação dos rascunhos</button>
+          }
+        } @else {
+          <div class="empty-copy"><h3>Nenhum preview ainda</h3><p>Selecione um arquivo e valide para ver somente o resumo permitido pelo contrato.</p></div>
+        }
+      </article>
+    </div>
+  }
+</section>

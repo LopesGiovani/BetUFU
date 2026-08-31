@@ -28,4 +28,6 @@ export * from './sports-public.service';
 import { SportsPublicService } from './sports-public.service';
 export * from './sports-roster.service';
 import { SportsRosterService } from './sports-roster.service';
-export const APIS = [AthleteLinkService, DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsCatalogService, SportsOrganizationService, SportsPublicService, SportsRosterService];
+export * from './sports-tabular-import.service';
+import { SportsTabularImportService } from './sports-tabular-import.service';
+export const APIS = [AthleteLinkService, DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsCatalogService, SportsOrganizationService, SportsPublicService, SportsRosterService, SportsTabularImportService];

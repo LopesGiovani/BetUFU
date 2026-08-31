@@ -29,6 +29,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ SportsOrganizationsPageComponent }) => SportsOrganizationsPageComponent,
           ),
       },
+      {
+        path: 'importacao',
+        loadComponent: () =>
+          import('./features/sports/operations/tabular-import/sports-tabular-import-page.component').then(
+            ({ SportsTabularImportPageComponent }) => SportsTabularImportPageComponent,
+          ),
+      },
     ],
   },
   {

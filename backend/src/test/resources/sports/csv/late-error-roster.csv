@@ -1,0 +1,4 @@
+organizacao_slug,modalidade_slug,categoria_slug,nome_atleta,matricula,numero_camisa,posicao
+atletica-engenharia,futsal,masculino,Carlos Silva,11821BCC001,10,Ala
+atletica-engenharia,futsal,masculino,Lucas Souza,11821BCC002,7,Pivo
+atletica-engenharia,futsal,masculino,Atleta Erro,,100,Invalido

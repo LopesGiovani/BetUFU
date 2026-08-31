@@ -171,6 +171,16 @@ const CANONICAL_CONSOLE_ORGANIZATIONS_ROUTE_ENTRY = [
   '      },',
 ].join('\n');
 
+const CANONICAL_CONSOLE_TABULAR_IMPORT_ROUTE_ENTRY = [
+  '      {',
+  "        path: 'importacao',",
+  '        loadComponent: () =>',
+  "          import('./features/sports/operations/tabular-import/sports-tabular-import-page.component').then(",
+  '            ({ SportsTabularImportPageComponent }) => SportsTabularImportPageComponent,',
+  '          ),',
+  '      },',
+].join('\n');
+
 function canonicalAuthenticatedRoutes(routeEntries) {
   return [
     "import type { Routes } from '@angular/router';",
@@ -185,6 +195,7 @@ function canonicalAuthenticatedRoutes(routeEntries) {
     CANONICAL_CONSOLE_CATALOG_ROOT_ROUTE_ENTRY,
     CANONICAL_CONSOLE_CATALOG_ROUTE_ENTRY,
     CANONICAL_CONSOLE_ORGANIZATIONS_ROUTE_ENTRY,
+    CANONICAL_CONSOLE_TABULAR_IMPORT_ROUTE_ENTRY,
     '    ],',
     '  },',
     '  {',

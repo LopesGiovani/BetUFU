@@ -1800,6 +1800,123 @@ paths:
         "404":
           description: Elenco não possui versão publicada.
 
+  /api/v1/operations/sports/editions/{editionId}/tabular-import/validate:
+    post:
+      tags:
+        - SportsTabularImport
+      operationId: validateSportsTabularImport
+      summary: Validar arquivo tabular de atletas e elencos (CSV ou XLSX)
+      description: >-
+        Valida o arquivo tabular contra os templates oficiais da BETUFU, referências existentes
+        e regras de negócio. Não persiste alterações e não ecoa matrícula ou conteúdo sensível (D-74, D-75, O5).
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Resultado da validação tabular e resumo de importação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsTabularImportPreview"
+        "400":
+          description: Arquivo vazio, encoding inválido, formato corrompido ou limites excedidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo de competição autorizado.
+        "404":
+          description: Edição não encontrada.
+
+  /api/v1/operations/sports/editions/{editionId}/tabular-import/commit:
+    post:
+      tags:
+        - SportsTabularImport
+      operationId: commitSportsTabularImport
+      summary: Confirmar importação atômica de atletas e elencos validados
+      description: >-
+        Executa a persistência atômica dos atletas e vínculos em rascunho a partir de um lote previamente validado.
+        Garante tudo-ou-nada (all-or-zero) (D-74, D-75, O5).
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: importId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Importação concluída com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsTabularImportResult"
+        "400":
+          description: Lote de importação inválido ou expirado.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo de competição autorizado.
+        "404":
+          description: Edição ou lote não encontrado.
+
+  /api/v1/operations/sports/editions/{editionId}/tabular-import/status/{importId}:
+    get:
+      tags:
+        - SportsTabularImport
+      operationId: getSportsTabularImportStatus
+      summary: Consultar estado de uma solicitação de importação tabular
+      description: >-
+        Consulta idempotente do estado de importação para recuperação de falha de transporte sem reenvio do arquivo (O5).
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: importId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Estado atual da importação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsTabularImportResult"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo de competição autorizado.
+        "404":
+          description: Importação não encontrada.
+
   /api/v1/operations/sports/athlete-link-reviews:
     get:
       tags:
@@ -4107,3 +4224,103 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SportsRosterMemberRequest"
+
+    SportsTabularImportPreview:
+      type: object
+      additionalProperties: false
+      required:
+        - importId
+        - format
+        - totalRows
+        - validRows
+        - errorCount
+        - errors
+        - summary
+        - readyToImport
+      properties:
+        importId:
+          type: [string, "null"]
+          format: uuid
+        format:
+          type: string
+        totalRows:
+          type: integer
+          format: int32
+        validRows:
+          type: integer
+          format: int32
+        errorCount:
+          type: integer
+          format: int32
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsTabularImportPreviewError"
+        summary:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsTabularImportPreviewSummary"
+        readyToImport:
+          type: boolean
+
+    SportsTabularImportPreviewError:
+      type: object
+      additionalProperties: false
+      required:
+        - line
+        - field
+        - problem
+      properties:
+        line:
+          type: integer
+          format: int32
+        field:
+          type: string
+        problem:
+          type: string
+
+    SportsTabularImportPreviewSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - organizationName
+        - teamName
+        - sportName
+        - categoryName
+        - athleteCount
+      properties:
+        organizationName:
+          type: string
+        teamName:
+          type: string
+        sportName:
+          type: string
+        categoryName:
+          type: string
+        athleteCount:
+          type: integer
+          format: int32
+
+    SportsTabularImportResult:
+      type: object
+      additionalProperties: false
+      required:
+        - importId
+        - status
+        - totalImportedAthletes
+        - totalImportedRosters
+        - message
+      properties:
+        importId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        totalImportedAthletes:
+          type: integer
+          format: int32
+        totalImportedRosters:
+          type: integer
+          format: int32
+        message:
+          type: string

@@ -80,6 +80,11 @@ const APPROVED_CONSOLE_ROUTES = Object.freeze([
     './features/sports/operations/organizations/sports-organizations-page.component',
     'SportsOrganizationsPageComponent',
   ),
+  approvedRoute(
+    'importacao',
+    './features/sports/operations/tabular-import/sports-tabular-import-page.component',
+    'SportsTabularImportPageComponent',
+  ),
 ]);
 
 const APPROVED_PRODUCT_ROUTES = Object.freeze([
