@@ -91,6 +91,7 @@ describe('RoleAdminPageComponent (Superfície S5 - OPER-01, OPER-02, OPER-04, D-
           nickname: 'admin_ator',
           nicknameUpdatedAt: '2026-08-20T10:00:00.000Z',
           matriculaStatus: 'REGISTRADA',
+          favoriteOrganizationId: null,
         }),
       ),
       putMyProfile: vi.fn(),
