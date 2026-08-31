@@ -17,9 +17,17 @@ import { Observable }                                        from 'rxjs';
 import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 
 // @ts-ignore
+import { PublicAthleteDetail } from '../model/public-athlete-detail';
+// @ts-ignore
+import { PublicCompetitionDetail } from '../model/public-competition-detail';
+// @ts-ignore
+import { PublicEventDetail } from '../model/public-event-detail';
+// @ts-ignore
+import { PublicOrganizationDetail } from '../model/public-organization-detail';
+// @ts-ignore
 import { PublicSportsEventPage } from '../model/public-sports-event-page';
 // @ts-ignore
-import { PublicSportsEventResponse } from '../model/public-sports-event-response';
+import { PublicTeamDetail } from '../model/public-team-detail';
 // @ts-ignore
 import { SportsVenueState } from '../model/sports-venue-state';
 
@@ -28,6 +36,22 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 
+
+export interface GetPublicAthleteDetailRequestParams {
+    athleteId: string;
+}
+
+export interface GetPublicCompetitionDetailRequestParams {
+    competitionId: string;
+}
+
+export interface GetPublicOrganizationDetailRequestParams {
+    organizationId: string;
+}
+
+export interface GetPublicTeamDetailRequestParams {
+    teamId: string;
+}
 
 export interface GetPublishedSportsEventRequestParams {
     eventId: string;
@@ -59,6 +83,238 @@ export class SportsPublicService extends BaseService {
     }
 
     /**
+     * Consultar detalhe público de um atleta
+     * Retorna o atleta publicado com participações em equipes, eventos e estatísticas. Nenhuma PII (matrícula, e-mail, HMAC) é exposta.
+     * @endpoint get /api/v1/public/sports/athletes/{athleteId}
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getPublicAthleteDetail(requestParameters: GetPublicAthleteDetailRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PublicAthleteDetail>;
+    public getPublicAthleteDetail(requestParameters: GetPublicAthleteDetailRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PublicAthleteDetail>>;
+    public getPublicAthleteDetail(requestParameters: GetPublicAthleteDetailRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PublicAthleteDetail>>;
+    public getPublicAthleteDetail(requestParameters: GetPublicAthleteDetailRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const athleteId = requestParameters?.athleteId;
+        if (athleteId === null || athleteId === undefined) {
+            throw new Error('Required parameter athleteId was null or undefined when calling getPublicAthleteDetail.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/public/sports/athletes/${this.configuration.encodeParam({name: "athleteId", value: athleteId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<PublicAthleteDetail>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Consultar detalhe público de uma competição
+     * Retorna projeção pública da competição com edições, categorias, fases, locais e equipes publicadas.
+     * @endpoint get /api/v1/public/sports/competitions/{competitionId}
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getPublicCompetitionDetail(requestParameters: GetPublicCompetitionDetailRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PublicCompetitionDetail>;
+    public getPublicCompetitionDetail(requestParameters: GetPublicCompetitionDetailRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PublicCompetitionDetail>>;
+    public getPublicCompetitionDetail(requestParameters: GetPublicCompetitionDetailRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PublicCompetitionDetail>>;
+    public getPublicCompetitionDetail(requestParameters: GetPublicCompetitionDetailRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const competitionId = requestParameters?.competitionId;
+        if (competitionId === null || competitionId === undefined) {
+            throw new Error('Required parameter competitionId was null or undefined when calling getPublicCompetitionDetail.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/public/sports/competitions/${this.configuration.encodeParam({name: "competitionId", value: competitionId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<PublicCompetitionDetail>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Consultar detalhe público de uma organização esportiva
+     * Retorna a organização publicada com suas equipes, elenco publicado e eventos recentes.
+     * @endpoint get /api/v1/public/sports/organizations/{organizationId}
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getPublicOrganizationDetail(requestParameters: GetPublicOrganizationDetailRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PublicOrganizationDetail>;
+    public getPublicOrganizationDetail(requestParameters: GetPublicOrganizationDetailRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PublicOrganizationDetail>>;
+    public getPublicOrganizationDetail(requestParameters: GetPublicOrganizationDetailRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PublicOrganizationDetail>>;
+    public getPublicOrganizationDetail(requestParameters: GetPublicOrganizationDetailRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const organizationId = requestParameters?.organizationId;
+        if (organizationId === null || organizationId === undefined) {
+            throw new Error('Required parameter organizationId was null or undefined when calling getPublicOrganizationDetail.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/public/sports/organizations/${this.configuration.encodeParam({name: "organizationId", value: organizationId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<PublicOrganizationDetail>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Consultar detalhe público de uma equipe esportiva
+     * Retorna a equipe publicada com seu elenco publicado e agenda de eventos.
+     * @endpoint get /api/v1/public/sports/teams/{teamId}
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getPublicTeamDetail(requestParameters: GetPublicTeamDetailRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PublicTeamDetail>;
+    public getPublicTeamDetail(requestParameters: GetPublicTeamDetailRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PublicTeamDetail>>;
+    public getPublicTeamDetail(requestParameters: GetPublicTeamDetailRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PublicTeamDetail>>;
+    public getPublicTeamDetail(requestParameters: GetPublicTeamDetailRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const teamId = requestParameters?.teamId;
+        if (teamId === null || teamId === undefined) {
+            throw new Error('Required parameter teamId was null or undefined when calling getPublicTeamDetail.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/public/sports/teams/${this.configuration.encodeParam({name: "teamId", value: teamId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<PublicTeamDetail>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Consultar a versão pública de um evento
      * Endpoint anônimo que retorna somente o snapshot publicado mais recente. Rascunho, ator da publicação, papéis e versão técnica de edição não atravessam esta fronteira.
      * @endpoint get /api/v1/public/sports/events/{eventId}
@@ -67,9 +323,9 @@ export class SportsPublicService extends BaseService {
      * @param reportProgress flag to report request and response progress.
      * @param options additional options
      */
-    public getPublishedSportsEvent(requestParameters: GetPublishedSportsEventRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PublicSportsEventResponse>;
-    public getPublishedSportsEvent(requestParameters: GetPublishedSportsEventRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PublicSportsEventResponse>>;
-    public getPublishedSportsEvent(requestParameters: GetPublishedSportsEventRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PublicSportsEventResponse>>;
+    public getPublishedSportsEvent(requestParameters: GetPublishedSportsEventRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PublicEventDetail>;
+    public getPublishedSportsEvent(requestParameters: GetPublishedSportsEventRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PublicEventDetail>>;
+    public getPublishedSportsEvent(requestParameters: GetPublishedSportsEventRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PublicEventDetail>>;
     public getPublishedSportsEvent(requestParameters: GetPublishedSportsEventRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         const eventId = requestParameters?.eventId;
         if (eventId === null || eventId === undefined) {
@@ -103,7 +359,7 @@ export class SportsPublicService extends BaseService {
 
         let localVarPath = `/api/v1/public/sports/events/${this.configuration.encodeParam({name: "eventId", value: eventId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<PublicSportsEventResponse>('get', `${basePath}${localVarPath}`,
+        return this.httpClient.request<PublicEventDetail>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,

@@ -16,6 +16,8 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventRespon
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicSportsEventPage;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublishEventRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.VenueState;
+import br.com.betufu.sports.internal.publicview.SportsPublicViewModels.PublicEventDetail;
+import br.com.betufu.sports.internal.publicview.SportsPublicViewService;
 import jakarta.validation.Valid;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -42,9 +44,13 @@ public class SportsTracerController {
     static final String PUBLIC_EVENT_PATH = "/api/v1/public/sports/events/{eventId}";
 
     private final SportsTracerService service;
+    private final SportsPublicViewService publicViewService;
 
-    public SportsTracerController(SportsTracerService service) {
+    public SportsTracerController(
+            SportsTracerService service,
+            SportsPublicViewService publicViewService) {
         this.service = Objects.requireNonNull(service, "service must not be null");
+        this.publicViewService = Objects.requireNonNull(publicViewService, "publicViewService must not be null");
     }
 
     @PostMapping(
@@ -88,8 +94,8 @@ public class SportsTracerController {
     }
 
     @GetMapping(path = PUBLIC_EVENT_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PublicEventResponse> getPublishedEvent(@PathVariable UUID eventId) {
-        return ResponseEntity.ok(service.getPublishedEvent(eventId));
+    public ResponseEntity<PublicEventDetail> getPublishedEvent(@PathVariable UUID eventId) {
+        return ResponseEntity.ok(publicViewService.getEventDetail(eventId));
     }
 
     @GetMapping(path = PUBLIC_EVENTS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)

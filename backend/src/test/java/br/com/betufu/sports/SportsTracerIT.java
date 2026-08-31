@@ -195,7 +195,7 @@ class SportsTracerIT {
         JsonNode publicBody = objectMapper.readTree(publicResult.getResponse().getContentAsByteArray());
         assertThat(publicBody.size())
                 .as("the anonymous DTO must contain only the approved public fields")
-                .isEqualTo(15);
+                .isEqualTo(16);
     }
 
     @Test

@@ -19,6 +19,41 @@ export const APP_ROUTES: Routes = [
             ({ PublicAgendaPageComponent }) => PublicAgendaPageComponent,
           ),
       },
+      {
+        path: 'competicoes/:competitionId',
+        loadComponent: () =>
+          import('./features/sports/public-competition/public-competition-page.component').then(
+            ({ PublicCompetitionPageComponent }) => PublicCompetitionPageComponent,
+          ),
+      },
+      {
+        path: 'eventos/:eventId',
+        loadComponent: () =>
+          import('./features/sports/public-event/public-event-page.component').then(
+            ({ PublicEventPageComponent }) => PublicEventPageComponent,
+          ),
+      },
+      {
+        path: 'organizacoes/:organizationId',
+        loadComponent: () =>
+          import('./features/sports/public-organization/public-organization-page.component').then(
+            ({ PublicOrganizationPageComponent }) => PublicOrganizationPageComponent,
+          ),
+      },
+      {
+        path: 'equipes/:teamId',
+        loadComponent: () =>
+          import('./features/sports/public-team/public-team-page.component').then(
+            ({ PublicTeamPageComponent }) => PublicTeamPageComponent,
+          ),
+      },
+      {
+        path: 'atletas/:athleteId',
+        loadComponent: () =>
+          import('./features/sports/public-athlete/public-athlete-page.component').then(
+            ({ PublicAthletePageComponent }) => PublicAthletePageComponent,
+          ),
+      },
     ],
   },
   {

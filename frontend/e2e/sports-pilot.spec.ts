@@ -141,3 +141,35 @@ test.describe('@03-03-home-v Arena pública variante V', () => {
     expect(calls.sessionCalls()).toBe(0);
   });
 });
+
+test('@03-11-public-p1-p6 abre os detalhes públicos por URL direta e navega entre identidades', async ({ page }) => {
+  const eventId = FIRST_EVENT_ID;
+  await page.route('**/api/v1/public/sports/competitions/comp-public', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ competitionId: 'comp-public', name: 'Jogos UFU', slug: 'jogos-ufu', editions: [], categories: [], phases: [], venues: [], teams: [{ teamId: 'team-public', organizationId: 'org-public', organizationName: 'Atléticas', editionId: 'edition-public', sportId: 'sport-public', sportName: 'Futebol', categoryId: 'category-public', categoryName: 'Livre', name: 'Engenharia', slug: 'engenharia' }], recentEvents: [] }) });
+  });
+  await page.route(`**/api/v1/public/sports/events/${eventId}`, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ publicationId: 'publication-public', eventId, competitionId: 'comp-public', editionId: 'edition-public', versionNo: 1, competitionName: 'Jogos UFU', editionName: '2026', title: 'Engenharia contra Direito', format: 'HEAD_TO_HEAD', scheduledAt: new Date(Date.now() + 3_600_000).toISOString(), zoneId: 'America/Sao_Paulo', venueState: 'LOCAL_A_DEFINIR', sourceReference: 'sumula-publica', publishedAt: new Date().toISOString(), slots: [{ slotNo: 1, displayLabel: 'Engenharia' }, { slotNo: 2, displayLabel: 'Direito' }], sourceHistory: [] }) });
+  });
+  await page.route('**/api/v1/public/sports/organizations/org-public', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ organizationId: 'org-public', name: 'Atléticas', slug: 'atleticas', teams: [], rosterMembers: [], events: [] }) });
+  });
+  await page.route('**/api/v1/public/sports/teams/team-public', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ teamId: 'team-public', organizationId: 'org-public', organizationName: 'Atléticas', editionId: 'edition-public', editionName: '2026', competitionId: 'comp-public', competitionName: 'Jogos UFU', sportId: 'sport-public', sportName: 'Futebol', categoryId: 'category-public', categoryName: 'Livre', name: 'Engenharia', slug: 'engenharia', events: [] }) });
+  });
+  await page.route('**/api/v1/public/sports/athletes/athlete-public', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ athleteId: 'athlete-public', name: 'Ana', slug: 'ana', teams: [], events: [], stats: { totalParticipations: 0, totalWins: 0, totalLosses: 0 } }) });
+  });
+
+  await page.goto('/competicoes/comp-public');
+  await expect(page.getByRole('heading', { level: 1, name: 'Jogos UFU' })).toBeVisible();
+  await page.getByRole('link', { name: 'Engenharia' }).first().click();
+  await expect(page).toHaveURL(/\/equipes\/team-public$/u);
+  await expect(page.getByRole('heading', { level: 1, name: 'Engenharia' })).toBeVisible();
+  await page.goto('/organizacoes/org-public');
+  await expect(page.getByRole('heading', { level: 1, name: 'Atléticas' })).toBeVisible();
+  await page.goto('/atletas/athlete-public');
+  await expect(page.getByRole('heading', { level: 1, name: 'Ana' })).toBeVisible();
+  await page.goto(`/eventos/${eventId}`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Engenharia × Direito' })).toBeVisible();
+  await expect(page.getByText('sumula-publica').first()).toBeVisible();
+});

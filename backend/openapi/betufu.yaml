@@ -2597,7 +2597,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PublicSportsEventResponse"
+                $ref: "#/components/schemas/PublicEventDetail"
         "404":
           description: Evento sem versão publicada (Problem Details).
 
@@ -2689,6 +2689,108 @@ paths:
                 $ref: "#/components/schemas/PublicSportsEventPage"
         "400":
           description: Filtro ou paginação inválida (Problem Details).
+
+  /api/v1/public/sports/competitions/{competitionId}:
+    get:
+      tags:
+        - SportsPublic
+      operationId: getPublicCompetitionDetail
+      summary: Consultar detalhe público de uma competição
+      description: >-
+        Retorna projeção pública da competição com edições, categorias, fases,
+        locais e equipes publicadas.
+      parameters:
+        - name: competitionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Detalhe público da competição.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicCompetitionDetail"
+        "404":
+          description: Competição não encontrada ou inativa (Problem Details).
+
+  /api/v1/public/sports/organizations/{organizationId}:
+    get:
+      tags:
+        - SportsPublic
+      operationId: getPublicOrganizationDetail
+      summary: Consultar detalhe público de uma organização esportiva
+      description: >-
+        Retorna a organização publicada com suas equipes, elenco publicado e eventos recentes.
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Detalhe público da organização esportiva.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicOrganizationDetail"
+        "404":
+          description: Organização não encontrada ou em rascunho (Problem Details).
+
+  /api/v1/public/sports/teams/{teamId}:
+    get:
+      tags:
+        - SportsPublic
+      operationId: getPublicTeamDetail
+      summary: Consultar detalhe público de uma equipe esportiva
+      description: >-
+        Retorna a equipe publicada com seu elenco publicado e agenda de eventos.
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Detalhe público da equipe esportiva.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicTeamDetail"
+        "404":
+          description: Equipe não encontrada ou em rascunho (Problem Details).
+
+  /api/v1/public/sports/athletes/{athleteId}:
+    get:
+      tags:
+        - SportsPublic
+      operationId: getPublicAthleteDetail
+      summary: Consultar detalhe público de um atleta
+      description: >-
+        Retorna o atleta publicado com participações em equipes, eventos e estatísticas.
+        Nenhuma PII (matrícula, e-mail, HMAC) é exposta.
+      parameters:
+        - name: athleteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Detalhe público do atleta sem PII.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicAthleteDetail"
+        "404":
+          description: Atleta não encontrado ou em rascunho (Problem Details).
 
   /api/v1/diagnostic:
     get:
@@ -4285,6 +4387,695 @@ components:
           format: uuid
         venueSpaceName:
           type: [string, "null"]
+
+    PublicEditionSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - editionId
+        - competitionId
+        - name
+        - slug
+      properties:
+        editionId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        startDate:
+          type: [string, "null"]
+          format: date
+        endDate:
+          type: [string, "null"]
+          format: date
+
+    PublicCategorySummary:
+      type: object
+      additionalProperties: false
+      required:
+        - categoryId
+        - editionId
+        - name
+        - slug
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+
+    PublicPhaseSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - phaseId
+        - categoryId
+        - editionId
+        - name
+        - slug
+      properties:
+        phaseId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+
+    PublicVenueSpaceSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - venueSpaceId
+        - venueId
+        - name
+      properties:
+        venueSpaceId:
+          type: string
+          format: uuid
+        venueId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        notes:
+          type: [string, "null"]
+
+    PublicVenueSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - venueId
+        - competitionId
+        - name
+        - spaces
+      properties:
+        venueId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: [string, "null"]
+        mapUrl:
+          type: [string, "null"]
+        notes:
+          type: [string, "null"]
+        spaces:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicVenueSpaceSummary"
+
+    PublicTeamSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - teamId
+        - organizationId
+        - organizationName
+        - editionId
+        - sportId
+        - sportName
+        - categoryId
+        - categoryName
+        - name
+        - slug
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        organizationName:
+          type: string
+        editionId:
+          type: string
+          format: uuid
+        sportId:
+          type: string
+          format: uuid
+        sportName:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+
+    PublicCompetitionDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - competitionId
+        - name
+        - slug
+        - editions
+        - categories
+        - phases
+        - venues
+        - teams
+        - recentEvents
+      properties:
+        competitionId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        sportId:
+          type: [string, "null"]
+          format: uuid
+        sportName:
+          type: [string, "null"]
+        editions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicEditionSummary"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicCategorySummary"
+        phases:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicPhaseSummary"
+        venues:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicVenueSummary"
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicTeamSummary"
+        recentEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicSportsEventSummary"
+
+    PublicEventSlotItem:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - displayLabel
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+        displayLabel:
+          type: string
+        teamId:
+          type: [string, "null"]
+          format: uuid
+        teamName:
+          type: [string, "null"]
+
+    PublicResultScoreItem:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - score
+        - displayLabel
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+        score:
+          type: integer
+          format: int32
+        displayLabel:
+          type: string
+        teamId:
+          type: [string, "null"]
+          format: uuid
+
+    PublicEventResultDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - versionNo
+        - status
+        - confirmedAt
+        - scores
+      properties:
+        versionNo:
+          type: integer
+          format: int64
+        status:
+          type: string
+        confirmedAt:
+          type: string
+          format: date-time
+        scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicResultScoreItem"
+
+    PublicSourceHistoryItem:
+      type: object
+      additionalProperties: false
+      required:
+        - versionNo
+        - sourceReference
+      properties:
+        versionNo:
+          type: integer
+          format: int64
+        sourceReference:
+          type: string
+        reason:
+          type: [string, "null"]
+        recordedAt:
+          type: [string, "null"]
+          format: date-time
+        confirmedAt:
+          type: [string, "null"]
+          format: date-time
+
+    PublicEventDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - eventId
+        - competitionId
+        - editionId
+        - versionNo
+        - competitionName
+        - editionName
+        - title
+        - format
+        - scheduledAt
+        - zoneId
+        - venueState
+        - sourceReference
+        - publishedAt
+        - slots
+        - sourceHistory
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        versionNo:
+          type: integer
+          format: int64
+        competitionName:
+          type: string
+        editionName:
+          type: string
+        title:
+          type: string
+        format:
+          $ref: "#/components/schemas/SportsEventFormat"
+        status:
+          type: [string, "null"]
+        statusReason:
+          type: [string, "null"]
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+        venueState:
+          $ref: "#/components/schemas/SportsVenueState"
+        sourceReference:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicEventSlotItem"
+        sportId:
+          type: [string, "null"]
+          format: uuid
+        sportName:
+          type: [string, "null"]
+        categoryId:
+          type: [string, "null"]
+          format: uuid
+        categoryName:
+          type: [string, "null"]
+        phaseId:
+          type: [string, "null"]
+          format: uuid
+        phaseName:
+          type: [string, "null"]
+        venueId:
+          type: [string, "null"]
+          format: uuid
+        venueName:
+          type: [string, "null"]
+        venueAddress:
+          type: [string, "null"]
+        venueMapUrl:
+          type: [string, "null"]
+        venueNotes:
+          type: [string, "null"]
+        venueSpaceId:
+          type: [string, "null"]
+          format: uuid
+        venueSpaceName:
+          type: [string, "null"]
+        venueSpaceNotes:
+          type: [string, "null"]
+        result:
+          $ref: "#/components/schemas/PublicEventResultDetail"
+        sourceHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicSourceHistoryItem"
+
+    PublicOrganizationTeamItem:
+      type: object
+      additionalProperties: false
+      required:
+        - teamId
+        - editionId
+        - editionName
+        - competitionId
+        - competitionName
+        - sportId
+        - sportName
+        - categoryId
+        - categoryName
+        - name
+        - slug
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        editionName:
+          type: string
+        competitionId:
+          type: string
+          format: uuid
+        competitionName:
+          type: string
+        sportId:
+          type: string
+          format: uuid
+        sportName:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+
+    PublicOrganizationRosterMemberItem:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+        - athleteName
+        - athleteSlug
+        - teamId
+        - teamName
+        - editionId
+        - editionName
+        - sportName
+        - categoryName
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+        athleteName:
+          type: string
+        athleteSlug:
+          type: string
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+        editionId:
+          type: string
+          format: uuid
+        editionName:
+          type: string
+        sportName:
+          type: string
+        categoryName:
+          type: string
+        jerseyNumber:
+          type: [integer, "null"]
+          format: int32
+        positionName:
+          type: [string, "null"]
+
+    PublicOrganizationDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - organizationId
+        - name
+        - slug
+        - teams
+        - rosterMembers
+        - events
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicOrganizationTeamItem"
+        rosterMembers:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicOrganizationRosterMemberItem"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicSportsEventSummary"
+
+    PublicTeamRosterMemberItem:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+        - athleteName
+        - athleteSlug
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+        athleteName:
+          type: string
+        athleteSlug:
+          type: string
+        jerseyNumber:
+          type: [integer, "null"]
+          format: int32
+        positionName:
+          type: [string, "null"]
+
+    PublicTeamRosterDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - versionNo
+        - publishedAt
+        - members
+      properties:
+        versionNo:
+          type: integer
+          format: int64
+        publishedAt:
+          type: string
+          format: date-time
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicTeamRosterMemberItem"
+
+    PublicTeamDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - teamId
+        - organizationId
+        - organizationName
+        - editionId
+        - editionName
+        - competitionId
+        - competitionName
+        - sportId
+        - sportName
+        - categoryId
+        - categoryName
+        - name
+        - slug
+        - events
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        organizationName:
+          type: string
+        editionId:
+          type: string
+          format: uuid
+        editionName:
+          type: string
+        competitionId:
+          type: string
+          format: uuid
+        competitionName:
+          type: string
+        sportId:
+          type: string
+          format: uuid
+        sportName:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        roster:
+          $ref: "#/components/schemas/PublicTeamRosterDetail"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicSportsEventSummary"
+
+    PublicAthleteTeamParticipation:
+      type: object
+      additionalProperties: false
+      required:
+        - teamId
+        - teamName
+        - organizationId
+        - organizationName
+        - editionId
+        - editionName
+        - sportName
+        - categoryName
+      properties:
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+        organizationId:
+          type: string
+          format: uuid
+        organizationName:
+          type: string
+        editionId:
+          type: string
+          format: uuid
+        editionName:
+          type: string
+        sportName:
+          type: string
+        categoryName:
+          type: string
+        jerseyNumber:
+          type: [integer, "null"]
+          format: int32
+        positionName:
+          type: [string, "null"]
+
+    PublicAthleteStats:
+      type: object
+      additionalProperties: false
+      required:
+        - totalParticipations
+        - totalWins
+        - totalLosses
+      properties:
+        totalParticipations:
+          type: integer
+          format: int32
+        totalWins:
+          type: integer
+          format: int32
+        totalLosses:
+          type: integer
+          format: int32
+
+    PublicAthleteDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+        - name
+        - slug
+        - teams
+        - events
+        - stats
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicAthleteTeamParticipation"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicSportsEventSummary"
+        stats:
+          $ref: "#/components/schemas/PublicAthleteStats"
 
     SportsAthleteCreateRequest:
       type: object
