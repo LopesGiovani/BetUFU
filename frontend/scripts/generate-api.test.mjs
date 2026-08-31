@@ -280,6 +280,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'Role',
     'Session',
     'SportsAthlete',
+    'SportsBracket',
     'SportsCatalog',
     'SportsEventResult',
     'SportsOrganization',
@@ -300,6 +301,18 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTeamSummary'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsAthleteCreateRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsAthleteSummary'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketCreateRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketCorrectRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketMatchConfigureRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketMatchView'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketPublishRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketRound'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketSlotConfigureRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketSlotView'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketSourceType'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketSummary'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketUpdateRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsBracketView'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterCorrectRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterDraft'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterMemberItem'), true);
@@ -312,6 +325,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportResult'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCompetitionCreateRequest'), false);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsAthlete'), true);
+  assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsBracket'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsCatalog'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsEventResult'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsOrganization'), true);
@@ -389,6 +403,22 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
     '  /api/v1/operations/sports/competitions:',
     '    post:',
     '      operationId: createSportsCompetition',
+    '  /api/v1/operations/sports/editions/{editionId}/brackets:',
+    '    get:',
+    '      operationId: listSportsBrackets',
+    '    post:',
+    '      operationId: createSportsBracket',
+    '  /api/v1/operations/sports/brackets/{bracketId}:',
+    '    get:',
+    '      operationId: getSportsBracket',
+    '    put:',
+    '      operationId: updateSportsBracket',
+    '  /api/v1/operations/sports/brackets/{bracketId}/publish:',
+    '    post:',
+    '      operationId: publishSportsBracket',
+    '  /api/v1/operations/sports/brackets/{bracketId}/correct:',
+    '    post:',
+    '      operationId: correctSportsBracket',
     '  /api/v1/operations/sports/catalog/scope:',
     '    get:',
     '      operationId: getSportsCatalogScope',
@@ -454,6 +484,10 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
 
   assert.deepEqual(inventory, {
     endpoints: [
+      { path: '/api/v1/operations/sports/editions/{editionId}/brackets', methods: ['GET', 'POST'] },
+      { path: '/api/v1/operations/sports/brackets/{bracketId}', methods: ['GET', 'PUT'] },
+      { path: '/api/v1/operations/sports/brackets/{bracketId}/publish', methods: ['POST'] },
+      { path: '/api/v1/operations/sports/brackets/{bracketId}/correct', methods: ['POST'] },
       { path: '/api/v1/operations/sports/catalog/scope', methods: ['GET'] },
       { path: '/api/v1/public/sports/events', methods: ['GET'] },
       { path: '/api/v1/operations/sports/organizations', methods: ['GET', 'POST'] },

@@ -21,6 +21,8 @@ import {
   SportsAthleteCreateRequest,
   SportsAthleteService,
   SportsAthleteSummary,
+  SportsBracketService,
+  SportsBracketView,
   SportsCatalogService,
   SportsCatalogScope,
   SportsEventDetail,
@@ -36,6 +38,7 @@ describe('Generated BETUFU API client contract', () => {
   let httpTesting: HttpTestingController;
   let identityService: IdentityService;
   let sportsAthleteService: SportsAthleteService;
+  let sportsBracketService: SportsBracketService;
   let sportsPublicService: SportsPublicService;
   let sportsCatalogService: SportsCatalogService;
   let sportsOrganizationService: SportsOrganizationService;
@@ -62,6 +65,7 @@ describe('Generated BETUFU API client contract', () => {
     httpTesting = TestBed.inject(HttpTestingController);
     identityService = TestBed.inject(IdentityService);
     sportsAthleteService = TestBed.inject(SportsAthleteService);
+    sportsBracketService = TestBed.inject(SportsBracketService);
     sportsPublicService = TestBed.inject(SportsPublicService);
     sportsCatalogService = TestBed.inject(SportsCatalogService);
     sportsOrganizationService = TestBed.inject(SportsOrganizationService);
@@ -470,5 +474,34 @@ describe('Generated BETUFU API client contract', () => {
     expect(listVerReq.request.method).toBe('GET');
     listVerReq.flush([sampleResultVersion]);
     await expect(listVersionsResult).resolves.toEqual([sampleResultVersion]);
+  });
+
+  it('separa leitura publica P7 do preview operacional O7 no cliente gerado', async () => {
+    configureClient(true);
+    const bracketId = 'b1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
+    const response: SportsBracketView = {
+      bracketId,
+      competitionId: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      editionId: 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      name: 'Chaveamento Futsal',
+      slug: 'chaveamento-futsal',
+      status: 'PUBLICADO',
+      lockVersion: 2,
+      rounds: [],
+    };
+
+    const publicResult = firstValueFrom(sportsBracketService.getPublicSportsBracket({ bracketId }));
+    const publicRequest = httpTesting.expectOne(`/api/v1/public/sports/brackets/${bracketId}`);
+    expect(publicRequest.request.method).toBe('GET');
+    expect(publicRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    publicRequest.flush(response);
+    await expect(publicResult).resolves.toEqual(response);
+
+    const previewResult = firstValueFrom(sportsBracketService.getSportsBracket({ bracketId }));
+    const previewRequest = httpTesting.expectOne(`/api/v1/operations/sports/brackets/${bracketId}`);
+    expect(previewRequest.request.method).toBe('GET');
+    expect(previewRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    previewRequest.flush({ ...response, status: 'RASCUNHO' });
+    await expect(previewResult).resolves.toMatchObject({ status: 'RASCUNHO' });
   });
 });

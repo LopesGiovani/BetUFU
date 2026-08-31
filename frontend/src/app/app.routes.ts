@@ -3,6 +3,7 @@ import type { Routes } from '@angular/router';
 import { profileCompletionGuard } from './core/profile/profile-completion.guard';
 import { BUILD_SPECIFIC_ROUTES } from './app.routes.development';
 import { ArenaShellComponent } from './layout/arena-shell.component';
+import { ConsoleShellComponent } from './layout/console-shell.component';
 
 // Build-specific routes include both the legacy personal console and the scoped sports console.
 
@@ -54,11 +55,33 @@ export const APP_ROUTES: Routes = [
             ({ PublicAthletePageComponent }) => PublicAthletePageComponent,
           ),
       },
+      {
+        path: 'chaveamentos/:bracketId',
+        loadComponent: () =>
+          import('./features/sports/public-bracket/public-bracket-page.component').then(
+            ({ PublicBracketPageComponent }) => PublicBracketPageComponent,
+          ),
+      },
     ],
   },
   {
     path: '',
     canActivateChild: [profileCompletionGuard],
-    children: BUILD_SPECIFIC_ROUTES,
+    children: [
+      {
+        path: 'operacao/esportes/chaveamentos/:bracketId',
+        component: ConsoleShellComponent,
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/sports/operations/bracket/sports-bracket-page.component').then(
+                ({ SportsBracketPageComponent }) => SportsBracketPageComponent,
+              ),
+          },
+        ],
+      },
+      ...BUILD_SPECIFIC_ROUTES,
+    ],
   },
 ];

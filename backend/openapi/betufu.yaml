@@ -2815,6 +2815,248 @@ paths:
         "403":
           description: Autenticado sem a autoridade técnica.
 
+  /api/v1/public/sports/brackets/{bracketId}:
+    get:
+      tags:
+        - SportsBracket
+      operationId: getPublicSportsBracket
+      summary: Consultar o chaveamento publicado
+      parameters:
+        - name: bracketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Projeção do chaveamento publicado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsBracketView"
+        "404":
+          description: Chaveamento não encontrado ou não publicado.
+
+  /api/v1/operations/sports/editions/{editionId}/brackets:
+    get:
+      tags:
+        - SportsBracket
+      operationId: listSportsBrackets
+      summary: Listar chaveamentos de uma edição
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Lista de sumários dos chaveamentos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsBracketSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo autorizado.
+        "404":
+          description: Edição não encontrada.
+    post:
+      tags:
+        - SportsBracket
+      operationId: createSportsBracket
+      summary: Criar novo chaveamento em rascunho
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsBracketCreateRequest"
+      responses:
+        "201":
+          description: Chaveamento criado em rascunho.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsBracketSummary"
+        "400":
+          description: Dados inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo autorizado.
+        "404":
+          description: Edição não encontrada.
+
+  /api/v1/operations/sports/brackets/{bracketId}:
+    get:
+      tags:
+        - SportsBracket
+      operationId: getSportsBracket
+      summary: Consultar pré-visualização ou rascunho do chaveamento
+      parameters:
+        - name: bracketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Projeção de visualização/edição do chaveamento.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsBracketView"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Chaveamento fora do escopo autorizado.
+        "404":
+          description: Chaveamento não encontrado.
+    put:
+      tags:
+        - SportsBracket
+      operationId: updateSportsBracket
+      summary: Atualizar estrutura de rodadas e confrontos do chaveamento
+      parameters:
+        - name: bracketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsBracketUpdateRequest"
+      responses:
+        "200":
+          description: Chaveamento atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsBracketView"
+        "400":
+          description: Grafo inválido, ciclo detectado ou dados inconsistentes.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Chaveamento fora do escopo autorizado.
+        "404":
+          description: Chaveamento não encontrado.
+        "409":
+          description: Versão de lock obsoleta.
+
+  /api/v1/operations/sports/brackets/{bracketId}/publish:
+    post:
+      tags:
+        - SportsBracket
+      operationId: publishSportsBracket
+      summary: Publicar chaveamento com fonte oficial
+      parameters:
+        - name: bracketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsBracketPublishRequest"
+      responses:
+        "200":
+          description: Chaveamento publicado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsBracketView"
+        "400":
+          description: Fonte ausente ou chaveamento sem confrontos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Chaveamento fora do escopo autorizado.
+        "404":
+          description: Chaveamento não encontrado.
+        "409":
+          description: Versão de lock obsoleta.
+
+  /api/v1/operations/sports/brackets/{bracketId}/correct:
+    post:
+      tags:
+        - SportsBracket
+      operationId: correctSportsBracket
+      summary: Corrigir chaveamento publicado com motivo auditado
+      parameters:
+        - name: bracketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsBracketCorrectRequest"
+      responses:
+        "200":
+          description: Nova versão do chaveamento publicada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsBracketView"
+        "400":
+          description: Motivo ou fonte ausentes ou chaveamento não publicado.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Chaveamento fora do escopo autorizado.
+        "404":
+          description: Chaveamento não encontrado.
+        "409":
+          description: Versão de lock obsoleta.
+
 components:
   schemas:
     CurrentIdentityResponse:
@@ -5956,3 +6198,358 @@ components:
         baseLockVersion:
           type: integer
           format: int64
+
+    SportsBracketSourceType:
+      type: string
+      enum:
+        - DIRECT
+        - PREDECESSOR_WINNER
+        - PREDECESSOR_LOSER
+        - BYE
+
+    SportsBracketSlotView:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - sourceType
+        - displayLabel
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2
+        sourceType:
+          $ref: "#/components/schemas/SportsBracketSourceType"
+        sourceMatchId:
+          type: string
+          format: uuid
+        displayLabel:
+          type: string
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+        score:
+          type: integer
+          format: int32
+        isWinner:
+          type: boolean
+
+    SportsBracketMatchView:
+      type: object
+      additionalProperties: false
+      required:
+        - matchId
+        - roundNo
+        - matchNo
+        - roundName
+        - isThirdPlace
+        - status
+        - slots
+      properties:
+        matchId:
+          type: string
+          format: uuid
+        roundNo:
+          type: integer
+          format: int32
+          minimum: 1
+        matchNo:
+          type: integer
+          format: int32
+          minimum: 1
+        roundName:
+          type: string
+        eventId:
+          type: string
+          format: uuid
+        eventTitle:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        zoneId:
+          type: string
+        venueName:
+          type: string
+        venueSpaceName:
+          type: string
+        isThirdPlace:
+          type: boolean
+        status:
+          type: string
+        slots:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsBracketSlotView"
+        winnerSlotNo:
+          type: integer
+          format: int32
+
+    SportsBracketRound:
+      type: object
+      additionalProperties: false
+      required:
+        - roundNo
+        - roundName
+        - matches
+      properties:
+        roundNo:
+          type: integer
+          format: int32
+          minimum: 1
+        roundName:
+          type: string
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsBracketMatchView"
+
+    SportsBracketView:
+      type: object
+      additionalProperties: false
+      required:
+        - bracketId
+        - competitionId
+        - editionId
+        - name
+        - slug
+        - status
+        - lockVersion
+        - rounds
+      properties:
+        bracketId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        versionNo:
+          type: integer
+          format: int64
+        sourceReference:
+          type: string
+        competitionName:
+          type: string
+        editionName:
+          type: string
+        sportName:
+          type: string
+        categoryName:
+          type: string
+        phaseName:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        lockVersion:
+          type: integer
+          format: int64
+        rounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsBracketRound"
+
+    SportsBracketSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - bracketId
+        - competitionId
+        - editionId
+        - name
+        - slug
+        - status
+        - lockVersion
+        - createdAt
+        - updatedAt
+      properties:
+        bracketId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        lockVersion:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SportsBracketSlotConfigureRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - slotNo
+        - sourceType
+      properties:
+        slotNo:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 2
+        sourceType:
+          $ref: "#/components/schemas/SportsBracketSourceType"
+        sourceMatchId:
+          type: string
+          format: uuid
+        seedLabel:
+          type: string
+          maxLength: 160
+
+    SportsBracketMatchConfigureRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - roundNo
+        - matchNo
+        - roundName
+        - isThirdPlace
+        - slots
+      properties:
+        matchId:
+          type: string
+          format: uuid
+        roundNo:
+          type: integer
+          format: int32
+          minimum: 1
+        matchNo:
+          type: integer
+          format: int32
+          minimum: 1
+        roundName:
+          type: string
+          maxLength: 160
+        eventId:
+          type: string
+          format: uuid
+        isThirdPlace:
+          type: boolean
+        slots:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/SportsBracketSlotConfigureRequest"
+
+    SportsBracketCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        slug:
+          type: string
+          maxLength: 96
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+
+    SportsBracketUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+        - matches
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        slug:
+          type: string
+          maxLength: 96
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsBracketMatchConfigureRequest"
+    SportsBracketPublishRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sourceReference
+      properties:
+        sourceReference:
+          type: string
+          maxLength: 2048
+
+    SportsBracketCorrectRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+        - sourceReference
+      properties:
+        reason:
+          type: string
+          maxLength: 1024
+        sourceReference:
+          type: string
+          maxLength: 2048
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsBracketMatchConfigureRequest"
