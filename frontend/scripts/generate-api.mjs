@@ -85,6 +85,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'SportsCatalog',
   'SportsOrganization',
   'SportsPublic',
+  'SportsRoster',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'AdministrativeCorrectionEventDto',
@@ -138,6 +139,12 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'SportsNameSlugRequest',
   'SportsOrganizationSummary',
   'SportsPhaseSummary',
+  'SportsRosterCorrectRequest',
+  'SportsRosterDraft',
+  'SportsRosterMemberItem',
+  'SportsRosterMemberRequest',
+  'SportsRosterPublication',
+  'SportsRosterUpdateRequest',
   'SportsSportSummary',
   'SportsTeamSummary',
   'SportsVenueState',
@@ -181,6 +188,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/sports-catalog.service.ts',
   'api/sports-organization.service.ts',
   'api/sports-public.service.ts',
+  'api/sports-roster.service.ts',
   'configuration.ts',
   'encoder.ts',
   'index.ts',
@@ -236,6 +244,12 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/sports-name-slug-request.ts',
   'model/sports-organization-summary.ts',
   'model/sports-phase-summary.ts',
+  'model/sports-roster-correct-request.ts',
+  'model/sports-roster-draft.ts',
+  'model/sports-roster-member-item.ts',
+  'model/sports-roster-member-request.ts',
+  'model/sports-roster-publication.ts',
+  'model/sports-roster-update-request.ts',
   'model/sports-sport-summary.ts',
   'model/sports-team-summary.ts',
   'model/sports-venue-space-summary.ts',
@@ -269,7 +283,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // 111FEA... acrescenta o cliente operacional de atletas na Wave 7 (03-06).
 // B751... acrescenta o schema nomeado AthleteLinkReviewSummary e corrige a resposta
 // CurrentIdentityResponse na Wave 8 (03-07), aprovado literalmente pelo responsavel.
-export const APPROVED_GENERATED_DIGEST = 'B75187EFECB25E0D4809F6ED5D0354D329D9175DB9ACE3BCEB1BBA4ECDB7A8B2';
+// 19B1... acrescenta o servico e os seis modelos de roster no 03-08, aprovado literalmente
+// pelo responsavel depois da conferencia dos quatro endpoints e da paridade governada.
+export const APPROVED_GENERATED_DIGEST = '19B1F6C2F78F5C93E25BD1A18C8D027C6D925E12A0AD5435EA5F2D2F53C19974';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -817,6 +833,10 @@ export function inspectGeneratedOpenApiContract(source) {
           '/api/v1/operations/sports/teams/{teamId}',
           '/api/v1/operations/sports/teams/{teamId}/athletes',
           '/api/v1/operations/sports/teams/{teamId}/publish',
+          '/api/v1/operations/sports/teams/{teamId}/roster',
+          '/api/v1/operations/sports/teams/{teamId}/roster/correct',
+          '/api/v1/operations/sports/teams/{teamId}/roster/publication',
+          '/api/v1/operations/sports/teams/{teamId}/roster/publish',
         ].includes(path),
     ),
     schemas: inventory.schemas.filter((schema) => PUBLIC_GENERATOR_MODELS.includes(schema)),

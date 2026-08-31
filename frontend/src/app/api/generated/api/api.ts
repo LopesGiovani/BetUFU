@@ -26,4 +26,6 @@ export * from './sports-organization.service';
 import { SportsOrganizationService } from './sports-organization.service';
 export * from './sports-public.service';
 import { SportsPublicService } from './sports-public.service';
-export const APIS = [AthleteLinkService, DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsCatalogService, SportsOrganizationService, SportsPublicService];
+export * from './sports-roster.service';
+import { SportsRosterService } from './sports-roster.service';
+export const APIS = [AthleteLinkService, DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsCatalogService, SportsOrganizationService, SportsPublicService, SportsRosterService];

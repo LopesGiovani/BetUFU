@@ -1622,6 +1622,184 @@ paths:
         "409":
           description: Versão stale; nenhuma alteração é sobrescrita.
 
+  /api/v1/operations/sports/teams/{teamId}/roster:
+    get:
+      tags:
+        - SportsRoster
+      operationId: getSportsRosterDraft
+      summary: Consultar o rascunho de elenco da equipe
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Rascunho de elenco consultado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsRosterDraft"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Equipe não encontrada.
+    put:
+      tags:
+        - SportsRoster
+      operationId: updateSportsRosterDraft
+      summary: Atualizar membros do rascunho de elenco da equipe
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsRosterUpdateRequest"
+      responses:
+        "200":
+          description: Rascunho de elenco atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsRosterDraft"
+        "400":
+          description: Membros ou versão esperada inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Equipe ou atleta não encontrado.
+        "409":
+          description: Versão stale; nenhuma alteração é sobrescrita.
+
+  /api/v1/operations/sports/teams/{teamId}/roster/publish:
+    post:
+      tags:
+        - SportsRoster
+      operationId: publishSportsRoster
+      summary: Publicar o rascunho de elenco criando snapshot imutável
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        "200":
+          description: Elenco publicado e snapshot imutável criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsRosterPublication"
+        "400":
+          description: Elenco inválido para publicação.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Equipe não encontrada.
+        "409":
+          description: Versão stale ou já publicado.
+
+  /api/v1/operations/sports/teams/{teamId}/roster/correct:
+    post:
+      tags:
+        - SportsRoster
+      operationId: correctSportsRoster
+      summary: Corrigir elenco publicado criando nova versão auditada com motivo
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsRosterCorrectRequest"
+      responses:
+        "200":
+          description: Nova versão do elenco publicada com motivo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsRosterPublication"
+        "400":
+          description: Motivo ausente ou dados inválidos.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Equipe não encontrada.
+        "409":
+          description: Versão stale.
+
+  /api/v1/operations/sports/teams/{teamId}/roster/publication:
+    get:
+      tags:
+        - SportsRoster
+      operationId: getSportsRosterPublication
+      summary: Consultar o snapshot publicado mais recente do elenco
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Snapshot publicado mais recente do elenco.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsRosterPublication"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Equipe fora do escopo autorizado.
+        "404":
+          description: Elenco não possui versão publicada.
+
   /api/v1/operations/sports/athlete-link-reviews:
     get:
       tags:
@@ -3717,3 +3895,215 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    SportsRosterMemberItem:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+        - athleteName
+        - athleteSlug
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+        athleteName:
+          type: string
+        athleteSlug:
+          type: string
+        jerseyNumber:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 99
+        positionName:
+          type: [string, "null"]
+          maxLength: 64
+
+    SportsRosterMemberRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+        jerseyNumber:
+          type: [integer, "null"]
+          minimum: 1
+          maximum: 99
+        positionName:
+          type: [string, "null"]
+          maxLength: 64
+
+    SportsRosterDraft:
+      type: object
+      additionalProperties: false
+      required:
+        - rosterId
+        - teamId
+        - teamName
+        - organizationId
+        - organizationName
+        - competitionId
+        - competitionName
+        - editionId
+        - editionName
+        - sportId
+        - sportName
+        - categoryId
+        - categoryName
+        - status
+        - lockVersion
+        - members
+      properties:
+        rosterId:
+          type: string
+          format: uuid
+        teamId:
+          type: string
+          format: uuid
+        teamName:
+          type: string
+        organizationId:
+          type: string
+          format: uuid
+        organizationName:
+          type: string
+        competitionId:
+          type: string
+          format: uuid
+        competitionName:
+          type: string
+        editionId:
+          type: string
+          format: uuid
+        editionName:
+          type: string
+        sportId:
+          type: string
+          format: uuid
+        sportName:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        status:
+          type: string
+          enum:
+            - RASCUNHO
+            - PUBLICADO
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsRosterMemberItem"
+
+    SportsRosterPublication:
+      type: object
+      additionalProperties: false
+      required:
+        - publicationId
+        - rosterId
+        - teamId
+        - versionNo
+        - teamName
+        - organizationId
+        - organizationName
+        - competitionId
+        - competitionName
+        - editionId
+        - editionName
+        - sportId
+        - sportName
+        - categoryId
+        - categoryName
+        - publishedAt
+        - baseLockVersion
+        - members
+      properties:
+        publicationId:
+          type: string
+          format: uuid
+        rosterId:
+          type: string
+          format: uuid
+        teamId:
+          type: string
+          format: uuid
+        versionNo:
+          type: integer
+          format: int64
+          minimum: 1
+        teamName:
+          type: string
+        organizationId:
+          type: string
+          format: uuid
+        organizationName:
+          type: string
+        competitionId:
+          type: string
+          format: uuid
+        competitionName:
+          type: string
+        editionId:
+          type: string
+          format: uuid
+        editionName:
+          type: string
+        sportId:
+          type: string
+          format: uuid
+        sportName:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        categoryName:
+          type: string
+        reason:
+          type: [string, "null"]
+          maxLength: 1024
+        publishedAt:
+          type: string
+          format: date-time
+        baseLockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsRosterMemberItem"
+
+    SportsRosterUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - members
+      properties:
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsRosterMemberRequest"
+    SportsRosterCorrectRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+        - members
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 1024
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsRosterMemberRequest"
