@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 6/20 plans executed
+**Plans**: 11/20 plans executed
 
 Plans:
 **Wave 1**
@@ -288,15 +288,15 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 03-08-PLAN.md — publicar elencos versionados
+- [x] 03-08-PLAN.md — publicar elencos versionados
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 03-09-PLAN.md — importar CSV/XLSX atomicamente
+- [x] 03-09-PLAN.md — importar CSV/XLSX atomicamente
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
-- [ ] 03-10-PLAN.md — versionar eventos, resultados e fontes
+- [x] 03-10-PLAN.md — versionar eventos, resultados e fontes
 
 **Wave 12** *(blocked on Wave 11 completion)*
 
@@ -416,7 +416,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 4/20 | In Progress | - |
+| 3. Experiência Esportiva do Piloto | 11/20 | In Progress|  |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |

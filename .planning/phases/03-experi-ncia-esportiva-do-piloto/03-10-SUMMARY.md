@@ -2,7 +2,7 @@
 phase: 03-experi-ncia-esportiva-do-piloto
 plan: 10
 wave: 11
-status: complete-pending-git
+status: complete
 completed: 2026-08-31
 subsystem: sports-event-result
 tags: [spring-boot, postgresql, flyway, openapi, angular, signals, optimistic-locking]
@@ -19,7 +19,7 @@ affects: [03-11, 03-16, sports-lifecycle, public-arena]
 actuals:
   tokens: 86034
   tasks: 5
-  commits: 2
+  commits: 3
 
 tech-stack:
   added: []
@@ -132,16 +132,16 @@ issues:
   - "Um container preexistente de infraestrutura (decolua/9router) e processos do Antigravity continuam ativos; nenhum servico de desenvolvimento foi iniciado pela wave."
 
 git:
-  status: complete-pending-git
+  status: complete
   implementation_commit: cf478b1
-  documentation_commit: pending
-  integration: pending
-  cleanup: pending
-  push: pending
+  documentation_commit: 8e7109d
+  integration: fast-forward completed
+  cleanup: worktree-agent-03-10 and branch removed
+  push: origin/master synchronized
 
 next-phase-readiness:
   - "O contrato e a persistencia de eventos/resultados estao prontos para o plano 03-11, que entrega a superficie publica P3."
-  - "A worktree aguarda apenas o commit documental, integracao linear na master, limpeza exata e push autorizados."
+  - "A fase esta pronta para o plano 03-11/W12, que entrega a superficie publica P3."
 ---
 
 # Fase 3 Plano 03-10: Lifecycle esportivo e O6
@@ -154,7 +154,7 @@ V16 entrega as maquinas de estado de evento e resultado, historico append-only, 
 
 ## Operacoes Git
 
-O commit tecnico `cf478b1` foi criado. O commit documental, a integracao na `master`, a limpeza da worktree/branch e o push ainda estao pendentes nesta etapa do fechamento.
+Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`. O tracking foi formalizado no commit final da wave; a worktree e a branch temporarias foram removidas e `origin/master` foi sincronizada.
 
 ## Limitacoes conhecidas
 
@@ -166,3 +166,4 @@ Os warnings de `NG8102`, budgets globais, teardown de containers, Mockito/ByteBu
 - O candidato aprovado preserva hashes governed-before/governed-after iguais.
 - A implementacao nao recebeu edicoes depois das provas finais; a unica alteracao posterior foi documental, para registrar a correcao de allowlist.
 - Maven focal, builds Angular, suite Angular, Node e `git diff --check` passaram.
+- O fechamento esta `complete`; nao ha operacoes Git pendentes para esta wave.

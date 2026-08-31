@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: 03-09/W10 implementado e certificado; aguardando autorizacoes Git separadas
-last_updated: "2026-08-31T01:35:00-03:00"
+stopped_at: "Completed 03-10-PLAN.md; next: 03-11/W12"
+last_updated: "2026-08-31T06:45:48.341Z"
 last_activity: 2026-08-31
-last_activity_desc: 03-09/W10 concluiu implementacao, suites, builds, Playwright, candidato OpenAPI e reconciliacao documental.
-state_head: 2447652
+last_activity_desc: 03-10/W11 concluiu implementacao, suites, builds, candidato OpenAPI, integracao, limpeza e push.
+state_head: 8e7109dfc9d1c6d5dce8a8c6f85542f897d01f58
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 71
+  completed_plans: 74
 milestone_name: milestone
 ---
 
@@ -24,16 +24,17 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-09/W10 — importacao tabular CSV/XLSX certificada; operacoes Git aguardam autorizacao especifica
+**Current focus:** 03-10/W11 concluida — lifecycle esportivo e O6 certificados; proximo plano tecnico: 03-11/W12
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-09 de 20 concluido na worktree `worktree-agent-03-09`; 03-08/W9 permanece integrado em `d9f7b95`; proximo plano tecnico: 03-10/W11.
-Status: In progress — implementacao e certificacao do CSV/XLSX estao completas; nenhum stage, commit, integracao, limpeza ou push do 03-09 foi executado.
-Last activity: 2026-08-31 — suites completas, builds, Playwright, contrato OpenAPI e documentacao do 03-09 concluidos.
+Plan: 03-10 de 20 concluido, integrado e enviado; proximo plano tecnico: 03-11/W12.
+Status: In progress — lifecycle de eventos/resultados e O6 estao integrados e enviados; o plano 03-11/W12 ainda nao foi iniciado.
+Last activity: 2026-08-31 — suites completas, builds, candidato OpenAPI e documentacao do 03-10 concluidos.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
+Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
 Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 foi criada na `worktree-agent-03-03` a partir de `7d3cbc6`; o commit técnico `9399a7c` contém exatamente 44 paths e o documental `3368d73` contém os seis documentos GSD. A integração fast-forward levou ambos para `master`; limpeza da worktree/branch e push continuam pendentes de aprovação específica.
 
 Git ? Fase 3 / Wave 6 (snapshot certificado, 2026-08-29): o 03-05 foi executado na `worktree-agent-03-05` sobre `72d8854`. O candidato aprovado e `12B2982C70B98D02BD6609BA95AAE350E2BF65999E57F5D16183B65DABBA7201`; hashes governados before/after `21C94593F724A3478B866C4F0F4402B0FACA4EE92FD265A9B9CDEDD6BE5E5F37`. Node `625/625`, Maven `350/350`, Playwright Arena `2/2` e Console `1/1` passaram; Angular completo `248/253` conserva cinco falhas historicas fora do escopo.
@@ -94,7 +95,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [███░░░░░░░] 6/20 planos da Fase 3 (30%)
+Progress: [█████░░░░░] 11/20 planos da Fase 3 (55%)
 
 ## Métricas de desempenho
 
@@ -258,9 +259,9 @@ Progress: [███░░░░░░░] 6/20 planos da Fase 3 (30%)
 
 ## Session Continuity
 
-Last session: 2026-08-30T23:37:12-03:00
-Stopped at: 03-09/W10 formalizado; aguardando checkpoint humano da Task 1 antes da instalação das dependências
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-09-PLAN.md
+Last session: 2026-08-31T06:45:47.744Z
+Stopped at: Completed 03-10-PLAN.md; next: 03-11/W12
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-11-PLAN.md
 
 ## Accumulated Context
 
@@ -280,3 +281,4 @@ Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-09-PLAN.md
 | Phase 03 P04 | multi-session | 6 tasks | 52 allowlist paths |
 | Phase 03 P05 | multi-session | 6 tasks | 52 allowlist paths |
 | Phase 03 P06 | multi-session | 5 tasks | 32 allowlist paths |
+| Phase 03 P10 | 3h 33m | 5 tasks | 32 files |
