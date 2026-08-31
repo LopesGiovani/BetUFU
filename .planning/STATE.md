@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: Replanejamento 03-09 para CSV/XLSX formalizado; aguardando checkpoint de dependencias antes da Task 2
-last_updated: "2026-08-30T23:37:12-03:00"
-last_activity: 2026-08-30
-last_activity_desc: Replanejamento 03-09 para CSV/XLSX foi formalizado; a Task 1 aguarda aprovacao especifica das dependencias.
-state_head: bd6b5ce
+stopped_at: 03-09/W10 implementado e certificado; aguardando autorizacoes Git separadas
+last_updated: "2026-08-31T01:35:00-03:00"
+last_activity: 2026-08-31
+last_activity_desc: 03-09/W10 concluiu implementacao, suites, builds, Playwright, candidato OpenAPI e reconciliacao documental.
+state_head: 2447652
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 70
+  completed_plans: 71
 milestone_name: milestone
 ---
 
@@ -24,14 +24,14 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-09/W10 — importacao tabular CSV/XLSX; Task 1 aguarda aprovacao especifica de Commons CSV 1.14.1 e Apache POI 5.5.1
+**Current focus:** 03-09/W10 — importacao tabular CSV/XLSX certificada; operacoes Git aguardam autorizacao especifica
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-09 de 20 em preparacao; 03-08/W9 foi integrado em `d9f7b95`; 03-09/W10 esta formalizado e parado no checkpoint de dependencias.
-Status: In progress — o replanejamento CSV/XLSX foi documentado em `bd6b5ce`; nenhuma dependência foi instalada, nenhuma worktree foi criada e a Task 2 ainda nao iniciou.
-Last activity: 2026-08-30 — replanejamento de O5 para CSV/XLSX, correcao da contagem para 50 paths e commit documental concluídos.
+Plan: 03-09 de 20 concluido na worktree `worktree-agent-03-09`; 03-08/W9 permanece integrado em `d9f7b95`; proximo plano tecnico: 03-10/W11.
+Status: In progress — implementacao e certificacao do CSV/XLSX estao completas; nenhum stage, commit, integracao, limpeza ou push do 03-09 foi executado.
+Last activity: 2026-08-31 — suites completas, builds, Playwright, contrato OpenAPI e documentacao do 03-09 concluidos.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 foi criada na `worktree-agent-03-03` a partir de `7d3cbc6`; o commit técnico `9399a7c` contém exatamente 44 paths e o documental `3368d73` contém os seis documentos GSD. A integração fast-forward levou ambos para `master`; limpeza da worktree/branch e push continuam pendentes de aprovação específica.
@@ -42,7 +42,9 @@ Git ? Fase 3 / Wave 7 (concluida, enviada e limpa, 2026-08-30): o 03-06 foi exec
 
 Git ? Fase 3 / Wave 8 (concluida na worktree, 2026-08-30): o 03-07 foi executado na `worktree-agent-03-07` sobre `11fd3b8`. O candidato aprovado e `B75187EFECB25E0D4809F6ED5D0354D329D9175DB9ACE3BCEB1BBA4ECDB7A8B2`; hashes governados before/after `DB17FF4C4B1058BED0836C51F1922922D621E78CC3DFA35C001C682ADED5DC24`. Maven `625/625`, Node `625/625`, Angular focal `10/10`, build production e Playwright esportivo `2/2` passaram; Angular completo `272/277` conserva cinco falhas historicas fora do escopo. Nenhum stage, commit, integracao, limpeza ou push foi executado. A proxima wave tem colisao documental V14 entre este plano e `03-08`.
 
-Git — Fase 3 / Wave 10 preflight documental (2026-08-30): o replanejamento do 03-09 foi ampliado de CSV para CSV/XLSX, com parsers separados e linha logica compartilhada, e formalizado no commit `bd6b5ce`. A allowlist declarada possui 50 paths; a validacao foi corrigida para a mesma contagem e o 03-16 passou a nomear O5 como CSV/XLSX. A Task 1 continua bloqueada ate aprovacao especifica de `org.apache.commons:commons-csv:1.14.1` e `org.apache.poi:poi-ooxml:5.5.1`; nenhum POM, dependency tree, teste, worktree ou branch foi alterado nesta etapa.
+Git — Fase 3 / Wave 10 preflight documental (2026-08-30): o replanejamento do 03-09 foi ampliado de CSV para CSV/XLSX, com parsers separados e linha logica compartilhada, e formalizado no commit `bd6b5ce`. A allowlist inicial possuia 50 paths; a implementacao exigiu seis paths mecanicos adicionais e o PLAN foi reconciliado para 56. A Task 1 recebeu aprovacao para Commons CSV 1.14.1 e Apache POI 5.5.1.
+
+Git — Fase 3 / Wave 10 certificacao do 03-09 (2026-08-31): a worktree `worktree-agent-03-09` sobre `2447652` concluiu os cinco tasks. Dependency tree, parsers, importacao atomica, candidato OpenAPI `C1B4B3F7F37E84EF63911A6BE31A2B36C949DDC0FB63B84C193D72F19B3D3BB8`, geracao governada, O5, fronteira de rotas, builds e Playwright passaram. Maven completo terminou com Surefire `266/266`, Failsafe `391/391`, total `657`; Node `625/625`; Angular focal `7/7`; Playwright `2/2`. Angular completo ficou `285/290` por cinco falhas historicas de `role-admin-page.component.spec.ts`, fora do escopo. O plano e o SUMMARY estao `complete-pending-git`; stage, commits, integracao, limpeza e push continuam pendentes.
 
 Git — Fase 3 / Wave 4 (snapshot local aprovado, 2026-08-29): o 03-03 entrega a agenda pública paginada, o candidato OpenAPI aprovado `0B631F67A415BEE7BC95ECF209BD240C922A93ED47B69385B969B093D464AB95`, o cliente governado e a Arena V. O gate final passou Surefire `251/251`, Failsafe `343/343`, Node `623/623`, gerador `72/72`, Angular `241/241`, build produtivo e Playwright `2/2`; a auditoria fresca terminou `PASS`, P0=P1=P2=0. `frontend/angular.json` não possui diff de conteúdo e fica fora da allowlist final. Os temporários locais de `.playwright-cli/` foram removidos antes do handoff.
 

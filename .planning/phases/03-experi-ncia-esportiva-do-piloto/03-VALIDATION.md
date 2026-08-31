@@ -208,7 +208,7 @@ O limite da evidência permanece explícito: o checker foi somente leitura e nã
 | 03-06 | Atleta global e seam de matrícula transitória/HMAC. | SPRT-02–05 | 32 paths | 03-05 | 7 | Console O4 | Athlete/HMAC/Flyway IT, Privacy/Modulith, spec O4, build e Playwright esportivo | T-03-06-PII, IDOR, MODULE, CONTRACT | PASS |
 | 03-07 | Propostas, aceite/rejeição/contestação owner-only e revisão segura O8. | SPRT-06–08 | 40 paths | 03-06 | 8 | Conta owner + Console O8 | Proposal/concurrency/Flyway IT, contrato e stores/specs owner/O8 | T-03-07-TAKEOVER, RACE, REPLAY, CONTEST, ENUM, CONTRACT | PASS |
 | 03-08 | Elencos versionados, snapshot publicado e correção manual. | SPRT-02, SPRT-09 | 29 paths | 03-07 | 9 | Console O4 / RosterView | Roster/concurrency/Flyway IT, contrato e specs store/O4 | T-03-08-PUBLISH, IDOR, PII, CONTRACT | PASS |
-| 03-09 | Importação tabular CSV/XLSX atômica, validada e sem retry perigoso. | SPRT-02 | 50 paths | 03-08 | 10 | Console O5 | dependency trees das duas bibliotecas, parsers/import IT, contrato e specs store/O5 | T-03-09-SC, DOS, FORMULA, PARTIAL | PENDING |
+| 03-09 | Importação tabular CSV/XLSX atômica, validada e sem retry perigoso. | SPRT-02 | 56 paths | 03-08 | 10 | Console O5 | dependency trees das duas bibliotecas, parsers/import IT, contrato e specs store/O5 | T-03-09-SC, DOS, FORMULA, PARTIAL | PASS (complete-pending-git) |
 | 03-10 | Lifecycle de eventos/resultados, fontes, versões e concorrência. | SPRT-10, SPRT-11 | 32 paths | 03-09 | 11 | Console O6 | Event/result/concurrency/Flyway IT, contrato e specs store/O6 | T-03-10-RACE, SOURCE, SCOPE, CONTRACT | PASS |
 | 03-11 | Leituras e páginas públicas completas P1–P6 além do tracer mínimo. | AUTH-01, SPRT-12, SPRT-13 | 38 paths | 03-10 | 12 | Arena P1–P6 | PublicViewIT, contrato, specs de detalhes e Playwright P1–P6 | T-03-11-DRAFT, PII, CACHE, CONTRACT | PASS |
 | 03-12 | Chaveamento P7/O7 derivado dos eventos oficiais. | SPRT-14 | 33 paths | 03-11 | 13 | Arena P7 + Console O7 | Bracket/Flyway IT, contrato e stores/specs P7/O7 | T-03-12-CYCLE, SCOPE, DIVERGE, CONTRACT | PASS |
@@ -536,7 +536,7 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 ## Wave 0 Requirements
 
 - [ ] 03-03/T1 e 03-17/T1 — `frontend/playwright.sports.config.ts` e `frontend/e2e/sports-pilot.spec.ts` com 320px, 1280px, teclado e sessão ausente. **Parcela 03-03: ✅ green; certificação ampliada do 03-17 permanece pendente.**
-- [ ] 03-09/T2 — `backend/src/test/resources/sports/csv/` e `backend/src/test/resources/sports/xlsx/` com casos válidos, erro tardio, BOM/encoding, quoting, duplicata, referência ausente, tipos/fórmulas/aba/ZIP e limites.
+- [x] 03-09/T2 — `backend/src/test/resources/sports/csv/` e `backend/src/test/resources/sports/xlsx/` com casos válidos, erro tardio, BOM/encoding, quoting, duplicata, referência ausente, tipos/fórmulas/aba/ZIP e limites. Green: `SportsCsvParserTest` 8/8, `SportsXlsxParserTest` 7/7 e `SportsTabularImportIT` 8/8.
 - [ ] 03-15/T2 — `backend/src/test/resources/sports/media/` com válida, MIME falso, truncada, pixels excessivos, metadados e falha de storage.
 - [x] 03-06/T2 — compatibilidade da porta HMAC e extensão estreita de `PrivacyArchitectureTest`. **Green - V12, atleta/HMAC, privacidade e Modulith certificados na Wave 7.**
 - [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V20. **V9: green no 03-02; V10/V11/V12: green; V13/V14: green no 03-07; V15-V20 permanecem pendentes.**
@@ -570,3 +570,23 @@ Esses itens não precisam estar todos no primeiro plano. Cada PLAN deve possuir 
 - [x] `nyquist_compliant: true` foi mantido somente depois de os PLANs preencherem IDs, comandos e arquivos reais.
 
 **Approval:** Gates B2/C2 permanecem fechados; 03-03/W4 a 03-06/W7 foram implementados, certificados e o 03-06 foi integrado linearmente na master. O proximo plano tecnico e `03-07/W8`; `AUTH-01` e `SPRT-12` permanecem `pending` no nivel global da fase.
+
+## Wave 10 — Certificacao do 03-09
+
+O plano 03-09 foi implementado na worktree `worktree-agent-03-09` sobre `2447652` e permanece `complete-pending-git`. O candidato OpenAPI aprovado pelo responsavel e `C1B4B3F7F37E84EF63911A6BE31A2B36C949DDC0FB63B84C193D72F19B3D3BB8`; os hashes `governed-before` e `governed-after` permaneceram iguais.
+
+| Gate | Evidencia | Resultado |
+|---|---|---|
+| Supply chain | Dependency tree completa com Commons CSV 1.14.1, POI 5.5.1 e transitivos exigidos; nenhum `SNAPSHOT` ou Apache HTTP | PASS |
+| Backend focal | `SportsCsvParserTest` 8/8, `SportsXlsxParserTest` 7/7, `SportsTabularImportIT` 8/8 | PASS |
+| Backend completo | Surefire 266/266 + Failsafe 391/391 = 657 testes | PASS |
+| Node completo | `node --test scripts/*.test.mjs` = 625/625 | PASS |
+| Angular O5 | Store/componente de importacao = 7/7 | PASS |
+| Angular completo | 285/290; cinco falhas historicas somente em `role-admin-page.component.spec.ts` | PARCIAL CONHECIDO |
+| Builds | development, homolog e production | PASS |
+| Browser | Playwright esportivo desktop e 320px = 2/2 | PASS |
+| Contrato/rotas | `generate-api.mjs --check`, hashes do candidato e fronteira Angular | PASS |
+
+O filtro Maven com `*` previsto no texto original do plano foi rejeitado pelo wrapper seguro; a mesma verificacao foi executada na arvore completa sem curinga. A primeira rodada Maven sem HMAC falhou somente por ambiente sem variaveis; a repeticao com a chave de teste padronizada passou integralmente. Ambos sao desvios mecanicos e nao alteram a regra de negocio.
+
+Os seis paths que surgiram durante a implementacao — dois modelos auxiliares, duas rotas build-specific e dois arquivos da allowlist — foram reconciliados no PLAN, totalizando 56 paths declarados. Nenhum stage, commit, integracao, limpeza ou push foi executado.
