@@ -298,9 +298,9 @@ Plans:
 
 - [x] 03-10-PLAN.md — versionar eventos, resultados e fontes
 
-**Wave 12** *(blocked on Wave 11 completion)*
+**Wave 12** *(concluida na worktree em 2026-08-31; integracao Git em andamento)*
 
-- [ ] 03-11-PLAN.md — completar agenda e páginas públicas
+- [x] 03-11-PLAN.md — completar agenda e páginas públicas
 
 **Wave 13** *(blocked on Wave 12 completion)*
 

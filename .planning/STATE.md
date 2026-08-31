@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: "Completed 03-10-PLAN.md; next: 03-11/W12"
-last_updated: "2026-08-31T06:45:48.341Z"
+stopped_at: "Completed 03-11-PLAN.md; next: 03-12/W13"
+last_updated: "2026-08-31T08:00:00.000Z"
 last_activity: 2026-08-31
-last_activity_desc: 03-10/W11 concluiu implementacao, suites, builds, candidato OpenAPI, integracao, limpeza e push.
-state_head: 8e7109dfc9d1c6d5dce8a8c6f85542f897d01f58
+last_activity_desc: 03-11/W12 concluiu Arena publica P1-P6, suites, builds, candidato OpenAPI e commit tecnico; fechamento Git em andamento.
+state_head: 36a3d8c
 progress:
   total_phases: 7
   completed_phases: 2
@@ -24,14 +24,14 @@ milestone_name: milestone
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-10/W11 concluida — lifecycle esportivo e O6 certificados; proximo plano tecnico: 03-11/W12
+**Current focus:** 03-11/W12 concluida — Arena publica P1-P6 certificada; proximo plano tecnico: 03-12/W13
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-10 de 20 concluido, integrado e enviado; proximo plano tecnico: 03-11/W12.
-Status: In progress — lifecycle de eventos/resultados e O6 estao integrados e enviados; o plano 03-11/W12 ainda nao foi iniciado.
-Last activity: 2026-08-31 — suites completas, builds, candidato OpenAPI e documentacao do 03-10 concluidos.
+Plan: 03-11 de 20 concluido na worktree `worktree-agent-03-11`; proximo plano tecnico: 03-12/W13.
+Status: In progress — Arena publica P1-P6 certificada; commit tecnico `36a3d8c` criado; commit documental, integracao, limpeza e push em andamento.
+Last activity: 2026-08-31 — suites completas, builds, candidato OpenAPI e implementacao do 03-11 concluidos.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -95,7 +95,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [█████░░░░░] 11/20 planos da Fase 3 (55%)
+Progress: [██████░░░░] 12/20 planos da Fase 3 (60%)
 
 ## Métricas de desempenho
 
@@ -282,3 +282,4 @@ Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-11-PLAN.md
 | Phase 03 P05 | multi-session | 6 tasks | 52 allowlist paths |
 | Phase 03 P06 | multi-session | 5 tasks | 32 allowlist paths |
 | Phase 03 P10 | 3h 33m | 5 tasks | 32 files |
+| Phase 03 P11 | multi-session | 5 tasks | 52 allowlist paths |
