@@ -62,6 +62,13 @@ export const APP_ROUTES: Routes = [
             ({ PublicBracketPageComponent }) => PublicBracketPageComponent,
           ),
       },
+      {
+        path: 'classificacoes/:standingsId',
+        loadComponent: () =>
+          import('./features/sports/public-standings/public-standings-page.component').then(
+            ({ PublicStandingsPageComponent }) => PublicStandingsPageComponent,
+          ),
+      },
     ],
   },
   {
@@ -77,6 +84,19 @@ export const APP_ROUTES: Routes = [
             loadComponent: () =>
               import('./features/sports/operations/bracket/sports-bracket-page.component').then(
                 ({ SportsBracketPageComponent }) => SportsBracketPageComponent,
+              ),
+          },
+        ],
+      },
+      {
+        path: 'operacao/esportes/classificacoes/:standingsId',
+        component: ConsoleShellComponent,
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/sports/operations/standings/sports-standings-page.component').then(
+                ({ SportsStandingsPageComponent }) => SportsStandingsPageComponent,
               ),
           },
         ],

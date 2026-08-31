@@ -286,6 +286,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'SportsOrganization',
     'SportsPublic',
     'SportsRoster',
+    'SportsStandings',
     'SportsTabularImport',
   ]);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
@@ -319,6 +320,8 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterMemberRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterPublication'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterUpdateRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsStandingsRow'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsStandingsSnapshot'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportPreview'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportPreviewError'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportPreviewSummary'), true);
@@ -330,6 +333,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsEventResult'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsOrganization'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsRoster'), true);
+  assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsStandings'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsTabularImport'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportPreview'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportResult'), true);

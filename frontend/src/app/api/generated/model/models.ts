@@ -93,6 +93,8 @@ export * from './sports-roster-member-request';
 export * from './sports-roster-publication';
 export * from './sports-roster-update-request';
 export * from './sports-sport-summary';
+export * from './sports-standings-row';
+export * from './sports-standings-snapshot';
 export * from './sports-tabular-import-preview';
 export * from './sports-tabular-import-preview-error';
 export * from './sports-tabular-import-preview-summary';

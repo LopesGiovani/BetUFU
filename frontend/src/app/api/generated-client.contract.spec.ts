@@ -30,6 +30,9 @@ import {
   SportsOrganizationService,
   SportsPublicService,
   SportsResultVersion,
+  SportsStandingsRow,
+  SportsStandingsService,
+  SportsStandingsSnapshot,
   provideApi,
 } from './generated';
 
@@ -43,6 +46,7 @@ describe('Generated BETUFU API client contract', () => {
   let sportsCatalogService: SportsCatalogService;
   let sportsOrganizationService: SportsOrganizationService;
   let sportsEventResultService: SportsEventResultService;
+  let sportsStandingsService: SportsStandingsService;
   let profileService: ProfileService;
   let athleteLinkService: AthleteLinkService;
 
@@ -70,6 +74,7 @@ describe('Generated BETUFU API client contract', () => {
     sportsCatalogService = TestBed.inject(SportsCatalogService);
     sportsOrganizationService = TestBed.inject(SportsOrganizationService);
     sportsEventResultService = TestBed.inject(SportsEventResultService);
+    sportsStandingsService = TestBed.inject(SportsStandingsService);
     profileService = TestBed.inject(ProfileService);
     athleteLinkService = TestBed.inject(AthleteLinkService);
   }
@@ -499,6 +504,40 @@ describe('Generated BETUFU API client contract', () => {
 
     const previewResult = firstValueFrom(sportsBracketService.getSportsBracket({ bracketId }));
     const previewRequest = httpTesting.expectOne(`/api/v1/operations/sports/brackets/${bracketId}`);
+    expect(previewRequest.request.method).toBe('GET');
+    expect(previewRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    previewRequest.flush({ ...response, status: 'RASCUNHO' });
+    await expect(previewResult).resolves.toMatchObject({ status: 'RASCUNHO' });
+  });
+
+  it('separa leitura publica P8 do preview operacional O7 no SportsStandingsService gerado', async () => {
+    configureClient(true);
+    const standingsId = 's1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
+    const response: SportsStandingsSnapshot = {
+      standingsId,
+      competitionId: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      editionId: 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      name: 'Classificação Futsal',
+      slug: 'classificacao-futsal',
+      status: 'PUBLICADO',
+      competitionName: 'InterUFU',
+      editionName: '2026',
+      lockVersion: 1,
+      columns: ['Pos', 'Equipe', 'Pontos'],
+      rows: [
+        { position: 1, participantName: 'Engenharia', values: ['1', 'Engenharia', '9'] },
+      ],
+    };
+
+    const publicResult = firstValueFrom(sportsStandingsService.getPublicSportsStandings({ standingsId }));
+    const publicRequest = httpTesting.expectOne(`/api/v1/public/sports/standings/${standingsId}`);
+    expect(publicRequest.request.method).toBe('GET');
+    expect(publicRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    publicRequest.flush(response);
+    await expect(publicResult).resolves.toEqual(response);
+
+    const previewResult = firstValueFrom(sportsStandingsService.getSportsStandings({ standingsId }));
+    const previewRequest = httpTesting.expectOne(`/api/v1/operations/sports/standings/${standingsId}`);
     expect(previewRequest.request.method).toBe('GET');
     expect(previewRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
     previewRequest.flush({ ...response, status: 'RASCUNHO' });

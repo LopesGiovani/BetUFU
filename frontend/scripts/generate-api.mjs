@@ -88,6 +88,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'SportsOrganization',
   'SportsPublic',
   'SportsRoster',
+  'SportsStandings',
   'SportsTabularImport',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
@@ -186,6 +187,8 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'SportsRosterPublication',
   'SportsRosterUpdateRequest',
   'SportsSportSummary',
+  'SportsStandingsRow',
+  'SportsStandingsSnapshot',
   'SportsTabularImportPreview',
   'SportsTabularImportPreviewError',
   'SportsTabularImportPreviewSummary',
@@ -235,6 +238,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/sports-organization.service.ts',
   'api/sports-public.service.ts',
   'api/sports-roster.service.ts',
+  'api/sports-standings.service.ts',
   'api/sports-tabular-import.service.ts',
   'configuration.ts',
   'encoder.ts',
@@ -335,6 +339,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/sports-roster-publication.ts',
   'model/sports-roster-update-request.ts',
   'model/sports-sport-summary.ts',
+  'model/sports-standings-row.ts',
+  'model/sports-standings-snapshot.ts',
   'model/sports-tabular-import-preview-error.ts',
   'model/sports-tabular-import-preview-summary.ts',
   'model/sports-tabular-import-preview.ts',
@@ -379,7 +385,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // 92DF... acrescenta os tipos de slot necessarios ao servico SportsEventResult no 03-10.
 // 8BE635... foi aprovado para a Wave 13; acrescenta o servico e os modelos fechados do
 // chaveamento derivado, apos a conferencia do candidato OpenAPI e dos endpoints operacionais.
-export const APPROVED_GENERATED_DIGEST = '8BE63578F11D7D3DBC4F771A8A0F03B41482C1B7C00698AAC69165EF1A216396';
+// 5BC25D... foi aprovado para a Wave 14; acrescenta o servico e os modelos fechados da
+// classificacao oficial transcrita/versionada (03-13), apos a conferencia do candidato OpenAPI.
+export const APPROVED_GENERATED_DIGEST = '5BC25D0DC503474976AFC5223037464CB66205D4DD29725A796011B78DC0295B';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

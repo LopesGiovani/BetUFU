@@ -3057,6 +3057,248 @@ paths:
         "409":
           description: Versão de lock obsoleta.
 
+  /api/v1/public/sports/standings/{standingsId}:
+    get:
+      tags:
+        - SportsStandings
+      operationId: getPublicSportsStandings
+      summary: Consultar classificação oficial publicada
+      parameters:
+        - name: standingsId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Snapshot da classificação publicada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsStandingsSnapshot"
+        "404":
+          description: Classificação não encontrada ou em rascunho.
+
+  /api/v1/operations/sports/editions/{editionId}/standings:
+    get:
+      tags:
+        - SportsStandings
+      operationId: listSportsStandings
+      summary: Listar classificações de uma edição
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Lista de classificações da edição.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsStandingsSummary"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo autorizado.
+        "404":
+          description: Edição não encontrada.
+    post:
+      tags:
+        - SportsStandings
+      operationId: createSportsStandings
+      summary: Criar nova classificação em rascunho
+      parameters:
+        - name: editionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsStandingsCreateRequest"
+      responses:
+        "201":
+          description: Classificação criada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsStandingsSummary"
+        "400":
+          description: Dados inválidos para criação da classificação.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Edição fora do escopo autorizado.
+        "404":
+          description: Edição ou entidade do catálogo não encontrada.
+
+  /api/v1/operations/sports/standings/{standingsId}:
+    get:
+      tags:
+        - SportsStandings
+      operationId: getSportsStandings
+      summary: Consultar pré-visualização ou rascunho da classificação
+      parameters:
+        - name: standingsId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Pré-visualização da classificação.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsStandingsSnapshot"
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Classificação fora do escopo autorizado.
+        "404":
+          description: Classificação não encontrada.
+    put:
+      tags:
+        - SportsStandings
+      operationId: updateSportsStandings
+      summary: Atualizar rascunho de classificação com colunas e linhas
+      parameters:
+        - name: standingsId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsStandingsUpdateRequest"
+      responses:
+        "200":
+          description: Classificação atualizada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsStandingsSnapshot"
+        "400":
+          description: Linhas/colunas inválidas ou classificação já publicada.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Classificação fora do escopo autorizado.
+        "404":
+          description: Classificação não encontrada.
+        "409":
+          description: Versão de lock obsoleta.
+
+  /api/v1/operations/sports/standings/{standingsId}/publish:
+    post:
+      tags:
+        - SportsStandings
+      operationId: publishSportsStandings
+      summary: Publicar classificação oficial com fonte
+      parameters:
+        - name: standingsId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsStandingsPublishRequest"
+      responses:
+        "200":
+          description: Classificação publicada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsStandingsSnapshot"
+        "400":
+          description: Fonte ausente ou classificação sem dados.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Classificação fora do escopo autorizado.
+        "404":
+          description: Classificação não encontrada.
+        "409":
+          description: Versão de lock obsoleta.
+
+  /api/v1/operations/sports/standings/{standingsId}/correct:
+    post:
+      tags:
+        - SportsStandings
+      operationId: correctSportsStandings
+      summary: Corrigir classificação publicada com motivo auditado
+      parameters:
+        - name: standingsId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: expectedLockVersion
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SportsStandingsCorrectRequest"
+      responses:
+        "200":
+          description: Nova versão da classificação publicada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsStandingsSnapshot"
+        "400":
+          description: Motivo ou fonte ausentes ou classificação não publicada.
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Classificação fora do escopo autorizado.
+        "404":
+          description: Classificação não encontrada.
+        "409":
+          description: Versão de lock obsoleta.
+
 components:
   schemas:
     CurrentIdentityResponse:
@@ -6553,3 +6795,240 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SportsBracketMatchConfigureRequest"
+
+    SportsStandingsRow:
+      type: object
+      additionalProperties: false
+      required:
+        - position
+        - participantName
+        - values
+      properties:
+        position:
+          type: integer
+          minimum: 1
+        teamId:
+          type: string
+          format: uuid
+        participantName:
+          type: string
+          maxLength: 160
+        values:
+          type: array
+          items:
+            type: string
+            maxLength: 64
+
+    SportsStandingsCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+        - columns
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        slug:
+          type: string
+          maxLength: 96
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        columns:
+          type: array
+          items:
+            type: string
+            maxLength: 64
+
+    SportsStandingsUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - slug
+        - columns
+        - rows
+      properties:
+        name:
+          type: string
+          maxLength: 160
+        slug:
+          type: string
+          maxLength: 96
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        columns:
+          type: array
+          items:
+            type: string
+            maxLength: 64
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsStandingsRow"
+
+    SportsStandingsPublishRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - sourceReference
+      properties:
+        sourceReference:
+          type: string
+          maxLength: 2048
+
+    SportsStandingsCorrectRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - reason
+        - sourceReference
+      properties:
+        reason:
+          type: string
+          maxLength: 1024
+        sourceReference:
+          type: string
+          maxLength: 2048
+        columns:
+          type: array
+          items:
+            type: string
+            maxLength: 64
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsStandingsRow"
+
+    SportsStandingsSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - standingsId
+        - competitionId
+        - editionId
+        - name
+        - slug
+        - status
+        - lockVersion
+        - createdAt
+        - updatedAt
+      properties:
+        standingsId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        lockVersion:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SportsStandingsSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+        - standingsId
+        - competitionId
+        - editionId
+        - name
+        - slug
+        - status
+        - competitionName
+        - editionName
+        - lockVersion
+        - columns
+        - rows
+      properties:
+        standingsId:
+          type: string
+          format: uuid
+        competitionId:
+          type: string
+          format: uuid
+        editionId:
+          type: string
+          format: uuid
+        sportId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        phaseId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        status:
+          type: string
+        versionNo:
+          type: integer
+          format: int64
+        sourceReference:
+          type: string
+        competitionName:
+          type: string
+        editionName:
+          type: string
+        sportName:
+          type: string
+        categoryName:
+          type: string
+        phaseName:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        lockVersion:
+          type: integer
+          format: int64
+        columns:
+          type: array
+          items:
+            type: string
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsStandingsRow"
