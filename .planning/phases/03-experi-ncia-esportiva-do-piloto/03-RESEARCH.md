@@ -1,7 +1,7 @@
 # Phase 3: Experiência Esportiva do Piloto - Research
 
 **Researched:** 2026-08-26
-**Domain:** catálogo esportivo versionado, administração escopada, vínculo atleta-conta, importação CSV, mídia e experiência pública Angular
+**Domain:** catálogo esportivo versionado, administração escopada, vínculo atleta-conta, importação tabular CSV/XLSX, mídia e experiência pública Angular
 **Confidence:** HIGH para o estado do repositório e decisões de produto; MEDIUM para as duas dependências novas e detalhes físicos ainda sujeitos aos checkpoints humanos
 
 <user_constraints>
@@ -59,8 +59,8 @@ O conteúdo das três subseções abaixo foi copiado literalmente de `03-CONTEXT
 
 - **D-72:** Elenco pertence à equipe daquela edição. Nasce como rascunho, é publicado manualmente e, depois disso, qualquer alteração exige motivo e auditoria. A futura abertura de mercado deve depender de elenco publicado.
 - **D-73:** O MVP não cadastra titulares nem reservas por partida. Escalações ficam como evolução futura; o modelo atual não deve transformar `TITULAR` ou `RESERVA` em propriedade permanente do atleta.
-- **D-74:** O administrador pode cadastrar individualmente ou importar CSV UTF-8 usando um modelo fixo da BETUFU. A importação valida todas as linhas e é atômica: havendo um erro, salva zero; estando válida, cria tudo em rascunho. Equipes, modalidades e categorias referenciadas precisam existir e não são criadas implicitamente.
-- **D-75:** A entrada tabular usa uma linha lógica comum com nome esportivo, matrícula transitória, organização/equipe, modalidade, categoria e período de vínculo. O parser deve ficar separado da validação/importação para permitir um parser XLSX futuro sem duplicar regras, HMAC, transação ou auditoria.
+- **D-74:** O administrador pode cadastrar individualmente ou importar CSV UTF-8 e XLSX OOXML usando templates fixos da BETUFU. A importação valida todas as linhas e é atômica: havendo um erro, salva zero; estando válida, cria tudo em rascunho. Equipes, modalidades e categorias referenciadas precisam existir e não são criadas implicitamente.
+- **D-75:** A entrada tabular usa uma linha lógica comum com nome esportivo, matrícula transitória, organização/equipe, modalidade, categoria e período de vínculo. Parsers CSV e XLSX ficam separados da validação/importação, que permanece única para não duplicar regras, HMAC, transação ou auditoria.
 
 ### Perfil público do atleta
 
@@ -95,7 +95,7 @@ Pesquisador e planejador podem decidir, de forma conservadora e registrada:
 - motores completos para provas com vários competidores;
 - estatísticas específicas por modalidade;
 - titulares e reservas por partida;
-- importação XLSX;
+- importação XLSX flexível, com múltiplas abas, fórmulas, macros ou colunas customizadas;
 - cálculo automático de classificação e desempate por regulamento/modalidade;
 - integração automática com fonte oficial;
 - verificação documental de atleta e armazenamento privado de comprovantes, se um caso futuro realmente justificar a coleta.
@@ -147,7 +147,7 @@ Há risco real de compressão indevida: são 17 requisitos, 20 superfícies e 15
 | Escopo administrativo | API / Backend (`sports` + portas de identidade) | PostgreSQL | O UUID real da competição vem do agregado; capability do browser é só descoberta. |
 | Agenda e páginas públicas | API / Backend | Browser / Client | Backend filtra somente versão publicada; Angular apresenta e mantém filtros na URL. |
 | Vínculo por HMAC | API / Backend (`sports` com adapter `verification`) | PostgreSQL | Matrícula existe só durante o comando; proposta e revisão são persistidas sem valor bruto. |
-| CSV | API / Backend | PostgreSQL | Parser produz linha lógica; validação total antecede uma única transação. |
+| CSV/XLSX | API / Backend | PostgreSQL | Cada parser produz a mesma linha lógica; validação total antecede uma única transação. |
 | Foto do atleta | API / Backend + armazenamento privado | Browser / Client | Backend autentica, decodifica/reencoda e publica por handler BETUFU; browser não fala com bucket. |
 | Chaveamento e classificação | API / Backend | Browser / Client | Bracket deriva de eventos/resultados; classificação é snapshot manual da fonte. |
 | Roteamento público/protegido | Browser / Client | API / Backend | Angular separa shells; Spring Security continua autoridade de endpoint. |
@@ -233,9 +233,9 @@ O gerador OpenAPI fixa motor Java `"7.24.0"`, inventário aprovado de 50 arquivo
 
 ### Dependências que exigem checkpoint, não escolha implícita
 
-O classpath atual não possui parser CSV dedicado, cliente S3 concreto nem biblioteca de decodificação/reencodificação de imagens além das APIs do JDK. A escolha foi auditada e aprovada pelo responsável em 2026-08-26; a aprovação fixa o desenho do plano, mas a edição futura do `pom.xml` continua sujeita ao checkpoint material de instalação exigido por `AGENTS.md`. [VERIFIED: backend/pom.xml:44-127; backend/src/main/java/br/com/betufu/platform/persistence/PrivateObjectStorageProbe.java:15-29; .planning/phases/03-experi-ncia-esportiva-do-piloto/03-UI-SPEC.md:246-258,503-512]
+O classpath atual não possui parser CSV/XLSX dedicado, cliente S3 concreto nem biblioteca de decodificação/reencodificação de imagens além das APIs do JDK. Commons CSV foi auditado; a biblioteca XLSX continua candidata e exige auditoria própria antes de qualquer edição do `pom.xml`. Toda instalação permanece sujeita ao checkpoint material exigido por `AGENTS.md`. [VERIFIED: backend/pom.xml:44-127; backend/src/main/java/br/com/betufu/platform/persistence/PrivateObjectStorageProbe.java:15-29; .planning/phases/03-experi-ncia-esportiva-do-piloto/03-UI-SPEC.md:246-258,503-512]
 
-Não há justificativa para adicionar XLSX, motor de classificação, CDN, SDK de mapas, editor rico, parser HTML ou biblioteca de bracket nesta fase. CSV, classificação transcrita, links simples e bracket semântico são suficientes para o MVP.
+Não há justificativa para aceitar planilhas flexíveis, motor de classificação, CDN, SDK de mapas, editor rico, parser HTML ou biblioteca de bracket nesta fase. CSV e XLSX com templates fechados, classificação transcrita, links simples e bracket semântico são suficientes para o MVP.
 
 ## Package Legitimacy Audit
 
@@ -244,6 +244,7 @@ Auditoria executada em 2026-08-26 contra o `backend/pom.xml`, cache Maven local,
 | Necessidade | Coordenada aprovada | Licença / manutenção | Superfície observada | Decisão |
 |---|---|---|---|---|
 | Parser CSV | `org.apache.commons:commons-csv:1.14.1` | Apache License 2.0; release 2025-07; projeto Apache ativo | JAR ~61 KB; produção depende de `commons-io:2.20.0` e `commons-codec:1.19.0`; Spring Boot 4.1 gerencia `commons-codec:1.21.0` | **INTEGRATE.** Parser robusto para quoting, newline e encoding; regras de negócio permanecem fora da biblioteca. |
+| Parser XLSX | `org.apache.poi:poi-ooxml:5.5.1` (candidata) | Apache License 2.0; release publicada no Maven Central; transitivos e árvore final ainda exigem confirmação antes da instalação | OOXML com ZIP/XML, células, datas, fórmulas e metadados; superfície maior que CSV | **CHECKPOINT REQUIRED.** Aceitar somente após confirmar versão publicada, licença, transitivos, limites de ZIP/XML e ausência de módulos inesperados. |
 | Alinhamento AWS | `software.amazon.awssdk:bom:2.54.5` em `dependencyManagement` | Apache License 2.0; versão release publicada em 2026-08-26 | BOM não entra no runtime; fixa todos os módulos AWS na mesma versão | **INTEGRATE.** Evita mistura silenciosa de versões. |
 | Cliente de objetos | `software.amazon.awssdk:s3` + `software.amazon.awssdk:url-connection-client`, ambos governados pelo BOM `2.54.5` | Apache License 2.0; AWS SDK v2 ativamente mantido | módulo S3 ~4,37 MB antes dos transitivos; API modular; cliente HTTP explícito baseado em `HttpURLConnection` evita Netty/Apache HTTP | **INTEGRATE.** Usar `endpointOverride`, credenciais da configuração e `S3Configuration.pathStyleAccessEnabled(true)` para o SeaweedFS, mantendo compatibilidade S3 genérica. |
 | Decodificação/reencodificação | APIs JDK `javax.imageio.ImageIO` e `BufferedImage` | Incluídas no Java 25 | zero dependência Maven | **INTEGRATE sem pacote.** Aceitar somente JPEG/PNG, limitar bytes e pixels antes/depois do decode e escrever uma imagem nova, sem metadados originais. |
@@ -261,12 +262,12 @@ Auditoria executada em 2026-08-26 contra o `backend/pom.xml`, cache Maven local,
 
 - `pom.xml` só pode ser alterado numa task que leia esta auditoria, apresente o diff das coordenadas e tenha aprovação material específica.
 - O plano deve executar `dependency:tree` após a instalação e bloquear versões snapshot, módulos HTTP adicionais inesperados ou divergência do BOM.
-- CSV fica atrás de uma porta/parser próprio (`RosterImportParser` ou nome equivalente); nenhuma entidade/service conhece tipos do Commons CSV.
+- CSV e XLSX ficam atrás de parsers próprios (`RosterImportParser` ou nomes equivalentes); nenhuma entidade/service conhece tipos do Commons CSV ou Apache POI.
 - S3 fica atrás de uma porta de storage pertencente ao consumidor; domínio e controller não expõem `S3Client`, bucket, object key ou URL direta.
 - `ImageIO` não autoriza servir bytes originais. O pipeline cria um novo `BufferedImage`, reencoda e prova remoção de metadados com fixture adversarial.
 - As coordenadas e versões acima são decisões aprovadas para a Fase 3; atualização posterior exige nova medição e aprovação.
 
-[CITED: https://repo.maven.apache.org/maven2/org/apache/commons/commons-csv/1.14.1/commons-csv-1.14.1.pom; https://commons.apache.org/proper/commons-csv/; https://repo.maven.apache.org/maven2/software/amazon/awssdk/aws-sdk-java-pom/2.54.5/aws-sdk-java-pom-2.54.5.pom; https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3.html; https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/endpoint-config.html; https://repo.maven.apache.org/maven2/io/minio/minio/9.0.3/minio-9.0.3.pom; https://repo.maven.apache.org/maven2/com/univocity/univocity-parsers/2.9.1/univocity-parsers-2.9.1.pom]
+[CITED: https://repo.maven.apache.org/maven2/org/apache/commons/commons-csv/1.14.1/commons-csv-1.14.1.pom; https://commons.apache.org/proper/commons-csv/; https://repo.maven.apache.org/maven2/org/apache/poi/poi-ooxml/5.5.1/poi-ooxml-5.5.1.pom; https://poi.apache.org/; https://repo.maven.apache.org/maven2/software/amazon/awssdk/aws-sdk-java-pom/2.54.5/aws-sdk-java-pom-2.54.5.pom; https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3.html; https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/endpoint-config.html; https://repo.maven.apache.org/maven2/io/minio/minio/9.0.3/minio-9.0.3.pom; https://repo.maven.apache.org/maven2/com/univocity/univocity-parsers/2.9.1/univocity-parsers-2.9.1.pom]
 
 ## Architecture Patterns
 
@@ -358,18 +359,19 @@ Estados mínimos recomendados para a associação são `PENDING`, `ACCEPTED`, `R
 
 `PrivacyArchitectureTest` hoje rejeita vocabulário/tipos de matrícula fora de `verification`. A fase precisa permitir somente o campo transitório no DTO de comando estritamente autorizado, mantendo as proibições em entity, response, URL/query, log e mensagem. Uma liberação ampla por pacote destruiria a prova de PRIV-01. [VERIFIED: backend/src/test/java/br/com/betufu/PrivacyArchitectureTest.java:63-143,151-292]
 
-## CSV Import Architecture
+## Tabular Import Architecture
 
 Separar quatro responsabilidades:
 
-1. `RosterImportParser` transforma bytes UTF-8 do modelo BETUFU em linhas lógicas, sem banco;
-2. validador resolve referências e acumula todos os erros seguros;
-3. preview guarda somente um token/estado governado ou exige revalidação determinística;
-4. importador executa uma única transação e cria apenas rascunhos.
+1. `CsvRosterParser` transforma bytes UTF-8 do modelo CSV BETUFU em linhas lógicas, sem banco;
+2. `XlsxRosterParser` transforma a primeira aba do template OOXML BETUFU em linhas lógicas, sem banco;
+3. validador resolve referências e acumula todos os erros seguros;
+4. preview guarda somente um token/estado governado ou exige revalidação determinística;
+5. importador executa uma única transação e cria apenas rascunhos.
 
-Uma linha inválida deve produzir zero inserts, inclusive de atleta criado antes de o erro aparecer. Extensão `.csv`, MIME do browser ou nome do arquivo não provam encoding/conteúdo. O parser precisa testar BOM, aspas, separadores, colunas ausentes/extras, linhas gigantes, duplicatas e datas/períodos. Erros exibem número da linha e campo permitido, nunca matrícula ou HMAC. [DERIVED: D-74–D-75; 03-UI-SPEC.md:303-314,392]
+Uma linha inválida deve produzir zero inserts, inclusive de atleta criado antes de o erro aparecer. Extensão, MIME do browser ou nome do arquivo não provam encoding/conteúdo. O parser CSV precisa testar BOM, aspas, separadores, colunas ausentes/extras, linhas gigantes, duplicatas e datas/períodos; o parser XLSX precisa testar primeira aba, cabeçalhos, tipos, fórmulas, células mescladas, ZIP/XML inválido e limites. Erros exibem número da linha e campo permitido, nunca matrícula ou HMAC. [DERIVED: D-74–D-75; 03-UI-SPEC.md:303-314,392]
 
-O modelo de linha comum deve sobreviver à futura troca de parser por XLSX. Portanto regras de negócio, HMAC, transação e auditoria não podem morar na biblioteca CSV.
+O modelo de linha comum deve ser compartilhado pelos dois parsers. Portanto regras de negócio, HMAC, transação e auditoria não podem morar nas bibliotecas CSV ou XLSX.
 
 ## Media Architecture
 
@@ -422,7 +424,7 @@ Depois do tracer, a decomposição recomendada é aproximadamente:
 4. atleta global + seam HMAC;
 5. propostas/aceite/contestação;
 6. elenco e publicação;
-7. importação CSV atômica;
+7. importação tabular CSV/XLSX atômica;
 8. ciclo de evento, fontes e resultado versionado;
 9. agenda/páginas públicas completas;
 10. chaveamento derivado;
@@ -437,7 +439,7 @@ Isto é orientação para o planejador, não uma allowlist pronta. Planos podem 
 ## Don't Hand-Roll
 
 - Não reimplementar HMAC, normalização ou rotação de chaves em `sports`.
-- Não criar parser CSV por `split(',')`; quoting, newline e encoding tornam isso incorreto.
+- Não criar parser CSV por `split(',')`; quoting, newline e encoding tornam isso incorreto. Não ler XLSX como ZIP/XML artesanal sem limites de expansão e validação de tipos.
 - Não confiar em MIME/extensão para imagem nem servir arquivo original.
 - Não criar motor genérico de torneio, pontuação ou desempate no MVP.
 - Não calcular autoridade escopada no browser.
@@ -459,9 +461,9 @@ Atualizar a mesma linha de resultado elimina a versão que odds/liquidação pre
 
 Binding error, `toString()`, Problem Detail, preview CSV e observabilidade podem ecoar o input mesmo quando o banco está limpo. Provas precisam inspecionar resposta, logs/DOM/storage e schema.
 
-### Pitfall 4: atomicidade CSV testada só pelo retorno HTTP
+### Pitfall 4: atomicidade tabular testada só pelo retorno HTTP
 
-Um `400` não prova zero salvamentos. O IT deve contar todas as tabelas afetadas após uma linha inválida e repetir com falha tardia.
+Um `400` não prova zero salvamentos. O IT deve contar todas as tabelas afetadas após uma linha inválida e repetir com falha tardia nos dois formatos.
 
 ### Pitfall 5: rota `/` “pública” ainda depende da sessão
 
@@ -494,7 +496,7 @@ Matcher amplo antes do específico, ausência de filtro `published` e guarda de 
 | Primeiro schema esportivo e IDs públicos | one-way | ER/DDL, constraints, rollback/forward-fix e prova de Modulith aprovados antes da migration. |
 | Reconciliação `favoriteTeamId` → organização | costly | inventário de dados, semântica de conversão e contrato público aprovados. |
 | Contrato público OpenAPI | costly | paths/DTOs e ausência de PII revisados; depois checkpoint de inventário/digest gerado. |
-| Biblioteca CSV | costly | coordenada/licença/árvore/limites e fixtures aprovados. |
+| Bibliotecas de importação tabular | costly | coordenada/licença/árvore/limites e fixtures de CSV/XLSX aprovados. |
 | Cliente S3 + pipeline de imagem | costly | dependência, formatos/limites, modelo de URL/cache e rollback aprovados. |
 | Versão confirmada consumida pela Fase 6 | one-way | identidade da versão e atores separados aprovados antes de publicar o contrato. |
 | Expansão de ações de auditoria | costly | vocabulário e migration do `CHECK` aprovados; sem editar migration aplicada. |
@@ -530,7 +532,7 @@ Playwright atual possui configs limitadas a specs específicas; um plano deve cr
 |---|---|
 | AUTH-01 | MockMvc anônimo + Playwright sem cookie abrem agenda/páginas publicadas; rascunho e endpoint operacional permanecem inacessíveis. |
 | SPRT-01 | IT de catálogo/local com administrador geral e competição escopada; outro escopo falha; migration/constraints verdes. |
-| SPRT-02 | cadastro individual e CSV válido; referências inexistentes e escopo errado falham; CSV inválido deixa zero linhas. |
+| SPRT-02 | cadastro individual e arquivos CSV/XLSX válidos; referências inexistentes e escopo errado falham; formato inválido deixa zero linhas. |
 | SPRT-03 | atleta sem `identityId` persiste e aparece somente com campos públicos permitidos. |
 | SPRT-04 | teste de seam HMAC prova normalização igual à Fase 2 e ausência do valor bruto em entity/response/log. |
 | SPRT-05 | schema armazena somente versão+fingerprint; ArchUnit/privacidade rejeita matrícula consultável. |
@@ -554,7 +556,7 @@ As seguintes mutações devem ficar vermelhas antes de aceitar os planos corresp
 - remover comparação de `scopeRef` ou substituí-la apenas por `hasRole`;
 - remover filtro de versão publicada da query anônima;
 - transformar correção de resultado em overwrite;
-- salvar primeira linha do CSV antes de validar a última;
+- salvar primeira linha do CSV/XLSX antes de validar a última;
 - ligar automaticamente proposta HMAC sem aceite;
 - retornar entity de atleta em DTO público;
 - servir bytes originais da foto;
@@ -570,7 +572,7 @@ As seguintes mutações devem ficar vermelhas antes de aceitar os planos corresp
 ### Wave 0 / lacunas que o planejamento deve fechar
 
 1. Config Playwright capaz de executar specs da Fase 3.
-2. Fixtures determinísticas CSV: válido, erro tardio, BOM/encoding, quoting, duplicata, referência ausente e limite.
+2. Fixtures determinísticas CSV e XLSX: válido, erro tardio, BOM/encoding, quoting, duplicata, referência ausente, tipos/fórmulas/aba e limite.
 3. Fixtures de mídia: válida, MIME falso, truncada, dimensão excessiva, metadados e falha de storage.
 4. Porta comportamental para HMAC e prova de compatibilidade com a Fase 2.
 5. Teste de existência de competição na concessão escopada.
@@ -586,7 +588,7 @@ As seguintes mutações devem ficar vermelhas antes de aceitar os planos corresp
 |---|---|
 | IDOR entre competições | carregar recurso, obter competição real e comparar `scopeRef`; negativos com dois escopos. |
 | Rascunho/PII em endpoint público | query/projeção pública própria, allowlist de DTO e teste anônimo de ausência. |
-| Fórmula CSV/arquivo hostil | tratar células como dados, limites estritos, parser robusto e nenhuma reexportação executável. |
+| Fórmula/arquivo tabular hostil | tratar células como dados, rejeitar fórmulas/macros, limites estritos de ZIP/XML e nenhuma reexportação executável. |
 | Matrícula em log/erro | DTO transitório estreito, redaction/proibição arquitetural e inspeção de resposta/log. |
 | Corrida de publicação | optimistic lock + constraint + resposta `409`, sem last-write-wins. |
 | Upload malicioso/DoS | limite pré-decode, dimensão, reencodificação, bucket privado e chave opaca. |
@@ -646,7 +648,7 @@ Esta continuação usou somente evidência local. Não transforma documentação
 - decisões e requisitos: HIGH — copiados dos artefatos aprovados;
 - baseline de código, testes e infraestrutura: HIGH — inspecionado no checkout atual;
 - arquitetura recomendada: HIGH para fronteiras/risco de ciclo; MEDIUM para o desenho físico final;
-- CSV e mídia: MEDIUM — limites e dependências ainda dependem de aprovação;
+- CSV/XLSX e mídia: MEDIUM — limites, árvore e dependências ainda dependem de aprovação;
 - decomposição em planos: MEDIUM — o planner ajustará allowlists, overlaps e ondas.
 
 **Research date:** 2026-08-26

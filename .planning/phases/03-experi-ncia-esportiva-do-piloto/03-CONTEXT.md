@@ -10,7 +10,7 @@ Esta fase entrega a base esportiva pública e administrativa da BETUFU: catálog
 
 Ela também entrega o vínculo proposto entre conta e atleta pela coincidência do HMAC versionado da matrícula, sem conservar a matrícula e sem alegar validação oficial da UFU.
 
-Ela **não** entrega: odds ou mercados (Fase 4), créditos e apostas (Fase 5), liquidação e ranking (Fase 6), chat (Fase 7), motores completos para provas com vários competidores, estatísticas específicas por modalidade, escalação por partida, importação XLSX, validação documental de atleta ou integração automática com uma fonte oficial.
+Ela **não** entrega: odds ou mercados (Fase 4), créditos e apostas (Fase 5), liquidação e ranking (Fase 6), chat (Fase 7), motores completos para provas com vários competidores, estatísticas específicas por modalidade, escalação por partida, importação tabular flexível fora dos templates BETUFU, validação documental de atleta ou integração automática com uma fonte oficial.
 
 </domain>
 
@@ -63,8 +63,8 @@ Ela **não** entrega: odds ou mercados (Fase 4), créditos e apostas (Fase 5), l
 
 - **D-72:** Elenco pertence à equipe daquela edição. Nasce como rascunho, é publicado manualmente e, depois disso, qualquer alteração exige motivo e auditoria. A futura abertura de mercado deve depender de elenco publicado.
 - **D-73:** O MVP não cadastra titulares nem reservas por partida. Escalações ficam como evolução futura; o modelo atual não deve transformar `TITULAR` ou `RESERVA` em propriedade permanente do atleta.
-- **D-74:** O administrador pode cadastrar individualmente ou importar CSV UTF-8 usando um modelo fixo da BETUFU. A importação valida todas as linhas e é atômica: havendo um erro, salva zero; estando válida, cria tudo em rascunho. Equipes, modalidades e categorias referenciadas precisam existir e não são criadas implicitamente.
-- **D-75:** A entrada tabular usa uma linha lógica comum com nome esportivo, matrícula transitória, organização/equipe, modalidade, categoria e período de vínculo. O parser deve ficar separado da validação/importação para permitir um parser XLSX futuro sem duplicar regras, HMAC, transação ou auditoria.
+- **D-74:** O administrador pode cadastrar individualmente ou importar CSV UTF-8 e XLSX OOXML usando templates fixos da BETUFU. A importação valida todas as linhas e é atômica: havendo um erro, salva zero; estando válida, cria tudo em rascunho. Equipes, modalidades e categorias referenciadas precisam existir e não são criadas implicitamente.
+- **D-75:** A entrada tabular usa uma linha lógica comum com nome esportivo, matrícula transitória, organização/equipe, modalidade, categoria e período de vínculo. Parsers CSV e XLSX ficam separados da validação/importação, que permanece única para não duplicar regras, HMAC, transação ou auditoria.
 
 ### Perfil público do atleta
 
@@ -178,7 +178,7 @@ Pesquisador e planejador podem decidir, de forma conservadora e registrada:
 - A navegação deve lembrar plataformas esportivas com vários campeonatos, como a separação visual entre Brasileirão e Libertadores, e não um site fixo “Olimpíada 2025”.
 - A primeira operação real será preparada para a edição 2026.
 - A organização “Atlética Engenharia”, por exemplo, pode reunir futsal, vôlei e basquete, enquanto cada equipe/elenco pertence à edição.
-- O CSV oficial da BETUFU deve abrir normalmente em Excel e Google Sheets; XLSX pode ser acrescentado depois por outro parser.
+- O template CSV oficial da BETUFU deve abrir normalmente em Excel, LibreOffice e Google Sheets; o template XLSX oficial atende o uso direto no Excel. Os dois formatos produzem a mesma linha lógica e não aceitam planilhas flexíveis.
 - O chaveamento deve ser legível pelo visitante e derivado das partidas, preservando a fonte oficial e suas correções.
 
 </specifics>
@@ -191,7 +191,7 @@ Pesquisador e planejador podem decidir, de forma conservadora e registrada:
 - motores completos para provas com vários competidores;
 - estatísticas específicas por modalidade;
 - titulares e reservas por partida;
-- importação XLSX;
+- importação XLSX flexível, com múltiplas abas, fórmulas, macros ou colunas customizadas;
 - cálculo automático de classificação e desempate por regulamento/modalidade;
 - integração automática com fonte oficial;
 - verificação documental de atleta e armazenamento privado de comprovantes, se um caso futuro realmente justificar a coleta.

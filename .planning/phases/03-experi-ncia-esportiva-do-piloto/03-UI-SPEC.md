@@ -377,10 +377,10 @@ Estado vazio filtrado: `Nenhum evento encontrado` / `Ajuste ou limpe os filtros 
 - Vazio sem atletas: título `Nenhum atleta cadastrado`; corpo `Cadastre o primeiro atleta individualmente ou use o modelo CSV BETUFU para criar rascunhos em lote.`; ações `Cadastrar atleta` e `Importar CSV`. Vazio sem elenco na equipe escolhida: título `Nenhum atleta no elenco desta equipe`; corpo `Adicione um atleta cadastrado e informe modalidade, categoria e período do vínculo.`; ação `Adicionar atleta ao elenco`.
 - Erro bloqueante: título `Não foi possível carregar atletas e elencos`; corpo `Os atletas e vínculos deste escopo não estão disponíveis agora. Tente novamente antes de cadastrar ou alterar um elenco.`; ação `Tentar carregar atletas e elencos`.
 
-### O5 — Importação CSV atômica
+### O5 — Importação tabular atômica (CSV e XLSX)
 
-1. Exibir instrução e download `Baixar modelo CSV BETUFU`; texto obrigatório: `Use CSV UTF-8. A importação não aceita XLSX.`
-2. Seletor aceita um `.csv`; não fazer upload automático ao escolher. Mostrar somente nome seguro do arquivo e ação `Validar arquivo`.
+1. Exibir downloads `Baixar modelo CSV BETUFU` e `Baixar modelo XLSX BETUFU`; texto obrigatório: `Use um dos templates oficiais CSV UTF-8 ou XLSX. Planilhas flexíveis não são aceitas.`
+2. Seletor aceita somente `.csv` ou `.xlsx`; não fazer upload automático ao escolher. Mostrar somente nome seguro do arquivo, formato detectado e ação `Validar arquivo`.
 3. Estado de validação mostra contagem de linhas, referências reconhecidas e erros. Não ecoar matrícula ou conteúdo bruto sensível.
 4. Havendo qualquer erro, banner `Arquivo não importado` / `Corrija todas as linhas indicadas e valide novamente. Nenhum registro foi salvo.` CTA de importação fica ausente/desabilitado.
 5. Em `≥600px`, erros usam tabela com `Linha`, `Campo` e `Problema`; em `<600px`, cartões `Linha {n}` repetem esses rótulos. Mensagem nunca inclui stack, payload ou matrícula.
@@ -450,7 +450,7 @@ GETs públicos/operacionais podem ter retry limitado conforme padrão do projeto
 | Perfil esportivo | `Salvar perfil esportivo` |
 | Escopo operacional | `Abrir competição` |
 | Cadastro operacional | `Salvar rascunho` |
-| CSV válido | `Importar rascunhos` |
+| CSV/XLSX válido | `Importar rascunhos` |
 | Publicação | `Publicar {objeto}` |
 | Resultado | `Confirmar resultado` |
 
@@ -476,8 +476,8 @@ GETs públicos/operacionais podem ter retry limitado conforme padrão do projeto
 | Erros bloqueantes O2–O4, O6 e O7 | Usar literalmente o erro e a ação contextual definidos na subseção; acrescentar `Código de referência: {correlationId}.` somente quando o BFF o fornecer. |
 | Falhas da foto C3 | Usar literalmente `Foto não selecionada`, `Não foi possível enviar a foto`, `Não foi possível processar a foto` ou `Não foi possível remover a foto`, com corpo e próxima ação definidos em C3. |
 | Fonte inválida/ausente | `Informe uma fonte oficial válida antes de publicar.` |
-| CSV inválido | `Arquivo não importado` — `Corrija todas as linhas indicadas e valide novamente. Nenhum registro foi salvo.` |
-| CSV com resultado não confirmado | `Estado da importação não confirmado` e os corpos literais de O5. Usar `Consultar estado da importação` quando disponível; sem consulta, preservar arquivo/resumo, proibir reenvio automático e oferecer `Copiar informações para suporte` e `Voltar ao painel operacional`. |
+| CSV/XLSX inválido | `Arquivo não importado` — `Corrija todas as linhas indicadas e valide novamente. Nenhum registro foi salvo.` |
+| CSV/XLSX com resultado não confirmado | `Estado da importação não confirmado` e os corpos literais de O5. Usar `Consultar estado da importação` quando disponível; sem consulta, preservar arquivo/resumo, proibir reenvio automático e oferecer `Copiar informações para suporte` e `Voltar ao painel operacional`. |
 | Sem escopo | `Nenhuma competição atribuída` — `Sua conta não possui um escopo de competição disponível para operação.` |
 | Vínculo ambíguo | `Não foi possível concluir o vínculo automaticamente.` — `Solicite revisão sem enviar novamente sua matrícula.` |
 | Concorrência | `Este registro foi alterado por outra pessoa. Recarregue para comparar a versão atual antes de tentar novamente.` |
@@ -491,7 +491,7 @@ GETs públicos/operacionais podem ter retry limitado conforme padrão do projeto
 | Remover foto | `Remover sua foto pública? O avatar padrão será exibido.` | `Manter foto` |
 | Trocar escopo sujo | `Trocar de competição e descartar alterações não salvas?` | `Continuar nesta competição` |
 | Alterar elenco publicado | `Alterar o elenco publicado de {equipe}? Informe o motivo; a versão anterior permanecerá no histórico.` | `Manter elenco atual` |
-| Importar CSV válido | `Importar {n} atletas e vínculos como rascunho? Nenhum item ficará público nesta ação.` | `Revisar arquivo` |
+| Importar CSV/XLSX válido | `Importar {n} atletas e vínculos como rascunho? Nenhum item ficará público nesta ação.` | `Revisar arquivo` |
 | Cancelar evento | `Cancelar {evento} em {data}? A agenda pública será atualizada e a versão anterior permanecerá no histórico.` | `Manter evento` |
 | Publicar objeto | `Publicar {objeto} na edição {edição}? Esta versão ficará disponível ao público.` | `Voltar à edição` |
 | Conceder papel | Herdar título, corpo, ação primária, encerramento de sessões e auditoria do contrato da Fase 2. | `Manter papéis atuais` |
@@ -528,7 +528,7 @@ As quatro linhas herdadas acima substituem somente o rótulo visual secundário 
 - Biografia é texto, nunca `innerHTML`. Link social/fonte/mapa passa por allowlist de esquema (`https` e, quando explicitamente suportado, rota interna); rejeitar `javascript:`, `data:`, credenciais embutidas e domínio vazio.
 - Link externo identifica destino e abre de modo seguro (`rel="noopener noreferrer"` quando nova aba). A UI não busca preview, favicon ou Open Graph de terceiro.
 - Fonte mostra título/rótulo, origem e data; URL longa pode quebrar com `overflow-wrap:anywhere`, mas o texto do link continua compreensível. Fonte substituída permanece no histórico e recebe `Substituída`/`Corrige versão anterior` em texto.
-- Nenhum campo da fase usa comprovante, documento, XLSX ou upload genérico. O input de foto e o input CSV têm contratos e endpoints separados.
+- Nenhum campo da fase usa comprovante, documento ou upload genérico. O input de foto e a importação tabular CSV/XLSX têm contratos e endpoints separados.
 
 ---
 
@@ -555,7 +555,7 @@ As quatro linhas herdadas acima substituem somente o rótulo visual secundário 
 | Faixa esportiva | grid marca+texto; status pode ir para segunda linha, nunca sair do contêiner | três colunas compactas | três colunas, até 1240px |
 | Competição/entidade | seções empilhadas e links de salto | grade 2 | resumo + grade, até 1200px |
 | Classificação | cartões rotulados | tabela semântica | tabela semântica |
-| Erros CSV | cartões por linha | tabela | tabela |
+| Erros CSV/XLSX | cartões por linha | tabela | tabela |
 | Chaveamento | uma rodada por vez | colunas quando couber ou seletor | colunas por rodada dentro do contêiner |
 | Workspace | seletor + subnav envolvente/vertical; uma subseção | duas colunas em formulários compatíveis | conteúdo e painel auxiliar; nunca página gigante |
 | Console pessoal | título/contexto e ações em uma coluna; navegação de conta em disclosure ou rail envolvente | conteúdo principal até 640px e resumo lateral quando útil | shell contido, navegação persistente e leitura guiada sem densidade operacional artificial |
@@ -576,7 +576,7 @@ Breakpoints são dirigidos por conteúdo; os intervalos acima são testes mínim
 | 03-06 | público + Console O3 | atleta global, seam transitório de matrícula e estados privados sem exposição pública |
 | 03-07 | conta + Console O8 | proposta, confirmação segura, contestação, ambiguidade e fila de revisão |
 | 03-08 | público + Console O4 | elenco publicado/rascunho, versão, publicação e correção |
-| 03-09 | Console O5 | upload CSV separado, preview, erros responsivos, atomicidade e estado não confirmado |
+| 03-09 | Console O5 | upload CSV/XLSX separado, templates fechados, preview, erros responsivos, atomicidade e estado não confirmado |
 | 03-10 | público + Console O6 | evento/resultado, lifecycle, fonte, concorrência e feedback de versão |
 | 03-11 | Arena interna P1–P6 | expansão das leituras públicas usando o mesmo shell, cards e estados, sem repetir o hero da home |
 | 03-12 | público + Console O7 | `BracketView` responsivo e derivado |
@@ -602,9 +602,9 @@ Provas mínimas:
 2. Visitante abre `/`, filtra agenda e percorre competição, evento, organização, equipe, atleta, classificação e chaveamento sem login e sem request protegido bloqueando a pintura pública.
 3. Pessoa autenticada vê `Conta`; `Operação` aparece somente por capacidade. 401/403 e payload malformado falham fechados sem vazar rota/escopo.
 4. Percurso somente por teclado em agenda, filtros, menus, combobox, diálogo, tabela/cartões, bracket mobile, CSV e publicação; foco sempre visível e restaurado.
-5. Nenhuma rolagem horizontal da página em 320px; classificação e erro CSV viram cartões; bracket troca rodada sem arrasto obrigatório.
+5. Nenhuma rolagem horizontal da página em 320px; classificação e erros CSV/XLSX viram cartões; bracket troca rodada sem arrasto obrigatório.
 6. Loading, vazio, populado, parcial, stale, erro, não autenticado, não autorizado e conflito de versão são exercitados com fixtures determinísticas.
-7. CSV com uma linha inválida prova zero salvamentos e ausência de matrícula no DOM/mensagem; CSV válido cria somente rascunhos.
+7. CSV e XLSX com uma linha inválida provam zero salvamentos e ausência de matrícula no DOM/mensagem; arquivos válidos criam somente rascunhos.
 8. Upload rejeita tipo/tamanho inválido, mantém foto anterior em falha e entrega somente mídia processada sem metadado público.
 9. Fonte/link malicioso (`javascript:`, `data:`, credencial embutida) não vira link; biografia não executa HTML.
 10. Publicação/concorrência em duas sessões prova que a segunda não sobrescreve a primeira e recebe orientação de comparação.
@@ -633,7 +633,7 @@ O visual e a interação acima são fechados; os itens seguintes devem ser decid
 | Estado e cache | Stores, paginação, ordenação, query de filtros, política de stale e retry apenas para GET. |
 | Concorrência | Campo de versão/ETag, resposta Problem Details e fluxo de comparação/cópia segura. |
 | Mídia | Limites de tipo/tamanho/dimensão, pipeline de decode/reencode, remoção de metadados, URL pública e deleção/substituição. |
-| CSV | Limites de arquivo/linha, encoding/BOM, contrato de erro seguro, idempotência e progresso sem sucesso parcial. |
+| CSV/XLSX | Templates fechados, limites de arquivo/linha/célula, encoding/BOM, tipos/fórmulas/ZIP seguro, contrato de erro, idempotência e progresso sem sucesso parcial. |
 | Fontes/links | Schema, allowlist de esquemas/domínios quando necessária e política de abertura externa. |
 | Tabelas/classificação | Colunas genéricas permitidas pela fonte sem codificar regra esportiva ou desempate. |
 | Aceitação | Browsers/versões suportados e fixtures determinísticas para todos os estados. |
@@ -669,7 +669,7 @@ IDs: `E` vazio, `L` loading, `R` erro, `P` populado, `A` parcial, `O` overflow, 
 | 14 | Catálogo | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O2 e bootstrap seguro | — |
 | 15 | Organizações/equipes operacionais | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O3, publicação e erros contextuais | — |
 | 16 | Atletas/elencos operacionais | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O4, versões e propostas | — |
-| 17 | Importação CSV | `form,list,control,static` | `E,L,R,P,A,O,Z,T` | O5, preview, erros e estado não confirmado | — |
+| 17 | Importação CSV/XLSX | `form,list,control,static` | `E,L,R,P,A,O,Z,T` | O5, templates fechados, preview, erros e estado não confirmado | — |
 | 18 | Eventos/resultados operacionais | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O6, lifecycle, fonte e conflito | — |
 | 19 | Chaveamento/classificação operacional | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O7, derivação/transcrição e versão | — |
 | 20 | Fila de revisão | `form,list,nav,control,static` | `E,L,R,P,A,O,Z,T` | O8, dados mínimos e decisão auditada | — |

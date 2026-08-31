@@ -103,11 +103,13 @@
 | Opção | Descrição | Selecionada |
 |---|---|---|
 | Somente cadastro individual | Mais simples, mas trabalhoso para elencos grandes | |
-| Individual + CSV oficial | Modelo fixo UTF-8, validação completa e importação atômica | ✓ |
+| Individual + CSV oficial | Modelo fixo UTF-8, validação completa e importação atômica | ~~ |
+| Individual + CSV + XLSX oficial | Dois templates fechados, parsers separados e validação/transação compartilhadas | ✓ |
 | XLSX flexível | Várias planilhas, fórmulas e colunas customizadas já no MVP | |
 
-**Escolha do responsável:** cadastro individual e CSV oficial.
-**Notas:** separar parser da regra de importação para permitir XLSX futuro sem reescrever validação, HMAC, transação ou auditoria.
+**Escolha anterior do responsável:** cadastro individual e CSV oficial.
+**Decisão atual (aprovação de replanejamento):** cadastro individual e importação CSV/XLSX oficial, ambos com template fechado.
+**Notas:** parsers separados produzem a mesma linha lógica; validação, HMAC, transação e auditoria permanecem compartilhadas. A biblioteca XLSX ainda requer auditoria e aprovação material antes da instalação.
 
 ---
 
@@ -175,7 +177,7 @@
 - confirmação financeira obrigatória por duas pessoas;
 - estatísticas específicas por modalidade;
 - escalações por partida;
-- importação XLSX;
+- importação XLSX flexível, com múltiplas abas, fórmulas, macros ou colunas customizadas;
 - classificação/desempate automáticos;
 - operação completa de provas multi-competidor;
 - integração automática com fontes oficiais;

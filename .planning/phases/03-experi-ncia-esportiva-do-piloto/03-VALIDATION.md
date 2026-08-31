@@ -87,7 +87,7 @@ A regra vigente permite 3–5 tasks por PLAN, mantém paths exatos, trata cinco 
 |---|---|
 | `PLAN-R0-01` | `03-03`–`03-17` agora possuem cinco tasks; diretórios/wildcards foram eliminados e exceções acima de cinco paths estão enumeradas, justificadas e ligadas a uma única prova focal. |
 | `PLAN-R0-02` | O `03-03` cria `--candidate <dir>` read-only com inventário/digest e prova before/after; `03-03`–`03-15` aprovam o candidato antes de fixar manifesto, gerar árvore governada ou consumir tipos. |
-| `PLAN-R0-03` | Numeração canônica fixada: O1 escopo, O2 catálogo, O3 organizações/equipes, O4 atletas/elencos, O5 CSV, O6 eventos/resultados, O7 chaveamento/classificação e O8 revisão. |
+| `PLAN-R0-03` | Numeração canônica fixada: O1 escopo, O2 catálogo, O3 organizações/equipes, O4 atletas/elencos, O5 importação tabular CSV/XLSX, O6 eventos/resultados, O7 chaveamento/classificação e O8 revisão. |
 | `PLAN-R0-04` | `03-03` especifica `AutoEventHero` com duas composições do mesmo evento, ciclo ~5,2 s, todas as causas de pausa, slide inativo `inert`/`aria-hidden`/fora do foco, reduced motion, unitários e Playwright focal. |
 | `PLAN-R0-05` | `03-17` exige Chromium + Firefox, zoom 200%, foco medido ≥3 px, alvos ≥44×44 e contraste WCAG calculado. |
 | `PLAN-R0-06` | `03-17` cria harness executável com três alvos, vermelho/assinatura esperados, timeout, restauração em `finally` e SHA-256 antes/depois. |
@@ -208,7 +208,7 @@ O limite da evidência permanece explícito: o checker foi somente leitura e nã
 | 03-06 | Atleta global e seam de matrícula transitória/HMAC. | SPRT-02–05 | 32 paths | 03-05 | 7 | Console O4 | Athlete/HMAC/Flyway IT, Privacy/Modulith, spec O4, build e Playwright esportivo | T-03-06-PII, IDOR, MODULE, CONTRACT | PASS |
 | 03-07 | Propostas, aceite/rejeição/contestação owner-only e revisão segura O8. | SPRT-06–08 | 40 paths | 03-06 | 8 | Conta owner + Console O8 | Proposal/concurrency/Flyway IT, contrato e stores/specs owner/O8 | T-03-07-TAKEOVER, RACE, REPLAY, CONTEST, ENUM, CONTRACT | PASS |
 | 03-08 | Elencos versionados, snapshot publicado e correção manual. | SPRT-02, SPRT-09 | 29 paths | 03-07 | 9 | Console O4 / RosterView | Roster/concurrency/Flyway IT, contrato e specs store/O4 | T-03-08-PUBLISH, IDOR, PII, CONTRACT | PASS |
-| 03-09 | Importação CSV UTF-8 atômica, validada e sem retry perigoso. | SPRT-02 | 38 paths | 03-08 | 10 | Console O5 | dependency tree, parser/import IT, contrato e specs store/O5 | T-03-09-SC, DOS, FORMULA, PARTIAL | PASS |
+| 03-09 | Importação tabular CSV/XLSX atômica, validada e sem retry perigoso. | SPRT-02 | 50 paths | 03-08 | 10 | Console O5 | dependency trees das duas bibliotecas, parsers/import IT, contrato e specs store/O5 | T-03-09-SC, DOS, FORMULA, PARTIAL | PENDING |
 | 03-10 | Lifecycle de eventos/resultados, fontes, versões e concorrência. | SPRT-10, SPRT-11 | 32 paths | 03-09 | 11 | Console O6 | Event/result/concurrency/Flyway IT, contrato e specs store/O6 | T-03-10-RACE, SOURCE, SCOPE, CONTRACT | PASS |
 | 03-11 | Leituras e páginas públicas completas P1–P6 além do tracer mínimo. | AUTH-01, SPRT-12, SPRT-13 | 38 paths | 03-10 | 12 | Arena P1–P6 | PublicViewIT, contrato, specs de detalhes e Playwright P1–P6 | T-03-11-DRAFT, PII, CACHE, CONTRACT | PASS |
 | 03-12 | Chaveamento P7/O7 derivado dos eventos oficiais. | SPRT-14 | 33 paths | 03-11 | 13 | Arena P7 + Console O7 | Bracket/Flyway IT, contrato e stores/specs P7/O7 | T-03-12-CYCLE, SCOPE, DIVERGE, CONTRACT | PASS |
@@ -464,7 +464,7 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 |-------------|--------------|------------|-------------------------|-------------------|-----------------------------|--------|
 | AUTH-01 | 03-02/T2 (W2), 03-03/T1 (W4), 03-11/T1 (W12), 03-17/T1 (W20) | T-03-02-PUBLIC / T-03-03-PUBLIC / T-03-11-PUBLIC / T-03-16-PUBLIC | Visitante sem cookie acessa somente versões públicas; rascunhos e comandos continuam protegidos. | MockMvc IT + Playwright | GET anônimo, controle negativo de rascunho e navegador sem sessão. | ⬜ pending |
 | SPRT-01 | 03-02/T2 (W2), 03-04/T1 (W5), 03-16/T1 (W17), 03-20/T2 (W19) | T-03-01-SCOPE / T-03-02-IDOR / T-03-04-IDOR / T-03-16-IDOR / T-03-20-AUTH | Catálogo/local respeitam o UUID real da competição; outro escopo falha e a convergência operacional não muda autorização. | PostgreSQL/MockMvc IT + Angular | matriz geral/escopo alheio/escopo correto, constraints e equivalência do Console. | ⬜ pending |
-| SPRT-02 | 03-05/T2 (W6), 03-06/T2 (W7), 03-08/T2 (W9), 03-09/T2 (W10), 03-20/T2 (W19) | T-03-05-IDOR / T-03-08-PUBLISH / T-03-09-CSV / T-03-09-IDOR / T-03-20-LOGIC | Cadastro individual e CSV não criam referência implícita nem escrita parcial; telas operacionais convergidas mantêm os mesmos comandos. | unit + IT + Angular | CSV válido, referência ausente, escopo alheio, erro tardio com zero writes e equivalência visual/funcional. | ⬜ pending |
+| SPRT-02 | 03-05/T2 (W6), 03-06/T2 (W7), 03-08/T2 (W9), 03-09/T2 (W10), 03-20/T2 (W19) | T-03-05-IDOR / T-03-08-PUBLISH / T-03-09-CSV / T-03-09-IDOR / T-03-20-LOGIC | Cadastro individual e importação CSV/XLSX não criam referência implícita nem escrita parcial; telas operacionais convergidas mantêm os mesmos comandos. | unit + IT + Angular | CSV/XLSX válido, referência ausente, escopo alheio, erro tardio com zero writes e equivalência visual/funcional. | ⬜ pending |
 | SPRT-03 | 03-06/T2 (W7) | T-03-06-PII | Atleta sem conta é identidade esportiva válida e não exige `identityId`. | repository/MockMvc IT | persistência e DTO público do atleta não vinculado. | ⬜ pending |
 | SPRT-04 | 03-06/T2 (W7), 03-19/T3 (W18) | T-03-06-HMAC / T-03-06-PII / T-03-19-PII | Matrícula é transitória e usa exatamente normalização/HMAC da Fase 2; a página convergida mantém o body autorizado sem persistência/exposição. | unit/architecture/IT + Angular | compatibilidade do seam e ausência em entity, response, DOM pós-sucesso, storage e log. | ⬜ pending |
 | SPRT-05 | 03-06/T2 (W7) | T-03-06-PII | Banco guarda somente versão+fingerprint, sem valor bruto consultável. | Flyway/ArchUnit IT | inspeção de schema e regra de privacidade estreita. | ⬜ pending |
@@ -495,7 +495,7 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 | 03-06 / W7 | athlete/HMAC compatibility, IDOR, privacy, Modulith e O4 |
 | 03-07 / W8 | proposal functional/concurrency/IDOR IT, `DIVERGENT_DATA` sem enumeração e O8 |
 | 03-08 / W9 | roster functional/concurrency IT e O4 |
-| 03-09 / W10 | parser, atomic import/IDOR IT, full dependency tree e O5 |
+| 03-09 / W10 | parsers CSV/XLSX, atomic import/IDOR IT, full dependency trees e O5 |
 | 03-10 / W11 | event/result lifecycle completo, transições inválidas, concurrency/audit IT e O6 |
 | 03-11 / W12 | public view IT, Angular P1–P6 e Playwright público |
 | 03-12 / W13 | bracket IT e P7/O7 |
@@ -515,7 +515,7 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 - [ ] Remover a comparação de `scopeRef` ou usar apenas `hasRole` deixa SPRT-01/SPRT-02 vermelhos.
 - [ ] Remover o filtro de versão publicada faz o teste anônimo falhar.
 - [ ] Sobrescrever uma versão confirmada deixa o teste histórico/liquidação futura vermelho.
-- [ ] Persistir antes de validar a última linha CSV deixa o teste de atomicidade vermelho.
+- [ ] Persistir antes de validar a última linha CSV/XLSX deixa o teste de atomicidade vermelho.
 - [ ] Criar vínculo HMAC sem aceite deixa o teste de proposta vermelho.
 - [ ] Remover o bloqueio `DIVERGENT_DATA` faz `AthleteLinkProposalIT` criar vínculo ou omitir a fila manual e deixa SPRT-07 vermelho.
 - [ ] Serializar entity de atleta na rota pública deixa o teste de privacidade vermelho.
@@ -536,7 +536,7 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 ## Wave 0 Requirements
 
 - [ ] 03-03/T1 e 03-17/T1 — `frontend/playwright.sports.config.ts` e `frontend/e2e/sports-pilot.spec.ts` com 320px, 1280px, teclado e sessão ausente. **Parcela 03-03: ✅ green; certificação ampliada do 03-17 permanece pendente.**
-- [ ] 03-09/T2 — `backend/src/test/resources/sports/csv/` com válido, erro tardio, BOM/encoding, quoting, duplicata, referência ausente e limites.
+- [ ] 03-09/T2 — `backend/src/test/resources/sports/csv/` e `backend/src/test/resources/sports/xlsx/` com casos válidos, erro tardio, BOM/encoding, quoting, duplicata, referência ausente, tipos/fórmulas/aba/ZIP e limites.
 - [ ] 03-15/T2 — `backend/src/test/resources/sports/media/` com válida, MIME falso, truncada, pixels excessivos, metadados e falha de storage.
 - [x] 03-06/T2 — compatibilidade da porta HMAC e extensão estreita de `PrivacyArchitectureTest`. **Green - V12, atleta/HMAC, privacidade e Modulith certificados na Wave 7.**
 - [ ] 03-02/T2, 03-04/T1, 03-05/T2, 03-06/T2, 03-07/T2, 03-08/T2, 03-10/T2, 03-12/T2, 03-13/T2, 03-14/T2 e 03-15/T2, com reconciliação no 03-17/T1 — atualização incremental de `FlywayMigrationIT`/checksum para V9–V20. **V9: green no 03-02; V10/V11/V12: green; V13/V14: green no 03-07; V15-V20 permanecem pendentes.**
@@ -553,7 +553,7 @@ Esses itens não precisam estar todos no primeiro plano. Cada PLAN deve possuir 
 |----------|-------------|------------|-------------------|
 | Fidelidade visual final e clareza dos fluxos públicos/operacionais | AUTH-01, SPRT-12–16 | julgamento visual complementa, mas não substitui, acessibilidade automatizada | navegador real em 320px e 1280px conforme `03-UI-SPEC.md`; registrar evidência por superfície. |
 | Aprovação de inventário/digest OpenAPI | requisitos com contrato HTTP | decisão humana governada do artefato gerado | comparar arquivos adicionados/removidos, campos e digest; recusar PII ou serviço inesperado. |
-| Dependência CSV e/ou imagem | SPRT-02, SPRT-16 | instalação/árvore/licença são decisão material | apresentar coordenada, versão, licença, transitivos, alternativa e limites antes de editar `pom.xml`. |
+| Dependências CSV/XLSX e/ou imagem | SPRT-02, SPRT-16 | instalação/árvore/licença são decisão material | apresentar coordenadas, versões, licenças, transitivos, riscos de ZIP/XML e limites antes de editar `pom.xml`. |
 | Primeiro DDL esportivo e migração do favorito | SPRT-01, SPRT-15 | one-way/costly | revisar ER/DDL, mapeamento de dados, forward-fix e invariantes antes da migration. |
 
 ---

@@ -292,7 +292,7 @@ Plans:
 
 **Wave 10** *(blocked on Wave 9 completion)*
 
-- [ ] 03-09-PLAN.md — importar CSV atomicamente
+- [ ] 03-09-PLAN.md — importar CSV/XLSX atomicamente
 
 **Wave 11** *(blocked on Wave 10 completion)*
 
