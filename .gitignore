@@ -1,6 +1,21 @@
+# ==============================================================================
+# BetUFU - Git Ignore Configuration
+# ==============================================================================
+
+# --- Backend & Build Artifacts (Maven / Java / Spring) ---
 **/target/
 /build/generated-spring-modulith/
-/infra/.env
+
+# Keep governed OpenAPI candidate metadata visible to Git
+!frontend/target/
+frontend/target/*
+!frontend/target/api-candidate/
+frontend/target/api-candidate/*
+!frontend/target/api-candidate/**/
+!frontend/target/api-candidate/**/*.json
+!frontend/target/api-candidate/**/*.sha256
+
+# --- Frontend & Node Artifacts (Angular / npm) ---
 /frontend/node_modules/
 /frontend/dist/
 /frontend/tmp/
@@ -8,8 +23,23 @@
 /frontend/bazel-out/
 /frontend/.angular/cache/
 /frontend/coverage/
+/.angular/
+
+# --- Environment & Local Secrets ---
+/infra/.env
+
+# --- IDE & Editor Settings ---
 /.idea/
+.vscode/
+
+# --- Agentic Workflows & Local Caches (Antigravity / GSD) ---
 /.agents/
 /.planning/research/.cache/
 skills-lock.json
-/.angular/
+
+# --- RepoWise Integration (Managed Section) ---
+# repowise:start (managed by RepoWise, do not edit between markers)
+.claude/repowise-gate.cjs
+.claude/settings.json
+.codex/hooks.json
+# repowise:end

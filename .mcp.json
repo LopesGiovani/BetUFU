@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "RepoWise MCP for BetUFU": {
+      "command": "repowise",
+      "args": [
+        "mcp-shim",
+        "--repo-id",
+        "cda49925-7d9e-488a-bf89-c611a59f3677"
+      ]
+    }
+  }
+}
