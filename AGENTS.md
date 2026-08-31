@@ -10,6 +10,7 @@ O responsável pelo projeto participa ativamente do desenvolvimento. O GSD e qua
 - Uma aprovação vale somente para o escopo descrito. Ela não autoriza automaticamente o próximo plano, onda, alteração ou operação Git.
 - Inspeções somente leitura podem preparar uma proposta, mas devem ser anunciadas e não podem alterar arquivos, dependências, repositório ou serviços externos.
 - Depois de cada ação aprovada, apresentar o que mudou, evidências de verificação e eventuais desvios; então pausar para revisão antes do próximo bloco.
+- Ocorrências mecânicas, locais, reversíveis e sem impacto em regra de negócio, segurança, integridade de dados, dependências, infraestrutura externa ou escopo — por exemplo, cache ausente, divergência de allowlist causada por rota legítima, falhas em cascata e resíduos de processo — não exigem nova atenção do responsável. O executor pode corrigi-las, deve registrar causa e resultado no fechamento do bloco e deve parar somente se surgir impacto material ou uma decisão de produto/arquitetura.
 
 ## Modo pedagógico obrigatório
 
@@ -31,6 +32,7 @@ O responsável é um desenvolvedor Java júnior e usa a construção da BETUFU t
 - Executar fases em ritmo controlado com `$gsd-execute-phase <fase> --wave <onda> --interactive`.
 - Não usar `--auto`, `--all`, `--force` nem execução autônoma sem autorização explícita para aquele uso.
 - No modo interativo, a regra de aprovação deste arquivo prevalece inclusive sobre commits automáticos previstos pelo workflow.
+- Restaurações rotineiras e reproduzíveis do ambiente local, como executar `npm ci` quando `node_modules` estiver ausente, podem ser resolvidas sem microaprovação quando usam exclusivamente manifests e lockfiles já aprovados. Essa exceção não permite adicionar dependências, atualizar versões, alterar manifests/lockfiles ou executar ações externas não previstas; a restauração e seu resultado devem ser registrados no fechamento do bloco.
 
 ## Orquestração de implementação e revisão
 
