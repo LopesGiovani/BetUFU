@@ -99,7 +99,7 @@ coverage:
 
 deviations:
   - "A allowlist foi reconciliada de acordo com o diff real: o plano, o tracer historico, seu IT, modelos gerados auxiliares e as paginas P4-P6 fazem parte do conjunto certificado."
-  - "Os quatro metadados do candidato permanecem ignorados pelo Git por politica do repositorio; o digest e os hashes estao registrados neste SUMMARY e foram verificados localmente."
+  - "Os quatro metadados do candidato ficaram fora do Git por politica do repositorio e foram removidos junto com a worktree isolada apos o digest ser registrado neste SUMMARY."
   - "SportsPublicViewRepository passou a exigir sports_team.status = PUBLICADO nas consultas de elenco de organizacao e atleta, com teste de regressao adicional."
 
 validation:
@@ -110,16 +110,16 @@ issues:
   - "Nenhum problema de regra de negocio ou bloqueio tecnico conhecido ao final da implementacao."
 
 git:
-  status: complete-pending-git
+  status: complete
   implementation_commit: 36a3d8c
-  documentation_commit: pending
-  integration: pending
-  cleanup: pending
-  push: pending
+  documentation_commit: 1db2d19
+  integration: fast-forward completed
+  cleanup: worktree-agent-03-11 and branch removed
+  push: origin/master synchronized
 
 next-phase-readiness:
   - "A Arena publica P1-P6 e o contrato de leitura estao prontos para o plano 03-12/W13."
-  - "A worktree 03-11 pode ser integrada depois do congelamento final e das operacoes Git autorizadas."
+  - "A worktree 03-11 foi integrada e removida; o proximo plano tecnico e 03-12/W13."
 ---
 
 # Fase 3 Plano 03-11: Arena publica P1-P6
@@ -128,7 +128,7 @@ O plano completa a superficie publica da Arena para agenda, competicao, evento, 
 
 ## Operacoes Git
 
-Este resumo e criado antes do fechamento Git. Os commits tecnico e documental, a integracao fast-forward na `master`, a limpeza da worktree e o push serao registrados apos a verificacao final.
+Os commits tecnico e documental foram integrados por fast-forward na `master`; a worktree e a branch temporarias foram removidas e `origin/master` foi sincronizada.
 
 ## Self-check
 
