@@ -42,7 +42,9 @@ describe('PublicAthletePageComponent', () => {
         lockVersion: 0,
         updatedAt: '2026-08-31T12:00:00Z',
       }),
+      photoUrl: signal('blob:processed-public'),
       load: vi.fn(),
+      releasePhotoResources: vi.fn(),
     };
     await TestBed.configureTestingModule({
       imports: [PublicAthletePageComponent],
@@ -58,6 +60,7 @@ describe('PublicAthletePageComponent', () => {
     expect(profileStore.load).toHaveBeenCalledWith('a1');
     expect(fixture.nativeElement.textContent).toContain('participacoes publicas');
     expect(fixture.nativeElement.textContent).toContain('Bio publica');
+    expect(fixture.nativeElement.querySelector('img')?.getAttribute('alt')).toBe('Foto de Ana');
     expect(fixture.nativeElement.textContent).not.toContain('matricula');
   });
 
@@ -96,7 +99,9 @@ describe('PublicAthletePageComponent', () => {
         lockVersion: 0,
         updatedAt: '2026-08-31T12:00:00Z',
       }),
+      photoUrl: signal(null),
       load: vi.fn(),
+      releasePhotoResources: vi.fn(),
     };
     await TestBed.configureTestingModule({
       imports: [PublicAthletePageComponent],

@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(20);
+    assertThat(result.migrationsExecuted).isEqualTo(21);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(20);
+    assertThat(applied).hasSize(21);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -176,7 +176,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(20);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(21);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -185,7 +185,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(20);
+    assertThat(applied).hasSize(21);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -226,13 +226,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(20);
+      assertThat(totalExecuted).isEqualTo(21);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(20);
+      assertThat(applied).hasSize(21);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1283,5 +1283,57 @@ class FlywayMigrationIT {
                     "INSERT INTO public.sports_athlete_public_profile (athlete_id) VALUES (?)",
                     UUID.randomUUID()))
         .hasMessageContaining("fk_sports_athlete_public_profile_athlete");
+  }
+
+  @Test
+  @DisplayName("V20 aplica referência privada, limites e tupla consistente de mídia")
+  void v20EnforcesAthleteProfileMediaConstraints() {
+    Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+
+    UUID athleteId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_athlete (name, slug, status) VALUES ('Atleta V20', 'atleta-v20', 'PUBLICADO') RETURNING athlete_id",
+            UUID.class);
+
+    assertThat(
+            jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_profile_media (athlete_id, object_key, content_type, byte_size, width, height, etag, media_version, lock_version) VALUES (?, 'athlete-profile/opaque', 'image/png', 165, 64, 64, 'etag-v20', 1, 1)",
+                athleteId))
+        .isEqualTo(1);
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "UPDATE public.sports_athlete_profile_media SET content_type = 'image/gif' WHERE athlete_id = ?",
+                    athleteId))
+        .hasMessageContaining("ck_sports_athlete_profile_media_content_type");
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "UPDATE public.sports_athlete_profile_media SET byte_size = 5242881 WHERE athlete_id = ?",
+                    athleteId))
+        .hasMessageContaining("ck_sports_athlete_profile_media_byte_size");
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "UPDATE public.sports_athlete_profile_media SET width = 2001, height = 2000 WHERE athlete_id = ?",
+                    athleteId))
+        .hasMessageContaining("ck_sports_athlete_profile_media_dimensions");
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "UPDATE public.sports_athlete_profile_media SET object_key = NULL WHERE athlete_id = ?",
+                    athleteId))
+        .hasMessageContaining("ck_sports_athlete_profile_media_reference_tuple");
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "INSERT INTO public.sports_athlete_profile_media (athlete_id) VALUES (?)",
+                    UUID.randomUUID()))
+        .hasMessageContaining("fk_sports_athlete_profile_media_athlete");
   }
 }

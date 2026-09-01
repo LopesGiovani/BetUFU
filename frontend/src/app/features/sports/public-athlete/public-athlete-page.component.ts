@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PublicAthleteDetail } from '../../../api/generated/model/public-athlete-detail';
 import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
@@ -33,9 +33,18 @@ import {
         </section>
       } @else if (detail(); as athlete) {
         <header class="detail-head">
-          <p class="eyebrow">Atleta publico</p>
-          <h1>{{ athlete.name }}</h1>
-          <p class="slug">/{{ athlete.slug }}</p>
+          <div class="athlete-avatar">
+            @if (profileStore.photoUrl(); as photoUrl) {
+              <img [src]="photoUrl" [alt]="'Foto de ' + athlete.name" />
+            } @else {
+              <span aria-hidden="true">{{ athlete.name.charAt(0) }}</span>
+            }
+          </div>
+          <div>
+            <p class="eyebrow">Atleta publico</p>
+            <h1>{{ athlete.name }}</h1>
+            <p class="slug">/{{ athlete.slug }}</p>
+          </div>
         </header>
         @if (profileStore.isReady() && profileStore.hasPublishedContent()) {
           @if (profile(); as publicProfile) {
@@ -145,11 +154,28 @@ import {
       text-decoration: none;
     }
     .detail-head {
+      display: flex;
+      align-items: center;
+      gap: var(--bt-space-4);
       margin-top: var(--bt-space-8);
       padding: var(--bt-space-8);
       border-left: 4px solid var(--bt-signal);
       background: var(--bt-surface-raised);
     }
+    .athlete-avatar {
+      width: 88px;
+      height: 88px;
+      flex: 0 0 88px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid var(--bt-border);
+      border-radius: 50%;
+      background: var(--bt-surface);
+      color: var(--bt-signal);
+      font: 600 2.5rem/.9 'Barlow Condensed', sans-serif;
+    }
+    .athlete-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .eyebrow,
     .slug {
       margin: 0;
@@ -328,13 +354,14 @@ import {
         grid-template-columns: 1fr;
       }
       .detail-head {
+        align-items: flex-start;
         padding: var(--bt-space-6) var(--bt-space-4);
       }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PublicAthletePageComponent implements OnInit {
+export class PublicAthletePageComponent implements OnDestroy, OnInit {
   readonly store = inject(SportsPublicViewStore);
   readonly profileStore = inject(PublicAthleteProfileStore);
   private readonly route = inject(ActivatedRoute, { optional: true });
@@ -347,6 +374,10 @@ export class PublicAthletePageComponent implements OnInit {
       void this.store.load('athlete', id);
       void this.profileStore.load(id);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.profileStore.releasePhotoResources();
   }
 
   publicProfileLinks(): readonly { label: string; href: string }[] {

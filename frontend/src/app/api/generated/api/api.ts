@@ -1,5 +1,7 @@
 export * from './athlete-link.service';
 import { AthleteLinkService } from './athlete-link.service';
+export * from './athlete-media.service';
+import { AthleteMediaService } from './athlete-media.service';
 export * from './athlete-public-profile.service';
 import { AthletePublicProfileService } from './athlete-public-profile.service';
 export * from './diagnostic.service';
@@ -38,4 +40,4 @@ export * from './sports-standings.service';
 import { SportsStandingsService } from './sports-standings.service';
 export * from './sports-tabular-import.service';
 import { SportsTabularImportService } from './sports-tabular-import.service';
-export const APIS = [AthleteLinkService, AthletePublicProfileService, DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsBracketService, SportsCatalogService, SportsEventResultService, SportsOrganizationService, SportsPublicService, SportsRosterService, SportsStandingsService, SportsTabularImportService];
+export const APIS = [AthleteLinkService, AthleteMediaService, AthletePublicProfileService, DiagnosticService, EnrollmentService, IdentityService, OperationalCapabilitiesService, OperationalPanelService, PasswordResetRecoveryService, ProfileService, RoleService, SessionService, SportsAthleteService, SportsBracketService, SportsCatalogService, SportsEventResultService, SportsOrganizationService, SportsPublicService, SportsRosterService, SportsStandingsService, SportsTabularImportService];

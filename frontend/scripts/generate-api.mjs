@@ -72,6 +72,7 @@ const APPROVED_GENERATOR = Object.freeze({
 });
 export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'AthleteLink',
+  'AthleteMedia',
   'AthletePublicProfile',
   'Diagnostic',
   'Enrollment',
@@ -96,6 +97,7 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'AdministrativeCorrectionEventDto',
   'AdministrativeCorrectionsBlock',
   'AthleteLinkDecisionRequest',
+  'AthleteMediaResponse',
   'AthleteLinkProposal',
   'AthleteLinkReviewPage',
   'AthleteLinkReviewSummary',
@@ -225,6 +227,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api.module.ts',
   'api/api.ts',
   'api/athlete-link.service.ts',
+  'api/athlete-media.service.ts',
   'api/athlete-public-profile.service.ts',
   'api/diagnostic.service.ts',
   'api/enrollment.service.ts',
@@ -253,6 +256,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/athlete-link-proposal.ts',
   'model/athlete-link-review-page.ts',
   'model/athlete-link-review-summary.ts',
+  'model/athlete-media-response.ts',
   'model/athlete-public-profile-update-request.ts',
   'model/athlete-public-profile.ts',
   'model/betufu-field-violation.ts',
@@ -395,7 +399,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // classificacao oficial transcrita/versionada (03-13), apos a conferencia do candidato OpenAPI.
 // A519EC... foi aprovado literalmente pelo responsavel na Wave 15 (03-14); acrescenta
 // o perfil publico esportivo e os dois modelos de leitura/atualizacao.
-export const APPROVED_GENERATED_DIGEST = 'A519EC31AF3F6CF504DB180A9606B700288A76C2CB6504BEEA3802A4A4726B93';
+// 1BE6... foi aprovado literalmente pelo responsavel na Wave 16 (03-15); acrescenta
+// o cliente owner/public de foto processada e seu modelo de metadados.
+export const APPROVED_GENERATED_DIGEST = '1BE6BAB88EA2F208A38BE115E3CB4D9B0DA2EBB8E04FBF038FD122E5A2B43F27';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

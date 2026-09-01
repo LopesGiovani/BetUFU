@@ -1,6 +1,10 @@
 spring:
   application:
     name: betufu-backend
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   profiles:
     group:
       dev:
@@ -44,6 +48,17 @@ betufu:
       keys:
         v1: "${BETUFU_PASSWORD_RESET_KEY_V1:}"
         v2: "${BETUFU_PASSWORD_RESET_KEY_V2:}"
+  media:
+    max-bytes: "${BETUFU_MEDIA_MAX_BYTES:5242880}"
+    max-pixels: "${BETUFU_MEDIA_MAX_PIXELS:4000000}"
+  s3:
+    enabled: "${BETUFU_S3_ENABLED:false}"
+    endpoint: "${BETUFU_S3_ENDPOINT:}"
+    region: "${BETUFU_S3_REGION:us-east-1}"
+    bucket: "${BETUFU_S3_BUCKET:}"
+    access-key-id: "${BETUFU_S3_ACCESS_KEY_ID:}"
+    secret-access-key: "${BETUFU_S3_SECRET_ACCESS_KEY:}"
+    force-path-style: "${BETUFU_S3_FORCE_PATH_STYLE:true}"
 
 ---
 spring:

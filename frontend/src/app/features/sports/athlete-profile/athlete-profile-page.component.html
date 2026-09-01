@@ -51,6 +51,8 @@
       </section>
     }
 
+    <app-athlete-photo-field [athleteName]="profile.athleteName" />
+
     <div class="workspace">
       <form class="profile-form" [formGroup]="form" (ngSubmit)="save()" novalidate>
         <section class="form-section" aria-labelledby="about-title">

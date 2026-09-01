@@ -399,6 +399,143 @@ paths:
         "404":
           description: Vínculo com atleta não encontrado.
 
+  /api/v1/me/sports/athlete-profile/photo:
+    get:
+      tags:
+        - AthleteMedia
+      operationId: getMyAthletePhoto
+      summary: Consultar os metadados da foto do atleta vinculado
+      description: >-
+        Retorna somente metadados da mídia processada do atleta autenticado. A resposta nunca
+        contém nome original, chave de objeto, endpoint de storage ou URL presigned (D-76, SPRT-16).
+      responses:
+        "200":
+          description: Metadados da foto própria, ou estado sem foto.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AthleteMediaResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              schema:
+                type: string
+        "401":
+          description: Requisição não autenticada.
+        "404":
+          description: Vínculo com atleta não encontrado.
+    post:
+      tags:
+        - AthleteMedia
+      operationId: uploadMyAthletePhoto
+      summary: Enviar foto processada do atleta vinculado
+      description: >-
+        Recebe JPEG ou PNG, valida bytes e dimensões, reencoda sem metadados e grava somente o
+        derivado em storage privado. A foto anterior é preservada se o processamento ou storage falhar.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: JPEG ou PNG com no máximo 5 MiB e 4.000.000 pixels.
+      responses:
+        "200":
+          description: Foto processada e vinculada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AthleteMediaResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              schema:
+                type: string
+        "400":
+          description: Arquivo inválido, truncado, poliglota ou fora dos limites.
+        "401":
+          description: Requisição não autenticada.
+        "404":
+          description: Vínculo com atleta não encontrado.
+        "415":
+          description: MIME declarado não é JPEG ou PNG.
+        "500":
+          description: Falha interna sem alteração da foto anterior.
+    delete:
+      tags:
+        - AthleteMedia
+      operationId: removeMyAthletePhoto
+      summary: Remover a foto do atleta vinculado
+      description: >-
+        Retira a referência pública antes da limpeza do objeto privado. A ausência de foto retorna
+        o avatar padrão no cliente.
+      responses:
+        "200":
+          description: Foto removida, ou estado já sem foto.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AthleteMediaResponse"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              schema:
+                type: string
+        "401":
+          description: Requisição não autenticada.
+        "404":
+          description: Vínculo com atleta não encontrado.
+        "409":
+          description: Versão de concorrência desatualizada.
+
+  /api/v1/public/sports/athletes/{athleteId}/profile/photo:
+    get:
+      tags:
+        - AthleteMedia
+      operationId: getAthletePublicPhoto
+      summary: Servir a foto processada pública de um atleta
+      description: >-
+        Entrega somente o derivado processado por handler BETUFU, com ETag e cache controlado. O
+        bucket, endpoint, chave e bytes originais nunca atravessam este contrato.
+      parameters:
+        - name: athleteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Foto processada pública.
+          headers:
+            ETag:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Atleta não publicado ou sem foto.
+
   /api/v1/operations/roles/{targetIdentityId}:
     get:
       tags:
@@ -7237,3 +7374,44 @@ components:
           type: [integer, "null"]
           format: int64
           description: Versão de lock esperada para verificação de concorrência.
+
+    AthleteMediaResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+        - present
+        - mediaVersion
+        - updatedAt
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+          description: Identificador do atleta já exposto pelo perfil público.
+        present:
+          type: boolean
+          description: Indica se há uma foto processada vinculada.
+        contentType:
+          type: [string, "null"]
+          enum: [image/jpeg, image/png, null]
+        byteSize:
+          type: [integer, "null"]
+          format: int32
+          minimum: 1
+          maximum: 5242880
+        width:
+          type: [integer, "null"]
+          format: int32
+          minimum: 1
+        height:
+          type: [integer, "null"]
+          format: int32
+          minimum: 1
+        mediaVersion:
+          type: integer
+          format: int64
+          minimum: 0
+        updatedAt:
+          type: string
+          format: date-time
+          description: Instante em UTC da última troca da referência.

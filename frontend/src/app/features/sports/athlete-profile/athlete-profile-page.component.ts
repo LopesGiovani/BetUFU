@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AthletePhotoFieldComponent } from './athlete-photo-field.component';
 import { AthleteProfileDraft, AthleteProfileStore } from './athlete-profile.store';
 
 type SocialControlName = 'instagramUrl' | 'xUrl' | 'linkedinUrl' | 'stravaUrl' | 'youtubeUrl';
@@ -50,7 +51,7 @@ function socialUrl(platform: SocialControlName): ValidatorFn {
 @Component({
   selector: 'app-athlete-profile-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AthletePhotoFieldComponent],
   templateUrl: './athlete-profile-page.component.html',
   styleUrl: './athlete-profile-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
