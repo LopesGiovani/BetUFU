@@ -105,7 +105,9 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
     expect(colors.heroOnDeep).toBe('#e1dfdb');
     expect(colors.heroMuted).toBe('#b5aea5');
     expect(colors.border).toBe('rgba(255, 244, 244, 0.18)');
-    expect(extractScssVariable(tokensContent, 'color-border-strong')).toBe('rgba(255, 180, 184, 0.38)');
+    expect(extractScssVariable(tokensContent, 'color-border-strong')).toBe(
+      'rgba(255, 180, 184, 0.38)',
+    );
     expect(colors.focus).toBe('#ffd2d4');
     expect(colors.available).toBe('#72d6a0');
     expect(colors.degraded).toBe('#f5c95c');
@@ -114,16 +116,29 @@ describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
 
   it('Arena V expõe papéis cromáticos, tipográficos e de espaçamento como tokens semânticos', () => {
     for (const token of [
-      '--bt-signal-deep', '--bt-display', '--bt-hero-cream', '--bt-hero-on-deep', '--bt-hero-muted',
-      '--bt-space-1', '--bt-space-2', '--bt-space-4', '--bt-space-6', '--bt-space-8', '--bt-space-12', '--bt-space-16',
-      '--bt-type-display', '--bt-type-heading', '--bt-type-body', '--bt-type-label',
+      '--bt-signal-deep',
+      '--bt-display',
+      '--bt-hero-cream',
+      '--bt-hero-on-deep',
+      '--bt-hero-muted',
+      '--bt-space-1',
+      '--bt-space-2',
+      '--bt-space-4',
+      '--bt-space-6',
+      '--bt-space-8',
+      '--bt-space-12',
+      '--bt-space-16',
+      '--bt-type-display',
+      '--bt-type-heading',
+      '--bt-type-body',
+      '--bt-type-label',
     ]) {
       expect(stylesContent).toContain(token);
     }
     expect(stylesContent).toContain('--bt-type-display: clamp(4.75rem, 13vw, 11.5rem);');
     expect(stylesContent).toContain('--bt-type-heading: clamp(1.5rem, 4vw, 3.5rem);');
     expect(stylesContent).toContain('--bt-type-body: 1rem;');
-    expect(stylesContent).toContain('--bt-type-label: .875rem;');
+    expect(stylesContent).toMatch(/--bt-type-label:\s*0?\.875rem;/u);
   });
 
   it('WCAG 2.2 AA: Texto normal extraído de _tokens.scss mantém razão de contraste mínima de 4.5:1 contra superfícies', () => {

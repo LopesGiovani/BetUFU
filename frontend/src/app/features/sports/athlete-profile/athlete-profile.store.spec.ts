@@ -6,18 +6,32 @@ import { AthleteProfileApiAdapter } from './athlete-profile-api.adapter';
 import { AthleteProfileStore } from './athlete-profile.store';
 
 const profile = (version = 0) => ({
-  athleteId: '11111111-1111-4111-8111-111111111111', athleteName: 'Ana Santos', athleteSlug: 'ana-santos',
-  course: 'Engenharia', bio: 'Atleta\nuniversitaria', instagramUrl: 'https://instagram.com/ana',
-  xUrl: null, linkedinUrl: null, stravaUrl: null, youtubeUrl: null, lockVersion: version,
+  athleteId: '11111111-1111-4111-8111-111111111111',
+  athleteName: 'Ana Santos',
+  athleteSlug: 'ana-santos',
+  course: 'Engenharia',
+  bio: 'Atleta\nuniversitaria',
+  instagramUrl: 'https://instagram.com/ana',
+  xUrl: null,
+  linkedinUrl: null,
+  stravaUrl: null,
+  youtubeUrl: null,
+  lockVersion: version,
   updatedAt: '2026-08-31T12:00:00Z',
 });
 
 describe('AthleteProfileStore', () => {
-  let adapter: { fetchMine: ReturnType<typeof vi.fn>; updateMine: ReturnType<typeof vi.fn>; clearMine: ReturnType<typeof vi.fn> };
+  let adapter: {
+    fetchMine: ReturnType<typeof vi.fn>;
+    updateMine: ReturnType<typeof vi.fn>;
+    clearMine: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     adapter = { fetchMine: vi.fn(), updateMine: vi.fn(), clearMine: vi.fn() };
-    TestBed.configureTestingModule({ providers: [AthleteProfileStore, { provide: AthleteProfileApiAdapter, useValue: adapter }] });
+    TestBed.configureTestingModule({
+      providers: [AthleteProfileStore, { provide: AthleteProfileApiAdapter, useValue: adapter }],
+    });
   });
 
   it('carrega perfil owner e cria um rascunho separado para o formulario', async () => {
@@ -25,7 +39,9 @@ describe('AthleteProfileStore', () => {
     const store = TestBed.inject(AthleteProfileStore);
     await store.load();
     expect(store.isReady()).toBe(true);
-    expect(store.draft()).toEqual(expect.objectContaining({ course: 'Engenharia', bio: 'Atleta\nuniversitaria' }));
+    expect(store.draft()).toEqual(
+      expect.objectContaining({ course: 'Engenharia', bio: 'Atleta\nuniversitaria' }),
+    );
     expect(store.lockVersion()).toBe(0);
   });
 
@@ -36,7 +52,9 @@ describe('AthleteProfileStore', () => {
     await store.load();
     store.setDraft({ ...store.draft()!, course: 'Direito' });
     await expect(store.save()).resolves.toBe(true);
-    expect(adapter.updateMine).toHaveBeenCalledWith(expect.objectContaining({ course: 'Direito', lockVersion: 0 }));
+    expect(adapter.updateMine).toHaveBeenCalledWith(
+      expect.objectContaining({ course: 'Direito', lockVersion: 0 }),
+    );
     expect(store.lockVersion()).toBe(1);
   });
 
@@ -57,7 +75,9 @@ describe('AthleteProfileStore', () => {
 
   it('mantem rascunho quando ocorre conflito 409', async () => {
     adapter.fetchMine.mockReturnValue(of(profile()));
-    adapter.updateMine.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409, error: { correlationId: 'c-409' } })));
+    adapter.updateMine.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 409, error: { correlationId: 'c-409' } })),
+    );
     const store = TestBed.inject(AthleteProfileStore);
     await store.load();
     store.setDraft({ ...store.draft()!, course: 'Direito' });

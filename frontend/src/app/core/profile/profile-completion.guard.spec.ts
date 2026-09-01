@@ -35,10 +35,11 @@ describe('profileCompletionGuard (D-39)', () => {
 
   async function evaluate(url: string): Promise<boolean | UrlTree> {
     return await TestBed.runInInjectionContext(
-      () => profileCompletionGuard(
-        {} as ActivatedRouteSnapshot,
-        { url } as RouterStateSnapshot,
-      ) as Promise<boolean | UrlTree>,
+      () =>
+        profileCompletionGuard(
+          {} as ActivatedRouteSnapshot,
+          { url } as RouterStateSnapshot,
+        ) as Promise<boolean | UrlTree>,
     );
   }
 

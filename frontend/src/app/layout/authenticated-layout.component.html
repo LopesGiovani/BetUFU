@@ -25,8 +25,7 @@
               type="button"
               class="btn-logout"
               (click)="onLogout()"
-              aria-label="Encerrar sessão deste dispositivo"
-            >
+              aria-label="Encerrar sessão deste dispositivo">
               Sair
             </button>
           } @else {
@@ -38,8 +37,7 @@
                 aria-controls="account-navigation-menu"
                 [attr.aria-expanded]="menuOpen()"
                 (click)="toggleMenu()"
-                (keydown)="onMenuTriggerKeydown($event)"
-              >
+                (keydown)="onMenuTriggerKeydown($event)">
                 Conta
               </button>
 
@@ -47,8 +45,7 @@
                 <div
                   id="account-navigation-menu"
                   class="account-menu"
-                  (keydown)="onMenuKeydown($event)"
-                >
+                  (keydown)="onMenuKeydown($event)">
                   <a class="account-menu-item" routerLink="/conta/perfil" (click)="closeMenu()">
                     Meu perfil
                   </a>
@@ -58,7 +55,10 @@
 
                   @if (operationItems().length > 0) {
                     <div class="account-menu-divider" aria-hidden="true"></div>
-                    <div class="operation-menu-group" role="group" aria-labelledby="operation-menu-label">
+                    <div
+                      class="operation-menu-group"
+                      role="group"
+                      aria-labelledby="operation-menu-label">
                       <span id="operation-menu-label" class="account-menu-label">Operação</span>
                       @for (item of operationItems(); track item.capability) {
                         <a class="account-menu-item" [routerLink]="item.path" (click)="closeMenu()">
@@ -99,7 +99,9 @@
     <div class="session-status-container logged-out" role="status" aria-live="polite">
       <div class="status-card">
         <h2 class="status-title">Sessão encerrada</h2>
-        <p class="status-description">Você saiu com sucesso da plataforma BETUFU neste dispositivo.</p>
+        <p class="status-description">
+          Você saiu com sucesso da plataforma BETUFU neste dispositivo.
+        </p>
         <button type="button" class="btn-primary" (click)="onLogin()">Entrar novamente</button>
       </div>
     </div>

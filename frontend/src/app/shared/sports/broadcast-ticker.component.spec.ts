@@ -28,7 +28,9 @@ const EVENT: PublicAgendaEventViewModel = {
 
 describe('BroadcastTickerComponent', () => {
   it('repete somente a cópia visual e pausa o loop pelo controle compartilhado', async () => {
-    await TestBed.configureTestingModule({ imports: [BroadcastTickerComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [BroadcastTickerComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(BroadcastTickerComponent);
     fixture.componentRef.setInput('events', [EVENT]);
     fixture.componentRef.setInput('paused', true);

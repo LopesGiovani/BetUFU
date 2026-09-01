@@ -30,9 +30,9 @@ describe('ProfileGatePageComponent (Superfície S1)', () => {
 
   beforeEach(async () => {
     mockProfileService = {
-      getMyProfile: vi.fn().mockReturnValue(
-        throwError(() => new HttpErrorResponse({ status: 404 })),
-      ),
+      getMyProfile: vi
+        .fn()
+        .mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 }))),
       putMyProfile: vi.fn(),
     };
 

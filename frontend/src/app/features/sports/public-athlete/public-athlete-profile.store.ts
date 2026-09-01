@@ -26,7 +26,10 @@ interface PublicAthleteProfileState {
 }
 
 const INITIAL_STATE: PublicAthleteProfileState = Object.freeze({
-  status: 'initial', athleteId: null, profile: null, errorMessage: null,
+  status: 'initial',
+  athleteId: null,
+  profile: null,
+  errorMessage: null,
 });
 
 @Injectable({ providedIn: 'root' })
@@ -45,16 +48,29 @@ export class PublicAthleteProfileStore {
   readonly isError = computed(() => this.status() === 'error');
   readonly hasPublishedContent = computed(() => {
     const profile = this.profile();
-    return Boolean(profile && [
-      profile.course, profile.bio, profile.instagramUrl, profile.xUrl,
-      profile.linkedinUrl, profile.stravaUrl, profile.youtubeUrl,
-    ].some((value) => typeof value === 'string' && value.trim() !== ''));
+    return Boolean(
+      profile &&
+      [
+        profile.course,
+        profile.bio,
+        profile.instagramUrl,
+        profile.xUrl,
+        profile.linkedinUrl,
+        profile.stravaUrl,
+        profile.youtubeUrl,
+      ].some((value) => typeof value === 'string' && value.trim() !== ''),
+    );
   });
 
   async load(athleteId: string): Promise<void> {
     const normalizedId = athleteId.trim();
     const requestId = ++this.requestSequence;
-    this.state.set({ status: 'loading', athleteId: normalizedId || null, profile: null, errorMessage: null });
+    this.state.set({
+      status: 'loading',
+      athleteId: normalizedId || null,
+      profile: null,
+      errorMessage: null,
+    });
     try {
       const profile = await firstValueFrom(this.adapter.fetchPublic(normalizedId));
       if (requestId !== this.requestSequence) return;
@@ -71,24 +87,39 @@ export class PublicAthleteProfileStore {
         youtubeUrl: profile.youtubeUrl ?? null,
       });
       const hasContent = [
-        publicProfile.course, publicProfile.bio, publicProfile.instagramUrl, publicProfile.xUrl,
-        publicProfile.linkedinUrl, publicProfile.stravaUrl, publicProfile.youtubeUrl,
+        publicProfile.course,
+        publicProfile.bio,
+        publicProfile.instagramUrl,
+        publicProfile.xUrl,
+        publicProfile.linkedinUrl,
+        publicProfile.stravaUrl,
+        publicProfile.youtubeUrl,
       ].some((value) => typeof value === 'string' && value.trim() !== '');
       this.state.set({
-        status: hasContent ? 'ready' : 'empty', athleteId: normalizedId,
-        profile: publicProfile, errorMessage: null,
+        status: hasContent ? 'ready' : 'empty',
+        athleteId: normalizedId,
+        profile: publicProfile,
+        errorMessage: null,
       });
     } catch (error: unknown) {
       if (requestId !== this.requestSequence) return;
       if (error instanceof HttpErrorResponse && error.status === 404) {
-        this.state.set({ status: 'not-found', athleteId: normalizedId, profile: null, errorMessage: null });
+        this.state.set({
+          status: 'not-found',
+          athleteId: normalizedId,
+          profile: null,
+          errorMessage: null,
+        });
         return;
       }
       this.state.set({
-        status: 'error', athleteId: normalizedId, profile: null,
-        errorMessage: error instanceof Error && error.message.startsWith('CONTRATO_')
-          ? 'O perfil publico recebido nao corresponde ao contrato esperado.'
-          : 'Nao foi possivel carregar os dados textuais deste atleta.',
+        status: 'error',
+        athleteId: normalizedId,
+        profile: null,
+        errorMessage:
+          error instanceof Error && error.message.startsWith('CONTRATO_')
+            ? 'O perfil publico recebido nao corresponde ao contrato esperado.'
+            : 'Nao foi possivel carregar os dados textuais deste atleta.',
       });
     }
   }

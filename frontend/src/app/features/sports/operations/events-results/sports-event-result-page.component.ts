@@ -68,34 +68,72 @@ export class SportsEventResultPageComponent implements OnInit {
   readonly activeDiff = signal<ResultDiffModel | null>(null);
 
   readonly eventForm = new FormGroup({
-    title: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(200)] }),
-    format: new FormControl<SportsEventFormat>('HEAD_TO_HEAD', { nonNullable: true, validators: [Validators.required] }),
+    title: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(200)],
+    }),
+    format: new FormControl<SportsEventFormat>('HEAD_TO_HEAD', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     sportId: new FormControl('', { nonNullable: true }),
     categoryId: new FormControl('', { nonNullable: true }),
     phaseId: new FormControl('', { nonNullable: true }),
     scheduledAt: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    zoneId: new FormControl('America/Sao_Paulo', { nonNullable: true, validators: [Validators.required, Validators.maxLength(64)] }),
-    venueState: new FormControl<SportsVenueState>('LOCAL_DEFINIDO', { nonNullable: true, validators: [Validators.required] }),
+    zoneId: new FormControl('America/Sao_Paulo', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(64)],
+    }),
+    venueState: new FormControl<SportsVenueState>('LOCAL_DEFINIDO', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
     venueId: new FormControl('', { nonNullable: true }),
     venueSpaceId: new FormControl('', { nonNullable: true }),
-    sourceReference: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2048)] }),
-    slot1Label: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(160)] }),
+    sourceReference: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(2048)],
+    }),
+    slot1Label: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(160)],
+    }),
     slot1TeamId: new FormControl('', { nonNullable: true }),
-    slot2Label: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(160)] }),
+    slot2Label: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(160)],
+    }),
     slot2TeamId: new FormControl('', { nonNullable: true }),
   });
 
   readonly resultForm = new FormGroup({
-    sourceReference: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2048)] }),
-    slot1Score: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
-    slot2Score: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
+    sourceReference: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(2048)],
+    }),
+    slot1Score: new FormControl<number | null>(null, {
+      validators: [Validators.required, Validators.min(0)],
+    }),
+    slot2Score: new FormControl<number | null>(null, {
+      validators: [Validators.required, Validators.min(0)],
+    }),
   });
 
   readonly correctionForm = new FormGroup({
-    reason: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(1024)] }),
-    sourceReference: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(2048)] }),
-    slot1Score: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
-    slot2Score: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0)] }),
+    reason: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(1024)],
+    }),
+    sourceReference: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(2048)],
+    }),
+    slot1Score: new FormControl<number | null>(null, {
+      validators: [Validators.required, Validators.min(0)],
+    }),
+    slot2Score: new FormControl<number | null>(null, {
+      validators: [Validators.required, Validators.min(0)],
+    }),
   });
 
   readonly suspendForm = new FormGroup({
@@ -104,12 +142,18 @@ export class SportsEventResultPageComponent implements OnInit {
 
   readonly postponeForm = new FormGroup({
     scheduledAt: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    zoneId: new FormControl('America/Sao_Paulo', { nonNullable: true, validators: [Validators.required, Validators.maxLength(64)] }),
+    zoneId: new FormControl('America/Sao_Paulo', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(64)],
+    }),
     reason: new FormControl('', { nonNullable: true, validators: [Validators.maxLength(1024)] }),
   });
 
   readonly cancelForm = new FormGroup({
-    reason: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(1024)] }),
+    reason: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(1024)],
+    }),
   });
 
   async ngOnInit(): Promise<void> {
@@ -130,7 +174,10 @@ export class SportsEventResultPageComponent implements OnInit {
 
   async changeScope(competitionId: string): Promise<void> {
     if (!competitionId || competitionId === this.scope.selectedCompetitionId()) return;
-    if (this.hasDirtyForm() && !this.confirm('Trocar de competição e descartar alterações não salvas?')) {
+    if (
+      this.hasDirtyForm() &&
+      !this.confirm('Trocar de competição e descartar alterações não salvas?')
+    ) {
       return;
     }
     if (!this.scope.selectCompetition(competitionId)) return;
@@ -149,7 +196,9 @@ export class SportsEventResultPageComponent implements OnInit {
     try {
       const [tree, teams] = await Promise.all([
         firstValueFrom(this.catalogAdapter.fetchTree(competitionId)),
-        firstValueFrom(this.organizationsAdapter.fetchTeams(competitionId)).catch(() => Object.freeze([]) as readonly SportsTeamSummary[]),
+        firstValueFrom(this.organizationsAdapter.fetchTeams(competitionId)).catch(
+          () => Object.freeze([]) as readonly SportsTeamSummary[],
+        ),
       ]);
 
       this.tree.set(tree);
@@ -157,7 +206,8 @@ export class SportsEventResultPageComponent implements OnInit {
       this.teams.set(teams);
 
       const requestedEdition = this.route?.snapshot.queryParamMap.get('editionId');
-      const activeEdition = tree.editions.find((e) => e.editionId === requestedEdition) ?? tree.editions[0];
+      const activeEdition =
+        tree.editions.find((e) => e.editionId === requestedEdition) ?? tree.editions[0];
 
       if (activeEdition) {
         this.selectedEditionId.set(activeEdition.editionId);
@@ -168,7 +218,9 @@ export class SportsEventResultPageComponent implements OnInit {
         await this.store.loadEdition(null);
       }
     } catch {
-      this.catalogError.set('As estruturas esportivas desta edição não estão disponíveis agora. Tente novamente antes de transcrever ou publicar.');
+      this.catalogError.set(
+        'As estruturas esportivas desta edição não estão disponíveis agora. Tente novamente antes de transcrever ou publicar.',
+      );
     } finally {
       this.catalogLoading.set(false);
     }
@@ -324,8 +376,8 @@ export class SportsEventResultPageComponent implements OnInit {
       sportId: val.sportId || undefined,
       categoryId: val.categoryId || undefined,
       phaseId: val.phaseId || undefined,
-      venueId: val.venueState === 'LOCAL_DEFINIDO' ? (val.venueId || undefined) : undefined,
-      venueSpaceId: val.venueState === 'LOCAL_DEFINIDO' ? (val.venueSpaceId || undefined) : undefined,
+      venueId: val.venueState === 'LOCAL_DEFINIDO' ? val.venueId || undefined : undefined,
+      venueSpaceId: val.venueState === 'LOCAL_DEFINIDO' ? val.venueSpaceId || undefined : undefined,
     };
     const success = await this.store.createEvent(this.selectedEditionId(), payload);
     if (success) this.closeModal();
@@ -349,8 +401,8 @@ export class SportsEventResultPageComponent implements OnInit {
       sportId: val.sportId || undefined,
       categoryId: val.categoryId || undefined,
       phaseId: val.phaseId || undefined,
-      venueId: val.venueState === 'LOCAL_DEFINIDO' ? (val.venueId || undefined) : undefined,
-      venueSpaceId: val.venueState === 'LOCAL_DEFINIDO' ? (val.venueSpaceId || undefined) : undefined,
+      venueId: val.venueState === 'LOCAL_DEFINIDO' ? val.venueId || undefined : undefined,
+      venueSpaceId: val.venueState === 'LOCAL_DEFINIDO' ? val.venueSpaceId || undefined : undefined,
     };
     const success = await this.store.updateEventDraft(payload);
     if (success) this.closeModal();
@@ -446,15 +498,31 @@ export class SportsEventResultPageComponent implements OnInit {
       sourceRef = val.sourceReference;
       reasonText = val.reason;
       proposedScores = [
-        { slotNo: 1, displayLabel: this.getSlotLabel(event, 1), score: Number(val.slot1Score ?? 0) },
-        { slotNo: 2, displayLabel: this.getSlotLabel(event, 2), score: Number(val.slot2Score ?? 0) },
+        {
+          slotNo: 1,
+          displayLabel: this.getSlotLabel(event, 1),
+          score: Number(val.slot1Score ?? 0),
+        },
+        {
+          slotNo: 2,
+          displayLabel: this.getSlotLabel(event, 2),
+          score: Number(val.slot2Score ?? 0),
+        },
       ];
     } else {
       const val = this.resultForm.getRawValue();
       sourceRef = val.sourceReference;
       proposedScores = [
-        { slotNo: 1, displayLabel: this.getSlotLabel(event, 1), score: Number(val.slot1Score ?? 0) },
-        { slotNo: 2, displayLabel: this.getSlotLabel(event, 2), score: Number(val.slot2Score ?? 0) },
+        {
+          slotNo: 1,
+          displayLabel: this.getSlotLabel(event, 1),
+          score: Number(val.slot1Score ?? 0),
+        },
+        {
+          slotNo: 2,
+          displayLabel: this.getSlotLabel(event, 2),
+          score: Number(val.slot2Score ?? 0),
+        },
       ];
     }
 
@@ -539,7 +607,12 @@ export class SportsEventResultPageComponent implements OnInit {
       slot2TeamId: '',
     });
     this.resultForm.reset({ sourceReference: '', slot1Score: null, slot2Score: null });
-    this.correctionForm.reset({ reason: '', sourceReference: '', slot1Score: null, slot2Score: null });
+    this.correctionForm.reset({
+      reason: '',
+      sourceReference: '',
+      slot1Score: null,
+      slot2Score: null,
+    });
     this.suspendForm.reset({ reason: '' });
     this.postponeForm.reset({ scheduledAt: '', zoneId: 'America/Sao_Paulo', reason: '' });
     this.cancelForm.reset({ reason: '' });
@@ -557,7 +630,9 @@ export class SportsEventResultPageComponent implements OnInit {
   }
 
   private confirm(message: string): boolean {
-    return typeof window === 'undefined' || typeof window.confirm !== 'function' ? false : window.confirm(message);
+    return typeof window === 'undefined' || typeof window.confirm !== 'function'
+      ? false
+      : window.confirm(message);
   }
 
   private async syncQueryParams(params: Record<string, string | null>): Promise<void> {

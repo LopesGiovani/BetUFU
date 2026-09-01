@@ -15,7 +15,16 @@ export interface AthleteProfileDraft {
   youtubeUrl: string;
 }
 
-type AthleteProfileStatus = 'initial' | 'loading' | 'ready' | 'saving' | 'removing' | 'not-linked' | 'denied' | 'conflict' | 'error';
+type AthleteProfileStatus =
+  | 'initial'
+  | 'loading'
+  | 'ready'
+  | 'saving'
+  | 'removing'
+  | 'not-linked'
+  | 'denied'
+  | 'conflict'
+  | 'error';
 
 interface AthleteProfileState {
   status: AthleteProfileStatus;
@@ -27,8 +36,12 @@ interface AthleteProfileState {
 }
 
 const INITIAL_STATE: AthleteProfileState = Object.freeze({
-  status: 'initial', profile: null, draft: null, errorMessage: null,
-  errorCorrelationId: null, feedbackMessage: null,
+  status: 'initial',
+  profile: null,
+  draft: null,
+  errorMessage: null,
+  errorCorrelationId: null,
+  feedbackMessage: null,
 });
 
 @Injectable({ providedIn: 'root' })
@@ -82,9 +95,19 @@ export class AthleteProfileStore {
 
   async save(): Promise<boolean> {
     const current = this.state();
-    if (!current.profile || !current.draft || current.status === 'saving' || current.status === 'removing') return false;
+    if (
+      !current.profile ||
+      !current.draft ||
+      current.status === 'saving' ||
+      current.status === 'removing'
+    )
+      return false;
     this.state.update((state) => ({
-      ...state, status: 'saving', errorMessage: null, errorCorrelationId: null, feedbackMessage: null,
+      ...state,
+      status: 'saving',
+      errorMessage: null,
+      errorCorrelationId: null,
+      feedbackMessage: null,
     }));
     const request: AthletePublicProfileUpdateRequest = {
       ...this.nullableDraft(current.draft),
@@ -102,9 +125,14 @@ export class AthleteProfileStore {
 
   async remove(): Promise<boolean> {
     const current = this.state();
-    if (!current.profile || current.status === 'saving' || current.status === 'removing') return false;
+    if (!current.profile || current.status === 'saving' || current.status === 'removing')
+      return false;
     this.state.update((state) => ({
-      ...state, status: 'removing', errorMessage: null, errorCorrelationId: null, feedbackMessage: null,
+      ...state,
+      status: 'removing',
+      errorMessage: null,
+      errorCorrelationId: null,
+      feedbackMessage: null,
     }));
     try {
       const profile = await firstValueFrom(this.adapter.clearMine());
@@ -138,13 +166,14 @@ export class AthleteProfileStore {
       return;
     }
     const correlationId = this.correlationId(error);
-    const message = error instanceof HttpErrorResponse && error.status === 409
-      ? 'Este perfil foi atualizado em outra tela. Recarregue antes de salvar novamente.'
-      : error instanceof Error && error.message.startsWith('CONTRATO_')
-        ? 'Os dados recebidos nao correspondem ao contrato de perfil esportivo.'
-        : correlationId
-          ? `${fallback} Codigo de referencia: ${correlationId}.`
-          : fallback;
+    const message =
+      error instanceof HttpErrorResponse && error.status === 409
+        ? 'Este perfil foi atualizado em outra tela. Recarregue antes de salvar novamente.'
+        : error instanceof Error && error.message.startsWith('CONTRATO_')
+          ? 'Os dados recebidos nao correspondem ao contrato de perfil esportivo.'
+          : correlationId
+            ? `${fallback} Codigo de referencia: ${correlationId}.`
+            : fallback;
     this.state.set({
       ...(previous ?? INITIAL_STATE),
       status: error instanceof HttpErrorResponse && error.status === 409 ? 'conflict' : 'error',
@@ -166,7 +195,9 @@ export class AthleteProfileStore {
     };
   }
 
-  private nullableDraft(draft: AthleteProfileDraft): Omit<AthletePublicProfileUpdateRequest, 'lockVersion'> {
+  private nullableDraft(
+    draft: AthleteProfileDraft,
+  ): Omit<AthletePublicProfileUpdateRequest, 'lockVersion'> {
     const optional = (value: string): string | null => value.trim() || null;
     return {
       course: optional(draft.course),

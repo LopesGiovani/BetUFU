@@ -82,7 +82,9 @@ export class OperationsApiAdapter {
   /**
    * Adapta o payload da API para o ViewModel, tratando a presença ou ausência dos blocos opcionais.
    */
-  adapt(response: OperationalPanelResponse | null | undefined): OperationsPanelSnapshotViewModel | null {
+  adapt(
+    response: OperationalPanelResponse | null | undefined,
+  ): OperationsPanelSnapshotViewModel | null {
     if (!response) {
       return null;
     }
@@ -96,18 +98,25 @@ export class OperationsApiAdapter {
     };
 
     const unavailableBlocks: UnavailableBlockKey[] = Array.isArray(response.unavailableBlocks)
-      ? (response.unavailableBlocks.filter((block): block is UnavailableBlockKey =>
-          block === 'ROLE_CHANGES' ||
-          block === 'REJECTED_ENROLLMENTS_COUNT' ||
-          block === 'ADMINISTRATIVE_CORRECTIONS' ||
-          block === 'UNREGISTERED_ENROLLMENTS_COUNT',
-        ))
+      ? response.unavailableBlocks.filter(
+          (block): block is UnavailableBlockKey =>
+            block === 'ROLE_CHANGES' ||
+            block === 'REJECTED_ENROLLMENTS_COUNT' ||
+            block === 'ADMINISTRATIVE_CORRECTIONS' ||
+            block === 'UNREGISTERED_ENROLLMENTS_COUNT',
+        )
       : [];
 
-    const isRejectedEnrollmentsUnavailable = unavailableBlocks.includes('REJECTED_ENROLLMENTS_COUNT');
-    const isAdministrativeCorrectionsUnavailable = unavailableBlocks.includes('ADMINISTRATIVE_CORRECTIONS');
+    const isRejectedEnrollmentsUnavailable = unavailableBlocks.includes(
+      'REJECTED_ENROLLMENTS_COUNT',
+    );
+    const isAdministrativeCorrectionsUnavailable = unavailableBlocks.includes(
+      'ADMINISTRATIVE_CORRECTIONS',
+    );
     const isRoleChangesUnavailable = unavailableBlocks.includes('ROLE_CHANGES');
-    const isUnregisteredEnrollmentsUnavailable = unavailableBlocks.includes('UNREGISTERED_ENROLLMENTS_COUNT');
+    const isUnregisteredEnrollmentsUnavailable = unavailableBlocks.includes(
+      'UNREGISTERED_ENROLLMENTS_COUNT',
+    );
 
     const rejectedEnrollments = response.rejectedEnrollmentsCount
       ? this.adaptRejectedEnrollments(response.rejectedEnrollmentsCount)
@@ -117,9 +126,7 @@ export class OperationsApiAdapter {
       ? this.adaptAdministrativeCorrections(response.administrativeCorrections)
       : null;
 
-    const roleChanges = response.roleChanges
-      ? this.adaptRoleChanges(response.roleChanges)
-      : null;
+    const roleChanges = response.roleChanges ? this.adaptRoleChanges(response.roleChanges) : null;
 
     const unregisteredEnrollments = response.unregisteredEnrollmentsCount
       ? this.adaptUnregisteredEnrollments(response.unregisteredEnrollmentsCount)
@@ -136,7 +143,7 @@ export class OperationsApiAdapter {
       (rejectedEnrollments?.hasPending ?? false) ||
       (roleChanges?.hasPending ?? false) ||
       (unregisteredEnrollments?.hasPending ?? false) ||
-      ((administrativeCorrections?.totalCount ?? 0) > 0);
+      (administrativeCorrections?.totalCount ?? 0) > 0;
 
     return Object.freeze({
       queriedAt,
@@ -160,18 +167,14 @@ export class OperationsApiAdapter {
   private adaptRejectedEnrollments(raw: RejectedEnrollmentsBlock): RejectedEnrollmentsViewModel {
     const duplicateCount = typeof raw.duplicateCount === 'number' ? raw.duplicateCount : 0;
     const attemptLimitCount = typeof raw.attemptLimitCount === 'number' ? raw.attemptLimitCount : 0;
-    const totalCount = typeof raw.totalCount === 'number' ? raw.totalCount : duplicateCount + attemptLimitCount;
+    const totalCount =
+      typeof raw.totalCount === 'number' ? raw.totalCount : duplicateCount + attemptLimitCount;
     const hasPending = totalCount > 0;
 
-    const label =
-      totalCount === 1
-        ? '1 recusa registrada'
-        : `${totalCount} recusas registradas`;
+    const label = totalCount === 1 ? '1 recusa registrada' : `${totalCount} recusas registradas`;
 
     const duplicateLabel =
-      duplicateCount === 1
-        ? '1 por duplicidade'
-        : `${duplicateCount} por duplicidade`;
+      duplicateCount === 1 ? '1 por duplicidade' : `${duplicateCount} por duplicidade`;
 
     const attemptLimitLabel =
       attemptLimitCount === 1
@@ -189,7 +192,9 @@ export class OperationsApiAdapter {
     });
   }
 
-  private adaptAdministrativeCorrections(raw: AdministrativeCorrectionsBlock): AdministrativeCorrectionsViewModel {
+  private adaptAdministrativeCorrections(
+    raw: AdministrativeCorrectionsBlock,
+  ): AdministrativeCorrectionsViewModel {
     const rawEvents = Array.isArray(raw.recentEvents) ? raw.recentEvents : [];
     const adaptedEvents: AdministrativeCorrectionEventViewModel[] = rawEvents.map((event) =>
       this.adaptAdministrativeCorrectionEvent(event),
@@ -281,13 +286,12 @@ export class OperationsApiAdapter {
     };
   }
 
-  private adaptUnregisteredEnrollments(raw: UnregisteredEnrollmentsBlock): UnregisteredEnrollmentsViewModel {
+  private adaptUnregisteredEnrollments(
+    raw: UnregisteredEnrollmentsBlock,
+  ): UnregisteredEnrollmentsViewModel {
     const count = typeof raw.count === 'number' ? raw.count : 0;
     const hasPending = count > 0;
-    const label =
-      count === 1
-        ? '1 conta sem matrícula'
-        : `${count} contas sem matrícula`;
+    const label = count === 1 ? '1 conta sem matrícula' : `${count} contas sem matrícula`;
 
     return Object.freeze({
       count,
@@ -316,7 +320,10 @@ export class OperationsApiAdapter {
       case 'ULTIMO_ADMIN_BLOQUEADO':
         return 'Último administrador bloqueado';
       default:
-        return action.replace(/_/gu, ' ').toLowerCase().replace(/^\w/u, (c) => c.toUpperCase());
+        return action
+          .replace(/_/gu, ' ')
+          .toLowerCase()
+          .replace(/^\w/u, (c) => c.toUpperCase());
     }
   }
 
@@ -385,9 +392,7 @@ export class OperationsApiAdapter {
           role,
         },
       }),
-    ).pipe(
-      map((response) => this.adaptRoleGrantResponse(response, actorIdentityId)!),
-    );
+    ).pipe(map((response) => this.adaptRoleGrantResponse(response, actorIdentityId)!));
   }
 
   /**
@@ -406,9 +411,7 @@ export class OperationsApiAdapter {
           role,
         },
       }),
-    ).pipe(
-      map((response) => this.adaptRoleGrantResponse(response, actorIdentityId)!),
-    );
+    ).pipe(map((response) => this.adaptRoleGrantResponse(response, actorIdentityId)!));
   }
 
   /**
@@ -454,7 +457,9 @@ export class OperationsApiAdapter {
     });
 
     // 2. ADMINISTRADOR_COMPETICAO
-    const compAdminStatusDto = rawRoles.find((r) => r.role === OperationalRole.AdministradorCompeticao);
+    const compAdminStatusDto = rawRoles.find(
+      (r) => r.role === OperationalRole.AdministradorCompeticao,
+    );
     const isCompAdminVigente = compAdminStatusDto?.status === 'VIGENTE';
     const compAdminItem: RoleItemViewModel = Object.freeze({
       role: OperationalRole.AdministradorCompeticao,
@@ -463,7 +468,8 @@ export class OperationsApiAdapter {
       statusLabel: 'Indisponível nesta fase',
       isActionable: false,
       isVigente: isCompAdminVigente,
-      unavailableReason: 'Disponível na Fase 3, quando o catálogo de competições fornecer escopos válidos.',
+      unavailableReason:
+        'Disponível na Fase 3, quando o catálogo de competições fornecer escopos válidos.',
       selfGrantBlocked: false,
       selfGrantBlockedReason: null,
     });

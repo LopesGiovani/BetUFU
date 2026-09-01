@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.Objects;
 import java.util.Optional;
-
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -31,47 +30,42 @@ import org.springframework.web.util.UriComponentsBuilder;
  *
  * <p>{@code post_logout_redirect_uri} is derived from the current request, so it is same-origin by
  * construction rather than by an allowlist this plan does not own. The provider's registered
- * post-logout redirect list stays the authoritative check. Plan 01-08 is where the explicit
- * {@code betufu.web.*} origin contract replaces this derivation.
+ * post-logout redirect list stays the authoritative check. Plan 01-08 is where the explicit {@code
+ * betufu.web.*} origin contract replaces this derivation.
  */
 public final class OidcLogoutSuccessHandler {
 
-    private static final String END_SESSION_ENDPOINT = "end_session_endpoint";
-    private static final String CLIENT_ID_PARAMETER = "client_id";
-    private static final String POST_LOGOUT_REDIRECT_URI_PARAMETER = "post_logout_redirect_uri";
+  private static final String END_SESSION_ENDPOINT = "end_session_endpoint";
+  private static final String CLIENT_ID_PARAMETER = "client_id";
+  private static final String POST_LOGOUT_REDIRECT_URI_PARAMETER = "post_logout_redirect_uri";
 
-    /**
-     * @return the provider logout URI, or {@link Optional#empty()} when the registration is absent
-     *     or its discovery metadata carries no usable {@code end_session_endpoint}
-     */
-    public Optional<URI> endSessionUri(
-            ClientRegistration registration, HttpServletRequest request) {
-        Objects.requireNonNull(request, "request must not be null");
+  /**
+   * @return the provider logout URI, or {@link Optional#empty()} when the registration is absent or
+   *     its discovery metadata carries no usable {@code end_session_endpoint}
+   */
+  public Optional<URI> endSessionUri(ClientRegistration registration, HttpServletRequest request) {
+    Objects.requireNonNull(request, "request must not be null");
 
-        if (registration == null) {
-            return Optional.empty();
-        }
-
-        Object metadataValue = registration.getProviderDetails()
-                .getConfigurationMetadata()
-                .get(END_SESSION_ENDPOINT);
-        if (!(metadataValue instanceof String endSessionEndpoint)
-                || endSessionEndpoint.isBlank()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(UriComponentsBuilder.fromUriString(endSessionEndpoint)
-                .queryParam(CLIENT_ID_PARAMETER, registration.getClientId())
-                .queryParam(POST_LOGOUT_REDIRECT_URI_PARAMETER, postLogoutRedirectUri(request))
-                .encode()
-                .build()
-                .toUri());
+    if (registration == null) {
+      return Optional.empty();
     }
 
-    private static String postLogoutRedirectUri(HttpServletRequest request) {
-        return ServletUriComponentsBuilder.fromContextPath(request)
-                .path("/")
-                .build()
-                .toUriString();
+    Object metadataValue =
+        registration.getProviderDetails().getConfigurationMetadata().get(END_SESSION_ENDPOINT);
+    if (!(metadataValue instanceof String endSessionEndpoint) || endSessionEndpoint.isBlank()) {
+      return Optional.empty();
     }
+
+    return Optional.of(
+        UriComponentsBuilder.fromUriString(endSessionEndpoint)
+            .queryParam(CLIENT_ID_PARAMETER, registration.getClientId())
+            .queryParam(POST_LOGOUT_REDIRECT_URI_PARAMETER, postLogoutRedirectUri(request))
+            .encode()
+            .build()
+            .toUri());
+  }
+
+  private static String postLogoutRedirectUri(HttpServletRequest request) {
+    return ServletUriComponentsBuilder.fromContextPath(request).path("/").build().toUriString();
+  }
 }

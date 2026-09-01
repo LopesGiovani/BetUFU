@@ -57,9 +57,7 @@ export class EnrollmentAdminApiAdapter {
           reason,
         },
       }),
-    ).pipe(
-      map((response) => this.adaptCorrectionResponse(response, targetIdentityId)),
-    );
+    ).pipe(map((response) => this.adaptCorrectionResponse(response, targetIdentityId)));
   }
 
   private adaptTargetResolution(
@@ -97,7 +95,9 @@ export class EnrollmentAdminApiAdapter {
     }
 
     if (response.targetIdentityId !== requestedTargetIdentityId) {
-      throw new Error('CONTRATO_CORRECAO_INVALIDO: targetIdentityId retornado diverge do solicitado');
+      throw new Error(
+        'CONTRATO_CORRECAO_INVALIDO: targetIdentityId retornado diverge do solicitado',
+      );
     }
 
     if (typeof response.status !== 'string' || response.status.trim() === '') {

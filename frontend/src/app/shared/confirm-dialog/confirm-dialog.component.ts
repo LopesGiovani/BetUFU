@@ -31,8 +31,7 @@ import { CommonModule } from '@angular/common';
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        aria-describedby="confirm-dialog-body"
-      >
+        aria-describedby="confirm-dialog-body">
         <div class="dialog-card">
           <header class="dialog-header">
             <h2 id="confirm-dialog-title" class="dialog-title">{{ title }}</h2>
@@ -48,8 +47,7 @@ import { CommonModule } from '@angular/common';
               type="button"
               class="btn-dialog btn-cancel"
               (click)="onCancel()"
-              [disabled]="isLoading"
-            >
+              [disabled]="isLoading">
               {{ cancelLabel }}
             </button>
 
@@ -59,8 +57,7 @@ import { CommonModule } from '@angular/common';
               class="btn-dialog btn-confirm"
               [ngClass]="{ 'btn-destructive': isDestructive, 'btn-accent': !isDestructive }"
               (click)="onConfirm()"
-              [disabled]="isLoading"
-            >
+              [disabled]="isLoading">
               @if (isLoading) {
                 <span class="btn-spinner" aria-hidden="true"></span>
               }

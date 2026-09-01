@@ -43,7 +43,9 @@ export class RoleAdminPageComponent implements OnInit {
   readonly confirmDialogActionLabel = signal<string>('Confirmar');
   readonly confirmDialogIsDestructive = signal<boolean>(false);
   readonly confirmActionType = signal<'grant' | 'revoke' | null>(null);
-  readonly confirmActionTargetRole = signal<'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR' | null>(null);
+  readonly confirmActionTargetRole = signal<
+    'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR' | null
+  >(null);
   dialogTriggerElement: HTMLElement | null = null;
 
   // Estados de cópia de código de referência
@@ -142,7 +144,7 @@ export class RoleAdminPageComponent implements OnInit {
     } else if (action === 'revoke') {
       const isSelf = Boolean(
         this.store.actorIdentityId() &&
-          this.store.actorIdentityId() === this.store.targetIdentityId(),
+        this.store.actorIdentityId() === this.store.targetIdentityId(),
       );
       const success = await this.store.revokeRole(role);
       if (success && isSelf) {
@@ -168,7 +170,11 @@ export class RoleAdminPageComponent implements OnInit {
     }
 
     try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+      ) {
         await navigator.clipboard.writeText(correlationId);
         this.copyStatus.set('copied');
         this.copyFeedbackMessage.set('Código de referência copiado com sucesso.');

@@ -30,14 +30,23 @@ import { SportsStandingsStore } from './sports-standings.store';
         <section class="state state--error">
           <h1>Não foi possível carregar chaveamento e classificação</h1>
           <p>{{ store.errorMessage() }}</p>
-          <button class="action" type="button" (click)="store.retry()">Tentar carregar chaveamento e classificação</button>
+          <button class="action" type="button" (click)="store.retry()">
+            Tentar carregar chaveamento e classificação
+          </button>
         </section>
       } @else if (standings(); as current) {
         <header class="detail-head">
           <p class="eyebrow">O7 · Operação esportiva</p>
           <h1>{{ current.name }}</h1>
-          <p>{{ current.competitionName || 'Escopo autorizado' }}{{ current.editionName ? ' · ' + current.editionName : '' }}{{ current.phaseName ? ' · ' + current.phaseName : '' }}</p>
-          <p class="disclaimer">A classificação é transcrita do boletim oficial. O sistema não calcula pontuação ou desempate.</p>
+          <p>
+            {{ current.competitionName || 'Escopo autorizado'
+            }}{{ current.editionName ? ' · ' + current.editionName : ''
+            }}{{ current.phaseName ? ' · ' + current.phaseName : '' }}
+          </p>
+          <p class="disclaimer">
+            A classificação é transcrita do boletim oficial. O sistema não calcula pontuação ou
+            desempate.
+          </p>
         </header>
 
         @if (store.conflictMessage(); as conflict) {
@@ -48,23 +57,51 @@ import { SportsStandingsStore } from './sports-standings.store';
         }
 
         @if (current.status === 'RASCUNHO') {
-          <form class="source-form" [formGroup]="publishForm" (ngSubmit)="publish()" aria-labelledby="publish-title">
+          <form
+            class="source-form"
+            [formGroup]="publishForm"
+            (ngSubmit)="publish()"
+            aria-labelledby="publish-title">
             <h2 id="publish-title">Publicar classificação</h2>
             <label for="source-reference">Fonte oficial</label>
-            <input id="source-reference" type="url" formControlName="sourceReference" placeholder="https://..." autocomplete="url">
+            <input
+              id="source-reference"
+              type="url"
+              formControlName="sourceReference"
+              placeholder="https://..."
+              autocomplete="url" />
             <small>Informe uma fonte oficial válida antes de publicar.</small>
-            <button class="action" type="submit" [disabled]="publishForm.invalid || store.isMutating()">
+            <button
+              class="action"
+              type="submit"
+              [disabled]="publishForm.invalid || store.isMutating()">
               {{ store.isMutating() ? 'Publicando…' : 'Publicar classificação' }}
             </button>
           </form>
         } @else {
-          <form class="source-form" [formGroup]="correctionForm" (ngSubmit)="correct()" aria-labelledby="correction-title">
+          <form
+            class="source-form"
+            [formGroup]="correctionForm"
+            (ngSubmit)="correct()"
+            aria-labelledby="correction-title">
             <h2 id="correction-title">Corrigir versão publicada</h2>
             <label for="correction-reason">Motivo da correção</label>
-            <textarea id="correction-reason" formControlName="reason" rows="3" placeholder="Descreva o motivo da retificação..."></textarea>
+            <textarea
+              id="correction-reason"
+              formControlName="reason"
+              rows="3"
+              placeholder="Descreva o motivo da retificação..."></textarea>
             <label for="correction-source">Fonte substituta</label>
-            <input id="correction-source" type="url" formControlName="sourceReference" placeholder="https://..." autocomplete="url">
-            <button class="action" type="submit" [disabled]="correctionForm.invalid || store.isMutating()">
+            <input
+              id="correction-source"
+              type="url"
+              formControlName="sourceReference"
+              placeholder="https://..."
+              autocomplete="url" />
+            <button
+              class="action"
+              type="submit"
+              [disabled]="correctionForm.invalid || store.isMutating()">
               {{ store.isMutating() ? 'Publicando nova versão…' : 'Publicar nova versão' }}
             </button>
           </form>
@@ -80,7 +117,10 @@ import { SportsStandingsStore } from './sports-standings.store';
     </main>
   `,
   styles: `
-    :host { display: block; min-width: 0; }
+    :host {
+      display: block;
+      min-width: 0;
+    }
     .operations-standings {
       width: var(--bt-container);
       margin-inline: auto;
@@ -102,16 +142,20 @@ import { SportsStandingsStore } from './sports-standings.store';
       margin: 0;
       color: var(--bt-signal-soft);
       font-size: var(--bt-type-label);
-      letter-spacing: .08em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
     .detail-head h1 {
-      margin: .3rem 0;
+      margin: 0.3rem 0;
       color: var(--bt-display);
-      font: 600 var(--bt-type-display)/.9 'Barlow Condensed', sans-serif;
+      font:
+        600 var(--bt-type-display)/0.9 'Barlow Condensed',
+        sans-serif;
       text-transform: uppercase;
     }
-    .detail-head p { overflow-wrap: anywhere; }
+    .detail-head p {
+      overflow-wrap: anywhere;
+    }
     .disclaimer {
       margin-top: var(--bt-space-3);
       color: var(--bt-signal-soft);
@@ -123,26 +167,33 @@ import { SportsStandingsStore } from './sports-standings.store';
       border: 1px solid var(--bt-border);
       background: var(--bt-surface-raised);
       display: grid;
-      gap: .55rem;
+      gap: 0.55rem;
     }
     h2 {
       margin: 0;
       color: var(--bt-display);
-      font: 600 var(--bt-type-heading)/.9 'Barlow Condensed', sans-serif;
+      font:
+        600 var(--bt-type-heading)/0.9 'Barlow Condensed',
+        sans-serif;
       text-transform: uppercase;
     }
-    .source-form label { font-weight: 700; }
-    .source-form input, .source-form textarea {
+    .source-form label {
+      font-weight: 700;
+    }
+    .source-form input,
+    .source-form textarea {
       width: 100%;
       min-height: 44px;
-      padding: .6rem;
+      padding: 0.6rem;
       border: 1px solid var(--bt-border);
       border-radius: var(--bt-radius-field);
       background: var(--bt-surface);
       color: var(--bt-text);
       font: inherit;
     }
-    .source-form small { color: var(--bt-text-muted); }
+    .source-form small {
+      color: var(--bt-text-muted);
+    }
     .action {
       width: max-content;
       min-height: 44px;
@@ -155,15 +206,17 @@ import { SportsStandingsStore } from './sports-standings.store';
       cursor: pointer;
     }
     .action:disabled {
-      opacity: .5;
+      opacity: 0.5;
       cursor: not-allowed;
     }
     .feedback {
-      padding: .7rem;
+      padding: 0.7rem;
       border-left: 3px solid var(--bt-signal);
       background: var(--bt-surface-raised);
     }
-    .feedback--error { border-color: var(--bt-danger); }
+    .feedback--error {
+      border-color: var(--bt-danger);
+    }
     .state {
       display: grid;
       min-height: 320px;
@@ -177,17 +230,27 @@ import { SportsStandingsStore } from './sports-standings.store';
     .state h1 {
       margin: 0;
       color: var(--bt-display);
-      font: 600 var(--bt-type-heading)/.9 'Barlow Condensed', sans-serif;
+      font:
+        600 var(--bt-type-heading)/0.9 'Barlow Condensed',
+        sans-serif;
     }
     .state p {
       margin: 0;
       color: var(--bt-text-muted);
     }
-    .state--error { border-color: var(--bt-danger); }
+    .state--error {
+      border-color: var(--bt-danger);
+    }
     @media (max-width: 680px) {
-      .operations-standings { padding-inline: var(--bt-space-4); }
-      .detail-head { padding: var(--bt-space-4); }
-      .action { width: 100%; }
+      .operations-standings {
+        padding-inline: var(--bt-space-4);
+      }
+      .detail-head {
+        padding: var(--bt-space-4);
+      }
+      .action {
+        width: 100%;
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -200,7 +263,11 @@ export class SportsStandingsPageComponent implements OnInit {
   readonly publishForm = new FormGroup({
     sourceReference: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(2048), Validators.pattern(/^https?:\/\//u)],
+      validators: [
+        Validators.required,
+        Validators.maxLength(2048),
+        Validators.pattern(/^https?:\/\//u),
+      ],
     }),
   });
 
@@ -211,7 +278,11 @@ export class SportsStandingsPageComponent implements OnInit {
     }),
     sourceReference: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(2048), Validators.pattern(/^https?:\/\//u)],
+      validators: [
+        Validators.required,
+        Validators.maxLength(2048),
+        Validators.pattern(/^https?:\/\//u),
+      ],
     }),
   });
 

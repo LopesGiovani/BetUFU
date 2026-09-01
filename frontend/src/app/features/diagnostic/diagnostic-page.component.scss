@@ -115,7 +115,9 @@ button {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .status-feedback {
@@ -126,13 +128,21 @@ button {
   text-align: center;
   margin: tokens.$space-6 0;
 
-  h2 { color: tokens.$color-text; margin: 0 0 tokens.$space-2; }
-  p { color: tokens.$color-text-muted; margin: 0 0 tokens.$space-4; }
+  h2 {
+    color: tokens.$color-text;
+    margin: 0 0 tokens.$space-2;
+  }
+  p {
+    color: tokens.$color-text-muted;
+    margin: 0 0 tokens.$space-4;
+  }
 }
 
 .error-state {
   border-color: tokens.$color-unavailable;
-  .error-text { color: tokens.$color-unavailable; }
+  .error-text {
+    color: tokens.$color-unavailable;
+  }
 }
 
 .correlation-box {
@@ -148,7 +158,10 @@ button {
   font-size: 0.85rem;
   color: tokens.$color-text-muted;
 
-  .code-value { font-family: monospace; color: tokens.$color-accent; }
+  .code-value {
+    font-family: monospace;
+    color: tokens.$color-accent;
+  }
 }
 
 .summary-card {
@@ -158,9 +171,15 @@ button {
   padding: tokens.$space-4;
   margin-bottom: tokens.$space-6;
 
-  &.summary-up { border-left: 4px solid tokens.$color-available; }
-  &.summary-degraded { border-left: 4px solid tokens.$color-degraded; }
-  &.summary-down { border-left: 4px solid tokens.$color-unavailable; }
+  &.summary-up {
+    border-left: 4px solid tokens.$color-available;
+  }
+  &.summary-degraded {
+    border-left: 4px solid tokens.$color-degraded;
+  }
+  &.summary-down {
+    border-left: 4px solid tokens.$color-unavailable;
+  }
 }
 
 .summary-badge-group {
@@ -183,9 +202,21 @@ button {
   border-radius: tokens.$radius-sm;
 }
 
-.up, .badge-up { background: rgba(86, 209, 156, 0.15); color: tokens.$color-available; }
-.degraded, .badge-degraded { background: rgba(246, 196, 83, 0.15); color: tokens.$color-degraded; }
-.down, .badge-down { background: rgba(255, 107, 107, 0.15); color: tokens.$color-unavailable; }
+.up,
+.badge-up {
+  background: rgba(86, 209, 156, 0.15);
+  color: tokens.$color-available;
+}
+.degraded,
+.badge-degraded {
+  background: rgba(246, 196, 83, 0.15);
+  color: tokens.$color-degraded;
+}
+.down,
+.badge-down {
+  background: rgba(255, 107, 107, 0.15);
+  color: tokens.$color-unavailable;
+}
 
 .summary-meta {
   display: flex;
@@ -194,7 +225,11 @@ button {
   font-size: 0.85rem;
   color: tokens.$color-text-muted;
 
-  .code-inline { font-family: monospace; color: tokens.$color-text; margin-left: tokens.$space-1; }
+  .code-inline {
+    font-family: monospace;
+    color: tokens.$color-text;
+    margin-left: tokens.$space-1;
+  }
 }
 
 .stale-warning {
@@ -229,13 +264,26 @@ button {
     gap: tokens.$space-2;
     margin-bottom: tokens.$space-2;
 
-    .component-name { font-size: 1.05rem; font-weight: 600; color: tokens.$color-text; margin: 0; }
+    .component-name {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: tokens.$color-text;
+      margin: 0;
+    }
   }
 
   .card-body {
     flex: 1;
-    .component-description { font-size: 0.9rem; color: tokens.$color-text-muted; margin: 0 0 tokens.$space-2; }
-    .component-detail { font-size: 0.85rem; color: tokens.$color-text-muted; margin: 0; }
+    .component-description {
+      font-size: 0.9rem;
+      color: tokens.$color-text-muted;
+      margin: 0 0 tokens.$space-2;
+    }
+    .component-detail {
+      font-size: 0.85rem;
+      color: tokens.$color-text-muted;
+      margin: 0;
+    }
   }
 
   .card-footer {
@@ -248,5 +296,8 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn-spinner, .spinner-large { animation: none; }
+  .btn-spinner,
+  .spinner-large {
+    animation: none;
+  }
 }

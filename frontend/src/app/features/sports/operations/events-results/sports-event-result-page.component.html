@@ -3,13 +3,19 @@
     <div>
       <span class="eyebrow">Console operacional · O6</span>
       <h1 id="page-title">Eventos e resultados</h1>
-      <p>Programação de jogos, transições de estado, registro de placar com fonte oficial e histórico versionado.</p>
+      <p>
+        Programação de jogos, transições de estado, registro de placar com fonte oficial e histórico
+        versionado.
+      </p>
     </div>
     <div class="header-controls">
       @if (scope.hasSelection()) {
         <div class="scope-picker">
           <label for="competition-select">Competição</label>
-          <select id="competition-select" [value]="competitionId" (change)="changeScope($any($event.target).value)">
+          <select
+            id="competition-select"
+            [value]="competitionId"
+            (change)="changeScope($any($event.target).value)">
             @for (competition of scope.competitions(); track competition.competitionId) {
               <option [value]="competition.competitionId">{{ competition.name }}</option>
             }
@@ -34,7 +40,9 @@
     <article class="state-card state-card--error" role="alert">
       <h2>Não foi possível carregar as competições</h2>
       <p>{{ scope.errorMessage() }}</p>
-      <button type="button" class="button button--primary" (click)="retry()">Tentar carregar competições</button>
+      <button type="button" class="button button--primary" (click)="retry()">
+        Tentar carregar competições
+      </button>
     </article>
   } @else if (store.isDenied()) {
     <article class="state-card state-card--error" role="alert">
@@ -45,7 +53,9 @@
     <article class="state-card state-card--error" role="alert">
       <h2>Não foi possível carregar eventos e resultados</h2>
       <p>{{ store.errorMessage() || catalogError() }}</p>
-      <button type="button" class="button button--primary" (click)="loadWorkspace()">Tentar carregar eventos e resultados</button>
+      <button type="button" class="button button--primary" (click)="loadWorkspace()">
+        Tentar carregar eventos e resultados
+      </button>
     </article>
   } @else if (catalogLoading() || (store.isLoading() && !store.hasEvents())) {
     <article class="state-card" role="status" aria-live="polite">
@@ -56,7 +66,10 @@
     @if (editions().length > 1) {
       <div class="edition-bar">
         <label for="edition-select">Edição ativa:</label>
-        <select id="edition-select" [value]="selectedEditionId()" (change)="changeEdition($any($event.target).value)">
+        <select
+          id="edition-select"
+          [value]="selectedEditionId()"
+          (change)="changeEdition($any($event.target).value)">
           @for (ed of editions(); track ed.editionId) {
             <option [value]="ed.editionId">{{ ed.name }}</option>
           }
@@ -70,7 +83,12 @@
           <strong>Conflito de concorrência</strong>
           <p>{{ store.conflictMessage() }}</p>
         </div>
-        <button type="button" class="button button--secondary" (click)="store.reloadAfterConflict()">Recarregar versão atual</button>
+        <button
+          type="button"
+          class="button button--secondary"
+          (click)="store.reloadAfterConflict()">
+          Recarregar versão atual
+        </button>
       </div>
     }
 
@@ -96,7 +114,10 @@
         @if (store.events().length === 0) {
           <div class="empty-copy">
             <h3>Nenhum evento cadastrado</h3>
-            <p>Cadastre o primeiro evento escolhendo edição, categoria, fase, participantes, horário, fuso e fonte.</p>
+            <p>
+              Cadastre o primeiro evento escolhendo edição, categoria, fase, participantes, horário,
+              fuso e fonte.
+            </p>
             <button type="button" class="button button--primary" (click)="openCreateEventModal()">
               Cadastrar evento
             </button>
@@ -107,12 +128,15 @@
               <li
                 class="event-item"
                 [class.event-item--selected]="event.eventId === store.selectedEventId()"
-                (click)="selectEvent(event.eventId)"
-              >
+                (click)="selectEvent(event.eventId)">
                 <div class="event-item__header">
-                  <span class="event-item__time">{{ event.scheduledAt | slice:0:16 }} ({{ event.zoneId }})</span>
+                  <span class="event-item__time"
+                    >{{ event.scheduledAt | slice: 0 : 16 }} ({{ event.zoneId }})</span
+                  >
                   <span class="status-chip {{ statusDisplay(event.status).cssClass }}">
-                    <span class="status-icon" aria-hidden="true">{{ statusDisplay(event.status).icon }}</span>
+                    <span class="status-icon" aria-hidden="true">{{
+                      statusDisplay(event.status).icon
+                    }}</span>
                     {{ statusDisplay(event.status).label }}
                   </span>
                 </div>
@@ -125,7 +149,11 @@
                 <div class="event-item__footer">
                   <span class="version-tag">v{{ event.lockVersion }}</span>
                   <span class="venue-tag">
-                    {{ event.venueState === 'LOCAL_A_DEFINIR' ? 'Local a definir' : (event.venueName || 'Local definido') }}
+                    {{
+                      event.venueState === 'LOCAL_A_DEFINIR'
+                        ? 'Local a definir'
+                        : event.venueName || 'Local definido'
+                    }}
                   </span>
                 </div>
               </li>
@@ -144,7 +172,9 @@
                 <h2 id="event-detail-title">{{ event.title }}</h2>
               </div>
               <span class="status-chip {{ statusDisplay(event.status).cssClass }}">
-                <span class="status-icon" aria-hidden="true">{{ statusDisplay(event.status).icon }}</span>
+                <span class="status-icon" aria-hidden="true">{{
+                  statusDisplay(event.status).icon
+                }}</span>
                 {{ statusDisplay(event.status).label }}
               </span>
             </header>
@@ -156,11 +186,21 @@
               </div>
               <div>
                 <dt>Local</dt>
-                <dd>{{ event.venueState === 'LOCAL_A_DEFINIR' ? 'Local a definir' : (event.venueName + (event.venueSpaceName ? ' · ' + event.venueSpaceName : '')) }}</dd>
+                <dd>
+                  {{
+                    event.venueState === 'LOCAL_A_DEFINIR'
+                      ? 'Local a definir'
+                      : event.venueName + (event.venueSpaceName ? ' · ' + event.venueSpaceName : '')
+                  }}
+                </dd>
               </div>
               <div>
                 <dt>Estrutura</dt>
-                <dd>{{ event.sportName || 'Esporte livre' }} · {{ event.categoryName || 'Categoria livre' }} · {{ event.phaseName || 'Fase geral' }}</dd>
+                <dd>
+                  {{ event.sportName || 'Esporte livre' }} ·
+                  {{ event.categoryName || 'Categoria livre' }} ·
+                  {{ event.phaseName || 'Fase geral' }}
+                </dd>
               </div>
               <div>
                 <dt>Fonte Oficial</dt>
@@ -198,10 +238,17 @@
               </button>
 
               @if (event.status === 'RASCUNHO') {
-                <button type="button" class="button button--secondary" (click)="openEditDraftModal()">
+                <button
+                  type="button"
+                  class="button button--secondary"
+                  (click)="openEditDraftModal()">
                   Editar rascunho
                 </button>
-                <button type="button" class="button button--primary" [disabled]="store.isMutating()" (click)="publishEvent()">
+                <button
+                  type="button"
+                  class="button button--primary"
+                  [disabled]="store.isMutating()"
+                  (click)="publishEvent()">
                   Publicar evento
                 </button>
                 <button type="button" class="button button--danger" (click)="openCancelModal()">
@@ -211,27 +258,44 @@
                 <button type="button" class="button button--secondary" (click)="openSuspendModal()">
                   Suspender evento
                 </button>
-                <button type="button" class="button button--secondary" (click)="openPostponeModal()">
+                <button
+                  type="button"
+                  class="button button--secondary"
+                  (click)="openPostponeModal()">
                   Adiar evento
                 </button>
                 <button type="button" class="button button--danger" (click)="openCancelModal()">
                   Cancelar evento
                 </button>
               } @else if (event.status === 'SUSPENSO') {
-                <button type="button" class="button button--primary" [disabled]="store.isMutating()" (click)="publishEvent()">
+                <button
+                  type="button"
+                  class="button button--primary"
+                  [disabled]="store.isMutating()"
+                  (click)="publishEvent()">
                   Re-publicar evento
                 </button>
-                <button type="button" class="button button--secondary" (click)="openPostponeModal()">
+                <button
+                  type="button"
+                  class="button button--secondary"
+                  (click)="openPostponeModal()">
                   Adiar evento
                 </button>
                 <button type="button" class="button button--danger" (click)="openCancelModal()">
                   Cancelar evento
                 </button>
               } @else if (event.status === 'ADIADO') {
-                <button type="button" class="button button--secondary" (click)="openPostponeModal()">
+                <button
+                  type="button"
+                  class="button button--secondary"
+                  (click)="openPostponeModal()">
                   Reagendar horário
                 </button>
-                <button type="button" class="button button--primary" [disabled]="store.isMutating()" (click)="publishEvent()">
+                <button
+                  type="button"
+                  class="button button--primary"
+                  [disabled]="store.isMutating()"
+                  (click)="publishEvent()">
                   Publicar evento
                 </button>
                 <button type="button" class="button button--danger" (click)="openCancelModal()">
@@ -255,17 +319,29 @@
               @if (event.status !== 'CANCELADO' && event.status !== 'RASCUNHO') {
                 <div class="result-top-actions">
                   @if (store.confirmedVersion()) {
-                    <button type="button" class="button button--primary" (click)="openCorrectResultModal()">
+                    <button
+                      type="button"
+                      class="button button--primary"
+                      (click)="openCorrectResultModal()">
                       Corrigir resultado
                     </button>
                   } @else {
-                    <button type="button" class="button button--secondary" (click)="openInformResultModal()">
+                    <button
+                      type="button"
+                      class="button button--secondary"
+                      (click)="openInformResultModal()">
                       Salvar rascunho
                     </button>
-                    <button type="button" class="button button--secondary" (click)="openReviewResultModal()">
+                    <button
+                      type="button"
+                      class="button button--secondary"
+                      (click)="openReviewResultModal()">
                       Enviar para revisão
                     </button>
-                    <button type="button" class="button button--primary" (click)="openConfirmResultModal()">
+                    <button
+                      type="button"
+                      class="button button--primary"
+                      (click)="openConfirmResultModal()">
                       Confirmar resultado
                     </button>
                   }
@@ -292,15 +368,24 @@
                   @if (confirmed.reason) {
                     <span><strong>Motivo da retificação:</strong> {{ confirmed.reason }}</span>
                   }
-                  <span><strong>Confirmado em:</strong> {{ confirmed.confirmedAt || confirmed.recordedAt }}</span>
+                  <span
+                    ><strong>Confirmado em:</strong>
+                    {{ confirmed.confirmedAt || confirmed.recordedAt }}</span
+                  >
                 </div>
               </div>
             } @else {
               <div class="empty-copy">
                 <h3>Nenhum resultado aguardando registro</h3>
-                <p>Quando um evento publicado terminar, abra-o para registrar o resultado com a fonte oficial.</p>
+                <p>
+                  Quando um evento publicado terminar, abra-o para registrar o resultado com a fonte
+                  oficial.
+                </p>
                 @if (event.status === 'PUBLICADO' || event.status === 'SUSPENSO') {
-                  <button type="button" class="button button--primary" (click)="openConfirmResultModal()">
+                  <button
+                    type="button"
+                    class="button button--primary"
+                    (click)="openConfirmResultModal()">
                     Confirmar resultado
                   </button>
                 }
@@ -319,24 +404,38 @@
                         <div class="timeline-header">
                           <span class="version-badge">v{{ ver.versionNo }}</span>
                           <span class="status-chip {{ statusDisplay(ver.status).cssClass }}">
-                            <span class="status-icon" aria-hidden="true">{{ statusDisplay(ver.status).icon }}</span>
+                            <span class="status-icon" aria-hidden="true">{{
+                              statusDisplay(ver.status).icon
+                            }}</span>
                             {{ statusDisplay(ver.status).label }}
                           </span>
                           <time class="timeline-time">{{ ver.recordedAt }}</time>
                         </div>
                         <div class="timeline-scores">
-                          <span>{{ getSlotLabel(event, 1) }}: <strong>{{ ver.scores[0]?.score }}</strong></span>
+                          <span
+                            >{{ getSlotLabel(event, 1) }}:
+                            <strong>{{ ver.scores[0]?.score }}</strong></span
+                          >
                           <span>—</span>
-                          <span>{{ getSlotLabel(event, 2) }}: <strong>{{ ver.scores[1]?.score }}</strong></span>
+                          <span
+                            >{{ getSlotLabel(event, 2) }}:
+                            <strong>{{ ver.scores[1]?.score }}</strong></span
+                          >
                         </div>
-                        <p class="timeline-source"><strong>Fonte:</strong> {{ ver.sourceReference }}</p>
+                        <p class="timeline-source">
+                          <strong>Fonte:</strong> {{ ver.sourceReference }}
+                        </p>
                         @if (ver.reason) {
                           <p class="timeline-reason"><strong>Motivo:</strong> {{ ver.reason }}</p>
                         }
                         <div class="timeline-actors">
-                          <small>Registrado por: <code>{{ ver.recordedByIdentityId }}</code></small>
+                          <small
+                            >Registrado por: <code>{{ ver.recordedByIdentityId }}</code></small
+                          >
                           @if (ver.confirmedByIdentityId) {
-                            <small>Confirmado por: <code>{{ ver.confirmedByIdentityId }}</code></small>
+                            <small
+                              >Confirmado por: <code>{{ ver.confirmedByIdentityId }}</code></small
+                            >
                           }
                         </div>
                       </div>
@@ -349,7 +448,10 @@
         } @else {
           <article class="state-card">
             <h2>Nenhum evento selecionado</h2>
-            <p>Selecione um evento na lista ao lado ou cadastre um novo evento para iniciar a operação.</p>
+            <p>
+              Selecione um evento na lista ao lado ou cadastre um novo evento para iniciar a
+              operação.
+            </p>
           </article>
         }
       </section>
@@ -364,16 +466,28 @@
       <div class="modal-card modal-card--large">
         <header class="modal-header">
           <div>
-            <span class="eyebrow">{{ activeModal() === 'createEvent' ? 'Novo cadastro' : 'Edição de rascunho' }}</span>
-            <h2 id="modal-event-title">{{ activeModal() === 'createEvent' ? 'Cadastrar evento esportivo' : 'Editar rascunho do evento' }}</h2>
+            <span class="eyebrow">{{
+              activeModal() === 'createEvent' ? 'Novo cadastro' : 'Edição de rascunho'
+            }}</span>
+            <h2 id="modal-event-title">
+              {{
+                activeModal() === 'createEvent'
+                  ? 'Cadastrar evento esportivo'
+                  : 'Editar rascunho do evento'
+              }}
+            </h2>
           </div>
           <button type="button" class="close-button" (click)="closeModal()">✕</button>
         </header>
 
-        <form [formGroup]="eventForm" (ngSubmit)="activeModal() === 'createEvent' ? saveCreateEvent() : saveUpdateDraft()">
+        <form
+          [formGroup]="eventForm"
+          (ngSubmit)="activeModal() === 'createEvent' ? saveCreateEvent() : saveUpdateDraft()">
           <label>
             Título do evento
-            <input formControlName="title" placeholder="Ex: Engenharia vs Medicina - Final Futsal" />
+            <input
+              formControlName="title"
+              placeholder="Ex: Engenharia vs Medicina - Final Futsal" />
           </label>
 
           <div class="form-row form-row--3">
@@ -439,7 +553,7 @@
                 Espaço interno (opcional)
                 <select formControlName="venueSpaceId">
                   <option value="">Selecione o espaço</option>
-                  @for (sp of (tree()?.venues ?? []) | slice:0; track sp.venueId) {
+                  @for (sp of tree()?.venues ?? [] | slice: 0; track sp.venueId) {
                     @for (space of sp.spaces ?? []; track space.venueSpaceId) {
                       <option [value]="space.venueSpaceId">{{ space.name }} ({{ sp.name }})</option>
                     }
@@ -456,7 +570,9 @@
                 <span class="slot-tag">Participante 1 (Slot 1)</span>
                 <label>
                   Vincular equipe do catálogo (opcional)
-                  <select formControlName="slot1TeamId" (change)="onSlotTeamChange(1, $any($event.target).value)">
+                  <select
+                    formControlName="slot1TeamId"
+                    (change)="onSlotTeamChange(1, $any($event.target).value)">
                     <option value="">Nenhuma equipe vinculada</option>
                     @for (tm of teams(); track tm.teamId) {
                       <option [value]="tm.teamId">{{ tm.name }} ({{ tm.organizationName }})</option>
@@ -473,7 +589,9 @@
                 <span class="slot-tag">Participante 2 (Slot 2)</span>
                 <label>
                   Vincular equipe do catálogo (opcional)
-                  <select formControlName="slot2TeamId" (change)="onSlotTeamChange(2, $any($event.target).value)">
+                  <select
+                    formControlName="slot2TeamId"
+                    (change)="onSlotTeamChange(2, $any($event.target).value)">
                     <option value="">Nenhuma equipe vinculada</option>
                     @for (tm of teams(); track tm.teamId) {
                       <option [value]="tm.teamId">{{ tm.name }} ({{ tm.organizationName }})</option>
@@ -490,13 +608,22 @@
 
           <label>
             Fonte Oficial de Informação
-            <input formControlName="sourceReference" placeholder="Ex: Boletim Oficial nº 04 / Súmula Assinada" />
-            <small class="field-help">A fonte oficial é obrigatória para rastreabilidade do agendamento.</small>
+            <input
+              formControlName="sourceReference"
+              placeholder="Ex: Boletim Oficial nº 04 / Súmula Assinada" />
+            <small class="field-help"
+              >A fonte oficial é obrigatória para rastreabilidade do agendamento.</small
+            >
           </label>
 
           <div class="modal-actions">
-            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
-            <button type="submit" class="button button--primary" [disabled]="eventForm.invalid || store.isMutating()">
+            <button type="button" class="button button--secondary" (click)="closeModal()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="button button--primary"
+              [disabled]="eventForm.invalid || store.isMutating()">
               {{ activeModal() === 'createEvent' ? 'Salvar rascunho' : 'Salvar alterações' }}
             </button>
           </div>
@@ -507,7 +634,11 @@
 
   <!-- Modal: Suspend Event -->
   @if (activeModal() === 'suspend') {
-    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-suspend-title">
+    <div
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-suspend-title">
       <div class="modal-card">
         <header class="modal-header">
           <div>
@@ -516,15 +647,24 @@
           </div>
           <button type="button" class="close-button" (click)="closeModal()">✕</button>
         </header>
-        <p class="form-note">A suspensão pausa o evento na agenda pública sem cancelá-lo definitivamente.</p>
+        <p class="form-note">
+          A suspensão pausa o evento na agenda pública sem cancelá-lo definitivamente.
+        </p>
         <form [formGroup]="suspendForm" (ngSubmit)="saveSuspend()">
           <label>
             Motivo da suspensão (opcional)
-            <textarea formControlName="reason" rows="3" placeholder="Ex: Condições climáticas adversas ou paralisação temporária."></textarea>
+            <textarea
+              formControlName="reason"
+              rows="3"
+              placeholder="Ex: Condições climáticas adversas ou paralisação temporária."></textarea>
           </label>
           <div class="modal-actions">
-            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
-            <button type="submit" class="button button--primary" [disabled]="store.isMutating()">Confirmar suspensão</button>
+            <button type="button" class="button button--secondary" (click)="closeModal()">
+              Cancelar
+            </button>
+            <button type="submit" class="button button--primary" [disabled]="store.isMutating()">
+              Confirmar suspensão
+            </button>
           </div>
         </form>
       </div>
@@ -533,7 +673,11 @@
 
   <!-- Modal: Postpone Event -->
   @if (activeModal() === 'postpone') {
-    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-postpone-title">
+    <div
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-postpone-title">
       <div class="modal-card">
         <header class="modal-header">
           <div>
@@ -555,11 +699,21 @@
           </div>
           <label>
             Motivo do adiamento (opcional)
-            <textarea formControlName="reason" rows="3" placeholder="Ex: Reagendamento por conflito de praça esportiva."></textarea>
+            <textarea
+              formControlName="reason"
+              rows="3"
+              placeholder="Ex: Reagendamento por conflito de praça esportiva."></textarea>
           </label>
           <div class="modal-actions">
-            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
-            <button type="submit" class="button button--primary" [disabled]="postponeForm.invalid || store.isMutating()">Confirmar reagendamento</button>
+            <button type="button" class="button button--secondary" (click)="closeModal()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="button button--primary"
+              [disabled]="postponeForm.invalid || store.isMutating()">
+              Confirmar reagendamento
+            </button>
           </div>
         </form>
       </div>
@@ -568,7 +722,11 @@
 
   <!-- Modal: Cancel Event (Destructive Action) -->
   @if (activeModal() === 'cancel') {
-    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title">
+    <div
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-cancel-title">
       <div class="modal-card modal-card--destructive">
         <header class="modal-header">
           <div>
@@ -579,17 +737,28 @@
         </header>
 
         <div class="danger-warning">
-          <strong>Atenção:</strong> O cancelamento tornará o evento <strong>{{ store.selectedEvent()?.title }}</strong> cancelado permanentemente na agenda pública. Esta ação não poderá ser desfeita. Não há movimentação de créditos nesta operação.
+          <strong>Atenção:</strong> O cancelamento tornará o evento
+          <strong>{{ store.selectedEvent()?.title }}</strong> cancelado permanentemente na agenda
+          pública. Esta ação não poderá ser desfeita. Não há movimentação de créditos nesta
+          operação.
         </div>
 
         <form [formGroup]="cancelForm" (ngSubmit)="saveCancel()">
           <label>
             Motivo do cancelamento (obrigatório)
-            <textarea formControlName="reason" rows="3" placeholder="Informe o motivo oficial do cancelamento definitivo do evento."></textarea>
+            <textarea
+              formControlName="reason"
+              rows="3"
+              placeholder="Informe o motivo oficial do cancelamento definitivo do evento."></textarea>
           </label>
           <div class="modal-actions">
-            <button type="button" class="button button--secondary" (click)="closeModal()">Manter evento</button>
-            <button type="submit" class="button button--danger" [disabled]="cancelForm.invalid || store.isMutating()">
+            <button type="button" class="button button--secondary" (click)="closeModal()">
+              Manter evento
+            </button>
+            <button
+              type="submit"
+              class="button button--danger"
+              [disabled]="cancelForm.invalid || store.isMutating()">
               Confirmar cancelamento
             </button>
           </div>
@@ -599,26 +768,50 @@
   }
 
   <!-- Modal: Inform / Review / Confirm Result -->
-  @if (activeModal() === 'informResult' || activeModal() === 'reviewResult' || activeModal() === 'confirmResult') {
-    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-result-title">
+  @if (
+    activeModal() === 'informResult' ||
+    activeModal() === 'reviewResult' ||
+    activeModal() === 'confirmResult'
+  ) {
+    <div
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-result-title">
       <div class="modal-card">
         <header class="modal-header">
           <div>
             <span class="eyebrow">
-              @if (activeModal() === 'informResult') { Rascunho de resultado }
-              @else if (activeModal() === 'reviewResult') { Envio para revisão }
-              @else { Confirmação oficial }
+              @if (activeModal() === 'informResult') {
+                Rascunho de resultado
+              } @else if (activeModal() === 'reviewResult') {
+                Envio para revisão
+              } @else {
+                Confirmação oficial
+              }
             </span>
             <h2 id="modal-result-title">
-              @if (activeModal() === 'informResult') { Salvar rascunho de placar }
-              @else if (activeModal() === 'reviewResult') { Enviar resultado para revisão }
-              @else { Confirmar resultado oficial }
+              @if (activeModal() === 'informResult') {
+                Salvar rascunho de placar
+              } @else if (activeModal() === 'reviewResult') {
+                Enviar resultado para revisão
+              } @else {
+                Confirmar resultado oficial
+              }
             </h2>
           </div>
           <button type="button" class="close-button" (click)="closeModal()">✕</button>
         </header>
 
-        <form [formGroup]="resultForm" (ngSubmit)="activeModal() === 'informResult' ? saveInformResult() : (activeModal() === 'reviewResult' ? saveReviewResult() : saveConfirmResult())">
+        <form
+          [formGroup]="resultForm"
+          (ngSubmit)="
+            activeModal() === 'informResult'
+              ? saveInformResult()
+              : activeModal() === 'reviewResult'
+                ? saveReviewResult()
+                : saveConfirmResult()
+          ">
           <div class="score-input-grid">
             <label>
               {{ getSlotLabel(store.selectedEvent(), 1) }}
@@ -633,7 +826,9 @@
 
           <label>
             Fonte Oficial do Resultado
-            <input formControlName="sourceReference" placeholder="Ex: Súmula Oficial do Árbitro nº 12 / Boletim Final" />
+            <input
+              formControlName="sourceReference"
+              placeholder="Ex: Súmula Oficial do Árbitro nº 12 / Boletim Final" />
             <small class="field-help">Informe uma fonte oficial válida antes de publicar.</small>
           </label>
 
@@ -644,11 +839,20 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
-            <button type="submit" class="button button--primary" [disabled]="resultForm.invalid || store.isMutating()">
-              @if (activeModal() === 'informResult') { Salvar rascunho }
-              @else if (activeModal() === 'reviewResult') { Enviar para revisão }
-              @else { Confirmar resultado }
+            <button type="button" class="button button--secondary" (click)="closeModal()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="button button--primary"
+              [disabled]="resultForm.invalid || store.isMutating()">
+              @if (activeModal() === 'informResult') {
+                Salvar rascunho
+              } @else if (activeModal() === 'reviewResult') {
+                Enviar para revisão
+              } @else {
+                Confirmar resultado
+              }
             </button>
           </div>
         </form>
@@ -658,7 +862,11 @@
 
   <!-- Modal: Correct Result (New Audited Version) -->
   @if (activeModal() === 'correctResult') {
-    <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-correct-title">
+    <div
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-correct-title">
       <div class="modal-card">
         <header class="modal-header">
           <div>
@@ -669,7 +877,8 @@
         </header>
 
         <p class="form-note">
-          A correção publica uma nova versão no histórico (CORRIGIDO) sem apagar as versões anteriores.
+          A correção publica uma nova versão no histórico (CORRIGIDO) sem apagar as versões
+          anteriores.
         </p>
 
         <form [formGroup]="correctionForm" (ngSubmit)="saveCorrectResult()">
@@ -687,12 +896,17 @@
 
           <label>
             Motivo da retificação (obrigatório)
-            <textarea formControlName="reason" rows="2" placeholder="Ex: Retificação após conferência de súmula oficial."></textarea>
+            <textarea
+              formControlName="reason"
+              rows="2"
+              placeholder="Ex: Retificação após conferência de súmula oficial."></textarea>
           </label>
 
           <label>
             Fonte Oficial Retificadora
-            <input formControlName="sourceReference" placeholder="Ex: Boletim Oficial Retificado nº 03" />
+            <input
+              formControlName="sourceReference"
+              placeholder="Ex: Boletim Oficial Retificado nº 03" />
           </label>
 
           <div class="diff-trigger">
@@ -702,8 +916,13 @@
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="button button--secondary" (click)="closeModal()">Cancelar</button>
-            <button type="submit" class="button button--primary" [disabled]="correctionForm.invalid || store.isMutating()">
+            <button type="button" class="button button--secondary" (click)="closeModal()">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="button button--primary"
+              [disabled]="correctionForm.invalid || store.isMutating()">
               Publicar correção versionada
             </button>
           </div>
@@ -727,10 +946,18 @@
         <div class="diff-box diff-box--current">
           <h3>Versão pública atual</h3>
           @if (diff.current) {
-            <p class="diff-version">v{{ diff.current.versionNo }} · {{ statusDisplay(diff.current.status).label }}</p>
+            <p class="diff-version">
+              v{{ diff.current.versionNo }} · {{ statusDisplay(diff.current.status).label }}
+            </p>
             <div class="diff-scores">
-              <span>{{ getSlotLabel(store.selectedEvent(), 1) }}: <strong>{{ diff.current.scores[0]?.score ?? '-' }}</strong></span>
-              <span>{{ getSlotLabel(store.selectedEvent(), 2) }}: <strong>{{ diff.current.scores[1]?.score ?? '-' }}</strong></span>
+              <span
+                >{{ getSlotLabel(store.selectedEvent(), 1) }}:
+                <strong>{{ diff.current.scores[0]?.score ?? '-' }}</strong></span
+              >
+              <span
+                >{{ getSlotLabel(store.selectedEvent(), 2) }}:
+                <strong>{{ diff.current.scores[1]?.score ?? '-' }}</strong></span
+              >
             </div>
             <p><strong>Fonte:</strong> {{ diff.current.sourceReference }}</p>
             @if (diff.current.reason) {
@@ -745,8 +972,14 @@
           <h3>Nova versão</h3>
           <p class="diff-version">Próxima versão a ser gravada</p>
           <div class="diff-scores">
-            <span>{{ diff.proposed.scores[0]?.displayLabel }}: <strong>{{ diff.proposed.scores[0]?.score }}</strong></span>
-            <span>{{ diff.proposed.scores[1]?.displayLabel }}: <strong>{{ diff.proposed.scores[1]?.score }}</strong></span>
+            <span
+              >{{ diff.proposed.scores[0]?.displayLabel }}:
+              <strong>{{ diff.proposed.scores[0]?.score }}</strong></span
+            >
+            <span
+              >{{ diff.proposed.scores[1]?.displayLabel }}:
+              <strong>{{ diff.proposed.scores[1]?.score }}</strong></span
+            >
           </div>
           <p><strong>Fonte:</strong> {{ diff.proposed.sourceReference }}</p>
           @if (diff.proposed.reason) {
@@ -756,7 +989,9 @@
       </div>
 
       <div class="drawer-actions">
-        <button type="button" class="button button--secondary" (click)="closePreview()">Fechar pré-visualização</button>
+        <button type="button" class="button button--secondary" (click)="closePreview()">
+          Fechar pré-visualização
+        </button>
       </div>
     </aside>
   } @else if (store.preview(); as preview) {
@@ -771,17 +1006,43 @@
 
       @if ('title' in preview) {
         <dl class="preview-dl">
-          <div><dt>Título</dt><dd>{{ preview.title }}</dd></div>
-          <div><dt>Status</dt><dd>{{ statusDisplay(preview.status).label }} (v{{ preview.lockVersion }})</dd></div>
-          <div><dt>Horário</dt><dd>{{ preview.scheduledAt }} ({{ preview.zoneId }})</dd></div>
-          <div><dt>Local</dt><dd>{{ preview.venueState === 'LOCAL_A_DEFINIR' ? 'Local a definir' : (preview.venueName || 'Local definido') }}</dd></div>
-          <div><dt>Participantes</dt><dd>{{ getSlotLabel(preview, 1) }} vs {{ getSlotLabel(preview, 2) }}</dd></div>
-          <div><dt>Fonte</dt><dd>{{ preview.sourceReference }}</dd></div>
+          <div>
+            <dt>Título</dt>
+            <dd>{{ preview.title }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ statusDisplay(preview.status).label }} (v{{ preview.lockVersion }})</dd>
+          </div>
+          <div>
+            <dt>Horário</dt>
+            <dd>{{ preview.scheduledAt }} ({{ preview.zoneId }})</dd>
+          </div>
+          <div>
+            <dt>Local</dt>
+            <dd>
+              {{
+                preview.venueState === 'LOCAL_A_DEFINIR'
+                  ? 'Local a definir'
+                  : preview.venueName || 'Local definido'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>Participantes</dt>
+            <dd>{{ getSlotLabel(preview, 1) }} vs {{ getSlotLabel(preview, 2) }}</dd>
+          </div>
+          <div>
+            <dt>Fonte</dt>
+            <dd>{{ preview.sourceReference }}</dd>
+          </div>
         </dl>
       }
 
       <div class="drawer-actions">
-        <button type="button" class="button button--secondary" (click)="store.closePreview()">Fechar pré-visualização</button>
+        <button type="button" class="button button--secondary" (click)="store.closePreview()">
+          Fechar pré-visualização
+        </button>
       </div>
     </aside>
   }

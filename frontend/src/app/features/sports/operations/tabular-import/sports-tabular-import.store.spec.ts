@@ -14,7 +14,15 @@ const PREVIEW: SportsTabularImportPreview = {
   validRows: 2,
   errorCount: 0,
   errors: [],
-  summary: [{ organizationName: 'Organização', teamName: 'Equipe', sportName: 'Futsal', categoryName: 'Livre', athleteCount: 2 }],
+  summary: [
+    {
+      organizationName: 'Organização',
+      teamName: 'Equipe',
+      sportName: 'Futsal',
+      categoryName: 'Livre',
+      athleteCount: 2,
+    },
+  ],
   readyToImport: true,
 };
 
@@ -42,7 +50,10 @@ describe('SportsTabularImportStore', () => {
       validate: vi.fn(() => of(PREVIEW)),
       commit: vi.fn(() => of(RESULT)),
       checkStatus: vi.fn(() => of(RESULT)),
-      isUnauthorized: vi.fn((error: unknown) => error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)),
+      isUnauthorized: vi.fn(
+        (error: unknown) =>
+          error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403),
+      ),
     };
     TestBed.configureTestingModule({
       providers: [
@@ -78,7 +89,11 @@ describe('SportsTabularImportStore', () => {
   });
 
   it('não reenvia commit quando a resposta fica indeterminada', async () => {
-    store.selectFile(new File(['dados'], 'elenco.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    store.selectFile(
+      new File(['dados'], 'elenco.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      }),
+    );
     await store.validate('edition-1');
     adapter.commit.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
 

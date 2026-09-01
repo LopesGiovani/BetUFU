@@ -45,21 +45,37 @@ describe('GrainientBackgroundComponent', () => {
     scheduledFrame = undefined;
     gl = createGlMock();
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(gl);
-    vi.stubGlobal('ResizeObserver', class {
-      observe(): void {}
-      disconnect(): void { resizeDisconnect(); }
-    });
-    vi.stubGlobal('IntersectionObserver', class {
-      constructor(callback: IntersectionObserverCallback) {
-        callback([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
-      }
-      observe(): void {}
-      disconnect(): void { intersectionDisconnect(); }
-    });
-    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
-      scheduledFrame = callback;
-      return 7;
-    }));
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe(): void {}
+        disconnect(): void {
+          resizeDisconnect();
+        }
+      },
+    );
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          callback(
+            [{ isIntersecting: true } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        observe(): void {}
+        disconnect(): void {
+          intersectionDisconnect();
+        }
+      },
+    );
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn((callback: FrameRequestCallback) => {
+        scheduledFrame = callback;
+        return 7;
+      }),
+    );
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -77,7 +93,9 @@ describe('GrainientBackgroundComponent', () => {
   });
 
   it('libera observers, RAF, programa e VAO no destroy', async () => {
-    await TestBed.configureTestingModule({ imports: [GrainientBackgroundComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [GrainientBackgroundComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(GrainientBackgroundComponent);
     fixture.detectChanges();
     expect(fixture.componentInstance.fallback()).toBe(false);
@@ -92,7 +110,9 @@ describe('GrainientBackgroundComponent', () => {
   });
 
   it('previne perda do contexto, ativa fallback e reconstrói após restauração', async () => {
-    await TestBed.configureTestingModule({ imports: [GrainientBackgroundComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [GrainientBackgroundComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(GrainientBackgroundComponent);
     fixture.detectChanges();
     const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
@@ -112,7 +132,9 @@ describe('GrainientBackgroundComponent', () => {
   it('delega resize ao observer sem medir layout em cada frame', async () => {
     const widthRead = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(800);
     const heightRead = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(450);
-    await TestBed.configureTestingModule({ imports: [GrainientBackgroundComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [GrainientBackgroundComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(GrainientBackgroundComponent);
     fixture.detectChanges();
     widthRead.mockClear();
@@ -129,7 +151,9 @@ describe('GrainientBackgroundComponent', () => {
   it('limita a área do buffer em telas 4K', async () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(3_840);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(2_160);
-    await TestBed.configureTestingModule({ imports: [GrainientBackgroundComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [GrainientBackgroundComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(GrainientBackgroundComponent);
     fixture.detectChanges();
 

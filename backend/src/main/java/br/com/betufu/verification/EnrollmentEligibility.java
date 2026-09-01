@@ -4,13 +4,13 @@ import java.util.UUID;
 
 public interface EnrollmentEligibility {
 
-    enum Status {
-        SEM_VINCULO,
-        ATIVO,
-        LIBERADO
-    }
+  enum Status {
+    SEM_VINCULO,
+    ATIVO,
+    LIBERADO
+  }
 
-    boolean hasActiveEnrollment(UUID identityId);
+  boolean hasActiveEnrollment(UUID identityId);
 
-    Status getStatus(UUID identityId);
+  Status getStatus(UUID identityId);
 }

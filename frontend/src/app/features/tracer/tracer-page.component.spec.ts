@@ -1,10 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
 
-import {
-  CurrentIdentityResponse,
-  IdentityService,
-} from '../../api/generated';
+import { CurrentIdentityResponse, IdentityService } from '../../api/generated';
 import { TracerPageComponent } from './tracer-page.component';
 
 describe('TracerPageComponent', () => {

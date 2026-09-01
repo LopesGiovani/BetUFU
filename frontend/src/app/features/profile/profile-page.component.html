@@ -3,22 +3,14 @@
 
   @if (store.isLoading() && !store.displayProfile()) {
     <!-- Estado 1: Loading Inicial (Sem perfil prévio) -->
-    <div
-      class="status-feedback loading-state"
-      role="status"
-      aria-live="polite"
-    >
+    <div class="status-feedback loading-state" role="status" aria-live="polite">
       <div class="spinner-large" aria-hidden="true"></div>
       <h2>Carregando perfil…</h2>
       <p>Aguarde enquanto consultamos seus dados.</p>
     </div>
   } @else if (store.isEmpty()) {
     <!-- Estado 2: Empty (Resposta válida mas sem perfil criado) -->
-    <div
-      class="status-feedback empty-state"
-      role="status"
-      aria-live="polite"
-    >
+    <div class="status-feedback empty-state" role="status" aria-live="polite">
       <h2>Nenhum perfil encontrado</h2>
       <p class="empty-text">Você precisa escolher um apelido para continuar.</p>
       <div class="empty-actions">
@@ -29,11 +21,7 @@
     </div>
   } @else if (store.isError() && !store.displayProfile()) {
     <!-- Estado 3: Error Bloqueante (Sem dados anteriores para exibir) -->
-    <div
-      class="status-feedback error-state"
-      role="alert"
-      aria-live="assertive"
-    >
+    <div class="status-feedback error-state" role="alert" aria-live="assertive">
       <h2>Não foi possível carregar seu perfil</h2>
       <p class="error-text">{{ store.errorMessage() }}</p>
       @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
@@ -44,8 +32,7 @@
             type="button"
             class="btn-copy-small"
             (click)="copyCorrelationId(store.errorCorrelationId()!)"
-            aria-label="Copiar código de referência"
-          >
+            aria-label="Copiar código de referência">
             <svg
               class="btn-icon-small"
               viewBox="0 0 24 24"
@@ -57,8 +44,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               aria-hidden="true"
-              focusable="false"
-            >
+              focusable="false">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
@@ -67,9 +53,7 @@
         </div>
       }
       <div class="error-actions">
-        <button type="button" class="btn-primary" (click)="onRetry()">
-          Tentar novamente
-        </button>
+        <button type="button" class="btn-primary" (click)="onRetry()">Tentar novamente</button>
       </div>
     </div>
   } @else if (store.displayProfile()) {
@@ -77,11 +61,7 @@
 
     <!-- Recusa de negócio ou erro de transporte em bloco de alerta no topo -->
     @if (store.isError() && store.errorMessage()) {
-      <div
-        class="alert-box"
-        role="alert"
-        aria-live="assertive"
-      >
+      <div class="alert-box" role="alert" aria-live="assertive">
         <div class="alert-content">
           <p class="alert-message">{{ store.errorMessage() }}</p>
           @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
@@ -92,8 +72,7 @@
                 type="button"
                 class="btn-copy-small"
                 (click)="copyCorrelationId(store.errorCorrelationId()!)"
-                aria-label="Copiar código de referência"
-              >
+                aria-label="Copiar código de referência">
                 <svg
                   class="btn-icon-small"
                   viewBox="0 0 24 24"
@@ -105,8 +84,7 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   aria-hidden="true"
-                  focusable="false"
-                >
+                  focusable="false">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
@@ -139,30 +117,23 @@
             spellcheck="false"
             maxlength="20"
             [attr.aria-invalid]="hasFieldError"
-            [attr.aria-describedby]="hasFieldError ? 'nickname-error nickname-help' : 'nickname-help'"
-          />
+            [attr.aria-describedby]="
+              hasFieldError ? 'nickname-error nickname-help' : 'nickname-help'
+            " />
 
           <p id="nickname-help" class="help-text">
             De 3 a 20 caracteres. Use letras sem acento, números, hífen (-) ou sublinhado (_).
           </p>
 
           @if (hasFieldError) {
-            <p
-              id="nickname-error"
-              class="field-error"
-              role="alert"
-            >
+            <p id="nickname-error" class="field-error" role="alert">
               {{ fieldErrorMessage }}
             </p>
           }
         </div>
 
         <div class="form-actions">
-          <button
-            type="submit"
-            class="btn-primary"
-            [disabled]="isSubmitDisabled"
-          >
+          <button type="submit" class="btn-primary" [disabled]="isSubmitDisabled">
             {{ store.isSaving() ? 'Salvando…' : 'Salvar alterações' }}
           </button>
         </div>
@@ -171,13 +142,23 @@
 
     <article class="profile-card favorite-card">
       <h2 class="card-title">Organização favorita</h2>
-      <p class="favorite-explanation">Escolha uma organização publicada para acompanhar sua identidade esportiva. A escolha vale para a organização inteira.</p>
+      <p class="favorite-explanation">
+        Escolha uma organização publicada para acompanhar sua identidade esportiva. A escolha vale
+        para a organização inteira.
+      </p>
       @if (store.isFavoriteLoading()) {
         <p class="favorite-status" role="status">Carregando organizações disponíveis...</p>
       } @else if (store.favoriteErrorMessage()) {
-        <p class="favorite-status favorite-status--error" role="alert">{{ store.favoriteErrorMessage() }}</p>
+        <p class="favorite-status favorite-status--error" role="alert">
+          {{ store.favoriteErrorMessage() }}
+        </p>
       } @else if (store.favoriteOrganizationId()) {
-        <p class="favorite-current">Favorita: <strong>{{ store.favoriteOrganizationName() || 'Organização publicada selecionada' }}</strong></p>
+        <p class="favorite-current">
+          Favorita:
+          <strong>{{
+            store.favoriteOrganizationName() || 'Organização publicada selecionada'
+          }}</strong>
+        </p>
       } @else {
         <p class="favorite-status">Nenhuma organização favorita escolhida.</p>
       }
@@ -187,14 +168,28 @@
           <label for="favorite-organization">Escolher organização favorita</label>
           <select id="favorite-organization" formControlName="organizationId">
             <option value="">Escolha pelo nome</option>
-            @for (organization of store.favoriteOrganizations(); track organization.organizationId) {
+            @for (
+              organization of store.favoriteOrganizations();
+              track organization.organizationId
+            ) {
               <option [value]="organization.organizationId">{{ organization.name }}</option>
             }
           </select>
           <div class="form-actions">
-            <button type="submit" class="btn-primary" [disabled]="!favoriteForm.controls.organizationId.value || store.isSavingFavorite()">{{ store.isSavingFavorite() ? 'Salvando...' : 'Salvar organização favorita' }}</button>
+            <button
+              type="submit"
+              class="btn-primary"
+              [disabled]="!favoriteForm.controls.organizationId.value || store.isSavingFavorite()">
+              {{ store.isSavingFavorite() ? 'Salvando...' : 'Salvar organização favorita' }}
+            </button>
             @if (store.favoriteOrganizationId()) {
-              <button type="button" class="btn-secondary" (click)="onRemoveFavorite()" [disabled]="store.isSavingFavorite()">Remover dos favoritos</button>
+              <button
+                type="button"
+                class="btn-secondary"
+                (click)="onRemoveFavorite()"
+                [disabled]="store.isSavingFavorite()">
+                Remover dos favoritos
+              </button>
             }
           </div>
         </form>
@@ -215,10 +210,12 @@
             class="identity-value"
             tabindex="0"
             aria-labelledby="identity-label"
-          >{{ store.identityId() || '—' }}</code>
+            >{{ store.identityId() || '—' }}</code
+          >
         </div>
         <p class="identity-explanation">
-          Apelidos podem se repetir na BETUFU. Este identificador é único e distingue seu perfil de qualquer outro com o mesmo apelido.
+          Apelidos podem se repetir na BETUFU. Este identificador é único e distingue seu perfil de
+          qualquer outro com o mesmo apelido.
         </p>
         <div class="identity-actions">
           <button
@@ -226,8 +223,7 @@
             class="btn-secondary"
             (click)="copyIdentityId()"
             [disabled]="!store.identityId()"
-            aria-label="Copiar identificador público"
-          >
+            aria-label="Copiar identificador público">
             <svg
               class="btn-icon"
               viewBox="0 0 24 24"
@@ -239,8 +235,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               aria-hidden="true"
-              focusable="false"
-            >
+              focusable="false">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
@@ -263,12 +258,7 @@
         } @else {
           <p class="matricula-empty-text">Nenhuma matrícula registrada.</p>
           <div class="matricula-actions">
-            <a
-              routerLink="/conta/matricula"
-              class="link-primary"
-            >
-              Registrar matrícula
-            </a>
+            <a routerLink="/conta/matricula" class="link-primary"> Registrar matrícula </a>
           </div>
         }
       </div>
@@ -282,8 +272,7 @@
       <div class="matricula-actions">
         <a
           routerLink="/conta/perfil/esportivo"
-          class="btn-primary link-button athlete-profile-link"
-        >
+          class="btn-primary link-button athlete-profile-link">
           Gerenciar perfil esportivo
         </a>
       </div>
@@ -292,11 +281,6 @@
 </section>
 
 <!-- Live region para feedbacks de sucesso e cópia -->
-<div
-  id="profile-live-region"
-  class="visually-hidden"
-  role="status"
-  aria-live="polite"
->
+<div id="profile-live-region" class="visually-hidden" role="status" aria-live="polite">
   {{ successMessage() || copyFeedbackMessage() }}
 </div>

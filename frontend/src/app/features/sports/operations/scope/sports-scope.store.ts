@@ -35,8 +35,11 @@ export class SportsScopeStore {
   readonly status = computed(() => this.state().status);
   readonly competitions = computed(() => this.state().competitions);
   readonly selectedCompetitionId = computed(() => this.state().selectedCompetitionId);
-  readonly selectedCompetition = computed(() =>
-    this.competitions().find((competition) => competition.competitionId === this.selectedCompetitionId()) ?? null,
+  readonly selectedCompetition = computed(
+    () =>
+      this.competitions().find(
+        (competition) => competition.competitionId === this.selectedCompetitionId(),
+      ) ?? null,
   );
   readonly bootstrapAllowed = computed(() => this.state().bootstrapAllowed);
   readonly deepLinkRejected = computed(() => this.state().deepLinkRejected);
@@ -50,13 +53,20 @@ export class SportsScopeStore {
 
   async load(requestedCompetitionId?: string | null): Promise<void> {
     const requestId = ++this.requestSequence;
-    this.state.set({ ...this.state(), status: 'loading', errorMessage: null, deepLinkRejected: false });
+    this.state.set({
+      ...this.state(),
+      status: 'loading',
+      errorMessage: null,
+      deepLinkRejected: false,
+    });
 
     try {
-      const { scope, capabilities } = await firstValueFrom(forkJoin({
-        scope: this.adapter.fetchScope(),
-        capabilities: this.adapter.fetchCapabilities(),
-      }));
+      const { scope, capabilities } = await firstValueFrom(
+        forkJoin({
+          scope: this.adapter.fetchScope(),
+          capabilities: this.adapter.fetchCapabilities(),
+        }),
+      );
       if (requestId !== this.requestSequence) return;
 
       const canManage = capabilities.includes('MANAGE_SPORTS_CATALOG');
@@ -67,8 +77,9 @@ export class SportsScopeStore {
       }
 
       const requested = requestedCompetitionId?.trim() || null;
-      const requestedIsAuthorized = requested !== null
-        && scope.competitions.some((competition) => competition.competitionId === requested);
+      const requestedIsAuthorized =
+        requested !== null &&
+        scope.competitions.some((competition) => competition.competitionId === requested);
       const selectedCompetitionId = requestedIsAuthorized
         ? requested
         : scope.competitions.length === 1
@@ -77,8 +88,10 @@ export class SportsScopeStore {
 
       this.state.set({
         status: scope.competitions.length === 0 ? 'empty' : 'ready',
-        competitions: [...scope.competitions].sort((left, right) =>
-          left.name.localeCompare(right.name, 'pt-BR') || left.competitionId.localeCompare(right.competitionId),
+        competitions: [...scope.competitions].sort(
+          (left, right) =>
+            left.name.localeCompare(right.name, 'pt-BR') ||
+            left.competitionId.localeCompare(right.competitionId),
         ),
         selectedCompetitionId,
         bootstrapAllowed: canBootstrap && scope.bootstrapAllowed && scope.competitions.length === 0,
@@ -90,15 +103,22 @@ export class SportsScopeStore {
       this.state.set({
         ...this.state(),
         status: 'error',
-        errorMessage: 'Nao foi possivel carregar as competicoes. Tente carregar novamente antes de iniciar o catalogo.',
+        errorMessage:
+          'Nao foi possivel carregar as competicoes. Tente carregar novamente antes de iniciar o catalogo.',
       });
     }
   }
 
   selectCompetition(competitionId: string): boolean {
-    const exists = this.competitions().some((competition) => competition.competitionId === competitionId);
+    const exists = this.competitions().some(
+      (competition) => competition.competitionId === competitionId,
+    );
     if (!exists) return false;
-    this.state.update((state) => ({ ...state, selectedCompetitionId: competitionId, deepLinkRejected: false }));
+    this.state.update((state) => ({
+      ...state,
+      selectedCompetitionId: competitionId,
+      deepLinkRejected: false,
+    }));
     return true;
   }
 

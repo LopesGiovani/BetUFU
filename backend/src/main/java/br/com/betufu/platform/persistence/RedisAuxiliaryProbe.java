@@ -8,25 +8,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class RedisAuxiliaryProbe {
 
-    private final RedisConnectionFactory connectionFactory;
+  private final RedisConnectionFactory connectionFactory;
 
-    public RedisAuxiliaryProbe(@Autowired(required = false) RedisConnectionFactory connectionFactory) {
-        this.connectionFactory = connectionFactory;
+  public RedisAuxiliaryProbe(
+      @Autowired(required = false) RedisConnectionFactory connectionFactory) {
+    this.connectionFactory = connectionFactory;
+  }
+
+  public RedisAuxiliaryStatus checkAuxiliaryStatus() {
+    if (connectionFactory == null) {
+      return new RedisAuxiliaryStatus(false, "UNAVAILABLE");
     }
 
-    public RedisAuxiliaryStatus checkAuxiliaryStatus() {
-        if (connectionFactory == null) {
-            return new RedisAuxiliaryStatus(false, "UNAVAILABLE");
-        }
-
-        try (RedisConnection connection = connectionFactory.getConnection()) {
-            String ping = connection.ping();
-            boolean ok = "PONG".equalsIgnoreCase(ping);
-            return new RedisAuxiliaryStatus(ok, ping);
-        } catch (Exception e) {
-            return new RedisAuxiliaryStatus(false, "ERROR");
-        }
+    try (RedisConnection connection = connectionFactory.getConnection()) {
+      String ping = connection.ping();
+      boolean ok = "PONG".equalsIgnoreCase(ping);
+      return new RedisAuxiliaryStatus(ok, ping);
+    } catch (Exception e) {
+      return new RedisAuxiliaryStatus(false, "ERROR");
     }
+  }
 
-    public record RedisAuxiliaryStatus(boolean auxiliaryHealthy, String pingStatus) {}
+  public record RedisAuxiliaryStatus(boolean auxiliaryHealthy, String pingStatus) {}
 }

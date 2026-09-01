@@ -113,7 +113,9 @@ describe('OperationsApiAdapter (Contrato e Mapeamento S4)', () => {
     expect(adapted?.administrativeCorrections?.totalCount).toBe(1);
     expect(adapted?.administrativeCorrections?.label).toBe('1 correção registrada');
     expect(adapted?.administrativeCorrections?.events[0].targetNickname).toBe('aluno_ufu');
-    expect(adapted?.administrativeCorrections?.events[0].reason).toContain('Correção de dígito verificador');
+    expect(adapted?.administrativeCorrections?.events[0].reason).toContain(
+      'Correção de dígito verificador',
+    );
 
     // Bloco 3: Alterações de papel
     expect(adapted?.roleChanges).not.toBeNull();
@@ -411,14 +413,16 @@ describe('OperationsApiAdapter (Contrato e Mapeamento S4)', () => {
   });
 
   it('consulta capacidades pelo cliente gerado, ordena valores unicos e rejeita o valor duplicado', async () => {
-    mockOperationalCapabilitiesService.getOperationalCapabilities.mockReturnValue(of({
-      capabilities: [
-        'CORRECT_ENROLLMENT',
-        'VIEW_OPERATIONAL_PANEL',
-        'MANAGE_ROLES',
-        'VIEW_OPERATIONAL_PANEL',
-      ],
-    }));
+    mockOperationalCapabilitiesService.getOperationalCapabilities.mockReturnValue(
+      of({
+        capabilities: [
+          'CORRECT_ENROLLMENT',
+          'VIEW_OPERATIONAL_PANEL',
+          'MANAGE_ROLES',
+          'VIEW_OPERATIONAL_PANEL',
+        ],
+      }),
+    );
 
     const result = await new Promise<readonly string[]>((resolve) => {
       adapter.fetchOperationalCapabilities().subscribe(resolve);

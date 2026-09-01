@@ -15,7 +15,11 @@ interface ReviewState {
 }
 
 const INITIAL_STATE: ReviewState = Object.freeze({
-  status: 'initial', reviews: Object.freeze([]), selectedReview: null, errorMessage: null, isRetrying: false,
+  status: 'initial',
+  reviews: Object.freeze([]),
+  selectedReview: null,
+  errorMessage: null,
+  isRetrying: false,
 });
 
 @Injectable({ providedIn: 'root' })
@@ -36,23 +40,39 @@ export class AthleteLinkReviewStore {
 
   async load(): Promise<void> {
     const requestId = ++this.requestSequence;
-    this.state.update((current) => ({ ...current, status: 'loading', errorMessage: null, isRetrying: false, selectedReview: null }));
+    this.state.update((current) => ({
+      ...current,
+      status: 'loading',
+      errorMessage: null,
+      isRetrying: false,
+      selectedReview: null,
+    }));
     try {
-      const reviews = await firstValueFrom(this.adapter.fetchReviews().pipe(
-        retry({
-          count: 2,
-          delay: (error: unknown, retryCount) => {
-            if (this.adapter.isUnauthorized(error)) throw error;
-            this.state.update((current) => ({ ...current, isRetrying: true }));
-            return timer(retryCount === 1 ? 250 : 500);
-          },
-        }),
-      ));
+      const reviews = await firstValueFrom(
+        this.adapter.fetchReviews().pipe(
+          retry({
+            count: 2,
+            delay: (error: unknown, retryCount) => {
+              if (this.adapter.isUnauthorized(error)) throw error;
+              this.state.update((current) => ({ ...current, isRetrying: true }));
+              return timer(retryCount === 1 ? 250 : 500);
+            },
+          }),
+        ),
+      );
       if (requestId !== this.requestSequence) return;
-      this.state.set({ ...INITIAL_STATE, status: reviews.length === 0 ? 'empty' : 'ready', reviews });
+      this.state.set({
+        ...INITIAL_STATE,
+        status: reviews.length === 0 ? 'empty' : 'ready',
+        reviews,
+      });
     } catch (error: unknown) {
       if (requestId !== this.requestSequence) return;
-      this.state.set({ ...INITIAL_STATE, status: 'error', errorMessage: this.sanitizeError(error) });
+      this.state.set({
+        ...INITIAL_STATE,
+        status: 'error',
+        errorMessage: this.sanitizeError(error),
+      });
     }
   }
 
@@ -63,18 +83,35 @@ export class AthleteLinkReviewStore {
     return true;
   }
 
-  closeReview(): void { this.state.update((current) => ({ ...current, selectedReview: null })); }
+  closeReview(): void {
+    this.state.update((current) => ({ ...current, selectedReview: null }));
+  }
 
-  reset(): void { this.requestSequence += 1; this.state.set(INITIAL_STATE); }
+  reset(): void {
+    this.requestSequence += 1;
+    this.state.set(INITIAL_STATE);
+  }
 
   reasonLabel(reasonCode: AthleteLinkReviewSummary.ReasonCodeEnum): string {
-    return ({ DIVERGENT_DATA: 'Ambiguidade', MULTIPLE_CANDIDATES: 'Ambiguidade', ALREADY_LINKED: 'Já vinculado', CONTESTED: 'Contestação' } as Record<string, string>)[reasonCode] ?? 'Revisão de vínculo';
+    return (
+      (
+        {
+          DIVERGENT_DATA: 'Ambiguidade',
+          MULTIPLE_CANDIDATES: 'Ambiguidade',
+          ALREADY_LINKED: 'Já vinculado',
+          CONTESTED: 'Contestação',
+        } as Record<string, string>
+      )[reasonCode] ?? 'Revisão de vínculo'
+    );
   }
 
   private sanitizeError(error: unknown): string {
-    if (error instanceof HttpErrorResponse && error.status === 401) return 'Sua sessão expirou. Entre novamente para continuar.';
-    if (error instanceof HttpErrorResponse && error.status === 403) return 'Você não tem acesso a esta área.';
-    if (error instanceof Error && error.message.startsWith('CONTRATO_')) return 'Dados de revisão inválidos recebidos da plataforma.';
+    if (error instanceof HttpErrorResponse && error.status === 401)
+      return 'Sua sessão expirou. Entre novamente para continuar.';
+    if (error instanceof HttpErrorResponse && error.status === 403)
+      return 'Você não tem acesso a esta área.';
+    if (error instanceof Error && error.message.startsWith('CONTRATO_'))
+      return 'Dados de revisão inválidos recebidos da plataforma.';
     return 'Não foi possível carregar a fila de revisão. Tente novamente.';
   }
 }

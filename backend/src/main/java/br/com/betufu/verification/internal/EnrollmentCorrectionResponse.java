@@ -22,8 +22,4 @@ import java.util.UUID;
  *     identifica o registro administrativo em conta sem vínculo e a correção inócua
  */
 public record EnrollmentCorrectionResponse(
-        UUID targetIdentityId,
-        String status,
-        Instant correctedAt,
-        boolean previousBindingReleased) {
-}
+    UUID targetIdentityId, String status, Instant correctedAt, boolean previousBindingReleased) {}

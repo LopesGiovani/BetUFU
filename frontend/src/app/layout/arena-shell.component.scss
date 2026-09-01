@@ -64,7 +64,9 @@
   border-radius: 50%;
   background: tokens.$color-accent;
   color: tokens.$color-on-accent;
-  font: 600 min(var(--bt-type-heading), 1.625rem)/1 'Barlow Condensed', sans-serif;
+  font:
+    600 min(var(--bt-type-heading), 1.625rem)/1 'Barlow Condensed',
+    sans-serif;
   line-height: 1;
 }
 
@@ -93,7 +95,9 @@
     border-radius: tokens.$radius-full;
     background: tokens.$color-accent;
     color: tokens.$color-on-accent;
-    transition: box-shadow 160ms ease, transform 160ms ease;
+    transition:
+      box-shadow 160ms ease,
+      transform 160ms ease;
 
     &:hover {
       background: tokens.$color-accent-soft;

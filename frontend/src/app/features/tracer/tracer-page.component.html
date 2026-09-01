@@ -2,11 +2,7 @@
   <h1>Verificação de integração</h1>
   <p>Confirme o vínculo seguro entre o navegador e a BETUFU.</p>
 
-  <button
-    type="button"
-    [disabled]="isLoading()"
-    (click)="verifyIntegration()"
-  >
+  <button type="button" [disabled]="isLoading()" (click)="verifyIntegration()">
     @if (isLoading()) {
       Verificando…
     } @else {

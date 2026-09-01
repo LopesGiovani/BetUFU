@@ -283,7 +283,9 @@ describe('EnrollmentAdminPageComponent (Superfície S6 - D-32, VERI-06, VERI-07,
 
     const confirmBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-confirm');
     confirmBtn.click();
-    await vi.waitFor(() => expect(mockEnrollmentService.correctEnrollment).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() =>
+      expect(mockEnrollmentService.correctEnrollment).toHaveBeenCalledTimes(1),
+    );
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -491,7 +493,9 @@ describe('EnrollmentAdminPageComponent (Superfície S6 - D-32, VERI-06, VERI-07,
     mockEnrollmentService.correctEnrollment.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 403 })),
     );
-    expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste 403')).toBe(false);
+    expect(
+      await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste 403'),
+    ).toBe(false);
     fixture.detectChanges();
 
     const errorAlert = fixture.nativeElement.querySelector('.error-alert');
@@ -499,7 +503,9 @@ describe('EnrollmentAdminPageComponent (Superfície S6 - D-32, VERI-06, VERI-07,
     expect(store.resolvedTarget()).toBeNull();
     expect(component.isSubmitDisabled).toBe(true);
 
-    expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Segunda tentativa proibida')).toBe(false);
+    expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Segunda tentativa proibida')).toBe(
+      false,
+    );
     expect(mockEnrollmentService.correctEnrollment).toHaveBeenCalledTimes(1);
   });
 
@@ -511,7 +517,9 @@ describe('EnrollmentAdminPageComponent (Superfície S6 - D-32, VERI-06, VERI-07,
     await component.onSearchTarget();
 
     mockEnrollmentService.correctEnrollment.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status: 401, error: { detail: 'token interno inválido' } })),
+      throwError(
+        () => new HttpErrorResponse({ status: 401, error: { detail: 'token interno inválido' } }),
+      ),
     );
     await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste 401');
     fixture.detectChanges();
@@ -531,7 +539,9 @@ describe('EnrollmentAdminPageComponent (Superfície S6 - D-32, VERI-06, VERI-07,
     mockEnrollmentService.correctEnrollment.mockReturnValue(
       throwError(() => new HttpErrorResponse({ status: 404 })),
     );
-    expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste 404')).toBe(false);
+    expect(
+      await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste 404'),
+    ).toBe(false);
 
     expect(store.errorMessage()).toBe(
       'A conta informada não foi localizada. Localize-a novamente antes de corrigir a matrícula.',
@@ -541,29 +551,37 @@ describe('EnrollmentAdminPageComponent (Superfície S6 - D-32, VERI-06, VERI-07,
     expect(mockEnrollmentService.correctEnrollment).toHaveBeenCalledTimes(1);
   });
 
-  it.each([400, 422])('distingue erro de validação HTTP %s e preserva erros de campo', async (status) => {
-    mockRoleService.getRoles.mockReturnValue(of(MOCK_ROLE_RESPONSE_VALID));
+  it.each([400, 422])(
+    'distingue erro de validação HTTP %s e preserva erros de campo',
+    async (status) => {
+      mockRoleService.getRoles.mockReturnValue(of(MOCK_ROLE_RESPONSE_VALID));
 
-    await createComponent();
-    component.form.controls.targetIdentityId.setValue(TARGET_ID);
-    await component.onSearchTarget();
+      await createComponent();
+      component.form.controls.targetIdentityId.setValue(TARGET_ID);
+      await component.onSearchTarget();
 
-    mockEnrollmentService.correctEnrollment.mockReturnValue(
-      throwError(() => new HttpErrorResponse({
-        status,
-        error: {
-          detail: 'detalhe técnico que não deve aparecer',
-          fieldErrors: [{ field: 'reason', message: 'Motivo recusado pela validação.' }],
-        },
-      })),
-    );
-    expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste')).toBe(false);
+      mockEnrollmentService.correctEnrollment.mockReturnValue(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status,
+              error: {
+                detail: 'detalhe técnico que não deve aparecer',
+                fieldErrors: [{ field: 'reason', message: 'Motivo recusado pela validação.' }],
+              },
+            }),
+        ),
+      );
+      expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste')).toBe(
+        false,
+      );
 
-    expect(store.errorMessage()).toBe('Revise os campos destacados e tente novamente.');
-    expect(store.errorMessage()).not.toContain('detalhe técnico');
-    expect(store.fieldErrors().reason).toBe('Motivo recusado pela validação.');
-    expect(mockEnrollmentService.correctEnrollment).toHaveBeenCalledTimes(1);
-  });
+      expect(store.errorMessage()).toBe('Revise os campos destacados e tente novamente.');
+      expect(store.errorMessage()).not.toContain('detalhe técnico');
+      expect(store.fieldErrors().reason).toBe('Motivo recusado pela validação.');
+      expect(mockEnrollmentService.correctEnrollment).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it.each([500, 0])('sanitiza falha HTTP %s sem retentar a mutação', async (status) => {
     mockRoleService.getRoles.mockReturnValue(of(MOCK_ROLE_RESPONSE_VALID));
@@ -573,9 +591,13 @@ describe('EnrollmentAdminPageComponent (Superfície S6 - D-32, VERI-06, VERI-07,
     await component.onSearchTarget();
 
     mockEnrollmentService.correctEnrollment.mockReturnValue(
-      throwError(() => new HttpErrorResponse({ status, error: { detail: 'stack trace sensível' } })),
+      throwError(
+        () => new HttpErrorResponse({ status, error: { detail: 'stack trace sensível' } }),
+      ),
     );
-    expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste')).toBe(false);
+    expect(await store.correctEnrollment(TARGET_ID, '12345ABC', 'Motivo válido para teste')).toBe(
+      false,
+    );
 
     expect(store.errorMessage()).toBe(
       'Não foi possível corrigir a matrícula. Verifique a conexão e tente novamente.',

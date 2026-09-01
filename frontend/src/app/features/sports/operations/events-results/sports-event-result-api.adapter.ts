@@ -149,7 +149,11 @@ export class SportsEventResultApiAdapter {
     );
   }
 
-  suspendEvent(eventId: string, expectedLockVersion: number, reason?: string | null): Observable<SportsEventDetail> {
+  suspendEvent(
+    eventId: string,
+    expectedLockVersion: number,
+    reason?: string | null,
+  ): Observable<SportsEventDetail> {
     const request: SuspendSportsEventRequestParams = {
       eventId,
       expectedLockVersion,
@@ -181,7 +185,11 @@ export class SportsEventResultApiAdapter {
     );
   }
 
-  cancelEvent(eventId: string, expectedLockVersion: number, reason: string): Observable<SportsEventDetail> {
+  cancelEvent(
+    eventId: string,
+    expectedLockVersion: number,
+    reason: string,
+  ): Observable<SportsEventDetail> {
     const request: CancelSportsEventRequestParams = {
       eventId,
       expectedLockVersion,
@@ -305,20 +313,20 @@ export class SportsEventResultApiAdapter {
     }
     const item = value as Partial<SportsEventDetail>;
     if (
-      typeof item.eventId !== 'string'
-      || typeof item.competitionId !== 'string'
-      || typeof item.competitionName !== 'string'
-      || typeof item.editionId !== 'string'
-      || typeof item.editionName !== 'string'
-      || typeof item.title !== 'string'
-      || typeof item.format !== 'string'
-      || typeof item.status !== 'string'
-      || typeof item.scheduledAt !== 'string'
-      || typeof item.zoneId !== 'string'
-      || typeof item.venueState !== 'string'
-      || typeof item.sourceReference !== 'string'
-      || typeof item.lockVersion !== 'number'
-      || !Array.isArray(item.slots)
+      typeof item.eventId !== 'string' ||
+      typeof item.competitionId !== 'string' ||
+      typeof item.competitionName !== 'string' ||
+      typeof item.editionId !== 'string' ||
+      typeof item.editionName !== 'string' ||
+      typeof item.title !== 'string' ||
+      typeof item.format !== 'string' ||
+      typeof item.status !== 'string' ||
+      typeof item.scheduledAt !== 'string' ||
+      typeof item.zoneId !== 'string' ||
+      typeof item.venueState !== 'string' ||
+      typeof item.sourceReference !== 'string' ||
+      typeof item.lockVersion !== 'number' ||
+      !Array.isArray(item.slots)
     ) {
       throw new Error('CONTRATO_EVENTOS_INVALIDO: detalhe do evento incompleto.');
     }
@@ -334,17 +342,17 @@ export class SportsEventResultApiAdapter {
     }
     const item = value as Partial<SportsResultVersion>;
     if (
-      typeof item.versionId !== 'string'
-      || typeof item.eventId !== 'string'
-      || typeof item.competitionId !== 'string'
-      || typeof item.editionId !== 'string'
-      || typeof item.versionNo !== 'number'
-      || typeof item.status !== 'string'
-      || typeof item.sourceReference !== 'string'
-      || typeof item.recordedByIdentityId !== 'string'
-      || typeof item.recordedAt !== 'string'
-      || typeof item.baseLockVersion !== 'number'
-      || !Array.isArray(item.scores)
+      typeof item.versionId !== 'string' ||
+      typeof item.eventId !== 'string' ||
+      typeof item.competitionId !== 'string' ||
+      typeof item.editionId !== 'string' ||
+      typeof item.versionNo !== 'number' ||
+      typeof item.status !== 'string' ||
+      typeof item.sourceReference !== 'string' ||
+      typeof item.recordedByIdentityId !== 'string' ||
+      typeof item.recordedAt !== 'string' ||
+      typeof item.baseLockVersion !== 'number' ||
+      !Array.isArray(item.scores)
     ) {
       throw new Error('CONTRATO_RESULTADOS_INVALIDO: versao de resultado incompleta.');
     }
@@ -359,10 +367,7 @@ export class SportsEventResultApiAdapter {
       throw new Error('CONTRATO_EVENTOS_INVALIDO: slot ausente.');
     }
     const slot = value as Partial<SportsEventSlotItem>;
-    if (
-      typeof slot.slotNo !== 'number'
-      || typeof slot.displayLabel !== 'string'
-    ) {
+    if (typeof slot.slotNo !== 'number' || typeof slot.displayLabel !== 'string') {
       throw new Error('CONTRATO_EVENTOS_INVALIDO: slot incompleto.');
     }
     return slot as SportsEventSlotItem;
@@ -374,9 +379,9 @@ export class SportsEventResultApiAdapter {
     }
     const score = value as Partial<SportsResultScoreItem>;
     if (
-      typeof score.slotNo !== 'number'
-      || typeof score.score !== 'number'
-      || typeof score.displayLabel !== 'string'
+      typeof score.slotNo !== 'number' ||
+      typeof score.score !== 'number' ||
+      typeof score.displayLabel !== 'string'
     ) {
       throw new Error('CONTRATO_RESULTADOS_INVALIDO: pontuacao incompleta.');
     }

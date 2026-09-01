@@ -135,7 +135,9 @@ button {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .status-feedback {
@@ -174,7 +176,9 @@ button {
 .error-state {
   border-color: tokens.$color-unavailable;
   .status-icon,
-  .error-text { color: tokens.$color-unavailable; }
+  .error-text {
+    color: tokens.$color-unavailable;
+  }
 }
 
 .correlation-box {

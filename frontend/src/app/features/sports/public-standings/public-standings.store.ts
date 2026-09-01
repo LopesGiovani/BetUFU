@@ -52,7 +52,12 @@ export class PublicStandingsStore {
       );
 
       if (requestId !== this.requestSequence) return;
-      if (!data || data.standingsId !== id || !Array.isArray(data.rows) || !Array.isArray(data.columns)) {
+      if (
+        !data ||
+        data.standingsId !== id ||
+        !Array.isArray(data.rows) ||
+        !Array.isArray(data.columns)
+      ) {
         throw new Error('CONTRATO_STANDINGS_INVALIDO');
       }
 

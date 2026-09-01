@@ -1,19 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, retry, timer } from 'rxjs';
-import {
-  EnrollmentAdminApiAdapter,
-  ResolvedTargetAccount,
-} from './enrollment-admin-api.adapter';
+import { EnrollmentAdminApiAdapter, ResolvedTargetAccount } from './enrollment-admin-api.adapter';
 
 export type EnrollmentAdminStatus =
-  | 'initial'
-  | 'resolving'
-  | 'empty'
-  | 'resolved'
-  | 'submitting'
-  | 'success'
-  | 'error';
+  'initial' | 'resolving' | 'empty' | 'resolved' | 'submitting' | 'success' | 'error';
 
 export interface EnrollmentAdminFieldErrors {
   readonly targetIdentityId: string | null;
@@ -99,7 +90,8 @@ export class EnrollmentAdminStore {
         targetIdentityId: trimmedId,
         fieldErrors: {
           ...s.fieldErrors,
-          targetIdentityId: 'Este identificador não tem o formato esperado. Copie-o do perfil da pessoa.',
+          targetIdentityId:
+            'Este identificador não tem o formato esperado. Copie-o do perfil da pessoa.',
         },
         errorMessage: null,
         errorCorrelationId: null,
@@ -237,7 +229,8 @@ export class EnrollmentAdminStore {
     } else {
       const normalizedMatricula = trimmedMatricula.toUpperCase().replace(/[\s\-./]+/g, '');
       if (!/^[A-Z0-9]{5,20}$/.test(normalizedMatricula)) {
-        matriculaError = 'Este número não corresponde ao formato de matrícula da UFU. Confira e digite novamente.';
+        matriculaError =
+          'Este número não corresponde ao formato de matrícula da UFU. Confira e digite novamente.';
       }
     }
 
@@ -245,7 +238,8 @@ export class EnrollmentAdminStore {
     if (!trimmedReason) {
       reasonError = 'Informe o motivo da correção.';
     } else if (trimmedReason.length < 10) {
-      reasonError = 'Descreva o motivo com mais detalhe. Ele precisa fazer sentido para quem ler a auditoria depois.';
+      reasonError =
+        'Descreva o motivo com mais detalhe. Ele precisa fazer sentido para quem ler a auditoria depois.';
     }
 
     if (matriculaError || reasonError) {
@@ -279,9 +273,7 @@ export class EnrollmentAdminStore {
     }));
 
     try {
-      await firstValueFrom(
-        this.adapter.correctEnrollment(targetIdentityId, matricula, reason),
-      );
+      await firstValueFrom(this.adapter.correctEnrollment(targetIdentityId, matricula, reason));
 
       if (generation !== this.lifecycleGeneration) {
         return false;
@@ -311,7 +303,10 @@ export class EnrollmentAdminStore {
       if (error instanceof HttpErrorResponse && error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
         if (Array.isArray(errorBody['fieldErrors'])) {
-          for (const violation of errorBody['fieldErrors'] as Array<{ field?: string; message?: string }>) {
+          for (const violation of errorBody['fieldErrors'] as Array<{
+            field?: string;
+            message?: string;
+          }>) {
             if (violation.field === 'matricula') {
               fieldErrors.matricula = violation.message ?? 'Matrícula inválida.';
             } else if (violation.field === 'reason') {
@@ -416,14 +411,19 @@ export class EnrollmentAdminStore {
       }
       if (error.status === 404) {
         return {
-          message: 'A conta informada não foi localizada. Localize-a novamente antes de corrigir a matrícula.',
+          message:
+            'A conta informada não foi localizada. Localize-a novamente antes de corrigir a matrícula.',
           correlationId,
         };
       }
       if (error.status === 400 || error.status === 422) {
         return { message: 'Revise os campos destacados e tente novamente.', correlationId };
       }
-      if (error.status === 409 || errorCode.includes('MATRICULA_DUPLICADA') || errorCode.includes('CONTA_JA_VINCULADA')) {
+      if (
+        error.status === 409 ||
+        errorCode.includes('MATRICULA_DUPLICADA') ||
+        errorCode.includes('CONTA_JA_VINCULADA')
+      ) {
         // UI-SPEC §332: Nova matrícula já registrada em outra conta (S6)
         const msg =
           correlationId !== 'N/D'
@@ -433,7 +433,8 @@ export class EnrollmentAdminStore {
       }
     }
 
-    const baseMessage = 'Não foi possível corrigir a matrícula. Verifique a conexão e tente novamente.';
+    const baseMessage =
+      'Não foi possível corrigir a matrícula. Verifique a conexão e tente novamente.';
     const message =
       correlationId !== 'N/D'
         ? `${baseMessage} Código de referência: ${correlationId}.`
@@ -446,11 +447,15 @@ export class EnrollmentAdminStore {
     if (error instanceof HttpErrorResponse) {
       if (error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
-        if (typeof errorBody['correlationId'] === 'string' && errorBody['correlationId'].trim() !== '') {
+        if (
+          typeof errorBody['correlationId'] === 'string' &&
+          errorBody['correlationId'].trim() !== ''
+        ) {
           return errorBody['correlationId'].trim();
         }
       }
-      const headerVal = error.headers?.get('x-correlation-id') || error.headers?.get('correlationId');
+      const headerVal =
+        error.headers?.get('x-correlation-id') || error.headers?.get('correlationId');
       if (headerVal && headerVal.trim() !== '') {
         return headerVal.trim();
       }

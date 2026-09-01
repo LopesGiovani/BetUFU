@@ -4,17 +4,10 @@
  */
 
 export type OperationsPanelStateStatus =
-  | 'initial'
-  | 'loading'
-  | 'empty'
-  | 'populated'
-  | 'partial'
-  | 'error';
+  'initial' | 'loading' | 'empty' | 'populated' | 'partial' | 'error';
 
 export type OperationalCapabilityName =
-  | 'VIEW_OPERATIONAL_PANEL'
-  | 'MANAGE_ROLES'
-  | 'CORRECT_ENROLLMENT';
+  'VIEW_OPERATIONAL_PANEL' | 'MANAGE_ROLES' | 'CORRECT_ENROLLMENT';
 
 export interface OperationalNavigationItem {
   readonly capability: OperationalCapabilityName;
@@ -125,12 +118,7 @@ export interface OperationsPanelState {
  * Alinhado rigorosamente a 02-UI-SPEC.md §S5, OPER-01, OPER-02, OPER-04, D-41, D-42, D-48 e D-49.
  */
 
-export type RoleAdminStateStatus =
-  | 'initial'
-  | 'searching'
-  | 'empty'
-  | 'populated'
-  | 'error';
+export type RoleAdminStateStatus = 'initial' | 'searching' | 'empty' | 'populated' | 'error';
 
 export interface RoleItemViewModel {
   readonly role: 'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR';

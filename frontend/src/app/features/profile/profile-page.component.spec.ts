@@ -245,13 +245,18 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     const matriculaLink = compiled.querySelector('a.link-primary') as HTMLAnchorElement;
     expect(matriculaLink).not.toBeNull();
     expect(matriculaLink.textContent?.trim()).toBe('Registrar matrícula');
-    expect(matriculaLink.getAttribute('href') || matriculaLink.getAttribute('ng-reflect-router-link')).toContain('matricula');
+    expect(
+      matriculaLink.getAttribute('href') || matriculaLink.getAttribute('ng-reflect-router-link'),
+    ).toContain('matricula');
 
-    const athleteProfileLink = compiled.querySelector('a.athlete-profile-link') as HTMLAnchorElement;
+    const athleteProfileLink = compiled.querySelector(
+      'a.athlete-profile-link',
+    ) as HTMLAnchorElement;
     expect(athleteProfileLink).not.toBeNull();
     expect(athleteProfileLink.textContent?.trim()).toBe('Gerenciar perfil esportivo');
     expect(
-      athleteProfileLink.getAttribute('href') || athleteProfileLink.getAttribute('ng-reflect-router-link'),
+      athleteProfileLink.getAttribute('href') ||
+        athleteProfileLink.getAttribute('ng-reflect-router-link'),
     ).toContain('conta/perfil/esportivo');
   });
 
@@ -557,7 +562,9 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     expect(prodGateRoute).toBeDefined();
     expect(prodGateRoute?.loadComponent).toBeTypeOf('function');
 
-    const prodAthleteProfileRoute = prodRoot?.children?.find((r) => r.path === 'conta/perfil/esportivo');
+    const prodAthleteProfileRoute = prodRoot?.children?.find(
+      (r) => r.path === 'conta/perfil/esportivo',
+    );
     expect(prodAthleteProfileRoute).toBeDefined();
     expect(prodAthleteProfileRoute?.loadComponent).toBeTypeOf('function');
 
@@ -574,7 +581,9 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     expect(devProfileRoute).toBeDefined();
     expect(devProfileRoute?.loadComponent).toBeTypeOf('function');
 
-    const devAthleteProfileRoute = devRoot?.children?.find((r) => r.path === 'conta/perfil/esportivo');
+    const devAthleteProfileRoute = devRoot?.children?.find(
+      (r) => r.path === 'conta/perfil/esportivo',
+    );
     expect(devAthleteProfileRoute).toBeDefined();
     expect(devAthleteProfileRoute?.loadComponent).toBeTypeOf('function');
 
@@ -604,7 +613,9 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     );
 
     // 3. Preenche apelido em S1 e configura resposta de sucesso
-    const gateInput = hostFixture.nativeElement.querySelector('#nickname-input') as HTMLInputElement;
+    const gateInput = hostFixture.nativeElement.querySelector(
+      '#nickname-input',
+    ) as HTMLInputElement;
     gateInput.value = 'jogador_integrado';
     gateInput.dispatchEvent(new Event('input'));
     hostFixture.detectChanges();
@@ -619,7 +630,9 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     mockProfileService.putMyProfile.mockReturnValue(of(savedProfile));
     mockProfileService.getMyProfile.mockReturnValue(of(savedProfile));
 
-    const gateSubmit = hostFixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const gateSubmit = hostFixture.nativeElement.querySelector(
+      'button[type="submit"]',
+    ) as HTMLButtonElement;
     gateSubmit.click();
     hostFixture.detectChanges();
     await vi.waitFor(() => {
@@ -640,7 +653,9 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     const identityValue = hostFixture.nativeElement.querySelector('#identity-value') as HTMLElement;
     expect(identityValue?.textContent?.trim()).toBe('uuid-integ-s1-s2-777');
 
-    const profileInput = hostFixture.nativeElement.querySelector('#nickname-input') as HTMLInputElement;
+    const profileInput = hostFixture.nativeElement.querySelector(
+      '#nickname-input',
+    ) as HTMLInputElement;
     expect(profileInput.value).toBe('jogador_integrado');
   });
 

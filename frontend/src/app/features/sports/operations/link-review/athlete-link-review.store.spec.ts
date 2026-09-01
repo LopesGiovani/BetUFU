@@ -7,8 +7,13 @@ import { AthleteLinkReviewApiAdapter } from './athlete-link-review-api.adapter';
 import { AthleteLinkReviewStore } from './athlete-link-review.store';
 
 const review: AthleteLinkReviewSummary = {
-  reviewId: 'review-1', proposalId: 'proposal-1', athleteId: 'athlete-1', athleteName: 'Atleta Um',
-  reasonCode: AthleteLinkReviewSummary.ReasonCodeEnum.Contested, status: AthleteLinkReviewSummary.StatusEnum.Pendente, createdAt: '2026-08-30T10:00:00Z',
+  reviewId: 'review-1',
+  proposalId: 'proposal-1',
+  athleteId: 'athlete-1',
+  athleteName: 'Atleta Um',
+  reasonCode: AthleteLinkReviewSummary.ReasonCodeEnum.Contested,
+  status: AthleteLinkReviewSummary.StatusEnum.Pendente,
+  createdAt: '2026-08-30T10:00:00Z',
 };
 
 type ReviewAdapterMock = {
@@ -21,9 +26,17 @@ describe('AthleteLinkReviewStore', () => {
   beforeEach(() => {
     adapter = {
       fetchReviews: vi.fn(() => of([review])),
-      isUnauthorized: vi.fn((error: unknown) => error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)),
+      isUnauthorized: vi.fn(
+        (error: unknown) =>
+          error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403),
+      ),
     };
-    TestBed.configureTestingModule({ providers: [AthleteLinkReviewStore, { provide: AthleteLinkReviewApiAdapter, useValue: adapter }] });
+    TestBed.configureTestingModule({
+      providers: [
+        AthleteLinkReviewStore,
+        { provide: AthleteLinkReviewApiAdapter, useValue: adapter },
+      ],
+    });
   });
 
   it('carrega a fila, abre detalhe por item autorizado e fecha sem mutar a lista', async () => {

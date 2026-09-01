@@ -46,29 +46,31 @@ export class SportsPublicViewApiAdapter {
       throw new Error('CONTRATO_PUBLICO_INVALIDO: resposta ausente.');
     }
 
-    const idField = kind === 'competition'
-      ? 'competitionId'
-      : kind === 'event'
-        ? 'eventId'
-        : kind === 'organization'
-          ? 'organizationId'
-          : kind === 'team'
-            ? 'teamId'
-            : 'athleteId';
+    const idField =
+      kind === 'competition'
+        ? 'competitionId'
+        : kind === 'event'
+          ? 'eventId'
+          : kind === 'organization'
+            ? 'organizationId'
+            : kind === 'team'
+              ? 'teamId'
+              : 'athleteId';
     const actualId = (data as unknown as Record<string, unknown>)[idField];
     if (typeof actualId !== 'string' || actualId !== id) {
       throw new Error('CONTRATO_PUBLICO_INVALIDO: identificador da resposta diverge da rota.');
     }
 
-    const collectionFields = kind === 'competition'
-      ? ['editions', 'categories', 'phases', 'venues', 'teams', 'recentEvents']
-      : kind === 'event'
-        ? ['slots', 'sourceHistory']
-        : kind === 'organization'
-          ? ['teams', 'rosterMembers', 'events']
-          : kind === 'team'
-            ? ['events']
-            : ['teams', 'events'];
+    const collectionFields =
+      kind === 'competition'
+        ? ['editions', 'categories', 'phases', 'venues', 'teams', 'recentEvents']
+        : kind === 'event'
+          ? ['slots', 'sourceHistory']
+          : kind === 'organization'
+            ? ['teams', 'rosterMembers', 'events']
+            : kind === 'team'
+              ? ['events']
+              : ['teams', 'events'];
     for (const field of collectionFields) {
       if (!Array.isArray((data as unknown as Record<string, unknown>)[field])) {
         throw new Error(`CONTRATO_PUBLICO_INVALIDO: coleção ${field} ausente.`);

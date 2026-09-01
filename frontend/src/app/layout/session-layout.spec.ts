@@ -138,7 +138,8 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   it('Transição: logoutCurrentDevice envia um único POST e move para "logged_out" com endSessionUrl', async () => {
     const mockLogoutResponse: CurrentDeviceLogoutResponse = {
       status: 'LOGGED_OUT',
-      endSessionUrl: 'http://localhost:8080/realms/betufu/protocol/openid-connect/logout?client_id=betufu-web',
+      endSessionUrl:
+        'http://localhost:8080/realms/betufu/protocol/openid-connect/logout?client_id=betufu-web',
     };
 
     (mockSessionService.logoutCurrentSession as any).mockReturnValue(of(mockLogoutResponse));
@@ -257,7 +258,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     expect(styleContent).toMatch(/@media\s*\(max-width:/);
     expect(styleContent).toMatch(/\.header-inner\s*\{[^}]*min-width:\s*0/s);
     expect(styleContent).toMatch(/\.user-navigation\s*\{[^}]*min-width:\s*0/s);
-    expect(styleContent).toMatch(/\.account-menu\s*\{[^}]*max-width:\s*calc\(100vw\s*-\s*tokens\.\$space-8\)/s);
+    expect(styleContent).toMatch(
+      /\.account-menu\s*\{[^}]*max-width:\s*calc\(100vw\s*-\s*tokens\.\$space-8\)/s,
+    );
   });
 
   it('Layout UI: expired oculta router-outlet e exibe aviso com CTA para entrar', async () => {
@@ -309,11 +312,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('S1 renderiza somente Sair mesmo quando o BFF devolveria todas as capacidades', async () => {
-    mockOperationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(of([
-      'VIEW_OPERATIONAL_PANEL',
-      'MANAGE_ROLES',
-      'CORRECT_ENROLLMENT',
-    ]));
+    mockOperationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(
+      of(['VIEW_OPERATIONAL_PANEL', 'MANAGE_ROLES', 'CORRECT_ENROLLMENT']),
+    );
     (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: true }));
     await TestBed.inject(Router).navigateByUrl('/conta/perfil/completar');
 
@@ -330,10 +331,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('fora de S1 mostra itens base e somente destinos autorizados em ordem deterministica', async () => {
-    mockOperationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(of([
-      'CORRECT_ENROLLMENT',
-      'VIEW_OPERATIONAL_PANEL',
-    ]));
+    mockOperationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(
+      of(['CORRECT_ENROLLMENT', 'VIEW_OPERATIONAL_PANEL']),
+    );
     (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: true }));
     await TestBed.inject(Router).navigateByUrl('/conta/perfil');
 
@@ -347,7 +347,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
       '/operacao/painel',
       '/operacao/matriculas/corrigir',
     ]);
-    const trigger = fixture.nativeElement.querySelector('.account-menu-trigger') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector(
+      '.account-menu-trigger',
+    ) as HTMLButtonElement;
     expect(trigger.getAttribute('aria-expanded')).toBe('false');
     expect(trigger.getAttribute('aria-controls')).toBe('account-navigation-menu');
     trigger.click();
@@ -363,7 +365,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     ]);
     expect(menu.textContent).not.toContain('Papéis operacionais');
     expect(menu.querySelector('[disabled]')).toBeNull();
-    expect(menu.textContent).not.toMatch(/ADMINISTRADOR|VIEW_OPERATIONAL|CORRECT_ENROLLMENT|MFA|identity-/u);
+    expect(menu.textContent).not.toMatch(
+      /ADMINISTRADOR|VIEW_OPERATIONAL|CORRECT_ENROLLMENT|MFA|identity-/u,
+    );
   });
 
   it('limpa capacidades quando a sessao expira e consulta novamente apos reautenticacao', async () => {
@@ -404,7 +408,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const trigger = fixture.nativeElement.querySelector('.account-menu-trigger') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector(
+      '.account-menu-trigger',
+    ) as HTMLButtonElement;
     trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     fixture.detectChanges();
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
@@ -430,7 +436,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     fixture.detectChanges();
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
 
-    const reopenedMenu = fixture.nativeElement.querySelector('#account-navigation-menu') as HTMLElement;
+    const reopenedMenu = fixture.nativeElement.querySelector(
+      '#account-navigation-menu',
+    ) as HTMLElement;
     const tabbableItems = [
       ...reopenedMenu.querySelectorAll<HTMLAnchorElement | HTMLButtonElement>('a, button'),
     ];
@@ -439,7 +447,9 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
       'Matrícula UFU',
       'Sair',
     ]);
-    expect(tabbableItems.every((item) => item.tabIndex === 0 && !item.hasAttribute('disabled'))).toBe(true);
+    expect(
+      tabbableItems.every((item) => item.tabIndex === 0 && !item.hasAttribute('disabled')),
+    ).toBe(true);
     const tabEvent = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
     tabbableItems[0].dispatchEvent(tabEvent);
     expect(tabEvent.defaultPrevented).toBe(false);
@@ -458,12 +468,21 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('contrato responsivo garante alvos de 44px, rolagem vertical e nenhum overflow horizontal', () => {
-    const stylePath = path.resolve(process.cwd(), 'src/app/layout/authenticated-layout.component.scss');
+    const stylePath = path.resolve(
+      process.cwd(),
+      'src/app/layout/authenticated-layout.component.scss',
+    );
     const styleContent: string = fs.readFileSync(stylePath, 'utf8');
 
-    expect(styleContent).toMatch(/\.account-menu-trigger[\s\S]*min-height:\s*tokens\.\$min-touch-target/u);
-    expect(styleContent).toMatch(/\.account-menu-item[\s\S]*min-height:\s*tokens\.\$min-touch-target/u);
-    expect(styleContent).toMatch(/\.account-menu[\s\S]*max-height:[^;]+;[\s\S]*overflow-y:\s*auto/u);
+    expect(styleContent).toMatch(
+      /\.account-menu-trigger[\s\S]*min-height:\s*tokens\.\$min-touch-target/u,
+    );
+    expect(styleContent).toMatch(
+      /\.account-menu-item[\s\S]*min-height:\s*tokens\.\$min-touch-target/u,
+    );
+    expect(styleContent).toMatch(
+      /\.account-menu[\s\S]*max-height:[^;]+;[\s\S]*overflow-y:\s*auto/u,
+    );
     expect(styleContent).toMatch(/overflow-x:\s*hidden/u);
     expect(styleContent).toMatch(/overflow-wrap:\s*anywhere/u);
   });
@@ -476,16 +495,21 @@ describe('S7 authority path integrado', () => {
       logoutCurrentSession: vi.fn(),
     };
     const capabilitiesService = {
-      getOperationalCapabilities: vi.fn().mockReturnValue(of({
-        capabilities: ['VIEW_OPERATIONAL_PANEL'],
-      })),
+      getOperationalCapabilities: vi.fn().mockReturnValue(
+        of({
+          capabilities: ['VIEW_OPERATIONAL_PANEL'],
+        }),
+      ),
     };
     const panelService = {
       getOperationalPanel: vi.fn().mockReturnValue(
-        throwError(() => new HttpErrorResponse({
-          status: 403,
-          error: { correlationId: 'corr-stale-capability' },
-        })),
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 403,
+              error: { correlationId: 'corr-stale-capability' },
+            }),
+        ),
       ),
     };
 
@@ -512,13 +536,16 @@ describe('S7 authority path integrado', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const trigger = fixture.nativeElement.querySelector('.account-menu-trigger') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector(
+      '.account-menu-trigger',
+    ) as HTMLButtonElement;
     trigger.click();
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    const panelLink = [...root.querySelectorAll<HTMLAnchorElement>('a')]
-      .find((link) => link.textContent?.trim() === 'Painel operacional');
+    const panelLink = [...root.querySelectorAll<HTMLAnchorElement>('a')].find(
+      (link) => link.textContent?.trim() === 'Painel operacional',
+    );
     expect(panelLink).toBeDefined();
     panelLink?.click();
     await fixture.whenStable();

@@ -9,7 +9,7 @@ import java.util.UUID;
  * <p>Carries only the opaque {@code athleteId} (D-71).
  */
 public record SportsAthleteCreated(UUID athleteId) {
-    public SportsAthleteCreated {
-        Objects.requireNonNull(athleteId, "athleteId must not be null");
-    }
+  public SportsAthleteCreated {
+    Objects.requireNonNull(athleteId, "athleteId must not be null");
+  }
 }

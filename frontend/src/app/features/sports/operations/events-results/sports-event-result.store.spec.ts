@@ -43,8 +43,20 @@ const VERSION_1: SportsResultVersion = {
   confirmedAt: '2026-09-01T16:05:00Z',
   baseLockVersion: 1,
   scores: [
-    { slotNo: 1, displayLabel: 'Engenharia', score: 3, teamId: 'team-eng', teamName: 'Futsal Engenharia' },
-    { slotNo: 2, displayLabel: 'Medicina', score: 2, teamId: 'team-med', teamName: 'Futsal Medicina' },
+    {
+      slotNo: 1,
+      displayLabel: 'Engenharia',
+      score: 3,
+      teamId: 'team-eng',
+      teamName: 'Futsal Engenharia',
+    },
+    {
+      slotNo: 2,
+      displayLabel: 'Medicina',
+      score: 2,
+      teamId: 'team-med',
+      teamName: 'Futsal Medicina',
+    },
   ],
 };
 
@@ -67,9 +79,12 @@ describe('SportsEventResultStore', () => {
       reviewResult: vi.fn(() => of(VERSION_1)),
       confirmResult: vi.fn(() => of(VERSION_1)),
       correctResult: vi.fn(() => of(VERSION_1)),
-      isConflict: vi.fn((error: unknown) => error instanceof HttpErrorResponse && error.status === 409),
+      isConflict: vi.fn(
+        (error: unknown) => error instanceof HttpErrorResponse && error.status === 409,
+      ),
       isUnauthorized: vi.fn(
-        (error: unknown) => error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403),
+        (error: unknown) =>
+          error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403),
       ),
     };
 
@@ -103,7 +118,9 @@ describe('SportsEventResultStore', () => {
 
   it('preserva o estado local e exibe mensagem amigável em caso de conflito HTTP 409', async () => {
     await store.loadEdition('edition-a');
-    adapter['publishEvent'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
+    adapter['publishEvent'].mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 409 })),
+    );
 
     const result = await store.publishEvent();
 
@@ -119,7 +136,9 @@ describe('SportsEventResultStore', () => {
   it('limpa estado privado e define status denied em caso de HTTP 401/403', async () => {
     await store.loadEdition('edition-a');
     store.previewSnapshot(EVENT_A);
-    adapter['publishEvent'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
+    adapter['publishEvent'].mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 403 })),
+    );
 
     const result = await store.publishEvent();
 
@@ -141,25 +160,36 @@ describe('SportsEventResultStore', () => {
     expect(await store.suspendEvent('Motivo de chuva')).toBe(true);
     expect(store.feedbackMessage()).toBe('Evento suspenso temporariamente.');
 
-    expect(await store.postponeEvent('2026-09-02T14:00:00Z', 'America/Sao_Paulo', 'Reagendado')).toBe(true);
+    expect(
+      await store.postponeEvent('2026-09-02T14:00:00Z', 'America/Sao_Paulo', 'Reagendado'),
+    ).toBe(true);
     expect(store.feedbackMessage()).toBe('Evento adiado e reagendado.');
 
     expect(await store.cancelEvent('Cancelamento definitivo')).toBe(true);
     expect(store.feedbackMessage()).toBe('Evento cancelado de forma irreversível.');
 
-    expect(await store.informResult('Boletim Oficial #01', [{ slotNo: 1, score: 2 }, { slotNo: 2, score: 1 }])).toBe(
-      true,
-    );
+    expect(
+      await store.informResult('Boletim Oficial #01', [
+        { slotNo: 1, score: 2 },
+        { slotNo: 2, score: 1 },
+      ]),
+    ).toBe(true);
     expect(store.feedbackMessage()).toBe('Rascunho de resultado registrado (INFORMADO).');
 
-    expect(await store.reviewResult('Boletim Oficial #01', [{ slotNo: 1, score: 2 }, { slotNo: 2, score: 1 }])).toBe(
-      true,
-    );
+    expect(
+      await store.reviewResult('Boletim Oficial #01', [
+        { slotNo: 1, score: 2 },
+        { slotNo: 2, score: 1 },
+      ]),
+    ).toBe(true);
     expect(store.feedbackMessage()).toBe('Resultado enviado para revisão (AGUARDANDO_REVISAO).');
 
-    expect(await store.confirmResult('Boletim Oficial #01', [{ slotNo: 1, score: 2 }, { slotNo: 2, score: 1 }])).toBe(
-      true,
-    );
+    expect(
+      await store.confirmResult('Boletim Oficial #01', [
+        { slotNo: 1, score: 2 },
+        { slotNo: 2, score: 1 },
+      ]),
+    ).toBe(true);
     expect(store.feedbackMessage()).toBe('Resultado confirmado com fonte oficial (CONFIRMADO).');
 
     expect(
@@ -168,6 +198,8 @@ describe('SportsEventResultStore', () => {
         { slotNo: 2, score: 1 },
       ]),
     ).toBe(true);
-    expect(store.feedbackMessage()).toBe('Correção de resultado publicada como nova versão auditada (CORRIGIDO).');
+    expect(store.feedbackMessage()).toBe(
+      'Correção de resultado publicada como nova versão auditada (CORRIGIDO).',
+    );
   });
 });

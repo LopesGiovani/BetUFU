@@ -4,12 +4,7 @@
  */
 
 export type ProfileStateStatus =
-  | 'initial'
-  | 'loading'
-  | 'empty'
-  | 'populated'
-  | 'partial'
-  | 'error';
+  'initial' | 'loading' | 'empty' | 'populated' | 'partial' | 'error';
 
 export interface ProfileViewModel {
   readonly identityId: string;

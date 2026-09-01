@@ -1,9 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom, retry, timer } from 'rxjs';
-import { PublicDetail, PublicDetailKind, SportsPublicViewApiAdapter } from './sports-public-view-api.adapter';
+import {
+  PublicDetail,
+  PublicDetailKind,
+  SportsPublicViewApiAdapter,
+} from './sports-public-view-api.adapter';
 
-export type SportsPublicViewStatus = 'initial' | 'loading' | 'populated' | 'empty' | 'not-found' | 'error';
+export type SportsPublicViewStatus =
+  'initial' | 'loading' | 'populated' | 'empty' | 'not-found' | 'error';
 
 interface SportsPublicViewState {
   status: SportsPublicViewStatus;
@@ -58,20 +63,22 @@ export class SportsPublicViewStore {
     });
 
     try {
-      const data = await firstValueFrom(this.adapter.fetch(kind, normalizedId).pipe(
-        retry({
-          count: 2,
-          delay: (error: unknown, retryCount) => {
-            if (error instanceof HttpErrorResponse && error.status === 404) {
-              throw error;
-            }
-            if (requestId === this.requestSequence) {
-              this.state.update((state) => ({ ...state, isRetrying: true }));
-            }
-            return timer(retryCount === 1 ? 250 : 500);
-          },
-        }),
-      ));
+      const data = await firstValueFrom(
+        this.adapter.fetch(kind, normalizedId).pipe(
+          retry({
+            count: 2,
+            delay: (error: unknown, retryCount) => {
+              if (error instanceof HttpErrorResponse && error.status === 404) {
+                throw error;
+              }
+              if (requestId === this.requestSequence) {
+                this.state.update((state) => ({ ...state, isRetrying: true }));
+              }
+              return timer(retryCount === 1 ? 250 : 500);
+            },
+          }),
+        ),
+      );
       if (requestId !== this.requestSequence) {
         return;
       }
@@ -106,9 +113,10 @@ export class SportsPublicViewStore {
         kind,
         id: normalizedId,
         data: null,
-        errorMessage: error instanceof Error && error.message.startsWith('CONTRATO_')
-          ? 'Os dados públicos recebidos não correspondem ao contrato esperado.'
-          : 'Não foi possível carregar este conteúdo público. Tente novamente.',
+        errorMessage:
+          error instanceof Error && error.message.startsWith('CONTRATO_')
+            ? 'Os dados públicos recebidos não correspondem ao contrato esperado.'
+            : 'Não foi possível carregar este conteúdo público. Tente novamente.',
         errorCorrelationId: correlationId,
         isRetrying: false,
       });

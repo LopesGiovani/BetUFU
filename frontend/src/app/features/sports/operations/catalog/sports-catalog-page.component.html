@@ -3,7 +3,10 @@
     <div>
       <span class="eyebrow">Console operacional / O1 + O2</span>
       <h1 id="catalog-title">Opera&ccedil;&atilde;o esportiva</h1>
-      <p>Selecione uma competi&ccedil;&atilde;o autorizada por nome e mantenha seu cat&aacute;logo e locais reutiliz&aacute;veis.</p>
+      <p>
+        Selecione uma competi&ccedil;&atilde;o autorizada por nome e mantenha seu cat&aacute;logo e
+        locais reutiliz&aacute;veis.
+      </p>
     </div>
     <a class="arena-link" href="/">Voltar para a Arena</a>
   </header>
@@ -22,13 +25,19 @@
   } @else if (scope.isError()) {
     <article class="state-card state-card--error" role="alert">
       <h2>N&atilde;o foi poss&iacute;vel carregar as competi&ccedil;&otilde;es</h2>
-      <p>N&atilde;o foi poss&iacute;vel confirmar se j&aacute; existe uma competi&ccedil;&atilde;o cadastrada. Tente carregar novamente antes de iniciar o cat&aacute;logo.</p>
-      <button type="button" class="button button--primary" (click)="retryScope()">Tentar carregar competi&ccedil;&otilde;es</button>
+      <p>
+        N&atilde;o foi poss&iacute;vel confirmar se j&aacute; existe uma competi&ccedil;&atilde;o
+        cadastrada. Tente carregar novamente antes de iniciar o cat&aacute;logo.
+      </p>
+      <button type="button" class="button button--primary" (click)="retryScope()">
+        Tentar carregar competi&ccedil;&otilde;es
+      </button>
     </article>
   } @else {
     @if (scope.deepLinkRejected()) {
       <div class="notice notice--warning" role="status">
-        O escopo informado no link n&atilde;o pertence &agrave; lista autorizada. Nenhuma competi&ccedil;&atilde;o foi aberta por esse valor.
+        O escopo informado no link n&atilde;o pertence &agrave; lista autorizada. Nenhuma
+        competi&ccedil;&atilde;o foi aberta por esse valor.
       </div>
     }
 
@@ -37,15 +46,23 @@
         <article class="state-card bootstrap-card">
           <span class="state-card__index">01</span>
           <h2>Nenhuma competi&ccedil;&atilde;o cadastrada</h2>
-          <p>Cadastre a primeira competi&ccedil;&atilde;o para iniciar o cat&aacute;logo esportivo. O identificador e o escopo ser&atilde;o gerados pela plataforma.</p>
+          <p>
+            Cadastre a primeira competi&ccedil;&atilde;o para iniciar o cat&aacute;logo esportivo. O
+            identificador e o escopo ser&atilde;o gerados pela plataforma.
+          </p>
           @if (activeForm() !== 'competition') {
-            <button type="button" class="button button--primary" (click)="openForm('competition')">Cadastrar competi&ccedil;&atilde;o</button>
+            <button type="button" class="button button--primary" (click)="openForm('competition')">
+              Cadastrar competi&ccedil;&atilde;o
+            </button>
           }
         </article>
       } @else {
         <article class="state-card">
           <h2>Nenhuma competi&ccedil;&atilde;o atribu&iacute;da</h2>
-          <p>Sua conta n&atilde;o possui um escopo de competi&ccedil;&atilde;o dispon&iacute;vel para opera&ccedil;&atilde;o.</p>
+          <p>
+            Sua conta n&atilde;o possui um escopo de competi&ccedil;&atilde;o dispon&iacute;vel para
+            opera&ccedil;&atilde;o.
+          </p>
         </article>
       }
     }
@@ -67,7 +84,9 @@
               }
             </select>
           </label>
-          <button type="submit" class="button button--primary" [disabled]="scopeForm.invalid">Abrir competi&ccedil;&atilde;o</button>
+          <button type="submit" class="button button--primary" [disabled]="scopeForm.invalid">
+            Abrir competi&ccedil;&atilde;o
+          </button>
         </form>
       </section>
     }
@@ -83,58 +102,257 @@
       </div>
 
       @if (treeLoading()) {
-        <article class="state-card" role="status"><span class="loader" aria-hidden="true"></span><h2>Carregando cat&aacute;logo</h2></article>
+        <article class="state-card" role="status">
+          <span class="loader" aria-hidden="true"></span>
+          <h2>Carregando cat&aacute;logo</h2>
+        </article>
       } @else if (treeError()) {
         <article class="state-card state-card--error" role="alert">
           <h2>N&atilde;o foi poss&iacute;vel carregar o cat&aacute;logo</h2>
-          <p>Os cadastros esportivos desta competi&ccedil;&atilde;o n&atilde;o est&atilde;o dispon&iacute;veis agora. Tente carregar novamente antes de criar ou publicar registros.</p>
+          <p>
+            Os cadastros esportivos desta competi&ccedil;&atilde;o n&atilde;o est&atilde;o
+            dispon&iacute;veis agora. Tente carregar novamente antes de criar ou publicar registros.
+          </p>
           <p>{{ treeError() }}</p>
-          <button type="button" class="button button--primary" (click)="loadTree()">Tentar carregar cat&aacute;logo</button>
+          <button type="button" class="button button--primary" (click)="loadTree()">
+            Tentar carregar cat&aacute;logo
+          </button>
         </article>
       } @else if (tree()) {
-        @if (conflictMessage()) { <div class="notice notice--conflict" role="alert">{{ conflictMessage() }}</div> }
-        @if (feedbackMessage()) { <div class="notice notice--success" role="status">{{ feedbackMessage() }}</div> }
+        @if (conflictMessage()) {
+          <div class="notice notice--conflict" role="alert">{{ conflictMessage() }}</div>
+        }
+        @if (feedbackMessage()) {
+          <div class="notice notice--success" role="status">{{ feedbackMessage() }}</div>
+        }
 
         <div class="catalog-toolbar">
           <label>
             <span>Buscar no cat&aacute;logo</span>
-            <input type="search" [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)" placeholder="Nome de esporte, edi&ccedil;&atilde;o, fase ou local">
+            <input
+              type="search"
+              [value]="searchTerm()"
+              (input)="searchTerm.set($any($event.target).value)"
+              placeholder="Nome de esporte, edi&ccedil;&atilde;o, fase ou local" />
           </label>
-          <button type="button" class="button button--secondary" (click)="loadTree()">Recarregar vers&otilde;es</button>
+          <button type="button" class="button button--secondary" (click)="loadTree()">
+            Recarregar vers&otilde;es
+          </button>
         </div>
 
         <div class="catalog-grid">
           <article class="catalog-card catalog-card--wide">
-            <header><div><span class="card-code">ESPORTE</span><h3>Estrutura esportiva</h3></div><button type="button" class="button button--small" (click)="openForm('sport')">Novo esporte</button></header>
+            <header>
+              <div>
+                <span class="card-code">ESPORTE</span>
+                <h3>Estrutura esportiva</h3>
+              </div>
+              <button type="button" class="button button--small" (click)="openForm('sport')">
+                Novo esporte
+              </button>
+            </header>
             @if (filteredSports().length === 0) {
-              <div class="empty"><strong>Cat&aacute;logo esportivo ainda n&atilde;o iniciado</strong><p>Cadastre o primeiro esporte para come&ccedil;ar a estrutura esportiva desta competi&ccedil;&atilde;o.</p><button type="button" class="text-action" (click)="openForm('sport')">Cadastrar esporte</button></div>
+              <div class="empty">
+                <strong>Cat&aacute;logo esportivo ainda n&atilde;o iniciado</strong>
+                <p>
+                  Cadastre o primeiro esporte para come&ccedil;ar a estrutura esportiva desta
+                  competi&ccedil;&atilde;o.
+                </p>
+                <button type="button" class="text-action" (click)="openForm('sport')">
+                  Cadastrar esporte
+                </button>
+              </div>
             } @else {
-              <ul class="record-list">@for (sport of filteredSports(); track sport.sportId) { <li><div><strong>{{ sport.name }}</strong><span>{{ sport.slug }}</span></div><div class="record-meta"><span class="status-chip">Ativa</span><span>Vers&atilde;o {{ sport.lockVersion }}</span><button type="button" (click)="editSport(sport)">Editar</button></div></li> }</ul>
+              <ul class="record-list">
+                @for (sport of filteredSports(); track sport.sportId) {
+                  <li>
+                    <div>
+                      <strong>{{ sport.name }}</strong
+                      ><span>{{ sport.slug }}</span>
+                    </div>
+                    <div class="record-meta">
+                      <span class="status-chip">Ativa</span
+                      ><span>Vers&atilde;o {{ sport.lockVersion }}</span
+                      ><button type="button" (click)="editSport(sport)">Editar</button>
+                    </div>
+                  </li>
+                }
+              </ul>
             }
           </article>
 
           <article class="catalog-card">
-            <header><div><span class="card-code">EDI&Ccedil;&Otilde;ES</span><h3>Temporadas</h3></div><button type="button" class="button button--small" (click)="openForm('edition')">Nova edi&ccedil;&atilde;o</button></header>
-            @if (filteredEditions().length === 0) { <div class="empty"><strong>Nenhuma edi&ccedil;&atilde;o cadastrada</strong><p>Cadastre uma edi&ccedil;&atilde;o para organizar categorias, fases e eventos.</p><button type="button" class="text-action" (click)="openForm('edition')">Cadastrar edi&ccedil;&atilde;o</button></div> }
-            <ul class="record-list">@for (edition of filteredEditions(); track edition.editionId) { <li><div><strong>{{ edition.name }}</strong><span>{{ edition.startDate || 'Sem data inicial' }} - {{ edition.endDate || 'sem data final' }}</span></div><div class="record-meta"><span>v{{ edition.lockVersion }}</span><button type="button" (click)="editEdition(edition)">Editar</button></div></li> }</ul>
+            <header>
+              <div>
+                <span class="card-code">EDI&Ccedil;&Otilde;ES</span>
+                <h3>Temporadas</h3>
+              </div>
+              <button type="button" class="button button--small" (click)="openForm('edition')">
+                Nova edi&ccedil;&atilde;o
+              </button>
+            </header>
+            @if (filteredEditions().length === 0) {
+              <div class="empty">
+                <strong>Nenhuma edi&ccedil;&atilde;o cadastrada</strong>
+                <p>Cadastre uma edi&ccedil;&atilde;o para organizar categorias, fases e eventos.</p>
+                <button type="button" class="text-action" (click)="openForm('edition')">
+                  Cadastrar edi&ccedil;&atilde;o
+                </button>
+              </div>
+            }
+            <ul class="record-list">
+              @for (edition of filteredEditions(); track edition.editionId) {
+                <li>
+                  <div>
+                    <strong>{{ edition.name }}</strong
+                    ><span
+                      >{{ edition.startDate || 'Sem data inicial' }} -
+                      {{ edition.endDate || 'sem data final' }}</span
+                    >
+                  </div>
+                  <div class="record-meta">
+                    <span>v{{ edition.lockVersion }}</span
+                    ><button type="button" (click)="editEdition(edition)">Editar</button>
+                  </div>
+                </li>
+              }
+            </ul>
           </article>
 
           <article class="catalog-card">
-            <header><div><span class="card-code">CATEGORIAS</span><h3>Categorias</h3></div><button type="button" class="button button--small" [disabled]="!tree()?.editions?.length" (click)="openForm('category')">Nova categoria</button></header>
-            @if (filteredCategories().length === 0) { <div class="empty"><strong>Nenhuma categoria cadastrada</strong><p>Cadastre a primeira categoria desta edi&ccedil;&atilde;o antes de organizar fases e eventos.</p></div> }
-            <ul class="record-list">@for (category of filteredCategories(); track category.categoryId) { <li><div><strong>{{ category.name }}</strong><span>{{ editionName(category.editionId) }}</span></div><div class="record-meta"><span>v{{ category.lockVersion }}</span><button type="button" (click)="editCategory(category)">Editar</button></div></li> }</ul>
+            <header>
+              <div>
+                <span class="card-code">CATEGORIAS</span>
+                <h3>Categorias</h3>
+              </div>
+              <button
+                type="button"
+                class="button button--small"
+                [disabled]="!tree()?.editions?.length"
+                (click)="openForm('category')">
+                Nova categoria
+              </button>
+            </header>
+            @if (filteredCategories().length === 0) {
+              <div class="empty">
+                <strong>Nenhuma categoria cadastrada</strong>
+                <p>
+                  Cadastre a primeira categoria desta edi&ccedil;&atilde;o antes de organizar fases
+                  e eventos.
+                </p>
+              </div>
+            }
+            <ul class="record-list">
+              @for (category of filteredCategories(); track category.categoryId) {
+                <li>
+                  <div>
+                    <strong>{{ category.name }}</strong
+                    ><span>{{ editionName(category.editionId) }}</span>
+                  </div>
+                  <div class="record-meta">
+                    <span>v{{ category.lockVersion }}</span
+                    ><button type="button" (click)="editCategory(category)">Editar</button>
+                  </div>
+                </li>
+              }
+            </ul>
           </article>
 
           <article class="catalog-card">
-            <header><div><span class="card-code">FASES</span><h3>Fases</h3></div><button type="button" class="button button--small" [disabled]="!tree()?.categories?.length" (click)="openForm('phase')">Nova fase</button></header>
-            @if (filteredPhases().length === 0) { <div class="empty"><strong>Nenhuma fase cadastrada</strong><p>Cadastre a primeira fase para organizar os eventos desta categoria.</p></div> }
-            <ul class="record-list">@for (phase of filteredPhases(); track phase.phaseId) { <li><div><strong>{{ phase.name }}</strong><span>{{ categoryName(phase.categoryId) }}</span></div><div class="record-meta"><span>v{{ phase.lockVersion }}</span><button type="button" (click)="editPhase(phase)">Editar</button></div></li> }</ul>
+            <header>
+              <div>
+                <span class="card-code">FASES</span>
+                <h3>Fases</h3>
+              </div>
+              <button
+                type="button"
+                class="button button--small"
+                [disabled]="!tree()?.categories?.length"
+                (click)="openForm('phase')">
+                Nova fase
+              </button>
+            </header>
+            @if (filteredPhases().length === 0) {
+              <div class="empty">
+                <strong>Nenhuma fase cadastrada</strong>
+                <p>Cadastre a primeira fase para organizar os eventos desta categoria.</p>
+              </div>
+            }
+            <ul class="record-list">
+              @for (phase of filteredPhases(); track phase.phaseId) {
+                <li>
+                  <div>
+                    <strong>{{ phase.name }}</strong
+                    ><span>{{ categoryName(phase.categoryId) }}</span>
+                  </div>
+                  <div class="record-meta">
+                    <span>v{{ phase.lockVersion }}</span
+                    ><button type="button" (click)="editPhase(phase)">Editar</button>
+                  </div>
+                </li>
+              }
+            </ul>
           </article>
 
           <article class="catalog-card catalog-card--wide">
-            <header><div><span class="card-code">LOCAIS</span><h3>Locais reutiliz&aacute;veis</h3></div><div class="header-actions"><span class="venue-state">Evento tamb&eacute;m aceita Local a definir</span><button type="button" class="button button--small" (click)="openForm('venue')">Novo local</button></div></header>
-            @if (filteredVenues().length === 0) { <div class="empty"><strong>Nenhum local cadastrado</strong><p>Cadastre um local reutiliz&aacute;vel ou mantenha o evento como Local a definir.</p><button type="button" class="text-action" (click)="openForm('venue')">Cadastrar local</button></div> }
-            <ul class="venue-list">@for (venue of filteredVenues(); track venue.venueId) { <li><div class="venue-title"><div><strong>{{ venue.name }}</strong><span>{{ venue.address || 'Endere&ccedil;o n&atilde;o informado' }}</span></div><div class="record-meta"><span>v{{ venue.lockVersion }}</span><button type="button" (click)="editVenue(venue)">Editar local</button><button type="button" (click)="openForm('space'); spaceForm.controls.venueId.setValue(venue.venueId)">Novo espa&ccedil;o</button></div></div>@if (venue.spaces.length > 0) { <ul class="space-list">@for (space of venue.spaces; track space.venueSpaceId) { <li><span>{{ space.name }}</span><button type="button" (click)="editSpace(space)">Editar v{{ space.lockVersion }}</button></li> }</ul> }</li> }</ul>
+            <header>
+              <div>
+                <span class="card-code">LOCAIS</span>
+                <h3>Locais reutiliz&aacute;veis</h3>
+              </div>
+              <div class="header-actions">
+                <span class="venue-state">Evento tamb&eacute;m aceita Local a definir</span
+                ><button type="button" class="button button--small" (click)="openForm('venue')">
+                  Novo local
+                </button>
+              </div>
+            </header>
+            @if (filteredVenues().length === 0) {
+              <div class="empty">
+                <strong>Nenhum local cadastrado</strong>
+                <p>
+                  Cadastre um local reutiliz&aacute;vel ou mantenha o evento como Local a definir.
+                </p>
+                <button type="button" class="text-action" (click)="openForm('venue')">
+                  Cadastrar local
+                </button>
+              </div>
+            }
+            <ul class="venue-list">
+              @for (venue of filteredVenues(); track venue.venueId) {
+                <li>
+                  <div class="venue-title">
+                    <div>
+                      <strong>{{ venue.name }}</strong
+                      ><span>{{ venue.address || 'Endere&ccedil;o n&atilde;o informado' }}</span>
+                    </div>
+                    <div class="record-meta">
+                      <span>v{{ venue.lockVersion }}</span
+                      ><button type="button" (click)="editVenue(venue)">Editar local</button
+                      ><button
+                        type="button"
+                        (click)="
+                          openForm('space'); spaceForm.controls.venueId.setValue(venue.venueId)
+                        ">
+                        Novo espa&ccedil;o
+                      </button>
+                    </div>
+                  </div>
+                  @if (venue.spaces.length > 0) {
+                    <ul class="space-list">
+                      @for (space of venue.spaces; track space.venueSpaceId) {
+                        <li>
+                          <span>{{ space.name }}</span
+                          ><button type="button" (click)="editSpace(space)">
+                            Editar v{{ space.lockVersion }}
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </li>
+              }
+            </ul>
           </article>
         </div>
       }
@@ -143,42 +361,171 @@
 
   @if (activeForm(); as form) {
     <aside class="form-panel" aria-labelledby="form-title">
-      <header><div><span class="eyebrow">{{ editingId() ? 'Editar registro' : 'Novo cadastro' }}</span><h2 id="form-title">{{ form === 'competition' ? 'Competi&ccedil;&atilde;o' : form === 'sport' ? 'Esporte' : form === 'edition' ? 'Edi&ccedil;&atilde;o' : form === 'category' ? 'Categoria' : form === 'phase' ? 'Fase' : form === 'venue' ? 'Local' : 'Espa&ccedil;o interno' }}</h2></div><button type="button" class="close-button" (click)="closeForm()" aria-label="Continuar nesta competi&ccedil;&atilde;o">Fechar</button></header>
+      <header>
+        <div>
+          <span class="eyebrow">{{ editingId() ? 'Editar registro' : 'Novo cadastro' }}</span>
+          <h2 id="form-title">
+            {{
+              form === 'competition'
+                ? 'Competi&ccedil;&atilde;o'
+                : form === 'sport'
+                  ? 'Esporte'
+                  : form === 'edition'
+                    ? 'Edi&ccedil;&atilde;o'
+                    : form === 'category'
+                      ? 'Categoria'
+                      : form === 'phase'
+                        ? 'Fase'
+                        : form === 'venue'
+                          ? 'Local'
+                          : 'Espa&ccedil;o interno'
+            }}
+          </h2>
+        </div>
+        <button
+          type="button"
+          class="close-button"
+          (click)="closeForm()"
+          aria-label="Continuar nesta competi&ccedil;&atilde;o">
+          Fechar
+        </button>
+      </header>
 
       @if (form === 'competition' || form === 'sport') {
-        <form [formGroup]="nameSlugForm" (submit)="form === 'competition' ? saveCompetition() : saveNamed(); $event.preventDefault()">
-          <label><span>Nome</span><input formControlName="name" autocomplete="off"></label>
-          <label><span>Slug</span><input formControlName="slug" autocomplete="off" placeholder="exemplo-sem-espacos"></label>
-          <div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Continuar nesta competi&ccedil;&atilde;o</button><button type="submit" class="button button--primary" [disabled]="nameSlugForm.invalid || mutating()">Salvar</button></div>
+        <form
+          [formGroup]="nameSlugForm"
+          (submit)="
+            form === 'competition' ? saveCompetition() : saveNamed(); $event.preventDefault()
+          ">
+          <label><span>Nome</span><input formControlName="name" autocomplete="off" /></label>
+          <label
+            ><span>Slug</span
+            ><input formControlName="slug" autocomplete="off" placeholder="exemplo-sem-espacos"
+          /></label>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">
+              Continuar nesta competi&ccedil;&atilde;o</button
+            ><button
+              type="submit"
+              class="button button--primary"
+              [disabled]="nameSlugForm.invalid || mutating()">
+              Salvar
+            </button>
+          </div>
         </form>
       } @else if (form === 'edition') {
         <form [formGroup]="editionForm" (submit)="saveEdition(); $event.preventDefault()">
-          <label><span>Nome</span><input formControlName="name"></label><label><span>Slug</span><input formControlName="slug"></label>
-          <div class="form-row"><label><span>Data inicial</span><input type="date" formControlName="startDate"></label><label><span>Data final</span><input type="date" formControlName="endDate"></label></div>
-          <div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Voltar ao cat&aacute;logo</button><button type="submit" class="button button--primary" [disabled]="editionForm.invalid || mutating()">Salvar edi&ccedil;&atilde;o</button></div>
+          <label><span>Nome</span><input formControlName="name" /></label
+          ><label><span>Slug</span><input formControlName="slug" /></label>
+          <div class="form-row">
+            <label><span>Data inicial</span><input type="date" formControlName="startDate" /></label
+            ><label><span>Data final</span><input type="date" formControlName="endDate" /></label>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">
+              Voltar ao cat&aacute;logo</button
+            ><button
+              type="submit"
+              class="button button--primary"
+              [disabled]="editionForm.invalid || mutating()">
+              Salvar edi&ccedil;&atilde;o
+            </button>
+          </div>
         </form>
       } @else if (form === 'category') {
         <form [formGroup]="categoryForm" (submit)="saveCategory(); $event.preventDefault()">
-          <label><span>Edi&ccedil;&atilde;o</span><select formControlName="editionId" [attr.aria-readonly]="editingId() ? 'true' : null">@for (edition of tree()?.editions ?? []; track edition.editionId) { <option [value]="edition.editionId">{{ edition.name }}</option> }</select></label>
-          <label><span>Nome</span><input formControlName="name"></label><label><span>Slug</span><input formControlName="slug"></label>
-          <div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Voltar ao cat&aacute;logo</button><button type="submit" class="button button--primary" [disabled]="categoryForm.invalid || mutating()">Salvar categoria</button></div>
+          <label
+            ><span>Edi&ccedil;&atilde;o</span
+            ><select formControlName="editionId" [attr.aria-readonly]="editingId() ? 'true' : null">
+              @for (edition of tree()?.editions ?? []; track edition.editionId) {
+                <option [value]="edition.editionId">{{ edition.name }}</option>
+              }
+            </select></label
+          >
+          <label><span>Nome</span><input formControlName="name" /></label
+          ><label><span>Slug</span><input formControlName="slug" /></label>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">
+              Voltar ao cat&aacute;logo</button
+            ><button
+              type="submit"
+              class="button button--primary"
+              [disabled]="categoryForm.invalid || mutating()">
+              Salvar categoria
+            </button>
+          </div>
         </form>
       } @else if (form === 'phase') {
         <form [formGroup]="phaseForm" (submit)="savePhase(); $event.preventDefault()">
-          <label><span>Categoria</span><select formControlName="categoryId">@for (category of tree()?.categories ?? []; track category.categoryId) { <option [value]="category.categoryId">{{ category.name }} / {{ editionName(category.editionId) }}</option> }</select></label>
-          <label><span>Nome</span><input formControlName="name"></label><label><span>Slug</span><input formControlName="slug"></label>
-          <div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Voltar ao cat&aacute;logo</button><button type="submit" class="button button--primary" [disabled]="phaseForm.invalid || mutating()">Salvar fase</button></div>
+          <label
+            ><span>Categoria</span
+            ><select formControlName="categoryId">
+              @for (category of tree()?.categories ?? []; track category.categoryId) {
+                <option [value]="category.categoryId">
+                  {{ category.name }} / {{ editionName(category.editionId) }}
+                </option>
+              }
+            </select></label
+          >
+          <label><span>Nome</span><input formControlName="name" /></label
+          ><label><span>Slug</span><input formControlName="slug" /></label>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">
+              Voltar ao cat&aacute;logo</button
+            ><button
+              type="submit"
+              class="button button--primary"
+              [disabled]="phaseForm.invalid || mutating()">
+              Salvar fase
+            </button>
+          </div>
         </form>
       } @else if (form === 'venue') {
         <form [formGroup]="venueForm" (submit)="saveVenue(); $event.preventDefault()">
-          <label><span>Nome</span><input formControlName="name"></label><label><span>Endere&ccedil;o opcional</span><input formControlName="address"></label><label><span>Mapa HTTPS opcional</span><input type="url" formControlName="mapUrl"></label><label><span>Observa&ccedil;&otilde;es opcionais</span><textarea formControlName="notes" rows="3"></textarea></label>
-          <div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Voltar ao cat&aacute;logo</button><button type="submit" class="button button--primary" [disabled]="venueForm.invalid || mutating()">Salvar local</button></div>
+          <label><span>Nome</span><input formControlName="name" /></label
+          ><label><span>Endere&ccedil;o opcional</span><input formControlName="address" /></label
+          ><label
+            ><span>Mapa HTTPS opcional</span><input type="url" formControlName="mapUrl" /></label
+          ><label
+            ><span>Observa&ccedil;&otilde;es opcionais</span
+            ><textarea formControlName="notes" rows="3"></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">
+              Voltar ao cat&aacute;logo</button
+            ><button
+              type="submit"
+              class="button button--primary"
+              [disabled]="venueForm.invalid || mutating()">
+              Salvar local
+            </button>
+          </div>
         </form>
       } @else {
         <form [formGroup]="spaceForm" (submit)="saveSpace(); $event.preventDefault()">
-          <label><span>Local</span><select formControlName="venueId">@for (venue of tree()?.venues ?? []; track venue.venueId) { <option [value]="venue.venueId">{{ venue.name }}</option> }</select></label>
-          <label><span>Nome do espa&ccedil;o</span><input formControlName="name"></label><label><span>Observa&ccedil;&otilde;es opcionais</span><textarea formControlName="notes" rows="3"></textarea></label>
-          <div class="form-actions"><button type="button" class="button button--secondary" (click)="closeForm()">Voltar ao cat&aacute;logo</button><button type="submit" class="button button--primary" [disabled]="spaceForm.invalid || mutating()">Salvar espa&ccedil;o</button></div>
+          <label
+            ><span>Local</span
+            ><select formControlName="venueId">
+              @for (venue of tree()?.venues ?? []; track venue.venueId) {
+                <option [value]="venue.venueId">{{ venue.name }}</option>
+              }
+            </select></label
+          >
+          <label><span>Nome do espa&ccedil;o</span><input formControlName="name" /></label
+          ><label
+            ><span>Observa&ccedil;&otilde;es opcionais</span
+            ><textarea formControlName="notes" rows="3"></textarea>
+          </label>
+          <div class="form-actions">
+            <button type="button" class="button button--secondary" (click)="closeForm()">
+              Voltar ao cat&aacute;logo</button
+            ><button
+              type="submit"
+              class="button button--primary"
+              [disabled]="spaceForm.invalid || mutating()">
+              Salvar espa&ccedil;o
+            </button>
+          </div>
         </form>
       }
     </aside>

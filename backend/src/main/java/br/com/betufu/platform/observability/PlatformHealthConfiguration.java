@@ -12,12 +12,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class PlatformHealthConfiguration {
 
-    private static final String PLATFORM_NAME = "BETUFU";
+  private static final String PLATFORM_NAME = "BETUFU";
 
-    @Bean
-    public HealthIndicator platformHealthIndicator() {
-        return () -> Health.up()
-                .withDetail("platform", PLATFORM_NAME)
-                .build();
-    }
+  @Bean
+  public HealthIndicator platformHealthIndicator() {
+    return () -> Health.up().withDetail("platform", PLATFORM_NAME).build();
+  }
 }

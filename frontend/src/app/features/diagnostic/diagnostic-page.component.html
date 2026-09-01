@@ -5,8 +5,7 @@
     role="status"
     aria-live="polite"
     aria-atomic="true"
-    id="diagnostic-live-region"
-  >
+    id="diagnostic-live-region">
     <p *ngIf="copyFeedbackMessage()">{{ copyFeedbackMessage() }}</p>
     <p *ngIf="store.isLoading()">Verificando estado dos componentes da plataforma…</p>
   </div>
@@ -26,8 +25,7 @@
         class="btn-refresh"
         (click)="onRefresh()"
         [disabled]="store.isLoading()"
-        aria-label="Verificar novamente o status dos serviços"
-      >
+        aria-label="Verificar novamente o status dos serviços">
         <span class="btn-spinner" *ngIf="store.isLoading()" aria-hidden="true"></span>
         <span>{{ store.isLoading() ? 'Verificando…' : 'Verificar novamente' }}</span>
       </button>
@@ -39,26 +37,18 @@
     *ngIf="store.isLoading() && !store.displaySnapshot()"
     class="status-feedback loading-state"
     role="status"
-    aria-live="polite"
-  >
+    aria-live="polite">
     <div class="spinner-large" aria-hidden="true"></div>
     <h2>Consultando componentes…</h2>
     <p>Aguarde enquanto verificamos a conectividade com os serviços.</p>
   </div>
 
   <!-- Estado 2: Empty (Resposta válida mas sem componentes) -->
-  <div
-    *ngIf="store.isEmpty()"
-    class="status-feedback empty-state"
-    role="status"
-    aria-live="polite"
-  >
+  <div *ngIf="store.isEmpty()" class="status-feedback empty-state" role="status" aria-live="polite">
     <span class="status-icon" aria-hidden="true">info</span>
     <h2>Nenhum diagnóstico disponível</h2>
     <p>A plataforma respondeu normalmente, mas nenhum componente foi reportado.</p>
-    <button type="button" class="btn-primary" (click)="onRefresh()">
-      Verificar novamente
-    </button>
+    <button type="button" class="btn-primary" (click)="onRefresh()">Verificar novamente</button>
   </div>
 
   <!-- Estado 3: Error Bloqueante (Sem snapshot anterior para preservar) -->
@@ -66,28 +56,26 @@
     *ngIf="store.isError() && !store.displaySnapshot()"
     class="status-feedback error-state"
     role="alert"
-    aria-live="assertive"
-  >
+    aria-live="assertive">
     <span class="status-icon" aria-hidden="true">error_outline</span>
     <h2>Falha ao obter diagnóstico</h2>
     <p class="error-text">{{ store.errorMessage() }}</p>
 
-    <div class="correlation-box" *ngIf="store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D'">
+    <div
+      class="correlation-box"
+      *ngIf="store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D'">
       <span class="label">Código de referência:</span>
       <code class="code-value">{{ store.errorCorrelationId() }}</code>
       <button
         type="button"
         class="btn-copy"
         (click)="copyCorrelationId(store.errorCorrelationId()!)"
-        aria-label="Copiar código de referência"
-      >
+        aria-label="Copiar código de referência">
         {{ copyStatus() === 'copied' ? 'Copiado!' : 'Copiar' }}
       </button>
     </div>
 
-    <button type="button" class="btn-primary" (click)="onRefresh()">
-      Tentar novamente
-    </button>
+    <button type="button" class="btn-primary" (click)="onRefresh()">Tentar novamente</button>
   </div>
 
   <!-- Estado 4: Populated ou Partial (Exibição de Dados e Cartões) -->
@@ -98,13 +86,18 @@
       [ngClass]="{
         'summary-up': snapshot.status === 'UP',
         'summary-degraded': snapshot.status === 'DEGRADED',
-        'summary-down': snapshot.status === 'DOWN'
-      }"
-    >
+        'summary-down': snapshot.status === 'DOWN',
+      }">
       <div class="summary-info">
         <div class="summary-badge-group">
           <span class="status-badge" [ngClass]="snapshot.status.toLowerCase()">
-            {{ snapshot.status === 'UP' ? 'Disponível' : (snapshot.status === 'DEGRADED' ? 'Degradado' : 'Indisponível') }}
+            {{
+              snapshot.status === 'UP'
+                ? 'Disponível'
+                : snapshot.status === 'DEGRADED'
+                  ? 'Degradado'
+                  : 'Indisponível'
+            }}
           </span>
           <span class="summary-text">{{ snapshot.summary }}</span>
         </div>
@@ -113,15 +106,16 @@
           <span class="meta-item">
             <strong>Última verificação:</strong> {{ formatDate(snapshot.timestamp) }}
           </span>
-          <span class="meta-item" *ngIf="snapshot.correlationId && snapshot.correlationId !== 'N/D'">
+          <span
+            class="meta-item"
+            *ngIf="snapshot.correlationId && snapshot.correlationId !== 'N/D'">
             <strong>Código de referência:</strong>
             <code class="code-inline">{{ snapshot.correlationId }}</code>
             <button
               type="button"
               class="btn-copy-small"
               (click)="copyCorrelationId(snapshot.correlationId)"
-              aria-label="Copiar código de referência para a área de transferência"
-            >
+              aria-label="Copiar código de referência para a área de transferência">
               {{ copyStatus() === 'copied' ? 'Copiado' : 'Copiar' }}
             </button>
           </span>
@@ -130,7 +124,9 @@
 
       <!-- Alerta de falha na recarga (dados anteriores preservados per D-04/D-17) -->
       <div *ngIf="store.isError()" class="stale-warning" role="alert">
-        <span>Não foi possível atualizar os dados agora. Exibindo a última verificação válida.</span>
+        <span
+          >Não foi possível atualizar os dados agora. Exibindo a última verificação válida.</span
+        >
       </div>
     </div>
 
@@ -139,8 +135,7 @@
       <article
         *ngFor="let card of snapshot.components"
         class="component-card"
-        [ngClass]="'card-' + card.status.toLowerCase()"
-      >
+        [ngClass]="'card-' + card.status.toLowerCase()">
         <header class="card-header">
           <h3 class="component-name">{{ card.name }}</h3>
           <span class="component-badge" [ngClass]="'badge-' + card.status.toLowerCase()">

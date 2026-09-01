@@ -9,8 +9,41 @@ import { SportsRostersStore } from './sports-rosters.store';
 import { SportsOrganizationsApiAdapter } from '../organizations/sports-organizations-api.adapter';
 import { SportsScopeStore } from '../scope/sports-scope.store';
 
-const TEAM = { teamId: 'team-a', organizationId: 'org-a', organizationName: 'Atletica Engenharia', competitionId: 'competition-a', competitionName: 'Olimpiada UFU', editionId: 'edition-a', editionName: '2026', sportId: 'sport-a', sportName: 'Futsal', categoryId: 'category-a', categoryName: 'Livre', name: 'Futsal Engenharia', slug: 'futsal-engenharia', status: 'PUBLICADO' as const, lockVersion: 0 };
-const DRAFT: SportsRosterDraft = { rosterId: 'roster-a', teamId: 'team-a', teamName: TEAM.name, organizationId: TEAM.organizationId, organizationName: TEAM.organizationName, competitionId: TEAM.competitionId, competitionName: TEAM.competitionName, editionId: TEAM.editionId, editionName: TEAM.editionName, sportId: TEAM.sportId, sportName: TEAM.sportName, categoryId: TEAM.categoryId, categoryName: TEAM.categoryName, status: 'RASCUNHO', lockVersion: 0, members: [] };
+const TEAM = {
+  teamId: 'team-a',
+  organizationId: 'org-a',
+  organizationName: 'Atletica Engenharia',
+  competitionId: 'competition-a',
+  competitionName: 'Olimpiada UFU',
+  editionId: 'edition-a',
+  editionName: '2026',
+  sportId: 'sport-a',
+  sportName: 'Futsal',
+  categoryId: 'category-a',
+  categoryName: 'Livre',
+  name: 'Futsal Engenharia',
+  slug: 'futsal-engenharia',
+  status: 'PUBLICADO' as const,
+  lockVersion: 0,
+};
+const DRAFT: SportsRosterDraft = {
+  rosterId: 'roster-a',
+  teamId: 'team-a',
+  teamName: TEAM.name,
+  organizationId: TEAM.organizationId,
+  organizationName: TEAM.organizationName,
+  competitionId: TEAM.competitionId,
+  competitionName: TEAM.competitionName,
+  editionId: TEAM.editionId,
+  editionName: TEAM.editionName,
+  sportId: TEAM.sportId,
+  sportName: TEAM.sportName,
+  categoryId: TEAM.categoryId,
+  categoryName: TEAM.categoryName,
+  status: 'RASCUNHO',
+  lockVersion: 0,
+  members: [],
+};
 
 describe('SportsRostersPageComponent', () => {
   let fixture: ComponentFixture<SportsRostersPageComponent>;
@@ -18,12 +51,32 @@ describe('SportsRostersPageComponent', () => {
 
   beforeEach(async () => {
     rosterAdapter = {
-      fetchDraft: vi.fn(() => of(DRAFT)), fetchPublication: vi.fn(() => throwError(() => ({ status: 404 }))),
-      updateDraft: vi.fn(() => of(DRAFT)), publish: vi.fn(), correct: vi.fn(), isConflict: vi.fn(() => false), isUnauthorized: vi.fn(() => false),
+      fetchDraft: vi.fn(() => of(DRAFT)),
+      fetchPublication: vi.fn(() => throwError(() => ({ status: 404 }))),
+      updateDraft: vi.fn(() => of(DRAFT)),
+      publish: vi.fn(),
+      correct: vi.fn(),
+      isConflict: vi.fn(() => false),
+      isUnauthorized: vi.fn(() => false),
     };
     const scope = {
-      competitions: signal([{ competitionId: 'competition-a', name: 'Olimpiada UFU', slug: 'olimpiada-ufu', status: 'ATIVA' as const, lockVersion: 0 }]),
-      selectedCompetitionId: signal<string | null>('competition-a'), hasSelection: signal(true), isLoading: signal(false), isDenied: signal(false), isEmpty: signal(false), isError: signal(false), errorMessage: signal<string | null>(null), load: vi.fn().mockResolvedValue(undefined),
+      competitions: signal([
+        {
+          competitionId: 'competition-a',
+          name: 'Olimpiada UFU',
+          slug: 'olimpiada-ufu',
+          status: 'ATIVA' as const,
+          lockVersion: 0,
+        },
+      ]),
+      selectedCompetitionId: signal<string | null>('competition-a'),
+      hasSelection: signal(true),
+      isLoading: signal(false),
+      isDenied: signal(false),
+      isEmpty: signal(false),
+      isError: signal(false),
+      errorMessage: signal<string | null>(null),
+      load: vi.fn().mockResolvedValue(undefined),
     };
     await TestBed.configureTestingModule({
       imports: [SportsRostersPageComponent],
@@ -31,13 +84,18 @@ describe('SportsRostersPageComponent', () => {
         SportsRostersStore,
         { provide: SportsRostersApiAdapter, useValue: rosterAdapter },
         { provide: SportsScopeStore, useValue: scope },
-        { provide: SportsOrganizationsApiAdapter, useValue: { fetchTeams: vi.fn(() => of([TEAM])) } },
+        {
+          provide: SportsOrganizationsApiAdapter,
+          useValue: { fetchTeams: vi.fn(() => of([TEAM])) },
+        },
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(SportsRostersPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
-    await vi.waitFor(() => expect(rosterAdapter['fetchDraft']).toHaveBeenCalled(), { timeout: 1_000 });
+    await vi.waitFor(() => expect(rosterAdapter['fetchDraft']).toHaveBeenCalled(), {
+      timeout: 1_000,
+    });
     fixture.detectChanges();
   });
 

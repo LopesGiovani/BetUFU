@@ -53,16 +53,18 @@ export class AthleteLinkProposalStore {
     }));
 
     try {
-      const proposal = await firstValueFrom(this.adapter.fetchProposal().pipe(
-        retry({
-          count: 2,
-          delay: (error: unknown, retryCount) => {
-            if (this.adapter.isUnauthorized(error) || this.adapter.isNotFound(error)) throw error;
-            this.state.update((current) => ({ ...current, isRetrying: true }));
-            return timer(retryCount === 1 ? 250 : 500);
-          },
-        }),
-      ));
+      const proposal = await firstValueFrom(
+        this.adapter.fetchProposal().pipe(
+          retry({
+            count: 2,
+            delay: (error: unknown, retryCount) => {
+              if (this.adapter.isUnauthorized(error) || this.adapter.isNotFound(error)) throw error;
+              this.state.update((current) => ({ ...current, isRetrying: true }));
+              return timer(retryCount === 1 ? 250 : 500);
+            },
+          }),
+        ),
+      );
       if (requestId !== this.requestSequence) return;
       this.state.set({
         status: 'ready',
@@ -87,15 +89,24 @@ export class AthleteLinkProposalStore {
   }
 
   async accept(): Promise<boolean> {
-    return this.decide(AthleteLinkDecisionRequest.DecisionEnum.Accept, 'Vínculo com atleta aceito.');
+    return this.decide(
+      AthleteLinkDecisionRequest.DecisionEnum.Accept,
+      'Vínculo com atleta aceito.',
+    );
   }
 
   async reject(): Promise<boolean> {
-    return this.decide(AthleteLinkDecisionRequest.DecisionEnum.Reject, 'Proposta de vínculo rejeitada.');
+    return this.decide(
+      AthleteLinkDecisionRequest.DecisionEnum.Reject,
+      'Proposta de vínculo rejeitada.',
+    );
   }
 
   async contest(): Promise<boolean> {
-    return this.decide(AthleteLinkDecisionRequest.DecisionEnum.Contest, 'Contestação enviada para revisão.');
+    return this.decide(
+      AthleteLinkDecisionRequest.DecisionEnum.Contest,
+      'Contestação enviada para revisão.',
+    );
   }
 
   reset(): void {

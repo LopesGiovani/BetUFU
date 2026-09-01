@@ -5,7 +5,13 @@ import { SportsCatalogApiAdapter } from '../catalog/sports-catalog-api.adapter';
 import { SportsScopeStore } from './sports-scope.store';
 
 const competition = (id: string, name: string) => ({
-  competitionId: id, name, slug: id, status: 'ATIVA' as const, lockVersion: 0, sportId: null, sportName: null,
+  competitionId: id,
+  name,
+  slug: id,
+  status: 'ATIVA' as const,
+  lockVersion: 0,
+  sportId: null,
+  sportName: null,
 });
 
 describe('SportsScopeStore', () => {
@@ -25,7 +31,12 @@ describe('SportsScopeStore', () => {
   });
 
   it('seleciona somente uma competição retornada pelo BFF e rejeita deep link desconhecido', async () => {
-    adapter.fetchScope.mockReturnValue(of({ competitions: [competition('a', 'Olimpíada UFU'), competition('b', 'Intercursos')], bootstrapAllowed: false }));
+    adapter.fetchScope.mockReturnValue(
+      of({
+        competitions: [competition('a', 'Olimpíada UFU'), competition('b', 'Intercursos')],
+        bootstrapAllowed: false,
+      }),
+    );
     adapter.fetchCapabilities.mockReturnValue(of(['MANAGE_SPORTS_CATALOG']));
     const store = TestBed.inject(SportsScopeStore);
 
@@ -38,7 +49,9 @@ describe('SportsScopeStore', () => {
   });
 
   it('pré-seleciona escopo único por nome e não habilita bootstrap sem capability', async () => {
-    adapter.fetchScope.mockReturnValue(of({ competitions: [competition('a', 'Olimpíada UFU')], bootstrapAllowed: true }));
+    adapter.fetchScope.mockReturnValue(
+      of({ competitions: [competition('a', 'Olimpíada UFU')], bootstrapAllowed: true }),
+    );
     adapter.fetchCapabilities.mockReturnValue(of(['MANAGE_SPORTS_CATALOG']));
     const store = TestBed.inject(SportsScopeStore);
 
@@ -49,16 +62,23 @@ describe('SportsScopeStore', () => {
   });
 
   it('falha fechado sem capability ou quando o BFF não responde', async () => {
-    adapter.fetchScope.mockReturnValue(of({ competitions: [competition('a', 'Olimpíada UFU')], bootstrapAllowed: false }));
+    adapter.fetchScope.mockReturnValue(
+      of({ competitions: [competition('a', 'Olimpíada UFU')], bootstrapAllowed: false }),
+    );
     adapter.fetchCapabilities.mockReturnValue(of([]));
     const denied = TestBed.inject(SportsScopeStore);
     await denied.load();
     expect(denied.status()).toBe('denied');
     expect(denied.competitions()).toEqual([]);
 
-    const failedAdapter = { fetchScope: vi.fn(() => throwError(() => new Error('offline'))), fetchCapabilities: vi.fn(() => of([])) };
+    const failedAdapter = {
+      fetchScope: vi.fn(() => throwError(() => new Error('offline'))),
+      fetchCapabilities: vi.fn(() => of([])),
+    };
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [SportsScopeStore, { provide: SportsCatalogApiAdapter, useValue: failedAdapter }] });
+    TestBed.configureTestingModule({
+      providers: [SportsScopeStore, { provide: SportsCatalogApiAdapter, useValue: failedAdapter }],
+    });
     const failed = TestBed.inject(SportsScopeStore);
     await failed.load();
     expect(failed.status()).toBe('error');

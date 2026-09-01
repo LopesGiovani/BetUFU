@@ -9,7 +9,15 @@ import { SportsScopeStore } from '../scope/sports-scope.store';
 import { SportsCatalogApiAdapter } from '../catalog/sports-catalog-api.adapter';
 
 const SCOPE = {
-  competitions: signal([{ competitionId: 'competition-1', name: 'Olimpiada UFU', slug: 'olimpiada-ufu', status: 'ATIVA', lockVersion: 0 }]),
+  competitions: signal([
+    {
+      competitionId: 'competition-1',
+      name: 'Olimpiada UFU',
+      slug: 'olimpiada-ufu',
+      status: 'ATIVA',
+      lockVersion: 0,
+    },
+  ]),
   selectedCompetitionId: signal<string | null>('competition-1'),
   hasSelection: signal(true),
   isLoading: signal(false),
@@ -22,9 +30,26 @@ const SCOPE = {
 };
 
 const TREE = {
-  competition: { competitionId: 'competition-1', name: 'Olimpiada UFU', slug: 'olimpiada-ufu', status: 'ATIVA', lockVersion: 0 },
+  competition: {
+    competitionId: 'competition-1',
+    name: 'Olimpiada UFU',
+    slug: 'olimpiada-ufu',
+    status: 'ATIVA',
+    lockVersion: 0,
+  },
   sports: [],
-  editions: [{ editionId: 'edition-1', competitionId: 'competition-1', name: '2026', slug: '2026', startDate: null, endDate: null, status: 'ATIVA', lockVersion: 0 }],
+  editions: [
+    {
+      editionId: 'edition-1',
+      competitionId: 'competition-1',
+      name: '2026',
+      slug: '2026',
+      startDate: null,
+      endDate: null,
+      status: 'ATIVA',
+      lockVersion: 0,
+    },
+  ],
   categories: [],
   phases: [],
   venues: [],
@@ -37,9 +62,24 @@ describe('SportsTabularImportPageComponent', () => {
 
   beforeEach(async () => {
     store = {
-      status: signal('initial'), fileName: signal<string | null>(null), format: signal<string | null>(null), preview: signal(null), result: signal(null),
-      errorMessage: signal<string | null>(null), feedbackMessage: signal<string | null>(null), isLoading: signal(false), isDenied: signal(false), isIndeterminate: signal(false), hasFile: signal(false), canValidate: signal(false), canCommit: signal(false),
-      selectFile: vi.fn(() => true), validate: vi.fn().mockResolvedValue(true), commit: vi.fn().mockResolvedValue(true), checkStatus: vi.fn().mockResolvedValue(true), reset: vi.fn(),
+      status: signal('initial'),
+      fileName: signal<string | null>(null),
+      format: signal<string | null>(null),
+      preview: signal(null),
+      result: signal(null),
+      errorMessage: signal<string | null>(null),
+      feedbackMessage: signal<string | null>(null),
+      isLoading: signal(false),
+      isDenied: signal(false),
+      isIndeterminate: signal(false),
+      hasFile: signal(false),
+      canValidate: signal(false),
+      canCommit: signal(false),
+      selectFile: vi.fn(() => true),
+      validate: vi.fn().mockResolvedValue(true),
+      commit: vi.fn().mockResolvedValue(true),
+      checkStatus: vi.fn().mockResolvedValue(true),
+      reset: vi.fn(),
     };
     importAdapter = { detectFormat: vi.fn(() => 'CSV') };
     await TestBed.configureTestingModule({
@@ -54,9 +94,12 @@ describe('SportsTabularImportPageComponent', () => {
     fixture = TestBed.createComponent(SportsTabularImportPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
-    await vi.waitFor(() => expect(fixture.componentInstance.selectedEditionId()).toBe('edition-1'), {
-      timeout: 1_000,
-    });
+    await vi.waitFor(
+      () => expect(fixture.componentInstance.selectedEditionId()).toBe('edition-1'),
+      {
+        timeout: 1_000,
+      },
+    );
     fixture.detectChanges();
   });
 
@@ -81,10 +124,11 @@ describe('SportsTabularImportPageComponent', () => {
   });
 
   it('oferece templates para os dois formatos', () => {
-    const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
-    expect(buttons.map((button) => button.textContent?.trim())).toEqual(expect.arrayContaining([
-      'Baixar template CSV',
-      'Baixar template XLSX',
-    ]));
+    const buttons = Array.from(
+      fixture.nativeElement.querySelectorAll('button'),
+    ) as HTMLButtonElement[];
+    expect(buttons.map((button) => button.textContent?.trim())).toEqual(
+      expect.arrayContaining(['Baixar template CSV', 'Baixar template XLSX']),
+    );
   });
 });

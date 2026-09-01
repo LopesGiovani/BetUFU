@@ -96,14 +96,26 @@ interface GrainientResources {
       display: block;
       overflow: hidden;
       background:
-        radial-gradient(circle at 14% 18%, rgba(255, 98, 107, .38), transparent 36%),
-        radial-gradient(circle at 78% 62%, rgba(116, 29, 66, .62), transparent 48%),
+        radial-gradient(circle at 14% 18%, rgba(255, 98, 107, 0.38), transparent 36%),
+        radial-gradient(circle at 78% 62%, rgba(116, 29, 66, 0.62), transparent 48%),
         linear-gradient(135deg, #09080d, #21131d 52%, #120b12);
       pointer-events: none;
     }
-    canvas { display: block; width: 100%; height: 100%; opacity: .96; transition: opacity 180ms ease; }
-    canvas.is-hidden { opacity: 0; }
-    @media (prefers-reduced-motion: reduce) { canvas { transition: none; } }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      opacity: 0.96;
+      transition: opacity 180ms ease;
+    }
+    canvas.is-hidden {
+      opacity: 0;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      canvas {
+        transition: none;
+      }
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -191,11 +203,12 @@ export class GrainientBackgroundComponent implements AfterViewInit, OnDestroy {
     }
 
     try {
-      this.gl = canvas.getContext('webgl2', {
-        alpha: false,
-        antialias: false,
-        powerPreference: 'low-power',
-      }) ?? undefined;
+      this.gl =
+        canvas.getContext('webgl2', {
+          alpha: false,
+          antialias: false,
+          powerPreference: 'low-power',
+        }) ?? undefined;
       if (!this.gl) {
         this.fallback.set(true);
         return;
@@ -242,26 +255,26 @@ export class GrainientBackgroundComponent implements AfterViewInit, OnDestroy {
       return undefined;
     }
     gl.useProgram(program);
-    this.setUniform1f(gl, program, 'uTimeSpeed', .12);
-    this.setUniform1f(gl, program, 'uColorBalance', -.04);
-    this.setUniform1f(gl, program, 'uWarpStrength', .72);
+    this.setUniform1f(gl, program, 'uTimeSpeed', 0.12);
+    this.setUniform1f(gl, program, 'uColorBalance', -0.04);
+    this.setUniform1f(gl, program, 'uWarpStrength', 0.72);
     this.setUniform1f(gl, program, 'uWarpFrequency', 3.4);
-    this.setUniform1f(gl, program, 'uWarpSpeed', .42);
+    this.setUniform1f(gl, program, 'uWarpSpeed', 0.42);
     this.setUniform1f(gl, program, 'uWarpAmplitude', 78);
     this.setUniform1f(gl, program, 'uBlendAngle', -18);
-    this.setUniform1f(gl, program, 'uBlendSoftness', .16);
+    this.setUniform1f(gl, program, 'uBlendSoftness', 0.16);
     this.setUniform1f(gl, program, 'uRotationAmount', 150);
     this.setUniform1f(gl, program, 'uNoiseScale', 1.45);
-    this.setUniform1f(gl, program, 'uGrainAmount', .035);
+    this.setUniform1f(gl, program, 'uGrainAmount', 0.035);
     this.setUniform1f(gl, program, 'uGrainScale', 1.8);
     this.setUniform1f(gl, program, 'uContrast', 1.24);
     this.setUniform1f(gl, program, 'uGamma', 1.04);
-    this.setUniform1f(gl, program, 'uSaturation', .92);
-    gl.uniform2f(gl.getUniformLocation(program, 'uCenterOffset'), -.06, .08);
-    this.setUniform1f(gl, program, 'uZoom', .82);
-    gl.uniform3f(gl.getUniformLocation(program, 'uColor1'), 1, .384, .42);
-    gl.uniform3f(gl.getUniformLocation(program, 'uColor2'), .455, .114, .259);
-    gl.uniform3f(gl.getUniformLocation(program, 'uColor3'), .035, .031, .051);
+    this.setUniform1f(gl, program, 'uSaturation', 0.92);
+    gl.uniform2f(gl.getUniformLocation(program, 'uCenterOffset'), -0.06, 0.08);
+    this.setUniform1f(gl, program, 'uZoom', 0.82);
+    gl.uniform3f(gl.getUniformLocation(program, 'uColor1'), 1, 0.384, 0.42);
+    gl.uniform3f(gl.getUniformLocation(program, 'uColor2'), 0.455, 0.114, 0.259);
+    gl.uniform3f(gl.getUniformLocation(program, 'uColor3'), 0.035, 0.031, 0.051);
     return { program, vao, resolution, time };
   }
 
@@ -339,14 +352,16 @@ export class GrainientBackgroundComponent implements AfterViewInit, OnDestroy {
   };
 
   private shouldAnimate(): boolean {
-    return this.initialized
-      && !this.destroyed
-      && !this.paused()
-      && !this.reducedMotion
-      && this.visible
-      && !document.hidden
-      && !this.contextLost
-      && Boolean(this.resources);
+    return (
+      this.initialized &&
+      !this.destroyed &&
+      !this.paused() &&
+      !this.reducedMotion &&
+      this.visible &&
+      !document.hidden &&
+      !this.contextLost &&
+      Boolean(this.resources)
+    );
   }
 
   private synchronizeLoop(): void {

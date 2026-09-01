@@ -1,13 +1,12 @@
 package br.com.betufu.sports.internal.importtabular;
 
-import java.io.IOException;
-import java.util.Objects;
-import java.util.UUID;
-
 import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
 import br.com.betufu.sports.internal.importtabular.SportsTabularImportService.SportsTabularImportPreview;
 import br.com.betufu.sports.internal.importtabular.SportsTabularImportService.SportsTabularImportResult;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
@@ -27,71 +26,71 @@ import org.springframework.web.multipart.MultipartFile;
 @Profile("runtime | integrated")
 public class SportsTabularImportController {
 
-    private final SportsTabularImportService service;
+  private final SportsTabularImportService service;
 
-    @Autowired
-    public SportsTabularImportController(SportsTabularImportService service) {
-        this.service = Objects.requireNonNull(service, "service must not be null");
+  @Autowired
+  public SportsTabularImportController(SportsTabularImportService service) {
+    this.service = Objects.requireNonNull(service, "service must not be null");
+  }
+
+  @PostMapping(value = "/validate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public SportsTabularImportPreview validate(
+      @PathVariable("editionId") UUID editionId,
+      @RequestParam("file") MultipartFile file,
+      @AuthenticationPrincipal OidcUser principal) {
+    if (principal == null) {
+      throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
+    }
+    if (file == null || file.isEmpty()) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
     }
 
-    @PostMapping(value = "/validate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SportsTabularImportPreview validate(
-            @PathVariable("editionId") UUID editionId,
-            @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal OidcUser principal) {
-        if (principal == null) {
-            throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
-        }
-        if (file == null || file.isEmpty()) {
-            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
-        }
-
-        byte[] bytes;
-        try {
-            bytes = file.getBytes();
-        } catch (IOException e) {
-            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
-        }
-
-        String issuer = principal.getIssuer() != null ? principal.getIssuer().toString() : null;
-        String subject = principal.getSubject();
-
-        return service.validateImport(issuer, subject, editionId, bytes, file.getOriginalFilename());
+    byte[] bytes;
+    try {
+      bytes = file.getBytes();
+    } catch (IOException e) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
     }
 
-    @PostMapping("/commit")
-    public SportsTabularImportResult commit(
-            @PathVariable("editionId") UUID editionId,
-            @RequestParam("importId") UUID importId,
-            @AuthenticationPrincipal OidcUser principal) {
-        if (principal == null) {
-            throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
-        }
-        if (importId == null) {
-            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
-        }
+    String issuer = principal.getIssuer() != null ? principal.getIssuer().toString() : null;
+    String subject = principal.getSubject();
 
-        String issuer = principal.getIssuer() != null ? principal.getIssuer().toString() : null;
-        String subject = principal.getSubject();
+    return service.validateImport(issuer, subject, editionId, bytes, file.getOriginalFilename());
+  }
 
-        return service.commitImport(issuer, subject, editionId, importId);
+  @PostMapping("/commit")
+  public SportsTabularImportResult commit(
+      @PathVariable("editionId") UUID editionId,
+      @RequestParam("importId") UUID importId,
+      @AuthenticationPrincipal OidcUser principal) {
+    if (principal == null) {
+      throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
+    }
+    if (importId == null) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
     }
 
-    @GetMapping("/status/{importId}")
-    public SportsTabularImportResult getStatus(
-            @PathVariable("editionId") UUID editionId,
-            @PathVariable("importId") UUID importId,
-            @AuthenticationPrincipal OidcUser principal) {
-        if (principal == null) {
-            throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
-        }
-        if (importId == null) {
-            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
-        }
+    String issuer = principal.getIssuer() != null ? principal.getIssuer().toString() : null;
+    String subject = principal.getSubject();
 
-        String issuer = principal.getIssuer() != null ? principal.getIssuer().toString() : null;
-        String subject = principal.getSubject();
+    return service.commitImport(issuer, subject, editionId, importId);
+  }
 
-        return service.getImportStatus(issuer, subject, editionId, importId);
+  @GetMapping("/status/{importId}")
+  public SportsTabularImportResult getStatus(
+      @PathVariable("editionId") UUID editionId,
+      @PathVariable("importId") UUID importId,
+      @AuthenticationPrincipal OidcUser principal) {
+    if (principal == null) {
+      throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
     }
+    if (importId == null) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
+
+    String issuer = principal.getIssuer() != null ? principal.getIssuer().toString() : null;
+    String subject = principal.getSubject();
+
+    return service.getImportStatus(issuer, subject, editionId, importId);
+  }
 }

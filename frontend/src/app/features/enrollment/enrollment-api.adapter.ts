@@ -51,9 +51,7 @@ export class EnrollmentApiAdapter {
     }
 
     if (typeof response.status !== 'string' || response.status.trim() === '') {
-      throw new Error(
-        'CONTRATO_MATRICULA_INVALIDO: campo obrigatorio status ausente ou invalido',
-      );
+      throw new Error('CONTRATO_MATRICULA_INVALIDO: campo obrigatorio status ausente ou invalido');
     }
 
     return {

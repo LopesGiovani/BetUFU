@@ -12,8 +12,20 @@ import { SportsAthletesPageComponent } from './sports-athletes-page.component';
 import { SportsAthletesStore } from './sports-athletes.store';
 
 const ATHLETES: readonly SportsAthleteSummary[] = [
-  { athleteId: 'ath-1', name: 'Carlos Silva', slug: 'carlos-silva', status: 'RASCUNHO', lockVersion: 0 },
-  { athleteId: 'ath-2', name: 'Beatriz Costa', slug: 'beatriz-costa', status: 'PUBLICADO', lockVersion: 1 },
+  {
+    athleteId: 'ath-1',
+    name: 'Carlos Silva',
+    slug: 'carlos-silva',
+    status: 'RASCUNHO',
+    lockVersion: 0,
+  },
+  {
+    athleteId: 'ath-2',
+    name: 'Beatriz Costa',
+    slug: 'beatriz-costa',
+    status: 'PUBLICADO',
+    lockVersion: 1,
+  },
 ];
 
 const TEAMS: readonly SportsTeamSummary[] = [
@@ -43,7 +55,15 @@ describe('SportsAthletesPageComponent (O4)', () => {
 
   function createScopeMock() {
     return {
-      competitions: signal([{ competitionId: 'comp-a', name: 'Jogos UFU', slug: 'jogos-ufu', status: 'ATIVA', lockVersion: 0 }]),
+      competitions: signal([
+        {
+          competitionId: 'comp-a',
+          name: 'Jogos UFU',
+          slug: 'jogos-ufu',
+          status: 'ATIVA',
+          lockVersion: 0,
+        },
+      ]),
       selectedCompetitionId: signal<string | null>('comp-a'),
       hasSelection: signal(true),
       isDenied: signal(false),
@@ -61,8 +81,14 @@ describe('SportsAthletesPageComponent (O4)', () => {
       fetchAthletes: vi.fn().mockReturnValue(of(ATHLETES)),
       createAthlete: vi.fn().mockReturnValue(of(ATHLETES[0])),
       updateAthlete: vi.fn().mockReturnValue(of(ATHLETES[0])),
-      publishAthlete: vi.fn().mockReturnValue(of({ ...ATHLETES[0], status: 'PUBLICADO', lockVersion: 1 })),
-      isConflict: vi.fn().mockImplementation((error: unknown) => error instanceof HttpErrorResponse && error.status === 409),
+      publishAthlete: vi
+        .fn()
+        .mockReturnValue(of({ ...ATHLETES[0], status: 'PUBLICADO', lockVersion: 1 })),
+      isConflict: vi
+        .fn()
+        .mockImplementation(
+          (error: unknown) => error instanceof HttpErrorResponse && error.status === 409,
+        ),
     };
     organizationAdapter = {
       fetchTeams: vi.fn().mockReturnValue(of(TEAMS)),
@@ -225,7 +251,9 @@ describe('SportsAthletesPageComponent (O4)', () => {
     await component.saveAthlete();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Este registro foi alterado por outra pessoa');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Este registro foi alterado por outra pessoa',
+    );
     expect(fixture.nativeElement.textContent).not.toContain('stack');
   });
 });

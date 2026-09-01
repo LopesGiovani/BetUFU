@@ -3,7 +3,6 @@ package br.com.betufu.verification.internal;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -15,17 +14,17 @@ import org.springframework.stereotype.Service;
 @Profile("runtime | integrated")
 public class EnrollmentAttemptLimiter {
 
-    public static final int ACCOUNT_MAX_REJECTIONS = 5;
-    public static final Duration ACCOUNT_WINDOW = Duration.ofMinutes(15);
+  public static final int ACCOUNT_MAX_REJECTIONS = 5;
+  public static final Duration ACCOUNT_WINDOW = Duration.ofMinutes(15);
 
-    public static final int ORIGIN_MAX_REJECTIONS = 50;
-    public static final Duration ORIGIN_WINDOW = Duration.ofHours(1);
+  public static final int ORIGIN_MAX_REJECTIONS = 50;
+  public static final Duration ORIGIN_WINDOW = Duration.ofHours(1);
 
-    private static final String ACCOUNT_KEY_PREFIX = "betufu:verification:limiter:account:";
-    private static final String ORIGIN_KEY_PREFIX = "betufu:verification:limiter:origin:";
+  private static final String ACCOUNT_KEY_PREFIX = "betufu:verification:limiter:account:";
+  private static final String ORIGIN_KEY_PREFIX = "betufu:verification:limiter:origin:";
 
-    private static final String ACQUIRE_LUA_SCRIPT =
-            """
+  private static final String ACQUIRE_LUA_SCRIPT =
+      """
             local accVal = redis.call('get', KEYS[1])
             local accCount = 0
             if accVal then
@@ -74,8 +73,8 @@ public class EnrollmentAttemptLimiter {
             return 1
             """;
 
-    private static final String RELEASE_LUA_SCRIPT =
-            """
+  private static final String RELEASE_LUA_SCRIPT =
+      """
             local accVal = redis.call('get', KEYS[1])
             if accVal then
                 local num = tonumber(accVal)
@@ -95,71 +94,68 @@ public class EnrollmentAttemptLimiter {
             return 1
             """;
 
-    private final ObjectProvider<StringRedisTemplate> redisTemplateProvider;
-    private final RedisScript<Long> acquireScript;
-    private final RedisScript<Long> releaseScript;
+  private final ObjectProvider<StringRedisTemplate> redisTemplateProvider;
+  private final RedisScript<Long> acquireScript;
+  private final RedisScript<Long> releaseScript;
 
-    public EnrollmentAttemptLimiter(ObjectProvider<StringRedisTemplate> redisTemplateProvider) {
-        this.redisTemplateProvider = redisTemplateProvider;
-        this.acquireScript = new DefaultRedisScript<>(ACQUIRE_LUA_SCRIPT, Long.class);
-        this.releaseScript = new DefaultRedisScript<>(RELEASE_LUA_SCRIPT, Long.class);
+  public EnrollmentAttemptLimiter(ObjectProvider<StringRedisTemplate> redisTemplateProvider) {
+    this.redisTemplateProvider = redisTemplateProvider;
+    this.acquireScript = new DefaultRedisScript<>(ACQUIRE_LUA_SCRIPT, Long.class);
+    this.releaseScript = new DefaultRedisScript<>(RELEASE_LUA_SCRIPT, Long.class);
+  }
+
+  public boolean tryAcquire(UUID identityId, String originIp) {
+    if (identityId == null || originIp == null || originIp.isBlank()) {
+      return false;
     }
 
-    public boolean tryAcquire(UUID identityId, String originIp) {
-        if (identityId == null || originIp == null || originIp.isBlank()) {
-            return false;
-        }
-
-        StringRedisTemplate redisTemplate = (redisTemplateProvider != null)
-                ? redisTemplateProvider.getIfAvailable()
-                : null;
-        if (redisTemplate == null) {
-            return false;
-        }
-
-        String accountKey = ACCOUNT_KEY_PREFIX + identityId;
-        String originKey = ORIGIN_KEY_PREFIX + originIp.trim();
-
-        try {
-            Long result = redisTemplate.execute(
-                    acquireScript,
-                    List.of(accountKey, originKey),
-                    String.valueOf(ACCOUNT_MAX_REJECTIONS),
-                    String.valueOf(ACCOUNT_WINDOW.toSeconds()),
-                    String.valueOf(ORIGIN_MAX_REJECTIONS),
-                    String.valueOf(ORIGIN_WINDOW.toSeconds()));
-
-            return result != null && result == 1L;
-        } catch (Exception e) {
-            return false;
-        }
+    StringRedisTemplate redisTemplate =
+        (redisTemplateProvider != null) ? redisTemplateProvider.getIfAvailable() : null;
+    if (redisTemplate == null) {
+      return false;
     }
 
-    public void release(UUID identityId, String originIp) {
-        if (identityId == null || originIp == null || originIp.isBlank()) {
-            return;
-        }
+    String accountKey = ACCOUNT_KEY_PREFIX + identityId;
+    String originKey = ORIGIN_KEY_PREFIX + originIp.trim();
 
-        StringRedisTemplate redisTemplate = (redisTemplateProvider != null)
-                ? redisTemplateProvider.getIfAvailable()
-                : null;
-        if (redisTemplate == null) {
-            return;
-        }
+    try {
+      Long result =
+          redisTemplate.execute(
+              acquireScript,
+              List.of(accountKey, originKey),
+              String.valueOf(ACCOUNT_MAX_REJECTIONS),
+              String.valueOf(ACCOUNT_WINDOW.toSeconds()),
+              String.valueOf(ORIGIN_MAX_REJECTIONS),
+              String.valueOf(ORIGIN_WINDOW.toSeconds()));
 
-        String accountKey = ACCOUNT_KEY_PREFIX + identityId;
-        String originKey = ORIGIN_KEY_PREFIX + originIp.trim();
+      return result != null && result == 1L;
+    } catch (Exception e) {
+      return false;
+    }
+  }
 
-        try {
-            redisTemplate.execute(
-                    releaseScript,
-                    List.of(accountKey, originKey));
-        } catch (Exception ignored) {
-        }
+  public void release(UUID identityId, String originIp) {
+    if (identityId == null || originIp == null || originIp.isBlank()) {
+      return;
     }
 
-    @Override
-    public String toString() {
-        return "EnrollmentAttemptLimiter[]";
+    StringRedisTemplate redisTemplate =
+        (redisTemplateProvider != null) ? redisTemplateProvider.getIfAvailable() : null;
+    if (redisTemplate == null) {
+      return;
     }
+
+    String accountKey = ACCOUNT_KEY_PREFIX + identityId;
+    String originKey = ORIGIN_KEY_PREFIX + originIp.trim();
+
+    try {
+      redisTemplate.execute(releaseScript, List.of(accountKey, originKey));
+    } catch (Exception ignored) {
+    }
+  }
+
+  @Override
+  public String toString() {
+    return "EnrollmentAttemptLimiter[]";
+  }
 }

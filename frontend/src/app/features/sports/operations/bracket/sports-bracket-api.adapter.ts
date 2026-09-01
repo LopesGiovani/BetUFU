@@ -13,21 +13,57 @@ export class SportsBracketApiAdapter {
   private readonly eventService = inject(SportsEventResultService);
   fetch(bracketId: string): Observable<SportsBracketView> {
     const normalized = bracketId.trim();
-    if (!normalized) return throwError(() => new Error('CONTRATO_BRACKET_INVALIDO: identificador ausente.'));
+    if (!normalized)
+      return throwError(() => new Error('CONTRATO_BRACKET_INVALIDO: identificador ausente.'));
     return defer(() => this.service.getSportsBracket({ bracketId: normalized }));
   }
   fetchEvents(editionId: string): Observable<Array<SportsEventDetail>> {
     return defer(() => this.eventService.listSportsEvents({ editionId }));
   }
-  update(bracketId: string, expectedLockVersion: number, payload: SportsBracketUpdateRequest): Observable<SportsBracketView> {
-    return defer(() => this.service.updateSportsBracket({ bracketId, expectedLockVersion, sportsBracketUpdateRequest: payload }));
+  update(
+    bracketId: string,
+    expectedLockVersion: number,
+    payload: SportsBracketUpdateRequest,
+  ): Observable<SportsBracketView> {
+    return defer(() =>
+      this.service.updateSportsBracket({
+        bracketId,
+        expectedLockVersion,
+        sportsBracketUpdateRequest: payload,
+      }),
+    );
   }
-  publish(bracketId: string, expectedLockVersion: number, sourceReference: string): Observable<SportsBracketView> {
-    return defer(() => this.service.publishSportsBracket({ bracketId, expectedLockVersion, sportsBracketPublishRequest: { sourceReference } }));
+  publish(
+    bracketId: string,
+    expectedLockVersion: number,
+    sourceReference: string,
+  ): Observable<SportsBracketView> {
+    return defer(() =>
+      this.service.publishSportsBracket({
+        bracketId,
+        expectedLockVersion,
+        sportsBracketPublishRequest: { sourceReference },
+      }),
+    );
   }
-  correct(bracketId: string, expectedLockVersion: number, reason: string, sourceReference: string): Observable<SportsBracketView> {
-    return defer(() => this.service.correctSportsBracket({ bracketId, expectedLockVersion, sportsBracketCorrectRequest: { reason, sourceReference } }));
+  correct(
+    bracketId: string,
+    expectedLockVersion: number,
+    reason: string,
+    sourceReference: string,
+  ): Observable<SportsBracketView> {
+    return defer(() =>
+      this.service.correctSportsBracket({
+        bracketId,
+        expectedLockVersion,
+        sportsBracketCorrectRequest: { reason, sourceReference },
+      }),
+    );
   }
-  isUnauthorized(error: unknown): boolean { return error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403); }
-  isNotFound(error: unknown): boolean { return error instanceof HttpErrorResponse && error.status === 404; }
+  isUnauthorized(error: unknown): boolean {
+    return error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403);
+  }
+  isNotFound(error: unknown): boolean {
+    return error instanceof HttpErrorResponse && error.status === 404;
+  }
 }

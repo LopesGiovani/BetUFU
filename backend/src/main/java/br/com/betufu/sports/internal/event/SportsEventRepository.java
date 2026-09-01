@@ -1,5 +1,12 @@
 package br.com.betufu.sports.internal.event;
 
+import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventCreateRequest;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventDetail;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotItem;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotRequest;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventUpdateRequest;
+import br.com.betufu.sports.internal.event.SportsEventModels.VenueState;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -11,15 +18,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
-
-import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
-import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventCreateRequest;
-import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventDetail;
-import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotItem;
-import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotRequest;
-import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventUpdateRequest;
-import br.com.betufu.sports.internal.event.SportsEventModels.VenueState;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -28,68 +26,66 @@ import org.springframework.stereotype.Repository;
 @Profile("runtime | integrated")
 class SportsEventRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    SportsEventRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "jdbcTemplate must not be null");
+  SportsEventRepository(JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "jdbcTemplate must not be null");
+  }
+
+  record EditionScope(
+      UUID competitionId, UUID editionId, String competitionName, String editionName) {}
+
+  record EventScope(
+      UUID eventId,
+      UUID competitionId,
+      UUID editionId,
+      String status,
+      long lockVersion,
+      UUID confirmedVersionId) {}
+
+  record CatalogScope(
+      UUID competitionId,
+      UUID editionId,
+      String competitionName,
+      String editionName,
+      String sportName,
+      String categoryName,
+      String phaseName,
+      String venueName,
+      String venueSpaceName) {}
+
+  Optional<EditionScope> findEditionScope(UUID editionId) {
+    if (editionId == null) {
+      return Optional.empty();
     }
-
-    record EditionScope(
-            UUID competitionId,
-            UUID editionId,
-            String competitionName,
-            String editionName) {
-    }
-
-    record EventScope(
-            UUID eventId,
-            UUID competitionId,
-            UUID editionId,
-            String status,
-            long lockVersion,
-            UUID confirmedVersionId) {
-    }
-
-    record CatalogScope(
-            UUID competitionId,
-            UUID editionId,
-            String competitionName,
-            String editionName,
-            String sportName,
-            String categoryName,
-            String phaseName,
-            String venueName,
-            String venueSpaceName) {
-    }
-
-    Optional<EditionScope> findEditionScope(UUID editionId) {
-        if (editionId == null) {
-            return Optional.empty();
-        }
-        return jdbcTemplate.query(
-                """
+    return jdbcTemplate.query(
+        """
                 SELECT e.competition_id, e.edition_id, c.name AS competition_name, e.name AS edition_name
                 FROM public.sports_edition e
                 JOIN public.sports_competition c ON c.competition_id = e.competition_id
                 WHERE e.edition_id = ?
                 """,
-                rs -> rs.next() ? Optional.of(new EditionScope(
+        rs ->
+            rs.next()
+                ? Optional.of(
+                    new EditionScope(
                         rs.getObject("competition_id", UUID.class),
                         rs.getObject("edition_id", UUID.class),
                         rs.getString("competition_name"),
-                        rs.getString("edition_name"))) : Optional.empty(),
-                editionId);
-    }
+                        rs.getString("edition_name")))
+                : Optional.empty(),
+        editionId);
+  }
 
-    Optional<CatalogScope> findCatalogScope(
-            UUID editionId,
-            UUID sportId,
-            UUID categoryId,
-            UUID phaseId,
-            UUID venueId,
-            UUID venueSpaceId) {
-        return jdbcTemplate.query(
-                """
+  Optional<CatalogScope> findCatalogScope(
+      UUID editionId,
+      UUID sportId,
+      UUID categoryId,
+      UUID phaseId,
+      UUID venueId,
+      UUID venueSpaceId) {
+    return jdbcTemplate.query(
+        """
                 SELECT
                     e.competition_id,
                     e.edition_id,
@@ -109,92 +105,101 @@ class SportsEventRepository {
                 LEFT JOIN public.sports_venue_space vs ON vs.venue_space_id = ? AND vs.venue_id = v.venue_id
                 WHERE e.edition_id = ?
                 """,
-                rs -> {
-                    if (!rs.next()) {
-                        return Optional.empty();
-                    }
-                    if (sportId != null && rs.getString("sport_name") == null) {
-                        return Optional.empty();
-                    }
-                    if (categoryId != null && rs.getString("category_name") == null) {
-                        return Optional.empty();
-                    }
-                    if (phaseId != null && rs.getString("phase_name") == null) {
-                        return Optional.empty();
-                    }
-                    if (venueId != null && rs.getString("venue_name") == null) {
-                        return Optional.empty();
-                    }
-                    if (venueSpaceId != null && rs.getString("venue_space_name") == null) {
-                        return Optional.empty();
-                    }
-                    return Optional.of(new CatalogScope(
-                            rs.getObject("competition_id", UUID.class),
-                            rs.getObject("edition_id", UUID.class),
-                            rs.getString("competition_name"),
-                            rs.getString("edition_name"),
-                            rs.getString("sport_name"),
-                            rs.getString("category_name"),
-                            rs.getString("phase_name"),
-                            rs.getString("venue_name"),
-                            rs.getString("venue_space_name")));
-                },
-                sportId,
-                categoryId,
-                phaseId,
-                venueId,
-                venueSpaceId,
-                editionId);
-    }
-
-    Optional<EventScope> findEventScope(UUID eventId) {
-        if (eventId == null) {
+        rs -> {
+          if (!rs.next()) {
             return Optional.empty();
-        }
-        return jdbcTemplate.query(
-                """
+          }
+          if (sportId != null && rs.getString("sport_name") == null) {
+            return Optional.empty();
+          }
+          if (categoryId != null && rs.getString("category_name") == null) {
+            return Optional.empty();
+          }
+          if (phaseId != null && rs.getString("phase_name") == null) {
+            return Optional.empty();
+          }
+          if (venueId != null && rs.getString("venue_name") == null) {
+            return Optional.empty();
+          }
+          if (venueSpaceId != null && rs.getString("venue_space_name") == null) {
+            return Optional.empty();
+          }
+          return Optional.of(
+              new CatalogScope(
+                  rs.getObject("competition_id", UUID.class),
+                  rs.getObject("edition_id", UUID.class),
+                  rs.getString("competition_name"),
+                  rs.getString("edition_name"),
+                  rs.getString("sport_name"),
+                  rs.getString("category_name"),
+                  rs.getString("phase_name"),
+                  rs.getString("venue_name"),
+                  rs.getString("venue_space_name")));
+        },
+        sportId,
+        categoryId,
+        phaseId,
+        venueId,
+        venueSpaceId,
+        editionId);
+  }
+
+  Optional<EventScope> findEventScope(UUID eventId) {
+    if (eventId == null) {
+      return Optional.empty();
+    }
+    return jdbcTemplate.query(
+        """
                 SELECT event_id, competition_id, edition_id, status, lock_version, confirmed_version_id
                 FROM public.sports_event
                 WHERE event_id = ?
                 """,
-                rs -> rs.next() ? Optional.of(new EventScope(
+        rs ->
+            rs.next()
+                ? Optional.of(
+                    new EventScope(
                         rs.getObject("event_id", UUID.class),
                         rs.getObject("competition_id", UUID.class),
                         rs.getObject("edition_id", UUID.class),
                         rs.getString("status"),
                         rs.getLong("lock_version"),
-                        rs.getObject("confirmed_version_id", UUID.class))) : Optional.empty(),
-                eventId);
-    }
+                        rs.getObject("confirmed_version_id", UUID.class)))
+                : Optional.empty(),
+        eventId);
+  }
 
-    Optional<EventScope> findEventScopeForUpdate(UUID eventId) {
-        if (eventId == null) {
-            return Optional.empty();
-        }
-        return jdbcTemplate.query(
-                """
+  Optional<EventScope> findEventScopeForUpdate(UUID eventId) {
+    if (eventId == null) {
+      return Optional.empty();
+    }
+    return jdbcTemplate.query(
+        """
                 SELECT event_id, competition_id, edition_id, status, lock_version, confirmed_version_id
                 FROM public.sports_event
                 WHERE event_id = ?
                 FOR UPDATE
                 """,
-                rs -> rs.next() ? Optional.of(new EventScope(
+        rs ->
+            rs.next()
+                ? Optional.of(
+                    new EventScope(
                         rs.getObject("event_id", UUID.class),
                         rs.getObject("competition_id", UUID.class),
                         rs.getObject("edition_id", UUID.class),
                         rs.getString("status"),
                         rs.getLong("lock_version"),
-                        rs.getObject("confirmed_version_id", UUID.class))) : Optional.empty(),
-                eventId);
-    }
+                        rs.getObject("confirmed_version_id", UUID.class)))
+                : Optional.empty(),
+        eventId);
+  }
 
-    Optional<SportsEventDetail> findEventDetail(UUID eventId) {
-        if (eventId == null) {
-            return Optional.empty();
-        }
-        List<SportsEventSlotItem> slots = findEventSlots(eventId);
-        return jdbcTemplate.query(
-                """
+  Optional<SportsEventDetail> findEventDetail(UUID eventId) {
+    if (eventId == null) {
+      return Optional.empty();
+    }
+    List<SportsEventSlotItem> slots = findEventSlots(eventId);
+    return jdbcTemplate.query(
+        """
                 SELECT
                     ev.event_id,
                     ev.competition_id,
@@ -233,17 +238,17 @@ class SportsEventRepository {
                 LEFT JOIN public.sports_venue_space vs ON vs.venue_space_id = ev.venue_space_id
                 WHERE ev.event_id = ?
                 """,
-                rs -> rs.next() ? Optional.of(mapEventDetail(rs, slots)) : Optional.empty(),
-                eventId);
-    }
+        rs -> rs.next() ? Optional.of(mapEventDetail(rs, slots)) : Optional.empty(),
+        eventId);
+  }
 
-    List<SportsEventDetail> listEventsByEdition(UUID editionId) {
-        if (editionId == null) {
-            return List.of();
-        }
-        Map<UUID, List<SportsEventSlotItem>> slotsByEvent = findAllSlotsForEdition(editionId);
-        return jdbcTemplate.query(
-                """
+  List<SportsEventDetail> listEventsByEdition(UUID editionId) {
+    if (editionId == null) {
+      return List.of();
+    }
+    Map<UUID, List<SportsEventSlotItem>> slotsByEvent = findAllSlotsForEdition(editionId);
+    return jdbcTemplate.query(
+        """
                 SELECT
                     ev.event_id,
                     ev.competition_id,
@@ -283,34 +288,35 @@ class SportsEventRepository {
                 WHERE ev.edition_id = ?
                 ORDER BY ev.scheduled_at ASC, ev.event_id ASC
                 """,
-                (rs, rowNum) -> {
-                    UUID eventId = rs.getObject("event_id", UUID.class);
-                    List<SportsEventSlotItem> slots = slotsByEvent.getOrDefault(eventId, List.of());
-                    return mapEventDetail(rs, slots);
-                },
-                editionId);
-    }
+        (rs, rowNum) -> {
+          UUID eventId = rs.getObject("event_id", UUID.class);
+          List<SportsEventSlotItem> slots = slotsByEvent.getOrDefault(eventId, List.of());
+          return mapEventDetail(rs, slots);
+        },
+        editionId);
+  }
 
-    List<SportsEventSlotItem> findEventSlots(UUID eventId) {
-        return jdbcTemplate.query(
-                """
+  List<SportsEventSlotItem> findEventSlots(UUID eventId) {
+    return jdbcTemplate.query(
+        """
                 SELECT s.slot_no, s.display_label, s.team_id, t.name AS team_name
                 FROM public.sports_event_slot s
                 LEFT JOIN public.sports_team t ON t.team_id = s.team_id
                 WHERE s.event_id = ?
                 ORDER BY s.slot_no ASC
                 """,
-                (rs, rowNum) -> new SportsEventSlotItem(
-                        rs.getInt("slot_no"),
-                        rs.getString("display_label"),
-                        rs.getObject("team_id", UUID.class),
-                        rs.getString("team_name")),
-                eventId);
-    }
+        (rs, rowNum) ->
+            new SportsEventSlotItem(
+                rs.getInt("slot_no"),
+                rs.getString("display_label"),
+                rs.getObject("team_id", UUID.class),
+                rs.getString("team_name")),
+        eventId);
+  }
 
-    private Map<UUID, List<SportsEventSlotItem>> findAllSlotsForEdition(UUID editionId) {
-        return jdbcTemplate.query(
-                """
+  private Map<UUID, List<SportsEventSlotItem>> findAllSlotsForEdition(UUID editionId) {
+    return jdbcTemplate.query(
+        """
                 SELECT s.event_id, s.slot_no, s.display_label, s.team_id, t.name AS team_name
                 FROM public.sports_event_slot s
                 JOIN public.sports_event ev ON ev.event_id = s.event_id
@@ -318,72 +324,68 @@ class SportsEventRepository {
                 WHERE ev.edition_id = ?
                 ORDER BY s.event_id, s.slot_no ASC
                 """,
-                rs -> {
-                    Map<UUID, List<SportsEventSlotItem>> map = new java.util.HashMap<>();
-                    while (rs.next()) {
-                        UUID evId = rs.getObject("event_id", UUID.class);
-                        SportsEventSlotItem item = new SportsEventSlotItem(
-                                rs.getInt("slot_no"),
-                                rs.getString("display_label"),
-                                rs.getObject("team_id", UUID.class),
-                                rs.getString("team_name"));
-                        map.computeIfAbsent(evId, k -> new ArrayList<>()).add(item);
-                    }
-                    return map;
-                },
-                editionId);
-    }
+        rs -> {
+          Map<UUID, List<SportsEventSlotItem>> map = new java.util.HashMap<>();
+          while (rs.next()) {
+            UUID evId = rs.getObject("event_id", UUID.class);
+            SportsEventSlotItem item =
+                new SportsEventSlotItem(
+                    rs.getInt("slot_no"),
+                    rs.getString("display_label"),
+                    rs.getObject("team_id", UUID.class),
+                    rs.getString("team_name"));
+            map.computeIfAbsent(evId, k -> new ArrayList<>()).add(item);
+          }
+          return map;
+        },
+        editionId);
+  }
 
-    SportsEventDetail createEvent(
-            UUID competitionId,
-            UUID editionId,
-            SportsEventCreateRequest request,
-            CatalogScope catalog) {
-        UUID eventId = UUID.randomUUID();
-        jdbcTemplate.update(
-                """
+  SportsEventDetail createEvent(
+      UUID competitionId, UUID editionId, SportsEventCreateRequest request, CatalogScope catalog) {
+    UUID eventId = UUID.randomUUID();
+    jdbcTemplate.update(
+        """
                 INSERT INTO public.sports_event (
                     event_id, competition_id, edition_id, title, event_format, status,
                     scheduled_at, zone_id, venue_state, source_reference, lock_version,
                     sport_id, category_id, phase_id, venue_id, venue_space_id
                 ) VALUES (?, ?, ?, ?, ?, 'RASCUNHO', ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
                 """,
-                eventId,
-                competitionId,
-                editionId,
-                request.title().trim(),
-                request.format().name(),
-                Timestamp.from(request.scheduledAt()),
-                request.zoneId().trim(),
-                request.venueState().name(),
-                request.sourceReference().trim(),
-                request.sportId(),
-                request.categoryId(),
-                request.phaseId(),
-                request.venueId(),
-                request.venueSpaceId());
+        eventId,
+        competitionId,
+        editionId,
+        request.title().trim(),
+        request.format().name(),
+        Timestamp.from(request.scheduledAt()),
+        request.zoneId().trim(),
+        request.venueState().name(),
+        request.sourceReference().trim(),
+        request.sportId(),
+        request.categoryId(),
+        request.phaseId(),
+        request.venueId(),
+        request.venueSpaceId());
 
-        for (SportsEventSlotRequest slot : request.slots()) {
-            jdbcTemplate.update(
-                    """
+    for (SportsEventSlotRequest slot : request.slots()) {
+      jdbcTemplate.update(
+          """
                     INSERT INTO public.sports_event_slot (event_id, slot_no, display_label, team_id)
                     VALUES (?, ?, ?, ?)
                     """,
-                    eventId,
-                    slot.slotNo(),
-                    slot.displayLabel().trim(),
-                    slot.teamId());
-        }
-
-        return findEventDetail(eventId).orElseThrow();
+          eventId,
+          slot.slotNo(),
+          slot.displayLabel().trim(),
+          slot.teamId());
     }
 
-    int updateEventDraft(
-            UUID eventId,
-            SportsEventUpdateRequest request,
-            long expectedLockVersion) {
-        int updated = jdbcTemplate.update(
-                """
+    return findEventDetail(eventId).orElseThrow();
+  }
+
+  int updateEventDraft(UUID eventId, SportsEventUpdateRequest request, long expectedLockVersion) {
+    int updated =
+        jdbcTemplate.update(
+            """
                 UPDATE public.sports_event
                 SET
                     title = ?,
@@ -403,44 +405,41 @@ class SportsEventRepository {
                   AND lock_version = ?
                   AND status = 'RASCUNHO'
                 """,
-                request.title().trim(),
-                request.format().name(),
-                Timestamp.from(request.scheduledAt()),
-                request.zoneId().trim(),
-                request.venueState().name(),
-                request.sourceReference().trim(),
-                request.sportId(),
-                request.categoryId(),
-                request.phaseId(),
-                request.venueId(),
-                request.venueSpaceId(),
-                eventId,
-                expectedLockVersion);
+            request.title().trim(),
+            request.format().name(),
+            Timestamp.from(request.scheduledAt()),
+            request.zoneId().trim(),
+            request.venueState().name(),
+            request.sourceReference().trim(),
+            request.sportId(),
+            request.categoryId(),
+            request.phaseId(),
+            request.venueId(),
+            request.venueSpaceId(),
+            eventId,
+            expectedLockVersion);
 
-        if (updated > 0) {
-            jdbcTemplate.update("DELETE FROM public.sports_event_slot WHERE event_id = ?", eventId);
-            for (SportsEventSlotRequest slot : request.slots()) {
-                jdbcTemplate.update(
-                        """
+    if (updated > 0) {
+      jdbcTemplate.update("DELETE FROM public.sports_event_slot WHERE event_id = ?", eventId);
+      for (SportsEventSlotRequest slot : request.slots()) {
+        jdbcTemplate.update(
+            """
                         INSERT INTO public.sports_event_slot (event_id, slot_no, display_label, team_id)
                         VALUES (?, ?, ?, ?)
                         """,
-                        eventId,
-                        slot.slotNo(),
-                        slot.displayLabel().trim(),
-                        slot.teamId());
-            }
-        }
-        return updated;
+            eventId,
+            slot.slotNo(),
+            slot.displayLabel().trim(),
+            slot.teamId());
+      }
     }
+    return updated;
+  }
 
-    int updateEventStatus(
-            UUID eventId,
-            String newStatus,
-            String statusReason,
-            long expectedLockVersion) {
-        return jdbcTemplate.update(
-                """
+  int updateEventStatus(
+      UUID eventId, String newStatus, String statusReason, long expectedLockVersion) {
+    return jdbcTemplate.update(
+        """
                 UPDATE public.sports_event
                 SET
                     status = ?,
@@ -450,20 +449,20 @@ class SportsEventRepository {
                 WHERE event_id = ?
                   AND lock_version = ?
                 """,
-                newStatus,
-                statusReason == null ? null : statusReason.trim(),
-                eventId,
-                expectedLockVersion);
-    }
+        newStatus,
+        statusReason == null ? null : statusReason.trim(),
+        eventId,
+        expectedLockVersion);
+  }
 
-    int postponeEvent(
-            UUID eventId,
-            Instant scheduledAt,
-            String zoneId,
-            String statusReason,
-            long expectedLockVersion) {
-        return jdbcTemplate.update(
-                """
+  int postponeEvent(
+      UUID eventId,
+      Instant scheduledAt,
+      String zoneId,
+      String statusReason,
+      long expectedLockVersion) {
+    return jdbcTemplate.update(
+        """
                 UPDATE public.sports_event
                 SET
                     status = 'ADIADO',
@@ -475,43 +474,45 @@ class SportsEventRepository {
                 WHERE event_id = ?
                   AND lock_version = ?
                 """,
-                Timestamp.from(scheduledAt),
-                zoneId.trim(),
-                statusReason == null ? null : statusReason.trim(),
-                eventId,
-                expectedLockVersion);
-    }
+        Timestamp.from(scheduledAt),
+        zoneId.trim(),
+        statusReason == null ? null : statusReason.trim(),
+        eventId,
+        expectedLockVersion);
+  }
 
-    long nextPublicationVersion(UUID eventId) {
-        Long max = jdbcTemplate.queryForObject(
-                "SELECT max(version_no) FROM public.sports_event_publication WHERE event_id = ?",
-                Long.class,
-                eventId);
-        return max == null ? 1L : max + 1L;
-    }
+  long nextPublicationVersion(UUID eventId) {
+    Long max =
+        jdbcTemplate.queryForObject(
+            "SELECT max(version_no) FROM public.sports_event_publication WHERE event_id = ?",
+            Long.class,
+            eventId);
+    return max == null ? 1L : max + 1L;
+  }
 
-    Optional<UUID> latestPublicationId(UUID eventId) {
-        return jdbcTemplate.query(
-                """
+  Optional<UUID> latestPublicationId(UUID eventId) {
+    return jdbcTemplate.query(
+        """
                 SELECT publication_id FROM public.sports_event_publication
                 WHERE event_id = ?
                 ORDER BY version_no DESC
                 LIMIT 1
                 """,
-                rs -> rs.next() ? Optional.of(rs.getObject("publication_id", UUID.class)) : Optional.empty(),
-                eventId);
-    }
+        rs ->
+            rs.next() ? Optional.of(rs.getObject("publication_id", UUID.class)) : Optional.empty(),
+        eventId);
+  }
 
-    void insertEventPublication(
-            SportsEventDetail event,
-            List<SportsEventSlotItem> slots,
-            UUID publishedByIdentityId,
-            long versionNo,
-            UUID supersedesId,
-            long baseLockVersion) {
-        UUID publicationId = UUID.randomUUID();
-        jdbcTemplate.update(
-                """
+  void insertEventPublication(
+      SportsEventDetail event,
+      List<SportsEventSlotItem> slots,
+      UUID publishedByIdentityId,
+      long versionNo,
+      UUID supersedesId,
+      long baseLockVersion) {
+    UUID publicationId = UUID.randomUUID();
+    jdbcTemplate.update(
+        """
                 INSERT INTO public.sports_event_publication (
                     publication_id, event_id, competition_id, edition_id, version_no,
                     competition_name, edition_name, title, event_format, scheduled_at,
@@ -521,89 +522,91 @@ class SportsEventRepository {
                     venue_id, venue_name, venue_space_id, venue_space_name
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(6), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                publicationId,
-                event.eventId(),
-                event.competitionId(),
-                event.editionId(),
-                versionNo,
-                event.competitionName(),
-                event.editionName(),
-                event.title(),
-                event.format().name(),
-                Timestamp.from(event.scheduledAt()),
-                event.zoneId(),
-                event.venueState().name(),
-                event.sourceReference(),
-                publishedByIdentityId,
-                supersedesId,
-                baseLockVersion,
-                event.sportId(),
-                event.sportName(),
-                event.categoryId(),
-                event.categoryName(),
-                event.phaseId(),
-                event.phaseName(),
-                event.venueId(),
-                event.venueName(),
-                event.venueSpaceId(),
-                event.venueSpaceName());
+        publicationId,
+        event.eventId(),
+        event.competitionId(),
+        event.editionId(),
+        versionNo,
+        event.competitionName(),
+        event.editionName(),
+        event.title(),
+        event.format().name(),
+        Timestamp.from(event.scheduledAt()),
+        event.zoneId(),
+        event.venueState().name(),
+        event.sourceReference(),
+        publishedByIdentityId,
+        supersedesId,
+        baseLockVersion,
+        event.sportId(),
+        event.sportName(),
+        event.categoryId(),
+        event.categoryName(),
+        event.phaseId(),
+        event.phaseName(),
+        event.venueId(),
+        event.venueName(),
+        event.venueSpaceId(),
+        event.venueSpaceName());
 
-        for (SportsEventSlotItem slot : slots) {
-            jdbcTemplate.update(
-                    """
+    for (SportsEventSlotItem slot : slots) {
+      jdbcTemplate.update(
+          """
                     INSERT INTO public.sports_event_publication_slot (
                         publication_id, slot_no, display_label, team_id, team_name
                     ) VALUES (?, ?, ?, ?, ?)
                     """,
-                    publicationId,
-                    slot.slotNo(),
-                    slot.displayLabel(),
-                    slot.teamId(),
-                    slot.teamName());
-        }
+          publicationId,
+          slot.slotNo(),
+          slot.displayLabel(),
+          slot.teamId(),
+          slot.teamName());
     }
+  }
 
-    boolean teamsExist(List<UUID> teamIds) {
-        if (teamIds == null || teamIds.isEmpty()) {
-            return true;
-        }
-        String inClause = String.join(",", Collections.nCopies(teamIds.size(), "?"));
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM public.sports_team WHERE team_id IN (" + inClause + ")",
-                Integer.class,
-                teamIds.toArray());
-        return count != null && count == teamIds.size();
+  boolean teamsExist(List<UUID> teamIds) {
+    if (teamIds == null || teamIds.isEmpty()) {
+      return true;
     }
+    String inClause = String.join(",", Collections.nCopies(teamIds.size(), "?"));
+    Integer count =
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM public.sports_team WHERE team_id IN (" + inClause + ")",
+            Integer.class,
+            teamIds.toArray());
+    return count != null && count == teamIds.size();
+  }
 
-    private static SportsEventDetail mapEventDetail(ResultSet rs, List<SportsEventSlotItem> slots) throws SQLException {
-        return new SportsEventDetail(
-                rs.getObject("event_id", UUID.class),
-                rs.getObject("competition_id", UUID.class),
-                rs.getString("competition_name"),
-                rs.getObject("edition_id", UUID.class),
-                rs.getString("edition_name"),
-                rs.getString("title"),
-                EventFormat.valueOf(rs.getString("event_format")),
-                rs.getString("status"),
-                rs.getTimestamp("scheduled_at").toInstant(),
-                rs.getString("zone_id"),
-                VenueState.valueOf(rs.getString("venue_state")),
-                rs.getString("source_reference"),
-                rs.getLong("lock_version"),
-                rs.getObject("sport_id", UUID.class),
-                rs.getString("sport_name"),
-                rs.getObject("category_id", UUID.class),
-                rs.getString("category_name"),
-                rs.getObject("phase_id", UUID.class),
-                rs.getString("phase_name"),
-                rs.getObject("venue_id", UUID.class),
-                rs.getString("venue_name"),
-                rs.getObject("venue_space_id", UUID.class),
-                rs.getString("venue_space_name"),
-                slots,
-                rs.getObject("confirmed_version_id", UUID.class),
-                rs.getString("status_reason"),
-                rs.getTimestamp("created_at").toInstant(),
-                rs.getTimestamp("updated_at").toInstant());
-    }
+  private static SportsEventDetail mapEventDetail(ResultSet rs, List<SportsEventSlotItem> slots)
+      throws SQLException {
+    return new SportsEventDetail(
+        rs.getObject("event_id", UUID.class),
+        rs.getObject("competition_id", UUID.class),
+        rs.getString("competition_name"),
+        rs.getObject("edition_id", UUID.class),
+        rs.getString("edition_name"),
+        rs.getString("title"),
+        EventFormat.valueOf(rs.getString("event_format")),
+        rs.getString("status"),
+        rs.getTimestamp("scheduled_at").toInstant(),
+        rs.getString("zone_id"),
+        VenueState.valueOf(rs.getString("venue_state")),
+        rs.getString("source_reference"),
+        rs.getLong("lock_version"),
+        rs.getObject("sport_id", UUID.class),
+        rs.getString("sport_name"),
+        rs.getObject("category_id", UUID.class),
+        rs.getString("category_name"),
+        rs.getObject("phase_id", UUID.class),
+        rs.getString("phase_name"),
+        rs.getObject("venue_id", UUID.class),
+        rs.getString("venue_name"),
+        rs.getObject("venue_space_id", UUID.class),
+        rs.getString("venue_space_name"),
+        slots,
+        rs.getObject("confirmed_version_id", UUID.class),
+        rs.getString("status_reason"),
+        rs.getTimestamp("created_at").toInstant(),
+        rs.getTimestamp("updated_at").toInstant());
+  }
 }

@@ -61,14 +61,26 @@ describe('PublicAgendaPageComponent', () => {
 
   beforeEach(() => {
     service = { listPublishedSportsEvents: vi.fn() };
-    vi.stubGlobal('ResizeObserver', class { observe(): void {} disconnect(): void {} });
-    vi.stubGlobal('IntersectionObserver', class {
-      constructor(callback: IntersectionObserverCallback) {
-        callback([{ isIntersecting: true } as IntersectionObserverEntry], this as unknown as IntersectionObserver);
-      }
-      observe(): void {}
-      disconnect(): void {}
-    });
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe(): void {}
+        disconnect(): void {}
+      },
+    );
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          callback(
+            [{ isIntersecting: true } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        observe(): void {}
+        disconnect(): void {}
+      },
+    );
     vi.stubGlobal('requestAnimationFrame', vi.fn().mockReturnValue(1));
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
@@ -119,14 +131,16 @@ describe('PublicAgendaPageComponent', () => {
   });
 
   it('exibe o vazio público literal quando a API retorna uma página válida sem eventos', async () => {
-    service.listPublishedSportsEvents.mockReturnValue(of({
-      items: [],
-      page: 0,
-      size: 50,
-      totalElements: 0,
-      totalPages: 0,
-      hasNext: false,
-    }));
+    service.listPublishedSportsEvents.mockReturnValue(
+      of({
+        items: [],
+        page: 0,
+        size: 50,
+        totalElements: 0,
+        totalPages: 0,
+        hasNext: false,
+      }),
+    );
     const fixture = await render();
     const root = fixture.nativeElement as HTMLElement;
 
@@ -137,10 +151,13 @@ describe('PublicAgendaPageComponent', () => {
 
   it('preserva mensagem pública segura e correlação quando a leitura falha', async () => {
     service.listPublishedSportsEvents.mockReturnValue(
-      throwError(() => new HttpErrorResponse({
-        status: 503,
-        error: { correlationId: 'corr-agenda-503' },
-      })),
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 503,
+            error: { correlationId: 'corr-agenda-503' },
+          }),
+      ),
     );
     const fixture = await render();
     await vi.waitFor(() => expect(fixture.componentInstance.store.isError()).toBe(true), {
@@ -154,14 +171,16 @@ describe('PublicAgendaPageComponent', () => {
   });
 
   it('mantém filtros editáveis e usa cópia honesta quando o deep link não retorna opções', async () => {
-    service.listPublishedSportsEvents.mockReturnValue(of({
-      items: [],
-      page: 0,
-      size: 50,
-      totalElements: 0,
-      totalPages: 0,
-      hasNext: false,
-    }));
+    service.listPublishedSportsEvents.mockReturnValue(
+      of({
+        items: [],
+        page: 0,
+        size: 50,
+        totalElements: 0,
+        totalPages: 0,
+        hasNext: false,
+      }),
+    );
     const fixture = await render();
 
     await fixture.componentInstance.store.loadAgenda({
@@ -201,10 +220,12 @@ describe('PublicAgendaPageComponent', () => {
 
     await fixture.componentInstance.selectPeriod('upcoming');
 
-    expect(service.listPublishedSportsEvents).toHaveBeenCalledWith(expect.objectContaining({
-      competitionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      editionId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-    }));
+    expect(service.listPublishedSportsEvents).toHaveBeenCalledWith(
+      expect.objectContaining({
+        competitionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        editionId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      }),
+    );
     expect(fixture.componentInstance.store.query().period).toBe('upcoming');
   });
 

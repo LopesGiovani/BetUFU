@@ -1,11 +1,5 @@
-import {
-  provideHttpClient,
-  withXsrfConfiguration,
-} from '@angular/common/http';
-import {
-  HttpTestingController,
-  provideHttpClientTesting,
-} from '@angular/common/http/testing';
+import { provideHttpClient, withXsrfConfiguration } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
@@ -128,30 +122,32 @@ describe('Generated BETUFU API client contract', () => {
       totalPages: 0,
       hasNext: false,
     };
-    const resultPromise = firstValueFrom(sportsPublicService.listPublishedSportsEvents({
-      competitionId: '5a9bd592-1df4-4620-a33d-23ec59beb5fe',
-      editionId: '969088ef-42b9-47bc-8a45-427647b01f0d',
-      sportId: '0d2c2f7c-65a7-4c5b-bb7d-70d0bbf4c0c9',
-      categoryId: 'ca5c9e40-06d7-4905-bdd4-a85c2dcb9f46',
-      phaseId: 'abf0d1c8-3e11-4a99-8d3a-2159d7bcdd3b',
-      state: 'LOCAL_DEFINIDO',
-      from: '2026-08-29T12:00:00Z',
-      to: '2026-08-30T12:00:00Z',
-      page: 2,
-      size: 20,
-    }));
+    const resultPromise = firstValueFrom(
+      sportsPublicService.listPublishedSportsEvents({
+        competitionId: '5a9bd592-1df4-4620-a33d-23ec59beb5fe',
+        editionId: '969088ef-42b9-47bc-8a45-427647b01f0d',
+        sportId: '0d2c2f7c-65a7-4c5b-bb7d-70d0bbf4c0c9',
+        categoryId: 'ca5c9e40-06d7-4905-bdd4-a85c2dcb9f46',
+        phaseId: 'abf0d1c8-3e11-4a99-8d3a-2159d7bcdd3b',
+        state: 'LOCAL_DEFINIDO',
+        from: '2026-08-29T12:00:00Z',
+        to: '2026-08-30T12:00:00Z',
+        page: 2,
+        size: 20,
+      }),
+    );
 
     const request = httpTesting.expectOne(
-      '/api/v1/public/sports/events'
-      + '?competitionId=5a9bd592-1df4-4620-a33d-23ec59beb5fe'
-      + '&editionId=969088ef-42b9-47bc-8a45-427647b01f0d'
-      + '&sportId=0d2c2f7c-65a7-4c5b-bb7d-70d0bbf4c0c9'
-      + '&categoryId=ca5c9e40-06d7-4905-bdd4-a85c2dcb9f46'
-      + '&phaseId=abf0d1c8-3e11-4a99-8d3a-2159d7bcdd3b'
-      + '&state=LOCAL_DEFINIDO'
-      + '&from=2026-08-29T12%3A00%3A00Z'
-      + '&to=2026-08-30T12%3A00%3A00Z'
-      + '&page=2&size=20',
+      '/api/v1/public/sports/events' +
+        '?competitionId=5a9bd592-1df4-4620-a33d-23ec59beb5fe' +
+        '&editionId=969088ef-42b9-47bc-8a45-427647b01f0d' +
+        '&sportId=0d2c2f7c-65a7-4c5b-bb7d-70d0bbf4c0c9' +
+        '&categoryId=ca5c9e40-06d7-4905-bdd4-a85c2dcb9f46' +
+        '&phaseId=abf0d1c8-3e11-4a99-8d3a-2159d7bcdd3b' +
+        '&state=LOCAL_DEFINIDO' +
+        '&from=2026-08-29T12%3A00%3A00Z' +
+        '&to=2026-08-30T12%3A00%3A00Z' +
+        '&page=2&size=20',
     );
 
     expect(request.request.method).toBe('GET');
@@ -186,9 +182,11 @@ describe('Generated BETUFU API client contract', () => {
     organizationRequest.flush([]);
     await expect(organizationResult).resolves.toEqual([]);
 
-    const profileResult = firstValueFrom(profileService.putMyFavoriteOrganization({
-      favoriteOrganizationRequest: { organizationId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35' },
-    }));
+    const profileResult = firstValueFrom(
+      profileService.putMyFavoriteOrganization({
+        favoriteOrganizationRequest: { organizationId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35' },
+      }),
+    );
     const favoriteRequest = httpTesting.expectOne('/api/v1/profile/me/favorite-organization');
     expect(favoriteRequest.request.method).toBe('PUT');
     expect(favoriteRequest.request.body).toEqual({
@@ -238,11 +236,15 @@ describe('Generated BETUFU API client contract', () => {
       slug: 'atleta-dois',
       matricula: '12345678',
     };
-    const createResult = firstValueFrom(sportsAthleteService.createSportsAthlete({
-      teamId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35',
-      sportsAthleteCreateRequest: createPayload,
-    }));
-    const createRequest = httpTesting.expectOne('/api/v1/operations/sports/teams/72de12f3-8e26-43a0-b8e0-08c5f5ed9b35/athletes');
+    const createResult = firstValueFrom(
+      sportsAthleteService.createSportsAthlete({
+        teamId: '72de12f3-8e26-43a0-b8e0-08c5f5ed9b35',
+        sportsAthleteCreateRequest: createPayload,
+      }),
+    );
+    const createRequest = httpTesting.expectOne(
+      '/api/v1/operations/sports/teams/72de12f3-8e26-43a0-b8e0-08c5f5ed9b35/athletes',
+    );
     expect(createRequest.request.method).toBe('POST');
     expect(createRequest.request.body).toEqual({
       name: 'Atleta Dois',
@@ -265,12 +267,16 @@ describe('Generated BETUFU API client contract', () => {
       lockVersion: 0,
     });
 
-    const updateResult = firstValueFrom(sportsAthleteService.updateSportsAthlete({
-      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
-      expectedLockVersion: 0,
-      sportsNameSlugRequest: { name: 'Atleta Dois Atualizado', slug: 'atleta-dois-atualizado' },
-    }));
-    const updateRequest = httpTesting.expectOne('/api/v1/operations/sports/athletes/b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e?expectedLockVersion=0');
+    const updateResult = firstValueFrom(
+      sportsAthleteService.updateSportsAthlete({
+        athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+        expectedLockVersion: 0,
+        sportsNameSlugRequest: { name: 'Atleta Dois Atualizado', slug: 'atleta-dois-atualizado' },
+      }),
+    );
+    const updateRequest = httpTesting.expectOne(
+      '/api/v1/operations/sports/athletes/b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e?expectedLockVersion=0',
+    );
     expect(updateRequest.request.method).toBe('PUT');
     expect(updateRequest.request.body).toEqual({
       name: 'Atleta Dois Atualizado',
@@ -291,11 +297,15 @@ describe('Generated BETUFU API client contract', () => {
       lockVersion: 1,
     });
 
-    const publishResult = firstValueFrom(sportsAthleteService.publishSportsAthlete({
-      athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
-      expectedLockVersion: 1,
-    }));
-    const publishRequest = httpTesting.expectOne('/api/v1/operations/sports/athletes/b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e/publish?expectedLockVersion=1');
+    const publishResult = firstValueFrom(
+      sportsAthleteService.publishSportsAthlete({
+        athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
+        expectedLockVersion: 1,
+      }),
+    );
+    const publishRequest = httpTesting.expectOne(
+      '/api/v1/operations/sports/athletes/b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e/publish?expectedLockVersion=1',
+    );
     expect(publishRequest.request.method).toBe('POST');
     publishRequest.flush({
       athleteId: 'b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e',
@@ -334,20 +344,35 @@ describe('Generated BETUFU API client contract', () => {
     proposalRequest.flush(proposal);
     await expect(proposalResult).resolves.toEqual(proposal);
 
-    const decisionResult = firstValueFrom(athleteLinkService.decideAthleteLinkProposal({
-      proposalId: proposal.proposalId,
-      athleteLinkDecisionRequest: { decision: AthleteLinkDecisionRequest.DecisionEnum.Contest },
-    }));
-    const decisionRequest = httpTesting.expectOne('/api/v1/me/sports/athlete-links/' + proposal.proposalId + '/decision');
+    const decisionResult = firstValueFrom(
+      athleteLinkService.decideAthleteLinkProposal({
+        proposalId: proposal.proposalId,
+        athleteLinkDecisionRequest: { decision: AthleteLinkDecisionRequest.DecisionEnum.Contest },
+      }),
+    );
+    const decisionRequest = httpTesting.expectOne(
+      '/api/v1/me/sports/athlete-links/' + proposal.proposalId + '/decision',
+    );
     expect(decisionRequest.request.method).toBe('PUT');
     expect(decisionRequest.request.body).toEqual({ decision: 'CONTEST' });
     expect(decisionRequest.request.headers.has('Authorization')).toBe(false);
     decisionRequest.flush({ ...proposal, status: AthleteLinkProposal.StatusEnum.Contestada });
     await expect(decisionResult).resolves.toMatchObject({ status: 'CONTESTADA' });
 
-    const page: AthleteLinkReviewPage = { items: [], page: 0, size: 20, totalElements: 0, totalPages: 0, hasNext: false };
-    const reviewResult = firstValueFrom(athleteLinkService.listAthleteLinkReviews({ page: 0, size: 20 }));
-    const reviewRequest = httpTesting.expectOne('/api/v1/operations/sports/athlete-link-reviews?page=0&size=20');
+    const page: AthleteLinkReviewPage = {
+      items: [],
+      page: 0,
+      size: 20,
+      totalElements: 0,
+      totalPages: 0,
+      hasNext: false,
+    };
+    const reviewResult = firstValueFrom(
+      athleteLinkService.listAthleteLinkReviews({ page: 0, size: 20 }),
+    );
+    const reviewRequest = httpTesting.expectOne(
+      '/api/v1/operations/sports/athlete-link-reviews?page=0&size=20',
+    );
     expect(reviewRequest.request.method).toBe('GET');
     expect(reviewRequest.request.headers.has('Authorization')).toBe(false);
     reviewRequest.flush(page);
@@ -394,47 +419,69 @@ describe('Generated BETUFU API client contract', () => {
       sourceReference: 'https://boletim.ufu.br/evento/1',
       lockVersion: 0,
       slots: [
-        { slotNo: 1, displayLabel: 'Engenharia', teamId: 't1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c', teamName: 'Engenharia' },
-        { slotNo: 2, displayLabel: 'Medicina', teamId: 't2a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c', teamName: 'Medicina' },
+        {
+          slotNo: 1,
+          displayLabel: 'Engenharia',
+          teamId: 't1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+          teamName: 'Engenharia',
+        },
+        {
+          slotNo: 2,
+          displayLabel: 'Medicina',
+          teamId: 't2a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+          teamName: 'Medicina',
+        },
       ],
       createdAt: '2026-08-30T12:00:00Z',
       updatedAt: '2026-08-30T12:00:00Z',
     };
 
-    const listEventsResult = firstValueFrom(sportsEventResultService.listSportsEvents({ editionId }));
+    const listEventsResult = firstValueFrom(
+      sportsEventResultService.listSportsEvents({ editionId }),
+    );
     const listReq = httpTesting.expectOne(`/api/v1/operations/sports/editions/${editionId}/events`);
     expect(listReq.request.method).toBe('GET');
     listReq.flush([sampleEvent]);
     await expect(listEventsResult).resolves.toEqual([sampleEvent]);
 
-    const createResult = firstValueFrom(sportsEventResultService.createSportsEvent({
-      editionId,
-      sportsEventCreateRequest: {
-        title: 'Futsal Masculino - Final',
-        format: 'HEAD_TO_HEAD',
-        scheduledAt: '2026-09-01T18:00:00Z',
-        zoneId: 'America/Sao_Paulo',
-        venueState: 'LOCAL_DEFINIDO',
-        sourceReference: 'https://boletim.ufu.br/evento/1',
-        slots: [
-          { slotNo: 1, displayLabel: 'Engenharia' },
-          { slotNo: 2, displayLabel: 'Medicina' },
-        ],
-      },
-    }));
-    const createReq = httpTesting.expectOne(`/api/v1/operations/sports/editions/${editionId}/events`);
+    const createResult = firstValueFrom(
+      sportsEventResultService.createSportsEvent({
+        editionId,
+        sportsEventCreateRequest: {
+          title: 'Futsal Masculino - Final',
+          format: 'HEAD_TO_HEAD',
+          scheduledAt: '2026-09-01T18:00:00Z',
+          zoneId: 'America/Sao_Paulo',
+          venueState: 'LOCAL_DEFINIDO',
+          sourceReference: 'https://boletim.ufu.br/evento/1',
+          slots: [
+            { slotNo: 1, displayLabel: 'Engenharia' },
+            { slotNo: 2, displayLabel: 'Medicina' },
+          ],
+        },
+      }),
+    );
+    const createReq = httpTesting.expectOne(
+      `/api/v1/operations/sports/editions/${editionId}/events`,
+    );
     expect(createReq.request.method).toBe('POST');
     createReq.flush(sampleEvent);
     await expect(createResult).resolves.toEqual(sampleEvent);
 
-    const getDetailResult = firstValueFrom(sportsEventResultService.getSportsEventDetail({ eventId }));
+    const getDetailResult = firstValueFrom(
+      sportsEventResultService.getSportsEventDetail({ eventId }),
+    );
     const detailReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}`);
     expect(detailReq.request.method).toBe('GET');
     detailReq.flush(sampleEvent);
     await expect(getDetailResult).resolves.toEqual(sampleEvent);
 
-    const publishResult = firstValueFrom(sportsEventResultService.publishSportsEvent({ eventId, expectedLockVersion: 0 }));
-    const publishReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}/publish?expectedLockVersion=0`);
+    const publishResult = firstValueFrom(
+      sportsEventResultService.publishSportsEvent({ eventId, expectedLockVersion: 0 }),
+    );
+    const publishReq = httpTesting.expectOne(
+      `/api/v1/operations/sports/events/${eventId}/publish?expectedLockVersion=0`,
+    );
     expect(publishReq.request.method).toBe('POST');
     publishReq.flush({ ...sampleEvent, status: 'PUBLICADO', lockVersion: 1 });
     await expect(publishResult).resolves.toMatchObject({ status: 'PUBLICADO', lockVersion: 1 });
@@ -458,23 +505,29 @@ describe('Generated BETUFU API client contract', () => {
       baseLockVersion: 1,
     };
 
-    const confirmResult = firstValueFrom(sportsEventResultService.confirmSportsResult({
-      eventId,
-      expectedLockVersion: 1,
-      sportsResultConfirmRequest: {
-        sourceReference: 'https://boletim.ufu.br/sumula/1.pdf',
-        scores: [
-          { slotNo: 1, score: 3 },
-          { slotNo: 2, score: 2 },
-        ],
-      },
-    }));
-    const confirmReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}/results/confirm?expectedLockVersion=1`);
+    const confirmResult = firstValueFrom(
+      sportsEventResultService.confirmSportsResult({
+        eventId,
+        expectedLockVersion: 1,
+        sportsResultConfirmRequest: {
+          sourceReference: 'https://boletim.ufu.br/sumula/1.pdf',
+          scores: [
+            { slotNo: 1, score: 3 },
+            { slotNo: 2, score: 2 },
+          ],
+        },
+      }),
+    );
+    const confirmReq = httpTesting.expectOne(
+      `/api/v1/operations/sports/events/${eventId}/results/confirm?expectedLockVersion=1`,
+    );
     expect(confirmReq.request.method).toBe('POST');
     confirmReq.flush(sampleResultVersion);
     await expect(confirmResult).resolves.toEqual(sampleResultVersion);
 
-    const listVersionsResult = firstValueFrom(sportsEventResultService.listSportsResultVersions({ eventId }));
+    const listVersionsResult = firstValueFrom(
+      sportsEventResultService.listSportsResultVersions({ eventId }),
+    );
     const listVerReq = httpTesting.expectOne(`/api/v1/operations/sports/events/${eventId}/results`);
     expect(listVerReq.request.method).toBe('GET');
     listVerReq.flush([sampleResultVersion]);
@@ -524,20 +577,24 @@ describe('Generated BETUFU API client contract', () => {
       editionName: '2026',
       lockVersion: 1,
       columns: ['Pos', 'Equipe', 'Pontos'],
-      rows: [
-        { position: 1, participantName: 'Engenharia', values: ['1', 'Engenharia', '9'] },
-      ],
+      rows: [{ position: 1, participantName: 'Engenharia', values: ['1', 'Engenharia', '9'] }],
     };
 
-    const publicResult = firstValueFrom(sportsStandingsService.getPublicSportsStandings({ standingsId }));
+    const publicResult = firstValueFrom(
+      sportsStandingsService.getPublicSportsStandings({ standingsId }),
+    );
     const publicRequest = httpTesting.expectOne(`/api/v1/public/sports/standings/${standingsId}`);
     expect(publicRequest.request.method).toBe('GET');
     expect(publicRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
     publicRequest.flush(response);
     await expect(publicResult).resolves.toEqual(response);
 
-    const previewResult = firstValueFrom(sportsStandingsService.getSportsStandings({ standingsId }));
-    const previewRequest = httpTesting.expectOne(`/api/v1/operations/sports/standings/${standingsId}`);
+    const previewResult = firstValueFrom(
+      sportsStandingsService.getSportsStandings({ standingsId }),
+    );
+    const previewRequest = httpTesting.expectOne(
+      `/api/v1/operations/sports/standings/${standingsId}`,
+    );
     expect(previewRequest.request.method).toBe('GET');
     expect(previewRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
     previewRequest.flush({ ...response, status: 'RASCUNHO' });

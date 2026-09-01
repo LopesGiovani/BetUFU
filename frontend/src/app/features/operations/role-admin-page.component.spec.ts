@@ -326,7 +326,8 @@ describe('RoleAdminPageComponent (Superfície S5 - OPER-01, OPER-02, OPER-04, D-
     expect(liveRegion.textContent).toContain(
       'Administrador geral concedido a usuario_alvo. As sessões dessa pessoa foram encerradas.',
     );
-    const replacementRevokeButton: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-revoke');
+    const replacementRevokeButton: HTMLButtonElement =
+      fixture.nativeElement.querySelector('.btn-revoke');
     await vi.waitFor(() => expect(document.activeElement).toBe(replacementRevokeButton));
   });
 
@@ -346,9 +347,9 @@ describe('RoleAdminPageComponent (Superfície S5 - OPER-01, OPER-02, OPER-04, D-
 
     revokeBtn.click();
     fixture.detectChanges();
-    await vi.waitFor(() => expect(document.activeElement).toBe(
-      fixture.nativeElement.querySelector('.btn-cancel'),
-    ));
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.btn-cancel')),
+    );
 
     const dialogTitle = fixture.nativeElement.querySelector('#confirm-dialog-title');
     const dialogBody = fixture.nativeElement.querySelector('#confirm-dialog-body');

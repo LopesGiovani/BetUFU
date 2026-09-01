@@ -108,9 +108,9 @@ describe('ConfirmDialogComponent (Acessibilidade e Foco Modal - D-49 e T-02-19-0
   it('Prova de Foco 3: tecla Escape cancela e fecha o diálogo, devolvendo o foco ao elemento disparador', async () => {
     openDialog();
     fixture.detectChanges();
-    await vi.waitFor(() => expect(document.activeElement).toBe(
-      fixture.nativeElement.querySelector('.btn-cancel'),
-    ));
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.btn-cancel')),
+    );
 
     const cancelSpy = vi.spyOn(component.cancelled, 'emit');
     const focusSpy = vi.spyOn(triggerButton, 'focus');
@@ -129,9 +129,9 @@ describe('ConfirmDialogComponent (Acessibilidade e Foco Modal - D-49 e T-02-19-0
   it('clique no botão Cancelar emite cancelled e devolve o foco ao elemento disparador', async () => {
     openDialog();
     fixture.detectChanges();
-    await vi.waitFor(() => expect(document.activeElement).toBe(
-      fixture.nativeElement.querySelector('.btn-cancel'),
-    ));
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.btn-cancel')),
+    );
 
     const cancelSpy = vi.spyOn(component.cancelled, 'emit');
     const focusSpy = vi.spyOn(triggerButton, 'focus');
@@ -146,9 +146,9 @@ describe('ConfirmDialogComponent (Acessibilidade e Foco Modal - D-49 e T-02-19-0
   it('clique no botão Confirmar emite confirmed e deixa a restauração ao consumidor após a mutação', async () => {
     openDialog();
     fixture.detectChanges();
-    await vi.waitFor(() => expect(document.activeElement).toBe(
-      fixture.nativeElement.querySelector('.btn-cancel'),
-    ));
+    await vi.waitFor(() =>
+      expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.btn-cancel')),
+    );
 
     const confirmSpy = vi.spyOn(component.confirmed, 'emit');
     const focusSpy = vi.spyOn(triggerButton, 'focus');

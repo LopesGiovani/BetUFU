@@ -9,12 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import {
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProfileStore } from './profile.store';
 
@@ -64,7 +59,9 @@ export class ProfilePageComponent implements OnInit {
       }
       const favoriteOrganizationId = this.store.favoriteOrganizationId() ?? '';
       if (this.favoriteForm.controls.organizationId.pristine) {
-        this.favoriteForm.controls.organizationId.setValue(favoriteOrganizationId, { emitEvent: false });
+        this.favoriteForm.controls.organizationId.setValue(favoriteOrganizationId, {
+          emitEvent: false,
+        });
       }
     });
   }
@@ -155,7 +152,11 @@ export class ProfilePageComponent implements OnInit {
 
   async onRemoveFavorite(): Promise<void> {
     const name = this.store.favoriteOrganizationName() ?? 'esta organizacao';
-    if (this.store.isSavingFavorite() || !window.confirm(`Remover ${name} dos favoritos? Voce podera escolher novamente depois.`)) return;
+    if (
+      this.store.isSavingFavorite() ||
+      !window.confirm(`Remover ${name} dos favoritos? Voce podera escolher novamente depois.`)
+    )
+      return;
     if (await this.store.saveFavoriteOrganization(null)) {
       this.favoriteForm.reset({ organizationId: '' });
       this.favoriteForm.markAsPristine();

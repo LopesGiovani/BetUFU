@@ -145,7 +145,9 @@ describe('DiagnosticApiAdapter & DiagnosticStore', () => {
 
       // Keycloak: DOWN
       expect(adapted?.components[2].statusLabel).toBe('Indisponível');
-      expect(adapted?.components[2].statusDescription).toBe('Não foi possível confirmar a disponibilidade.');
+      expect(adapted?.components[2].statusDescription).toBe(
+        'Não foi possível confirmar a disponibilidade.',
+      );
       expect(adapted?.components[2].iconName).toBe('error_outline');
     });
   });

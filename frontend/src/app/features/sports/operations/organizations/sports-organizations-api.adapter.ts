@@ -113,11 +113,11 @@ export class SportsOrganizationsApiAdapter {
     }
     const item = value as Partial<SportsOrganizationSummary>;
     if (
-      typeof item.organizationId !== 'string'
-      || typeof item.name !== 'string'
-      || typeof item.slug !== 'string'
-      || (item.status !== 'RASCUNHO' && item.status !== 'PUBLICADO')
-      || typeof item.lockVersion !== 'number'
+      typeof item.organizationId !== 'string' ||
+      typeof item.name !== 'string' ||
+      typeof item.slug !== 'string' ||
+      (item.status !== 'RASCUNHO' && item.status !== 'PUBLICADO') ||
+      typeof item.lockVersion !== 'number'
     ) {
       throw new Error('CONTRATO_ORGANIZACOES_INVALIDO: registro incompleto.');
     }
@@ -143,9 +143,9 @@ export class SportsOrganizationsApiAdapter {
       item.slug,
     ];
     if (
-      requiredStrings.some((entry) => typeof entry !== 'string')
-      || (item.status !== 'RASCUNHO' && item.status !== 'PUBLICADO')
-      || typeof item.lockVersion !== 'number'
+      requiredStrings.some((entry) => typeof entry !== 'string') ||
+      (item.status !== 'RASCUNHO' && item.status !== 'PUBLICADO') ||
+      typeof item.lockVersion !== 'number'
     ) {
       throw new Error('CONTRATO_EQUIPES_INVALIDO: registro incompleto.');
     }
@@ -153,8 +153,10 @@ export class SportsOrganizationsApiAdapter {
   }
 
   private sortByName<T extends { name: string }>(items: readonly T[]): T[] {
-    return [...items].sort((left, right) =>
-      left.name.localeCompare(right.name, 'pt-BR')
-      || JSON.stringify(left).localeCompare(JSON.stringify(right), 'pt-BR'));
+    return [...items].sort(
+      (left, right) =>
+        left.name.localeCompare(right.name, 'pt-BR') ||
+        JSON.stringify(left).localeCompare(JSON.stringify(right), 'pt-BR'),
+    );
   }
 }

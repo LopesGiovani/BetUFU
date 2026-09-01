@@ -12,20 +12,20 @@ import org.springframework.http.HttpStatus;
  */
 public final class ApiProblemException extends RuntimeException {
 
-    private final HttpStatus status;
-    private final ApiErrorCode errorCode;
+  private final HttpStatus status;
+  private final ApiErrorCode errorCode;
 
-    public ApiProblemException(HttpStatus status, ApiErrorCode errorCode) {
-        super(Objects.requireNonNull(errorCode, "errorCode must not be null").code());
-        this.status = Objects.requireNonNull(status, "status must not be null");
-        this.errorCode = errorCode;
-    }
+  public ApiProblemException(HttpStatus status, ApiErrorCode errorCode) {
+    super(Objects.requireNonNull(errorCode, "errorCode must not be null").code());
+    this.status = Objects.requireNonNull(status, "status must not be null");
+    this.errorCode = errorCode;
+  }
 
-    public HttpStatus status() {
-        return status;
-    }
+  public HttpStatus status() {
+    return status;
+  }
 
-    public ApiErrorCode errorCode() {
-        return errorCode;
-    }
+  public ApiErrorCode errorCode() {
+    return errorCode;
+  }
 }

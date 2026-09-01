@@ -12,17 +12,31 @@ export type RosterViewSnapshot = SportsRosterDraft | SportsRosterPublication;
       <section class="roster-view" aria-labelledby="roster-view-title">
         <header class="roster-header">
           <div>
-            <span class="eyebrow">{{ isPublication(roster) ? 'Snapshot publicado' : 'Pré-visualização' }}</span>
+            <span class="eyebrow">{{
+              isPublication(roster) ? 'Snapshot publicado' : 'Pré-visualização'
+            }}</span>
             <h2 id="roster-view-title">{{ roster.teamName }}</h2>
-            <p>{{ roster.competitionName }} · {{ roster.editionName }} · {{ roster.sportName }} · {{ roster.categoryName }}</p>
+            <p>
+              {{ roster.competitionName }} · {{ roster.editionName }} · {{ roster.sportName }} ·
+              {{ roster.categoryName }}
+            </p>
           </div>
-          <span class="status-chip">{{ isPublication(roster) ? 'Publicado' : roster.status === 'PUBLICADO' ? 'Publicado' : 'Rascunho' }}</span>
+          <span class="status-chip">{{
+            isPublication(roster)
+              ? 'Publicado'
+              : roster.status === 'PUBLICADO'
+                ? 'Publicado'
+                : 'Rascunho'
+          }}</span>
         </header>
         <ul class="member-list" aria-label="Membros do elenco">
           @for (member of roster.members; track member.athleteId) {
             <li>
               <strong>{{ member.athleteName }}</strong>
-              <span>{{ member.jerseyNumber ?? 'Sem camisa' }} · {{ member.positionName || 'Posição não informada' }}</span>
+              <span
+                >{{ member.jerseyNumber ?? 'Sem camisa' }} ·
+                {{ member.positionName || 'Posição não informada' }}</span
+              >
             </li>
           } @empty {
             <li class="empty-member">Nenhum atleta neste elenco.</li>
@@ -41,22 +55,87 @@ export type RosterViewSnapshot = SportsRosterDraft | SportsRosterPublication;
       </section>
     }
   `,
-  styles: [`
-    :host { display: block; }
-    .roster-view { display: grid; gap: 16px; padding: 24px; color: #fff4f4; background: #171018; border: 1px solid rgba(255,244,244,.18); border-radius: 16px; }
-    .roster-view--empty { color: #cdbfc5; }
-    .roster-header { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
-    .eyebrow { color: #ffb4b8; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-    h2, p { margin: 0; }
-    h2 { margin-top: 4px; font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; }
-    p, footer { color: #cdbfc5; line-height: 1.5; }
-    .status-chip { padding: 4px 8px; border: 1px solid #72d6a0; border-radius: 999px; color: #72d6a0; font-size: .75rem; font-weight: 700; white-space: nowrap; }
-    .member-list { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
-    .member-list li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid rgba(255,244,244,.18); }
-    .member-list span { color: #cdbfc5; }
-    .empty-member { color: #f5c95c; }
-    @media (max-width: 599px) { .roster-header, .member-list li { flex-direction: column; } }
-  `],
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+      .roster-view {
+        display: grid;
+        gap: 16px;
+        padding: 24px;
+        color: #fff4f4;
+        background: #171018;
+        border: 1px solid rgba(255, 244, 244, 0.18);
+        border-radius: 16px;
+      }
+      .roster-view--empty {
+        color: #cdbfc5;
+      }
+      .roster-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: start;
+      }
+      .eyebrow {
+        color: #ffb4b8;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      h2,
+      p {
+        margin: 0;
+      }
+      h2 {
+        margin-top: 4px;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 1.8rem;
+      }
+      p,
+      footer {
+        color: #cdbfc5;
+        line-height: 1.5;
+      }
+      .status-chip {
+        padding: 4px 8px;
+        border: 1px solid #72d6a0;
+        border-radius: 999px;
+        color: #72d6a0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .member-list {
+        display: grid;
+        gap: 8px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+      .member-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 244, 244, 0.18);
+      }
+      .member-list span {
+        color: #cdbfc5;
+      }
+      .empty-member {
+        color: #f5c95c;
+      }
+      @media (max-width: 599px) {
+        .roster-header,
+        .member-list li {
+          flex-direction: column;
+        }
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RosterViewComponent {

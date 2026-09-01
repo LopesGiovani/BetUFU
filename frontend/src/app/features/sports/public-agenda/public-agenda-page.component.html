@@ -5,8 +5,7 @@
     [paused]="motionPaused()"
     [sharedPaused]="tickerInteractionPaused()"
     (pausedChange)="motionPaused.set($event)"
-    (interactionPausedChange)="heroInteractionPaused.set($event)"
-  />
+    (interactionPausedChange)="heroInteractionPaused.set($event)" />
 } @else {
   <section class="empty-hero">
     <div class="empty-hero__court" aria-hidden="true"></div>
@@ -15,8 +14,7 @@
         <span class="is-active">Agenda pública</span>
         <app-highlight-motion-control
           [paused]="motionPaused()"
-          (pausedChange)="motionPaused.set($event)"
-        />
+          (pausedChange)="motionPaused.set($event)" />
       </nav>
       <div class="empty-hero__stage">
         <h1><span>Hoje em</span><strong>quadra.</strong></h1>
@@ -24,7 +22,13 @@
           <div class="empty-hero__message" role="status">
             <span class="loading-mark" aria-hidden="true"></span>
             <h2>Preparando a agenda</h2>
-            <p>{{ store.isRetrying() ? 'Reconectando à publicação esportiva…' : 'Buscando os eventos publicados…' }}</p>
+            <p>
+              {{
+                store.isRetrying()
+                  ? 'Reconectando à publicação esportiva…'
+                  : 'Buscando os eventos publicados…'
+              }}
+            </p>
           </div>
         } @else if (store.isError()) {
           <div class="empty-hero__message">
@@ -34,7 +38,9 @@
         } @else if (store.isStale()) {
           <div class="empty-hero__message">
             <h2>Agenda desatualizada</h2>
-            <p>A última publicação válida foi preservada enquanto uma nova consulta não é concluída.</p>
+            <p>
+              A última publicação válida foi preservada enquanto uma nova consulta não é concluída.
+            </p>
           </div>
         } @else if (store.hasEvents()) {
           <div class="empty-hero__message">
@@ -49,7 +55,9 @@
         } @else {
           <div class="empty-hero__message">
             <h2>Nenhum evento publicado</h2>
-            <p>A programação aparecerá aqui assim que uma publicação esportiva estiver disponível.</p>
+            <p>
+              A programação aparecerá aqui assim que uma publicação esportiva estiver disponível.
+            </p>
           </div>
         }
       </div>
@@ -60,15 +68,13 @@
 <app-broadcast-ticker
   [events]="tickerEvents()"
   [paused]="composedMotionPaused()"
-  (interactionPausedChange)="tickerInteractionPaused.set($event)"
-/>
+  (interactionPausedChange)="tickerInteractionPaused.set($event)" />
 <app-sport-ribbon
   [published]="store.publishedResponseReceived()"
   [eventCount]="store.totalElements()"
   [filtered]="store.hasActiveFilters()"
   [stale]="store.isStale()"
-  [loading]="store.isLoading()"
-/>
+  [loading]="store.isLoading()" />
 
 <section id="agenda" class="agenda" [attr.aria-busy]="store.isLoading()">
   <app-grainient-background [paused]="composedMotionPaused()" />
@@ -91,7 +97,7 @@
       <div class="agenda-title-block">
         <h2 #agendaTitle id="agenda-title" tabindex="-1">{{ agendaTitleText() }}</h2>
         <p>
-          {{ agendaZoneHeading() }}<br>
+          {{ agendaZoneHeading() }}<br />
           {{ agendaPublicationLabel() }}
         </p>
       </div>
@@ -103,16 +109,14 @@
           <button
             type="button"
             [attr.aria-pressed]="store.query().period === 'today'"
-            (click)="selectPeriod('today')"
-          >
+            (click)="selectPeriod('today')">
             <span>Hoje</span>
             <small>{{ periodCountLabel('today') }}</small>
           </button>
           <button
             type="button"
             [attr.aria-pressed]="store.query().period === 'upcoming'"
-            (click)="selectPeriod('upcoming')"
-          >
+            (click)="selectPeriod('upcoming')">
             <span>Próximos</span>
             <small>{{ periodCountLabel('upcoming') }}</small>
           </button>
@@ -125,9 +129,10 @@
             class="filter-toggle"
             [attr.aria-expanded]="filtersOpen()"
             aria-controls="agenda-filter-panel"
-            (click)="toggleFilters()"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1.5v-7.3L4 5Z" /></svg>
+            (click)="toggleFilters()">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 5h16l-6.5 7.2V18l-3 1.5v-7.3L4 5Z" />
+            </svg>
             <span>Filtrar agenda</span>
             @if (activeFilterCount() > 0) {
               <strong aria-label="Filtros ativos">{{ activeFilterCount() }}</strong>
@@ -142,14 +147,18 @@
           class="filter-panel"
           [formGroup]="filterForm"
           (submit)="applyFilters(); $event.preventDefault()"
-          (keydown.escape)="closeFilters($event)"
-        >
+          (keydown.escape)="closeFilters($event)">
           <label>
             <span>Competição</span>
             <select formControlName="competitionId" (change)="onCompetitionChange()">
               <option value="">Todas as competições</option>
-              @if (filterForm.controls.competitionId.value && !hasCompetitionOption(filterForm.controls.competitionId.value)) {
-                <option [value]="filterForm.controls.competitionId.value">Competição selecionada (detalhes indisponíveis)</option>
+              @if (
+                filterForm.controls.competitionId.value &&
+                !hasCompetitionOption(filterForm.controls.competitionId.value)
+              ) {
+                <option [value]="filterForm.controls.competitionId.value">
+                  Competição selecionada (detalhes indisponíveis)
+                </option>
               }
               @for (competition of store.competitions(); track competition.id) {
                 <option [value]="competition.id">{{ competition.label }}</option>
@@ -160,10 +169,20 @@
             <span>Edição</span>
             <select formControlName="editionId" (change)="onEditionChange()">
               <option value="">Todas as edições</option>
-              @if (filterForm.controls.editionId.value && !hasEditionOption(filterForm.controls.editionId.value)) {
-                <option [value]="filterForm.controls.editionId.value">Edição selecionada (detalhes indisponíveis)</option>
+              @if (
+                filterForm.controls.editionId.value &&
+                !hasEditionOption(filterForm.controls.editionId.value)
+              ) {
+                <option [value]="filterForm.controls.editionId.value">
+                  Edição selecionada (detalhes indisponíveis)
+                </option>
               }
-              @for (edition of store.editionsForCompetition(filterForm.controls.competitionId.value || undefined); track edition.id) {
+              @for (
+                edition of store.editionsForCompetition(
+                  filterForm.controls.competitionId.value || undefined
+                );
+                track edition.id
+              ) {
                 <option [value]="edition.id">{{ edition.label }}</option>
               }
             </select>
@@ -172,33 +191,51 @@
             <span>Esporte</span>
             <select formControlName="sportId">
               <option value="">Todos os esportes</option>
-              @for (sport of store.sports(); track sport.id) { <option [value]="sport.id">{{ sport.label }}</option> }
+              @for (sport of store.sports(); track sport.id) {
+                <option [value]="sport.id">{{ sport.label }}</option>
+              }
             </select>
           </label>
           <label>
             <span>Categoria</span>
             <select formControlName="categoryId" (change)="onCategoryChange()">
               <option value="">Todas as categorias</option>
-              @for (category of store.categoriesForEdition(filterForm.controls.editionId.value || undefined); track category.id) { <option [value]="category.id">{{ category.label }}</option> }
+              @for (
+                category of store.categoriesForEdition(
+                  filterForm.controls.editionId.value || undefined
+                );
+                track category.id
+              ) {
+                <option [value]="category.id">{{ category.label }}</option>
+              }
             </select>
           </label>
           <label>
             <span>Fase</span>
             <select formControlName="phaseId">
               <option value="">Todas as fases</option>
-              @for (phase of store.phasesForCategory(filterForm.controls.categoryId.value || undefined); track phase.id) { <option [value]="phase.id">{{ phase.label }}</option> }
+              @for (
+                phase of store.phasesForCategory(filterForm.controls.categoryId.value || undefined);
+                track phase.id
+              ) {
+                <option [value]="phase.id">{{ phase.label }}</option>
+              }
             </select>
           </label>
           <label>
             <span>Estado do local</span>
             <select formControlName="state">
               <option value="">Qualquer estado</option>
-              @for (state of store.states(); track state.id) { <option [value]="state.id">{{ state.label }}</option> }
+              @for (state of store.states(); track state.id) {
+                <option [value]="state.id">{{ state.label }}</option>
+              }
             </select>
           </label>
           <div class="filter-panel__actions">
             <button type="submit" class="filter-apply">Aplicar filtros</button>
-            <button type="button" class="filter-clear" (click)="clearFilters()">Limpar filtros</button>
+            <button type="button" class="filter-clear" (click)="clearFilters()">
+              Limpar filtros
+            </button>
           </div>
         </form>
       }
@@ -220,11 +257,15 @@
         </div>
       } @else if (store.isEmpty()) {
         <div class="state-panel">
-          <h3>{{ store.hasActiveFilters() ? 'Nenhum evento encontrado' : 'Nenhum evento publicado' }}</h3>
+          <h3>
+            {{ store.hasActiveFilters() ? 'Nenhum evento encontrado' : 'Nenhum evento publicado' }}
+          </h3>
           <p>
-            {{ store.hasActiveFilters()
-              ? 'Ajuste ou limpe os filtros para ver outros eventos.'
-              : 'Ainda não há eventos publicados para acompanhar.' }}
+            {{
+              store.hasActiveFilters()
+                ? 'Ajuste ou limpe os filtros para ver outros eventos.'
+                : 'Ainda não há eventos publicados para acompanhar.'
+            }}
           </p>
           @if (store.hasActiveFilters()) {
             <button type="button" (click)="clearFilters()">Limpar filtros</button>
@@ -235,12 +276,14 @@
           <section
             class="event-group"
             [attr.aria-label]="first ? group.dateLabel : null"
-            [attr.aria-labelledby]="first ? null : 'date-' + group.dateKey"
-          >
+            [attr.aria-labelledby]="first ? null : 'date-' + group.dateKey">
             @if (!first) {
               <header class="event-group__header">
                 <p [id]="'date-' + group.dateKey">{{ group.dateLabel }}</p>
-                <span>{{ group.events.length }} {{ group.events.length === 1 ? 'evento' : 'eventos' }}</span>
+                <span
+                  >{{ group.events.length }}
+                  {{ group.events.length === 1 ? 'evento' : 'eventos' }}</span
+                >
               </header>
             }
             @for (event of group.events; track event.id) {

@@ -1,7 +1,8 @@
 <section class="enrollment-container">
   <h1 class="enrollment-title">Matrícula UFU</h1>
   <p class="opening-text">
-    O registro da matrícula é voluntário e garante que ela pertença a uma única conta BETUFU. A BETUFU não confere documentos e não guarda o número informado.
+    O registro da matrícula é voluntário e garante que ela pertença a uma única conta BETUFU. A
+    BETUFU não confere documentos e não guarda o número informado.
   </p>
 
   @if (successMessage()) {
@@ -12,22 +13,14 @@
 
   @if (store.isLoading() && !store.displayEnrollment()) {
     <!-- Estado 1: Loading Inicial (Sem estado prévio) -->
-    <div
-      class="status-feedback loading-state"
-      role="status"
-      aria-live="polite"
-    >
+    <div class="status-feedback loading-state" role="status" aria-live="polite">
       <div class="spinner-large" aria-hidden="true"></div>
       <h2>Carregando matrícula…</h2>
       <p>Aguarde enquanto consultamos seus dados.</p>
     </div>
   } @else if (store.isError() && !store.displayEnrollment()) {
     <!-- Estado 2: Error Bloqueante (Sem dados anteriores para exibir) -->
-    <div
-      class="status-feedback error-state"
-      role="alert"
-      aria-live="assertive"
-    >
+    <div class="status-feedback error-state" role="alert" aria-live="assertive">
       <h2>Não foi possível carregar as informações de matrícula</h2>
       <p class="error-text">{{ store.errorMessage() }}</p>
       @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
@@ -38,8 +31,7 @@
             type="button"
             class="btn-copy-small"
             (click)="copyCorrelationId(store.errorCorrelationId()!)"
-            aria-label="Copiar código de referência"
-          >
+            aria-label="Copiar código de referência">
             <svg
               class="btn-icon-small"
               viewBox="0 0 24 24"
@@ -51,8 +43,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               aria-hidden="true"
-              focusable="false"
-            >
+              focusable="false">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
@@ -61,9 +52,7 @@
         </div>
       }
       <div class="error-actions">
-        <button type="button" class="btn-primary" (click)="onRetry()">
-          Tentar novamente
-        </button>
+        <button type="button" class="btn-primary" (click)="onRetry()">Tentar novamente</button>
       </div>
     </div>
   } @else {
@@ -71,11 +60,7 @@
 
     <!-- Recusa de negócio ou erro de transporte em bloco de alerta no topo -->
     @if (store.isError() && store.errorMessage()) {
-      <div
-        class="alert-box"
-        role="alert"
-        aria-live="assertive"
-      >
+      <div class="alert-box" role="alert" aria-live="assertive">
         <div class="alert-content">
           <p class="alert-message">{{ store.errorMessage() }}</p>
           @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
@@ -86,8 +71,7 @@
                 type="button"
                 class="btn-copy-small"
                 (click)="copyCorrelationId(store.errorCorrelationId()!)"
-                aria-label="Copiar código de referência"
-              >
+                aria-label="Copiar código de referência">
                 <svg
                   class="btn-icon-small"
                   viewBox="0 0 24 24"
@@ -99,8 +83,7 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   aria-hidden="true"
-                  focusable="false"
-                >
+                  focusable="false">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
@@ -127,15 +110,16 @@
             stroke-linecap="round"
             stroke-linejoin="round"
             aria-hidden="true"
-            focusable="false"
-          >
+            focusable="false">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
           <span class="chip-text">Matrícula registrada</span>
         </div>
         <p class="registered-body">
-          Sua conta já tem uma matrícula registrada. O número não é exibido aqui nem em nenhuma outra tela, porque a BETUFU não o conserva. Para corrigir, fale com um administrador geral.
+          Sua conta já tem uma matrícula registrada. O número não é exibido aqui nem em nenhuma
+          outra tela, porque a BETUFU não o conserva. Para corrigir, fale com um administrador
+          geral.
         </p>
       </article>
     } @else {
@@ -156,19 +140,17 @@
               spellcheck="false"
               inputmode="text"
               [attr.aria-invalid]="hasFieldError"
-              [attr.aria-describedby]="hasFieldError ? 'matricula-error matricula-help' : 'matricula-help'"
-            />
+              [attr.aria-describedby]="
+                hasFieldError ? 'matricula-error matricula-help' : 'matricula-help'
+              " />
 
             <p id="matricula-help" class="help-text">
-              Informe como aparece no seu registro acadêmico. Letras, números e separadores são aceitos.
+              Informe como aparece no seu registro acadêmico. Letras, números e separadores são
+              aceitos.
             </p>
 
             @if (hasFieldError) {
-              <p
-                id="matricula-error"
-                class="field-error"
-                role="alert"
-              >
+              <p id="matricula-error" class="field-error" role="alert">
                 {{ fieldErrorMessage }}
               </p>
             }
@@ -179,11 +161,7 @@
               Depois de registrada, a matrícula só pode ser alterada por um administrador geral.
             </p>
 
-            <button
-              type="submit"
-              class="btn-primary"
-              [disabled]="isSubmitDisabled"
-            >
+            <button type="submit" class="btn-primary" [disabled]="isSubmitDisabled">
               {{ store.isSaving() ? 'Registrando…' : 'Registrar matrícula' }}
             </button>
           </div>
@@ -194,11 +172,6 @@
 </section>
 
 <!-- Live region exclusiva para o feedback curto da ação de copiar -->
-<div
-  id="enrollment-live-region"
-  class="visually-hidden"
-  role="status"
-  aria-live="polite"
->
+<div id="enrollment-live-region" class="visually-hidden" role="status" aria-live="polite">
   {{ copyFeedbackMessage() }}
 </div>

@@ -3,7 +3,10 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom, retry, timer } from 'rxjs';
 import { SportsStandingsSnapshot } from '../../../../api/generated/model/sports-standings-snapshot';
 import { SportsStandingsRow } from '../../../../api/generated/model/sports-standings-row';
-import { SportsStandingsApiAdapter, SportsStandingsUpdatePayload } from './sports-standings-api.adapter';
+import {
+  SportsStandingsApiAdapter,
+  SportsStandingsUpdatePayload,
+} from './sports-standings-api.adapter';
 
 type SportsStandingsStatus = 'initial' | 'loading' | 'populated' | 'not-found' | 'denied' | 'error';
 
@@ -55,7 +58,10 @@ export class SportsStandingsStore {
           retry({
             count: 2,
             delay: (error: unknown, attempt) => {
-              if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403 || error.status === 404)) {
+              if (
+                error instanceof HttpErrorResponse &&
+                (error.status === 401 || error.status === 403 || error.status === 404)
+              ) {
                 throw error;
               }
               return timer(attempt === 1 ? 250 : 500);
@@ -65,14 +71,23 @@ export class SportsStandingsStore {
       );
 
       if (requestId !== this.requestSequence) return;
-      if (!data || data.standingsId !== id || !Array.isArray(data.rows) || !Array.isArray(data.columns)) {
+      if (
+        !data ||
+        data.standingsId !== id ||
+        !Array.isArray(data.rows) ||
+        !Array.isArray(data.columns)
+      ) {
         throw new Error('CONTRATO_STANDINGS_INVALIDO');
       }
 
       this.state.set({ ...INITIAL, status: 'populated', standingsId: id, data });
     } catch (error: unknown) {
       if (requestId !== this.requestSequence) return;
-      const status = this.adapter.isUnauthorized(error) ? 'denied' : this.adapter.isNotFound(error) ? 'not-found' : 'error';
+      const status = this.adapter.isUnauthorized(error)
+        ? 'denied'
+        : this.adapter.isNotFound(error)
+          ? 'not-found'
+          : 'error';
       this.state.set({
         ...INITIAL,
         status,
@@ -97,7 +112,9 @@ export class SportsStandingsStore {
     if (!current.data) return false;
     const standings = current.data;
     return this.mutate(async () => {
-      const data = await firstValueFrom(this.adapter.update(standings.standingsId, standings.lockVersion, payload));
+      const data = await firstValueFrom(
+        this.adapter.update(standings.standingsId, standings.lockVersion, payload),
+      );
       this.state.update((state) => ({ ...state, data, conflictMessage: null }));
     }, 'Classificação salva como rascunho.');
   }
@@ -107,7 +124,9 @@ export class SportsStandingsStore {
     if (!current.data || !sourceReference.trim()) return false;
     const standings = current.data;
     return this.mutate(async () => {
-      const data = await firstValueFrom(this.adapter.publish(standings.standingsId, standings.lockVersion, sourceReference.trim()));
+      const data = await firstValueFrom(
+        this.adapter.publish(standings.standingsId, standings.lockVersion, sourceReference.trim()),
+      );
       this.state.update((state) => ({ ...state, data, conflictMessage: null }));
     }, 'Classificação publicada com fonte oficial.');
   }
@@ -123,7 +142,14 @@ export class SportsStandingsStore {
     const standings = current.data;
     return this.mutate(async () => {
       const data = await firstValueFrom(
-        this.adapter.correct(standings.standingsId, standings.lockVersion, reason.trim(), sourceReference.trim(), columns, rows),
+        this.adapter.correct(
+          standings.standingsId,
+          standings.lockVersion,
+          reason.trim(),
+          sourceReference.trim(),
+          columns,
+          rows,
+        ),
       );
       this.state.update((state) => ({ ...state, data, conflictMessage: null }));
     }, 'Correção publicada como nova versão auditada.');
@@ -140,7 +166,11 @@ export class SportsStandingsStore {
 
     try {
       await action();
-      this.state.update((state) => ({ ...state, isMutating: false, feedbackMessage: successMessage }));
+      this.state.update((state) => ({
+        ...state,
+        isMutating: false,
+        feedbackMessage: successMessage,
+      }));
       return true;
     } catch (error: unknown) {
       if (this.adapter.isUnauthorized(error)) {

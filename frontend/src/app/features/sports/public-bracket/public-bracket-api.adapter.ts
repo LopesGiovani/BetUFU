@@ -10,9 +10,12 @@ export class PublicBracketApiAdapter {
 
   fetch(bracketId: string): Observable<SportsBracketView> {
     const normalized = bracketId.trim();
-    if (!normalized) return throwError(() => new Error('CONTRATO_BRACKET_INVALIDO: identificador ausente.'));
+    if (!normalized)
+      return throwError(() => new Error('CONTRATO_BRACKET_INVALIDO: identificador ausente.'));
     return defer(() => this.service.getPublicSportsBracket({ bracketId: normalized }));
   }
 
-  isNotFound(error: unknown): boolean { return error instanceof HttpErrorResponse && error.status === 404; }
+  isNotFound(error: unknown): boolean {
+    return error instanceof HttpErrorResponse && error.status === 404;
+  }
 }

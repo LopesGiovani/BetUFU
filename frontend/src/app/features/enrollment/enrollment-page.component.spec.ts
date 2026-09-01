@@ -109,7 +109,9 @@ describe('EnrollmentPageComponent (Superfície S3)', () => {
     const errorState = compiled.querySelector('.status-feedback.error-state');
     expect(errorState).not.toBeNull();
     expect(errorState?.getAttribute('role')).toBe('alert');
-    expect(errorState?.textContent).toContain('Não foi possível carregar as informações de matrícula');
+    expect(errorState?.textContent).toContain(
+      'Não foi possível carregar as informações de matrícula',
+    );
     expect(errorState?.textContent).toContain('corr-init-enroll-500');
 
     const retryBtn = errorState?.querySelector('button.btn-primary') as HTMLButtonElement;

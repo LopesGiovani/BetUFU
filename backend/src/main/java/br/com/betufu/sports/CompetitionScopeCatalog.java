@@ -5,5 +5,5 @@ import java.util.UUID;
 /** Public sports-module contract used to validate competition-scoped role grants. */
 public interface CompetitionScopeCatalog {
 
-    boolean existsCompetition(UUID competitionId);
+  boolean existsCompetition(UUID competitionId);
 }

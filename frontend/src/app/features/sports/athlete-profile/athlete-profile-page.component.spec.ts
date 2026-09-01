@@ -5,15 +5,53 @@ import { describe, expect, it, vi } from 'vitest';
 import { AthleteProfilePageComponent } from './athlete-profile-page.component';
 import { AthleteProfileStore } from './athlete-profile.store';
 
-const profile = { athleteId: 'a1', athleteName: 'Ana Santos', athleteSlug: 'ana-santos', course: 'Direito', bio: 'Linha 1\nLinha 2', instagramUrl: 'https://instagram.com/ana', xUrl: '', linkedinUrl: '', stravaUrl: '', youtubeUrl: '', lockVersion: 0, updatedAt: '2026-08-31T12:00:00Z' };
+const profile = {
+  athleteId: 'a1',
+  athleteName: 'Ana Santos',
+  athleteSlug: 'ana-santos',
+  course: 'Direito',
+  bio: 'Linha 1\nLinha 2',
+  instagramUrl: 'https://instagram.com/ana',
+  xUrl: '',
+  linkedinUrl: '',
+  stravaUrl: '',
+  youtubeUrl: '',
+  lockVersion: 0,
+  updatedAt: '2026-08-31T12:00:00Z',
+};
 
 describe('AthleteProfilePageComponent', () => {
   it('renderiza formulario owner e pre-visualizacao como texto simples', async () => {
     const store = {
-      profile: signal(profile), preview: signal({ course: profile.course, bio: profile.bio, instagramUrl: profile.instagramUrl, xUrl: '', linkedinUrl: '', stravaUrl: '', youtubeUrl: '' }),
-      isLoading: signal(false), isDenied: signal(false), isNotLinked: signal(false), isSaving: signal(false), isRemoving: signal(false), isConflict: signal(false), isError: signal(false), hasOptionalContent: signal(true), errorMessage: signal(null), feedbackMessage: signal(null), load: vi.fn(), save: vi.fn(async () => true), remove: vi.fn(async () => true), setDraft: vi.fn(),
+      profile: signal(profile),
+      preview: signal({
+        course: profile.course,
+        bio: profile.bio,
+        instagramUrl: profile.instagramUrl,
+        xUrl: '',
+        linkedinUrl: '',
+        stravaUrl: '',
+        youtubeUrl: '',
+      }),
+      isLoading: signal(false),
+      isDenied: signal(false),
+      isNotLinked: signal(false),
+      isSaving: signal(false),
+      isRemoving: signal(false),
+      isConflict: signal(false),
+      isError: signal(false),
+      hasOptionalContent: signal(true),
+      errorMessage: signal(null),
+      feedbackMessage: signal(null),
+      load: vi.fn(),
+      save: vi.fn(async () => true),
+      remove: vi.fn(async () => true),
+      setDraft: vi.fn(),
     };
-    await TestBed.configureTestingModule({ imports: [AthleteProfilePageComponent], providers: [{ provide: AthleteProfileStore, useValue: store }, provideRouter([])] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [AthleteProfilePageComponent],
+      providers: [{ provide: AthleteProfileStore, useValue: store }, provideRouter([])],
+    }).compileComponents();
     const fixture = TestBed.createComponent(AthleteProfilePageComponent);
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
@@ -24,8 +62,36 @@ describe('AthleteProfilePageComponent', () => {
   });
 
   it('marca URL javascript como invalida e nao habilita salvamento', async () => {
-    const store = { profile: signal(profile), preview: signal({ course: '', bio: '', instagramUrl: '', xUrl: '', linkedinUrl: '', stravaUrl: '', youtubeUrl: '' }), isLoading: signal(false), isDenied: signal(false), isNotLinked: signal(false), isSaving: signal(false), isRemoving: signal(false), isConflict: signal(false), isError: signal(false), hasOptionalContent: signal(false), errorMessage: signal(null), feedbackMessage: signal(null), load: vi.fn(), save: vi.fn(), remove: vi.fn(), setDraft: vi.fn() };
-    await TestBed.configureTestingModule({ imports: [AthleteProfilePageComponent], providers: [{ provide: AthleteProfileStore, useValue: store }, provideRouter([])] }).compileComponents();
+    const store = {
+      profile: signal(profile),
+      preview: signal({
+        course: '',
+        bio: '',
+        instagramUrl: '',
+        xUrl: '',
+        linkedinUrl: '',
+        stravaUrl: '',
+        youtubeUrl: '',
+      }),
+      isLoading: signal(false),
+      isDenied: signal(false),
+      isNotLinked: signal(false),
+      isSaving: signal(false),
+      isRemoving: signal(false),
+      isConflict: signal(false),
+      isError: signal(false),
+      hasOptionalContent: signal(false),
+      errorMessage: signal(null),
+      feedbackMessage: signal(null),
+      load: vi.fn(),
+      save: vi.fn(),
+      remove: vi.fn(),
+      setDraft: vi.fn(),
+    };
+    await TestBed.configureTestingModule({
+      imports: [AthleteProfilePageComponent],
+      providers: [{ provide: AthleteProfileStore, useValue: store }, provideRouter([])],
+    }).compileComponents();
     const fixture = TestBed.createComponent(AthleteProfilePageComponent);
     fixture.detectChanges();
     const input = fixture.nativeElement.querySelector('#instagramUrl') as HTMLInputElement;

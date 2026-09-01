@@ -9,5 +9,4 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   styleUrl: './arena-shell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArenaShellComponent {
-}
+export class ArenaShellComponent {}

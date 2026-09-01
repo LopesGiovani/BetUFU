@@ -70,9 +70,7 @@ describe('EnrollmentAdminApiAdapter (S6 Dedicated Adapter)', () => {
       const response: RoleGrantResponse = {
         identityId: TARGET_UUID,
         nickname: 'Alvo-123_ufu',
-        roles: [
-          { role: OperationalRole.AdministradorGeral, status: 'VIGENTE' },
-        ],
+        roles: [{ role: OperationalRole.AdministradorGeral, status: 'VIGENTE' }],
       };
       mockRoleService.getRoles.mockReturnValue(of(response));
 
@@ -275,7 +273,9 @@ describe('EnrollmentAdminApiAdapter (S6 Dedicated Adapter)', () => {
     });
 
     it('lança CONTRATO_CORRECAO_INVALIDO se a resposta for nula ou indefinida', async () => {
-      mockEnrollmentService.correctEnrollment.mockReturnValue(of(null as unknown as EnrollmentCorrectionResponse));
+      mockEnrollmentService.correctEnrollment.mockReturnValue(
+        of(null as unknown as EnrollmentCorrectionResponse),
+      );
 
       let caughtNull: unknown = null;
       adapter.correctEnrollment(TARGET_UUID, '12345ABC', 'Motivo de teste').subscribe({
@@ -285,7 +285,9 @@ describe('EnrollmentAdminApiAdapter (S6 Dedicated Adapter)', () => {
       expect(caughtNull).toBeInstanceOf(Error);
       expect((caughtNull as Error).message).toContain('CONTRATO_CORRECAO_INVALIDO');
 
-      mockEnrollmentService.correctEnrollment.mockReturnValue(of(undefined as unknown as EnrollmentCorrectionResponse));
+      mockEnrollmentService.correctEnrollment.mockReturnValue(
+        of(undefined as unknown as EnrollmentCorrectionResponse),
+      );
 
       let caughtUndefined: unknown = null;
       adapter.correctEnrollment(TARGET_UUID, '12345ABC', 'Motivo de teste').subscribe({
@@ -311,62 +313,137 @@ describe('EnrollmentAdminApiAdapter (S6 Dedicated Adapter)', () => {
       });
 
       expect(caughtError).toBeInstanceOf(Error);
-      expect((caughtError as Error).message).toContain('CONTRATO_CORRECAO_INVALIDO: targetIdentityId retornado diverge');
+      expect((caughtError as Error).message).toContain(
+        'CONTRATO_CORRECAO_INVALIDO: targetIdentityId retornado diverge',
+      );
     });
 
     it('lança CONTRATO_CORRECAO_INVALIDO se status for nulo, indefinido, vazio ou não-string', async () => {
       const testCases = [
-        { ...{ targetIdentityId: TARGET_UUID, correctedAt: '2026-08-26T12:00:00.000Z', previousBindingReleased: true }, status: null },
-        { ...{ targetIdentityId: TARGET_UUID, correctedAt: '2026-08-26T12:00:00.000Z', previousBindingReleased: true }, status: '' },
-        { ...{ targetIdentityId: TARGET_UUID, correctedAt: '2026-08-26T12:00:00.000Z', previousBindingReleased: true }, status: '   ' },
-        { ...{ targetIdentityId: TARGET_UUID, correctedAt: '2026-08-26T12:00:00.000Z', previousBindingReleased: true }, status: 123 as unknown as string },
+        {
+          ...{
+            targetIdentityId: TARGET_UUID,
+            correctedAt: '2026-08-26T12:00:00.000Z',
+            previousBindingReleased: true,
+          },
+          status: null,
+        },
+        {
+          ...{
+            targetIdentityId: TARGET_UUID,
+            correctedAt: '2026-08-26T12:00:00.000Z',
+            previousBindingReleased: true,
+          },
+          status: '',
+        },
+        {
+          ...{
+            targetIdentityId: TARGET_UUID,
+            correctedAt: '2026-08-26T12:00:00.000Z',
+            previousBindingReleased: true,
+          },
+          status: '   ',
+        },
+        {
+          ...{
+            targetIdentityId: TARGET_UUID,
+            correctedAt: '2026-08-26T12:00:00.000Z',
+            previousBindingReleased: true,
+          },
+          status: 123 as unknown as string,
+        },
       ];
 
       for (const invalidCase of testCases) {
-        mockEnrollmentService.correctEnrollment.mockReturnValue(of(invalidCase as unknown as EnrollmentCorrectionResponse));
+        mockEnrollmentService.correctEnrollment.mockReturnValue(
+          of(invalidCase as unknown as EnrollmentCorrectionResponse),
+        );
         let caughtError: unknown = null;
         adapter.correctEnrollment(TARGET_UUID, '12345ABC', 'Motivo de teste').subscribe({
           error: (err) => (caughtError = err),
         });
         expect(caughtError).toBeInstanceOf(Error);
-        expect((caughtError as Error).message).toContain('CONTRATO_CORRECAO_INVALIDO: status ausente ou invalido');
+        expect((caughtError as Error).message).toContain(
+          'CONTRATO_CORRECAO_INVALIDO: status ausente ou invalido',
+        );
       }
     });
 
     it('lança CONTRATO_CORRECAO_INVALIDO se correctedAt for nulo, vazio ou instante inválido', async () => {
       const testCases = [
-        { ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true }, correctedAt: null },
-        { ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true }, correctedAt: '' },
-        { ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true }, correctedAt: '   ' },
-        { ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true }, correctedAt: 'data-invalida' },
+        {
+          ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true },
+          correctedAt: null,
+        },
+        {
+          ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true },
+          correctedAt: '',
+        },
+        {
+          ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true },
+          correctedAt: '   ',
+        },
+        {
+          ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', previousBindingReleased: true },
+          correctedAt: 'data-invalida',
+        },
       ];
 
       for (const invalidCase of testCases) {
-        mockEnrollmentService.correctEnrollment.mockReturnValue(of(invalidCase as unknown as EnrollmentCorrectionResponse));
+        mockEnrollmentService.correctEnrollment.mockReturnValue(
+          of(invalidCase as unknown as EnrollmentCorrectionResponse),
+        );
         let caughtError: unknown = null;
         adapter.correctEnrollment(TARGET_UUID, '12345ABC', 'Motivo de teste').subscribe({
           error: (err) => (caughtError = err),
         });
         expect(caughtError).toBeInstanceOf(Error);
-        expect((caughtError as Error).message).toContain('CONTRATO_CORRECAO_INVALIDO: correctedAt ausente ou instante invalido');
+        expect((caughtError as Error).message).toContain(
+          'CONTRATO_CORRECAO_INVALIDO: correctedAt ausente ou instante invalido',
+        );
       }
     });
 
     it('lança CONTRATO_CORRECAO_INVALIDO se previousBindingReleased não for boolean', async () => {
       const testCases = [
-        { ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', correctedAt: '2026-08-26T12:00:00.000Z' }, previousBindingReleased: null },
-        { ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', correctedAt: '2026-08-26T12:00:00.000Z' }, previousBindingReleased: 'true' as unknown as boolean },
-        { ...{ targetIdentityId: TARGET_UUID, status: 'ATIVO', correctedAt: '2026-08-26T12:00:00.000Z' }, previousBindingReleased: 1 as unknown as boolean },
+        {
+          ...{
+            targetIdentityId: TARGET_UUID,
+            status: 'ATIVO',
+            correctedAt: '2026-08-26T12:00:00.000Z',
+          },
+          previousBindingReleased: null,
+        },
+        {
+          ...{
+            targetIdentityId: TARGET_UUID,
+            status: 'ATIVO',
+            correctedAt: '2026-08-26T12:00:00.000Z',
+          },
+          previousBindingReleased: 'true' as unknown as boolean,
+        },
+        {
+          ...{
+            targetIdentityId: TARGET_UUID,
+            status: 'ATIVO',
+            correctedAt: '2026-08-26T12:00:00.000Z',
+          },
+          previousBindingReleased: 1 as unknown as boolean,
+        },
       ];
 
       for (const invalidCase of testCases) {
-        mockEnrollmentService.correctEnrollment.mockReturnValue(of(invalidCase as unknown as EnrollmentCorrectionResponse));
+        mockEnrollmentService.correctEnrollment.mockReturnValue(
+          of(invalidCase as unknown as EnrollmentCorrectionResponse),
+        );
         let caughtError: unknown = null;
         adapter.correctEnrollment(TARGET_UUID, '12345ABC', 'Motivo de teste').subscribe({
           error: (err) => (caughtError = err),
         });
         expect(caughtError).toBeInstanceOf(Error);
-        expect((caughtError as Error).message).toContain('CONTRATO_CORRECAO_INVALIDO: previousBindingReleased nao e booleano');
+        expect((caughtError as Error).message).toContain(
+          'CONTRATO_CORRECAO_INVALIDO: previousBindingReleased nao e booleano',
+        );
       }
     });
 
@@ -375,13 +452,11 @@ describe('EnrollmentAdminApiAdapter (S6 Dedicated Adapter)', () => {
       mockEnrollmentService.correctEnrollment.mockReturnValue(throwError(() => mockError));
 
       let caughtError: unknown = null;
-      adapter
-        .correctEnrollment(TARGET_UUID, '12345ABC', 'Correção administrativa')
-        .subscribe({
-          error: (err) => {
-            caughtError = err;
-          },
-        });
+      adapter.correctEnrollment(TARGET_UUID, '12345ABC', 'Correção administrativa').subscribe({
+        error: (err) => {
+          caughtError = err;
+        },
+      });
 
       expect(caughtError).toBe(mockError);
     });

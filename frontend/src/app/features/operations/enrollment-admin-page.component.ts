@@ -37,7 +37,10 @@ function matriculaValidator(control: AbstractControl): ValidationErrors | null {
   if (!value || typeof value !== 'string' || value.trim() === '') {
     return { required: true };
   }
-  const normalized = value.trim().toUpperCase().replace(/[\s\-./]+/g, '');
+  const normalized = value
+    .trim()
+    .toUpperCase()
+    .replace(/[\s\-./]+/g, '');
   if (!/^[A-Z0-9]{5,20}$/.test(normalized)) {
     return { invalidPattern: true };
   }
@@ -293,7 +296,10 @@ export class EnrollmentAdminPageComponent {
 
   private restoreTriggerFocus(): void {
     setTimeout(() => {
-      if (this.dialogTriggerElement?.isConnected && !this.dialogTriggerElement.hasAttribute('disabled')) {
+      if (
+        this.dialogTriggerElement?.isConnected &&
+        !this.dialogTriggerElement.hasAttribute('disabled')
+      ) {
         this.dialogTriggerElement.focus();
       }
     }, 0);

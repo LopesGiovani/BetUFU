@@ -7,8 +7,15 @@ import { AthleteLinkProposalApiAdapter } from './athlete-link-proposal-api.adapt
 import { AthleteLinkProposalStore } from './athlete-link-proposal.store';
 
 const proposal: AthleteLinkProposal = {
-  proposalId: 'proposal-1', athleteId: 'athlete-1', athleteName: 'Atleta Um', athleteSlug: 'atleta-um',
-  status: AthleteLinkProposal.StatusEnum.Pendente, createdAt: '2026-08-30T10:00:00Z', updatedAt: '2026-08-30T10:00:00Z', expiresAt: '2026-09-30T10:00:00Z', decidedAt: null,
+  proposalId: 'proposal-1',
+  athleteId: 'athlete-1',
+  athleteName: 'Atleta Um',
+  athleteSlug: 'atleta-um',
+  status: AthleteLinkProposal.StatusEnum.Pendente,
+  createdAt: '2026-08-30T10:00:00Z',
+  updatedAt: '2026-08-30T10:00:00Z',
+  expiresAt: '2026-09-30T10:00:00Z',
+  decidedAt: null,
 };
 
 type ProposalAdapterMock = {
@@ -26,11 +33,23 @@ describe('AthleteLinkProposalStore', () => {
     adapter = {
       fetchProposal: vi.fn(() => of(proposal)),
       decide: vi.fn(() => of({ ...proposal, status: AthleteLinkProposal.StatusEnum.Contestada })),
-      isNotFound: vi.fn((error: unknown) => error instanceof HttpErrorResponse && error.status === 404),
-      isUnauthorized: vi.fn((error: unknown) => error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)),
-      isConflict: vi.fn((error: unknown) => error instanceof HttpErrorResponse && error.status === 409),
+      isNotFound: vi.fn(
+        (error: unknown) => error instanceof HttpErrorResponse && error.status === 404,
+      ),
+      isUnauthorized: vi.fn(
+        (error: unknown) =>
+          error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403),
+      ),
+      isConflict: vi.fn(
+        (error: unknown) => error instanceof HttpErrorResponse && error.status === 409,
+      ),
     };
-    TestBed.configureTestingModule({ providers: [AthleteLinkProposalStore, { provide: AthleteLinkProposalApiAdapter, useValue: adapter }] });
+    TestBed.configureTestingModule({
+      providers: [
+        AthleteLinkProposalStore,
+        { provide: AthleteLinkProposalApiAdapter, useValue: adapter },
+      ],
+    });
   });
 
   it('carrega proposta e envia contestação sem retry na mutação', async () => {
@@ -44,7 +63,9 @@ describe('AthleteLinkProposalStore', () => {
   });
 
   it('trata 404 como vazio e 401 limpa a proposta privada sem repetir a chamada', async () => {
-    adapter.fetchProposal.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 404 })));
+    adapter.fetchProposal.mockReturnValueOnce(
+      throwError(() => new HttpErrorResponse({ status: 404 })),
+    );
     const store = TestBed.inject(AthleteLinkProposalStore);
     await store.load();
     expect(store.isEmpty()).toBe(true);

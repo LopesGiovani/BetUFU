@@ -180,7 +180,10 @@ export class EnrollmentStore {
     if (error instanceof HttpErrorResponse) {
       if (error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
-        if (typeof errorBody['correlationId'] === 'string' && errorBody['correlationId'].trim() !== '') {
+        if (
+          typeof errorBody['correlationId'] === 'string' &&
+          errorBody['correlationId'].trim() !== ''
+        ) {
           correlationId = errorBody['correlationId'].trim();
         }
       }
@@ -210,7 +213,10 @@ export class EnrollmentStore {
     if (error instanceof HttpErrorResponse) {
       if (error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
-        if (typeof errorBody['correlationId'] === 'string' && errorBody['correlationId'].trim() !== '') {
+        if (
+          typeof errorBody['correlationId'] === 'string' &&
+          errorBody['correlationId'].trim() !== ''
+        ) {
           correlationId = errorBody['correlationId'].trim();
         }
         if (typeof errorBody['code'] === 'string' && errorBody['code'].trim() !== '') {

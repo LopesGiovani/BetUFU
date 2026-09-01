@@ -10,7 +10,8 @@ export class PublicStandingsApiAdapter {
 
   fetch(standingsId: string): Observable<SportsStandingsSnapshot> {
     const normalized = standingsId.trim();
-    if (!normalized) return throwError(() => new Error('CONTRATO_STANDINGS_INVALIDO: identificador ausente.'));
+    if (!normalized)
+      return throwError(() => new Error('CONTRATO_STANDINGS_INVALIDO: identificador ausente.'));
     return defer(() => this.service.getPublicSportsStandings({ standingsId: normalized }));
   }
 

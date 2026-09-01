@@ -66,7 +66,8 @@ export class SportsAthletesStore {
       this.state.set({
         ...this.state(),
         status: 'error',
-        errorMessage: 'Os atletas e vinculos deste escopo nao estao disponiveis agora. Tente novamente antes de cadastrar ou alterar um elenco.',
+        errorMessage:
+          'Os atletas e vinculos deste escopo nao estao disponiveis agora. Tente novamente antes de cadastrar ou alterar um elenco.',
       });
     }
   }
@@ -95,10 +96,7 @@ export class SportsAthletesStore {
     );
   }
 
-  async publishAthlete(
-    athleteId: string,
-    expectedLockVersion: number,
-  ): Promise<boolean> {
+  async publishAthlete(athleteId: string, expectedLockVersion: number): Promise<boolean> {
     return this.mutate(
       () => firstValueFrom(this.adapter.publishAthlete(athleteId, expectedLockVersion)),
       'Atleta publicado.',
@@ -120,14 +118,19 @@ export class SportsAthletesStore {
     try {
       await action();
       await this.load();
-      this.state.update((state) => ({ ...state, feedbackMessage: successMessage, isMutating: false }));
+      this.state.update((state) => ({
+        ...state,
+        feedbackMessage: successMessage,
+        isMutating: false,
+      }));
       return true;
     } catch (error: unknown) {
       if (this.adapter.isConflict(error)) {
         this.state.update((state) => ({
           ...state,
           isMutating: false,
-          conflictMessage: 'Este registro foi alterado por outra pessoa. Atualize a lista antes de tentar novamente.',
+          conflictMessage:
+            'Este registro foi alterado por outra pessoa. Atualize a lista antes de tentar novamente.',
         }));
       } else {
         this.state.update((state) => ({

@@ -8,8 +8,9 @@ describe('HighlightMotionControlComponent', () => {
       imports: [HighlightMotionControlComponent],
     }).compileComponents();
 
-    const fixture: ComponentFixture<HighlightMotionControlComponent> =
-      TestBed.createComponent(HighlightMotionControlComponent);
+    const fixture: ComponentFixture<HighlightMotionControlComponent> = TestBed.createComponent(
+      HighlightMotionControlComponent,
+    );
     const emitted = vi.fn();
     fixture.componentInstance.pausedChange.subscribe(emitted);
     fixture.componentRef.setInput('paused', false);

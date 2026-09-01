@@ -12,11 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.List;
-import java.util.Map;
-
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.Cookie;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,344 +45,377 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Verifies the HTTP, CSRF double-submit, CORS origin allowlist and Problem Details security contract
- * of Plan 01-08, Task 1.
+ * Verifies the HTTP, CSRF double-submit, CORS origin allowlist and Problem Details security
+ * contract of Plan 01-08, Task 1.
  */
 @SpringBootTest(
-        classes = {
-            SecurityConfiguration.class,
-            CsrfSecurityIT.TestApplication.class,
-            CsrfSecurityIT.CsrfProbeController.class
-        },
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = {
-            "betufu.web.public-origin=http://localhost:4200",
-            "spring.autoconfigure.exclude="
-                    + "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,"
-                    + "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,"
-                    + "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration,"
-                    + "org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration,"
-                    + "org.springframework.boot.data.redis.autoconfigure.DataRedisReactiveAutoConfiguration,"
-                    + "org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration,"
-                    + "org.springframework.boot.session.autoconfigure.SessionAutoConfiguration,"
-                    + "org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration"
-        })
+    classes = {
+      SecurityConfiguration.class,
+      CsrfSecurityIT.TestApplication.class,
+      CsrfSecurityIT.CsrfProbeController.class
+    },
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = {
+      "betufu.web.public-origin=http://localhost:4200",
+      "spring.autoconfigure.exclude="
+          + "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,"
+          + "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,"
+          + "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration,"
+          + "org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration,"
+          + "org.springframework.boot.data.redis.autoconfigure.DataRedisReactiveAutoConfiguration,"
+          + "org.springframework.boot.data.redis.autoconfigure.DataRedisRepositoriesAutoConfiguration,"
+          + "org.springframework.boot.session.autoconfigure.SessionAutoConfiguration,"
+          + "org.springframework.boot.session.data.redis.autoconfigure.SessionDataRedisAutoConfiguration"
+    })
 class CsrfSecurityIT {
 
-    private static final String COOKIE_NAME = "XSRF-TOKEN";
-    private static final String HEADER_NAME = "X-XSRF-TOKEN";
-    private static final String ALLOWED_ORIGIN = "http://localhost:4200";
-    private static final String DISALLOWED_ORIGIN = "http://evil.attacker.invalid";
-    private static final String PROBE_PATH = "/api/v1/csrf-probe";
-    private static final String LOGOUT_PATH = "/api/v1/session/logout";
+  private static final String COOKIE_NAME = "XSRF-TOKEN";
+  private static final String HEADER_NAME = "X-XSRF-TOKEN";
+  private static final String ALLOWED_ORIGIN = "http://localhost:4200";
+  private static final String DISALLOWED_ORIGIN = "http://evil.attacker.invalid";
+  private static final String PROBE_PATH = "/api/v1/csrf-probe";
+  private static final String LOGOUT_PATH = "/api/v1/session/logout";
 
-    @Autowired
-    private WebApplicationContext applicationContext;
+  @Autowired private WebApplicationContext applicationContext;
 
-    @Autowired
-    private ClientRegistrationRepository clientRegistrationRepository;
+  @Autowired private ClientRegistrationRepository clientRegistrationRepository;
 
-    @Autowired
-    @Qualifier("springSecurityFilterChain")
-    private Filter springSecurityFilterChain;
+  @Autowired
+  @Qualifier("springSecurityFilterChain")
+  private Filter springSecurityFilterChain;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @BeforeEach
-    void configureMockMvc() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(applicationContext)
-                .addFilters(springSecurityFilterChain)
-                .build();
+  @BeforeEach
+  void configureMockMvc() {
+    mockMvc =
+        MockMvcBuilders.webAppContextSetup(applicationContext)
+            .addFilters(springSecurityFilterChain)
+            .build();
+  }
+
+  @Test
+  void rejectsMutationsWithoutCsrfTokenWithSanitizedProblemDetails() throws Exception {
+    mockMvc
+        .perform(put(PROBE_PATH).with(oidcPrincipal()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.status").value(403))
+        .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"))
+        .andExpect(jsonPath("$.title").value("Sem autorização"))
+        .andExpect(jsonPath("$.detail").value("Você não tem acesso a esta área."))
+        .andExpect(jsonPath("$.action").value("Retorne à página inicial."));
+
+    mockMvc
+        .perform(post(PROBE_PATH).with(oidcPrincipal()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.status").value(403))
+        .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"));
+
+    mockMvc
+        .perform(patch(PROBE_PATH).with(oidcPrincipal()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.status").value(403));
+
+    mockMvc
+        .perform(delete(PROBE_PATH).with(oidcPrincipal()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.status").value(403));
+  }
+
+  @Test
+  void rejectsMutationsWithDivergentTokenValues() throws Exception {
+    CsrfCookie tokenA = requestCsrfCookie();
+    CsrfCookie tokenB = requestCsrfCookie();
+
+    assertThat(tokenA.cookie().getValue()).isNotEqualTo(tokenB.cookie().getValue());
+
+    // Header only (no cookie)
+    mockMvc
+        .perform(
+            put(PROBE_PATH).with(oidcPrincipal()).header(HEADER_NAME, tokenA.cookie().getValue()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+
+    // Cookie only (no header)
+    mockMvc
+        .perform(put(PROBE_PATH).with(oidcPrincipal()).cookie(tokenA.cookie()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+
+    // Cookie A and Header B
+    mockMvc
+        .perform(
+            put(PROBE_PATH)
+                .with(oidcPrincipal())
+                .cookie(tokenA.cookie())
+                .header(HEADER_NAME, tokenB.cookie().getValue()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.status").value(403))
+        .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"))
+        .andExpect(jsonPath("$.title").value("Sem autorização"))
+        .andExpect(jsonPath("$.detail").value("Você não tem acesso a esta área."))
+        .andExpect(jsonPath("$.action").value("Retorne à página inicial."));
+  }
+
+  @Test
+  void acceptsMutationsWithMatchingCookieAndHeader() throws Exception {
+    CsrfCookie token = requestCsrfCookie();
+
+    mockMvc
+        .perform(
+            put(PROBE_PATH)
+                .with(oidcPrincipal())
+                .cookie(token.cookie())
+                .header(HEADER_NAME, token.cookie().getValue()))
+        .andExpect(status().isNoContent());
+
+    mockMvc
+        .perform(
+            post(PROBE_PATH)
+                .with(oidcPrincipal())
+                .cookie(token.cookie())
+                .header(HEADER_NAME, token.cookie().getValue()))
+        .andExpect(status().isNoContent());
+
+    mockMvc
+        .perform(
+            patch(PROBE_PATH)
+                .with(oidcPrincipal())
+                .cookie(token.cookie())
+                .header(HEADER_NAME, token.cookie().getValue()))
+        .andExpect(status().isNoContent());
+
+    mockMvc
+        .perform(
+            delete(PROBE_PATH)
+                .with(oidcPrincipal())
+                .cookie(token.cookie())
+                .header(HEADER_NAME, token.cookie().getValue()))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void rejectsMutationsFromDisallowedOrigin() throws Exception {
+    CsrfCookie token = requestCsrfCookie();
+
+    // Allowed origin succeeds
+    mockMvc
+        .perform(
+            put(PROBE_PATH)
+                .with(oidcPrincipal())
+                .cookie(token.cookie())
+                .header(HEADER_NAME, token.cookie().getValue())
+                .header("Origin", ALLOWED_ORIGIN))
+        .andExpect(status().isNoContent());
+
+    // Disallowed origin is rejected (403)
+    mockMvc
+        .perform(
+            put(PROBE_PATH)
+                .with(oidcPrincipal())
+                .cookie(token.cookie())
+                .header(HEADER_NAME, token.cookie().getValue())
+                .header("Origin", DISALLOWED_ORIGIN))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void allowsSafeRequestsWithoutCsrfHeader() throws Exception {
+    mockMvc.perform(get("/login")).andExpect(status().isOk());
+
+    mockMvc
+        .perform(get(PROBE_PATH).with(oidcPrincipal()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("READ_OK"));
+  }
+
+  @Test
+  void logoutMutationRequiresCsrfProtection() throws Exception {
+    // Without CSRF token: 403 Forbidden with Problem Details
+    mockMvc
+        .perform(post(LOGOUT_PATH).with(oidcPrincipal()))
+        .andExpect(status().isForbidden())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+
+    // With valid CSRF token: passes CSRF gate (controller handles logout or returns 200/502)
+    CsrfCookie token = requestCsrfCookie();
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(LOGOUT_PATH)
+                    .with(oidcPrincipal())
+                    .cookie(token.cookie())
+                    .header(HEADER_NAME, token.cookie().getValue()))
+            .andReturn();
+
+    assertThat(result.getResponse().getStatus()).isNotEqualTo(403);
+  }
+
+  @Test
+  void unauthenticatedProtectedEndpointReturnsSanitized401ProblemDetails() throws Exception {
+    CsrfCookie token = requestCsrfCookie();
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                put(PROBE_PATH)
+                    .accept(MediaType.APPLICATION_PROBLEM_JSON)
+                    .cookie(token.cookie())
+                    .header(HEADER_NAME, token.cookie().getValue()))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(401))
+            .andExpect(jsonPath("$.code").value("BETUFU-401-UNAUTHORIZED"))
+            .andExpect(jsonPath("$.title").value("Sessão expirada"))
+            .andExpect(jsonPath("$.detail").value("Sua sessão expirou."))
+            .andExpect(jsonPath("$.action").value("Entre novamente para continuar."))
+            .andReturn();
+
+    String body = result.getResponse().getContentAsString();
+    assertThat(body)
+        .doesNotContain("org.springframework")
+        .doesNotContain("Exception")
+        .doesNotContain("stackTrace")
+        .doesNotContain("SESSION")
+        .doesNotContain("token");
+  }
+
+  @Test
+  void unauthenticatedApiRequestWithAngularAcceptHeaderReturns401InsteadOf302() throws Exception {
+    CsrfCookie token = requestCsrfCookie();
+
+    // Angular HttpClient standard Accept header
+    mockMvc
+        .perform(
+            get(PROBE_PATH)
+                .header("Accept", "application/json, text/plain, */*")
+                .cookie(token.cookie()))
+        .andExpect(status().isUnauthorized())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.status").value(401))
+        .andExpect(jsonPath("$.code").value("BETUFU-401-UNAUTHORIZED"))
+        .andExpect(jsonPath("$.title").value("Sessão expirada"))
+        .andExpect(jsonPath("$.detail").value("Sua sessão expirou."))
+        .andExpect(jsonPath("$.action").value("Entre novamente para continuar."));
+  }
+
+  @Test
+  void unauthenticatedBrowserNavigationReceives302ToIdp() throws Exception {
+    mockMvc
+        .perform(
+            get("/dashboard")
+                .header(
+                    "Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(
+            header()
+                .string(
+                    "Location",
+                    org.hamcrest.Matchers.containsString("/oauth2/authorization/keycloak")));
+  }
+
+  @Test
+  void forbiddenResponseNeverLeaksInternalDetailsOrSecrets() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(put(PROBE_PATH).with(oidcPrincipal()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+            .andReturn();
+
+    String body = result.getResponse().getContentAsString();
+    assertThat(body)
+        .doesNotContain("org.springframework")
+        .doesNotContain("InvalidCsrfTokenException")
+        .doesNotContain("MissingCsrfTokenException")
+        .doesNotContain("stackTrace")
+        .doesNotContain("SESSION")
+        .doesNotContain("XSRF");
+  }
+
+  private CsrfCookie requestCsrfCookie() throws Exception {
+    MvcResult result = mockMvc.perform(get("/login")).andExpect(status().isOk()).andReturn();
+    Cookie cookie = result.getResponse().getCookie(COOKIE_NAME);
+    List<String> setCookieHeaders = result.getResponse().getHeaders("Set-Cookie");
+    String setCookieHeader =
+        setCookieHeaders.stream()
+            .filter(header -> header.startsWith(COOKIE_NAME + "="))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("cookie XSRF esperado nao foi emitido"));
+
+    assertThat(cookie).isNotNull();
+    return new CsrfCookie(cookie, setCookieHeader);
+  }
+
+  private RequestPostProcessor oidcPrincipal() {
+    ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("keycloak");
+    assertThat(registration).isNotNull();
+    return oidcLogin().clientRegistration(registration);
+  }
+
+  private record CsrfCookie(Cookie cookie, String setCookieHeader) {}
+
+  @RestController
+  static class CsrfProbeController {
+
+    @GetMapping(PROBE_PATH)
+    ResponseEntity<Map<String, String>> readGet() {
+      return ResponseEntity.ok(Map.of("status", "READ_OK"));
     }
 
-    @Test
-    void rejectsMutationsWithoutCsrfTokenWithSanitizedProblemDetails() throws Exception {
-        mockMvc.perform(put(PROBE_PATH).with(oidcPrincipal()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"))
-                .andExpect(jsonPath("$.title").value("Sem autorização"))
-                .andExpect(jsonPath("$.detail").value("Você não tem acesso a esta área."))
-                .andExpect(jsonPath("$.action").value("Retorne à página inicial."));
-
-        mockMvc.perform(post(PROBE_PATH).with(oidcPrincipal()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"));
-
-        mockMvc.perform(patch(PROBE_PATH).with(oidcPrincipal()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(403));
-
-        mockMvc.perform(delete(PROBE_PATH).with(oidcPrincipal()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(403));
+    @PutMapping(PROBE_PATH)
+    ResponseEntity<Void> mutatePut() {
+      return ResponseEntity.noContent().build();
     }
 
-    @Test
-    void rejectsMutationsWithDivergentTokenValues() throws Exception {
-        CsrfCookie tokenA = requestCsrfCookie();
-        CsrfCookie tokenB = requestCsrfCookie();
-
-        assertThat(tokenA.cookie().getValue()).isNotEqualTo(tokenB.cookie().getValue());
-
-        // Header only (no cookie)
-        mockMvc.perform(put(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .header(HEADER_NAME, tokenA.cookie().getValue()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
-
-        // Cookie only (no header)
-        mockMvc.perform(put(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(tokenA.cookie()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
-
-        // Cookie A and Header B
-        mockMvc.perform(put(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(tokenA.cookie())
-                        .header(HEADER_NAME, tokenB.cookie().getValue()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(403))
-                .andExpect(jsonPath("$.code").value("BETUFU-403-FORBIDDEN"))
-                .andExpect(jsonPath("$.title").value("Sem autorização"))
-                .andExpect(jsonPath("$.detail").value("Você não tem acesso a esta área."))
-                .andExpect(jsonPath("$.action").value("Retorne à página inicial."));
+    @PostMapping(PROBE_PATH)
+    ResponseEntity<Void> mutatePost() {
+      return ResponseEntity.noContent().build();
     }
 
-    @Test
-    void acceptsMutationsWithMatchingCookieAndHeader() throws Exception {
-        CsrfCookie token = requestCsrfCookie();
-
-        mockMvc.perform(put(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue()))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(post(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue()))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(patch(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue()))
-                .andExpect(status().isNoContent());
-
-        mockMvc.perform(delete(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue()))
-                .andExpect(status().isNoContent());
+    @PatchMapping(PROBE_PATH)
+    ResponseEntity<Void> mutatePatch() {
+      return ResponseEntity.noContent().build();
     }
 
-    @Test
-    void rejectsMutationsFromDisallowedOrigin() throws Exception {
-        CsrfCookie token = requestCsrfCookie();
-
-        // Allowed origin succeeds
-        mockMvc.perform(put(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue())
-                        .header("Origin", ALLOWED_ORIGIN))
-                .andExpect(status().isNoContent());
-
-        // Disallowed origin is rejected (403)
-        mockMvc.perform(put(PROBE_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue())
-                        .header("Origin", DISALLOWED_ORIGIN))
-                .andExpect(status().isForbidden());
+    @DeleteMapping(PROBE_PATH)
+    ResponseEntity<Void> mutateDelete() {
+      return ResponseEntity.noContent().build();
     }
 
-    @Test
-    void allowsSafeRequestsWithoutCsrfHeader() throws Exception {
-        mockMvc.perform(get("/login"))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get(PROBE_PATH).with(oidcPrincipal()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("READ_OK"));
+    @PostMapping(LOGOUT_PATH)
+    ResponseEntity<Map<String, String>> logout() {
+      return ResponseEntity.ok(Map.of("status", "LOGGED_OUT"));
     }
+  }
 
-    @Test
-    void logoutMutationRequiresCsrfProtection() throws Exception {
-        // Without CSRF token: 403 Forbidden with Problem Details
-        mockMvc.perform(post(LOGOUT_PATH).with(oidcPrincipal()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
+  @TestConfiguration(proxyBeanMethods = false)
+  @EnableAutoConfiguration
+  static class TestApplication {
 
-        // With valid CSRF token: passes CSRF gate (controller handles logout or returns 200/502)
-        CsrfCookie token = requestCsrfCookie();
-        MvcResult result = mockMvc.perform(post(LOGOUT_PATH)
-                        .with(oidcPrincipal())
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue()))
-                .andReturn();
-
-        assertThat(result.getResponse().getStatus()).isNotEqualTo(403);
+    @Bean
+    ClientRegistrationRepository clientRegistrationRepository() {
+      ClientRegistration registration =
+          ClientRegistration.withRegistrationId("keycloak")
+              .clientId("betufu-csrf-security-it")
+              .clientSecret("unused")
+              .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+              .scope("openid")
+              .authorizationUri("https://idp.invalid/authorize")
+              .tokenUri("https://idp.invalid/token")
+              .jwkSetUri("https://idp.invalid/jwks")
+              .issuerUri("https://idp.invalid")
+              .userNameAttributeName(IdTokenClaimNames.SUB)
+              .clientName("BETUFU CSRF SECURITY IT")
+              .build();
+      return new InMemoryClientRegistrationRepository(registration);
     }
-
-    @Test
-    void unauthenticatedProtectedEndpointReturnsSanitized401ProblemDetails() throws Exception {
-        CsrfCookie token = requestCsrfCookie();
-
-        MvcResult result = mockMvc.perform(put(PROBE_PATH)
-                        .accept(MediaType.APPLICATION_PROBLEM_JSON)
-                        .cookie(token.cookie())
-                        .header(HEADER_NAME, token.cookie().getValue()))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.code").value("BETUFU-401-UNAUTHORIZED"))
-                .andExpect(jsonPath("$.title").value("Sessão expirada"))
-                .andExpect(jsonPath("$.detail").value("Sua sessão expirou."))
-                .andExpect(jsonPath("$.action").value("Entre novamente para continuar."))
-                .andReturn();
-
-        String body = result.getResponse().getContentAsString();
-        assertThat(body)
-                .doesNotContain("org.springframework")
-                .doesNotContain("Exception")
-                .doesNotContain("stackTrace")
-                .doesNotContain("SESSION")
-                .doesNotContain("token");
-    }
-
-    @Test
-    void unauthenticatedApiRequestWithAngularAcceptHeaderReturns401InsteadOf302() throws Exception {
-        CsrfCookie token = requestCsrfCookie();
-
-        // Angular HttpClient standard Accept header
-        mockMvc.perform(get(PROBE_PATH)
-                        .header("Accept", "application/json, text/plain, */*")
-                        .cookie(token.cookie()))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.code").value("BETUFU-401-UNAUTHORIZED"))
-                .andExpect(jsonPath("$.title").value("Sessão expirada"))
-                .andExpect(jsonPath("$.detail").value("Sua sessão expirou."))
-                .andExpect(jsonPath("$.action").value("Entre novamente para continuar."));
-    }
-
-    @Test
-    void unauthenticatedBrowserNavigationReceives302ToIdp() throws Exception {
-        mockMvc.perform(get("/dashboard")
-                        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("/oauth2/authorization/keycloak")));
-    }
-
-    @Test
-    void forbiddenResponseNeverLeaksInternalDetailsOrSecrets() throws Exception {
-        MvcResult result = mockMvc.perform(put(PROBE_PATH).with(oidcPrincipal()))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-                .andReturn();
-
-        String body = result.getResponse().getContentAsString();
-        assertThat(body)
-                .doesNotContain("org.springframework")
-                .doesNotContain("InvalidCsrfTokenException")
-                .doesNotContain("MissingCsrfTokenException")
-                .doesNotContain("stackTrace")
-                .doesNotContain("SESSION")
-                .doesNotContain("XSRF");
-    }
-
-    private CsrfCookie requestCsrfCookie() throws Exception {
-        MvcResult result = mockMvc.perform(get("/login"))
-                .andExpect(status().isOk())
-                .andReturn();
-        Cookie cookie = result.getResponse().getCookie(COOKIE_NAME);
-        List<String> setCookieHeaders = result.getResponse().getHeaders("Set-Cookie");
-        String setCookieHeader = setCookieHeaders.stream()
-                .filter(header -> header.startsWith(COOKIE_NAME + "="))
-                .findFirst()
-                .orElseThrow(() -> new AssertionError("cookie XSRF esperado nao foi emitido"));
-
-        assertThat(cookie).isNotNull();
-        return new CsrfCookie(cookie, setCookieHeader);
-    }
-
-    private RequestPostProcessor oidcPrincipal() {
-        ClientRegistration registration =
-                clientRegistrationRepository.findByRegistrationId("keycloak");
-        assertThat(registration).isNotNull();
-        return oidcLogin().clientRegistration(registration);
-    }
-
-    private record CsrfCookie(Cookie cookie, String setCookieHeader) {}
-
-    @RestController
-    static class CsrfProbeController {
-
-        @GetMapping(PROBE_PATH)
-        ResponseEntity<Map<String, String>> readGet() {
-            return ResponseEntity.ok(Map.of("status", "READ_OK"));
-        }
-
-        @PutMapping(PROBE_PATH)
-        ResponseEntity<Void> mutatePut() {
-            return ResponseEntity.noContent().build();
-        }
-
-        @PostMapping(PROBE_PATH)
-        ResponseEntity<Void> mutatePost() {
-            return ResponseEntity.noContent().build();
-        }
-
-        @PatchMapping(PROBE_PATH)
-        ResponseEntity<Void> mutatePatch() {
-            return ResponseEntity.noContent().build();
-        }
-
-        @DeleteMapping(PROBE_PATH)
-        ResponseEntity<Void> mutateDelete() {
-            return ResponseEntity.noContent().build();
-        }
-
-        @PostMapping(LOGOUT_PATH)
-        ResponseEntity<Map<String, String>> logout() {
-            return ResponseEntity.ok(Map.of("status", "LOGGED_OUT"));
-        }
-    }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    @EnableAutoConfiguration
-    static class TestApplication {
-
-        @Bean
-        ClientRegistrationRepository clientRegistrationRepository() {
-            ClientRegistration registration = ClientRegistration.withRegistrationId("keycloak")
-                    .clientId("betufu-csrf-security-it")
-                    .clientSecret("unused")
-                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                    .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                    .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-                    .scope("openid")
-                    .authorizationUri("https://idp.invalid/authorize")
-                    .tokenUri("https://idp.invalid/token")
-                    .jwkSetUri("https://idp.invalid/jwks")
-                    .issuerUri("https://idp.invalid")
-                    .userNameAttributeName(IdTokenClaimNames.SUB)
-                    .clientName("BETUFU CSRF SECURITY IT")
-                    .build();
-            return new InMemoryClientRegistrationRepository(registration);
-        }
-    }
+  }
 }

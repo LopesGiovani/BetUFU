@@ -21,7 +21,12 @@ const MOCK_POPULATED_RESPONSE: DiagnosticResponse = {
     { name: 'Keycloak', status: 'UP', detail: 'Realm betufu ativo', durationMs: 15 },
     { name: 'PostgreSQL', status: 'UP', detail: 'Conexão estável', durationMs: 3 },
     { name: 'Redis', status: 'UP', detail: 'Ping OK', durationMs: 1 },
-    { name: 'Armazenamento de objetos', status: 'UP', detail: 'Bucket local acessível', durationMs: 6 },
+    {
+      name: 'Armazenamento de objetos',
+      status: 'UP',
+      detail: 'Bucket local acessível',
+      durationMs: 6,
+    },
   ],
 };
 
@@ -64,7 +69,9 @@ describe('DiagnosticPageComponent (8 Garantias de UI)', () => {
 
     // Resumo
     expect(compiled.querySelector('.summary-card')).not.toBeNull();
-    expect(compiled.querySelector('.summary-text')?.textContent).toContain('Todos os sistemas operacionais');
+    expect(compiled.querySelector('.summary-text')?.textContent).toContain(
+      'Todos os sistemas operacionais',
+    );
     expect(compiled.querySelector('.code-inline')?.textContent).toContain('corr-betufu-998877');
 
     // Grade dos 6 cartões
@@ -160,7 +167,12 @@ describe('DiagnosticPageComponent (8 Garantias de UI)', () => {
       status: 'DEGRADED',
       components: [
         MOCK_POPULATED_RESPONSE.components[0],
-        { name: 'Sessão BFF', status: 'DEGRADED', detail: 'Tempo de resposta elevado', durationMs: 2500 },
+        {
+          name: 'Sessão BFF',
+          status: 'DEGRADED',
+          detail: 'Tempo de resposta elevado',
+          durationMs: 2500,
+        },
         MOCK_POPULATED_RESPONSE.components[2],
         MOCK_POPULATED_RESPONSE.components[3],
         MOCK_POPULATED_RESPONSE.components[4],
@@ -183,7 +195,9 @@ describe('DiagnosticPageComponent (8 Garantias de UI)', () => {
 
     // Cartão 1 (Sessão BFF): Degradado
     expect(cards[1].querySelector('.component-badge')?.textContent?.trim()).toBe('Degradado');
-    expect(cards[1].querySelector('.component-detail')?.textContent).toContain('Tempo de resposta elevado');
+    expect(cards[1].querySelector('.component-detail')?.textContent).toContain(
+      'Tempo de resposta elevado',
+    );
   });
 
   it('Garantia [clipboard & aria-live]: copia correlationId para a area de transferencia e anuncia na live region', async () => {
@@ -207,7 +221,9 @@ describe('DiagnosticPageComponent (8 Garantias de UI)', () => {
     expect(writeTextSpy).toHaveBeenCalledWith('corr-betufu-998877');
     expect(component.copyStatus()).toBe('copied');
 
-    const liveRegion = (fixture.nativeElement as HTMLElement).querySelector('#diagnostic-live-region');
+    const liveRegion = (fixture.nativeElement as HTMLElement).querySelector(
+      '#diagnostic-live-region',
+    );
     expect(liveRegion?.textContent).toContain('Código de referência copiado com sucesso.');
   });
 });

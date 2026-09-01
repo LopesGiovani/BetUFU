@@ -21,11 +21,16 @@ export class SportsStandingsApiAdapter {
 
   fetch(standingsId: string): Observable<SportsStandingsSnapshot> {
     const normalized = standingsId.trim();
-    if (!normalized) return throwError(() => new Error('CONTRATO_STANDINGS_INVALIDO: identificador ausente.'));
+    if (!normalized)
+      return throwError(() => new Error('CONTRATO_STANDINGS_INVALIDO: identificador ausente.'));
     return defer(() => this.service.getSportsStandings({ standingsId: normalized }));
   }
 
-  update(standingsId: string, expectedLockVersion: number, payload: SportsStandingsUpdatePayload): Observable<SportsStandingsSnapshot> {
+  update(
+    standingsId: string,
+    expectedLockVersion: number,
+    payload: SportsStandingsUpdatePayload,
+  ): Observable<SportsStandingsSnapshot> {
     return defer(() =>
       this.service.updateSportsStandings({
         standingsId,
@@ -35,7 +40,11 @@ export class SportsStandingsApiAdapter {
     );
   }
 
-  publish(standingsId: string, expectedLockVersion: number, sourceReference: string): Observable<SportsStandingsSnapshot> {
+  publish(
+    standingsId: string,
+    expectedLockVersion: number,
+    sourceReference: string,
+  ): Observable<SportsStandingsSnapshot> {
     return defer(() =>
       this.service.publishSportsStandings({
         standingsId,

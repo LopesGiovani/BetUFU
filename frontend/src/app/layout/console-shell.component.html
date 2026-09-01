@@ -2,7 +2,10 @@
 
 <header class="console-header">
   <div class="console-header__inner">
-    <a class="console-brand" routerLink="/operacao/esportes" aria-label="BETUFU - operacao esportiva">
+    <a
+      class="console-brand"
+      routerLink="/operacao/esportes"
+      aria-label="BETUFU - operacao esportiva">
       <span class="console-brand__mark" aria-hidden="true">B</span>
       <span>BETUFU</span>
     </a>
@@ -14,12 +17,23 @@
 
     <nav class="console-nav" aria-label="Navegacao do console">
       @if (hasSportsCatalog()) {
-        <a routerLink="/operacao/esportes" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Escopo</a>
+        <a
+          routerLink="/operacao/esportes"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >Escopo</a
+        >
         <a routerLink="/operacao/esportes/catalogo" routerLinkActive="is-active">Catalogo</a>
-        <a routerLink="/operacao/esportes/organizacoes" routerLinkActive="is-active">Organizacoes e equipes</a>
+        <a routerLink="/operacao/esportes/organizacoes" routerLinkActive="is-active"
+          >Organizacoes e equipes</a
+        >
       }
       <a routerLink="/" (click)="closeMenu()">Arena</a>
-      <button type="button" class="console-nav__account" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()">
+      <button
+        type="button"
+        class="console-nav__account"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()">
         {{ sessionStore.displayName() || 'Conta' }}
       </button>
     </nav>

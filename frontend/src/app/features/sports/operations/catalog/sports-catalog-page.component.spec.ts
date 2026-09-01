@@ -5,8 +5,36 @@ import { SportsCatalogApiAdapter } from './sports-catalog-api.adapter';
 import { SportsCatalogPageComponent } from './sports-catalog-page.component';
 import { SportsScopeStore } from '../scope/sports-scope.store';
 
-const scope = { competitions: [{ competitionId: 'comp-a', name: 'Olimpíada UFU', slug: 'olimpiada-ufu', status: 'ATIVA' as const, lockVersion: 0, sportId: null, sportName: null }], bootstrapAllowed: false };
-const tree = { competition: scope.competitions[0], sports: [{ sportId: 'sport-a', name: 'Basquete', slug: 'basquete', status: 'ATIVA' as const, lockVersion: 2 }], editions: [], categories: [], phases: [], venues: [] };
+const scope = {
+  competitions: [
+    {
+      competitionId: 'comp-a',
+      name: 'Olimpíada UFU',
+      slug: 'olimpiada-ufu',
+      status: 'ATIVA' as const,
+      lockVersion: 0,
+      sportId: null,
+      sportName: null,
+    },
+  ],
+  bootstrapAllowed: false,
+};
+const tree = {
+  competition: scope.competitions[0],
+  sports: [
+    {
+      sportId: 'sport-a',
+      name: 'Basquete',
+      slug: 'basquete',
+      status: 'ATIVA' as const,
+      lockVersion: 2,
+    },
+  ],
+  editions: [],
+  categories: [],
+  phases: [],
+  venues: [],
+};
 
 describe('SportsCatalogPageComponent', () => {
   let adapter: {
@@ -31,9 +59,23 @@ describe('SportsCatalogPageComponent', () => {
 
   beforeEach(() => {
     adapter = {
-      fetchScope: vi.fn(() => of(scope)), fetchCapabilities: vi.fn(() => of(['MANAGE_SPORTS_CATALOG'])), fetchTree: vi.fn(() => of(tree)),
-      createCompetition: vi.fn(), createSport: vi.fn(), createEdition: vi.fn(), createCategory: vi.fn(), createPhase: vi.fn(), createVenue: vi.fn(), createVenueSpace: vi.fn(),
-      updateSport: vi.fn(), updateEdition: vi.fn(), updateCategory: vi.fn(), updatePhase: vi.fn(), updateVenue: vi.fn(), updateVenueSpace: vi.fn(), isConflict: vi.fn(() => false),
+      fetchScope: vi.fn(() => of(scope)),
+      fetchCapabilities: vi.fn(() => of(['MANAGE_SPORTS_CATALOG'])),
+      fetchTree: vi.fn(() => of(tree)),
+      createCompetition: vi.fn(),
+      createSport: vi.fn(),
+      createEdition: vi.fn(),
+      createCategory: vi.fn(),
+      createPhase: vi.fn(),
+      createVenue: vi.fn(),
+      createVenueSpace: vi.fn(),
+      updateSport: vi.fn(),
+      updateEdition: vi.fn(),
+      updateCategory: vi.fn(),
+      updatePhase: vi.fn(),
+      updateVenue: vi.fn(),
+      updateVenueSpace: vi.fn(),
+      isConflict: vi.fn(() => false),
     };
   });
 
@@ -61,7 +103,9 @@ describe('SportsCatalogPageComponent', () => {
 
   it('não exibe bootstrap quando o escopo tem competição', async () => {
     const fixture = await render();
-    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Cadastrar a primeira competição');
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain(
+      'Cadastrar a primeira competição',
+    );
   });
 
   it('abre o formulário de novo esporte sem campo de UUID', async () => {

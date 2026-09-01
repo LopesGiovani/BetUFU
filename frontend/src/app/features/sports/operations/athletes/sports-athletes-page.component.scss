@@ -1,53 +1,261 @@
 @use '../../../../../styles/tokens';
 
-:host { display: block; color: tokens.$color-text; }
-.athletes-page { max-width: tokens.$container-max-width; margin: 0 auto; padding: tokens.$space-8 tokens.$space-4; display: grid; gap: tokens.$space-6; }
-.page-header, .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: tokens.$space-4; }
-.eyebrow, .card-code { color: tokens.$color-accent-soft; font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-h1, h2, h3 { margin: 0; font-family: 'Barlow Condensed', sans-serif; }
-.page-header h1 { margin-top: tokens.$space-1; font-size: 2.2rem; }
-.page-header p, .form-note, .empty-copy p { margin: tokens.$space-2 0 0; color: tokens.$color-text-muted; line-height: 1.5; }
-.scope-picker { min-width: 240px; display: grid; gap: tokens.$space-1; }
-label { display: grid; gap: tokens.$space-1; color: tokens.$color-text-muted; font-size: .875rem; font-weight: 600; }
-.field-help { color: tokens.$color-text-muted; font-size: .75rem; font-weight: 400; line-height: 1.4; }
-input, select { min-height: tokens.$min-touch-target; padding: tokens.$space-2 tokens.$space-4; border: 1px solid tokens.$color-border; border-radius: tokens.$radius-md; background: tokens.$color-canvas; color: tokens.$color-text; font: inherit; }
-input:focus, select:focus, button:focus-visible { outline: tokens.$focus-outline-width solid tokens.$color-focus; outline-offset: tokens.$focus-outline-offset; }
-.state-card, .panel-card, .form-panel, .preview-panel { background: tokens.$color-surface; border: 1px solid tokens.$color-border; border-radius: tokens.$radius-card; padding: tokens.$space-6; box-shadow: tokens.$shadow-raised; }
-.state-card { display: grid; gap: tokens.$space-2; }
-.state-card--error { border-color: tokens.$color-unavailable; }
-.workspace-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: tokens.$space-6; }
-.panel-card--wide { min-width: 0; }
-.card-header h2 { margin-top: tokens.$space-1; font-size: 1.55rem; }
-.button, .record-actions button, .text-button, .close-button { min-height: tokens.$min-touch-target; padding: tokens.$space-2 tokens.$space-4; border-radius: tokens.$radius-md; font: inherit; font-weight: 700; cursor: pointer; }
-.button--primary { border: 0; background: tokens.$color-accent; color: tokens.$color-on-accent; }
-.button--secondary, .close-button { border: 1px solid tokens.$color-border; background: transparent; color: tokens.$color-text; }
-button:disabled { opacity: .55; cursor: not-allowed; }
-.record-list { list-style: none; padding: 0; margin: tokens.$space-6 0 0; display: grid; gap: tokens.$space-2; }
-.record-row { display: flex; justify-content: space-between; gap: tokens.$space-4; padding: tokens.$space-4 0; border-top: 1px solid tokens.$color-border; }
-.record-row strong, .record-row span { display: block; }
-.record-row > div:first-child span { margin-top: tokens.$space-1; color: tokens.$color-text-muted; font-size: .875rem; }
-.record-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: tokens.$space-1; }
-.record-actions button, .text-button { border: 0; background: transparent; color: tokens.$color-accent-soft; padding-inline: tokens.$space-2; }
-.status-chip { padding: tokens.$space-1 tokens.$space-2; border-radius: tokens.$radius-full; border: 1px solid tokens.$color-degraded; color: tokens.$color-degraded; font-size: .75rem; font-weight: 700; }
-.status-chip--published { border-color: tokens.$color-available; color: tokens.$color-available; }
-.version { color: tokens.$color-text-muted; font-size: .75rem; }
-.empty-copy { padding: tokens.$space-8 0 tokens.$space-2; }
-.empty-copy h3 { font-size: 1.3rem; }
-.alert { padding: tokens.$space-4; border-radius: tokens.$radius-md; }
-.alert--warning { border: 1px solid tokens.$color-degraded; color: tokens.$color-degraded; background: rgba(245, 201, 92, .1); }
-.alert--success { border: 1px solid tokens.$color-available; color: tokens.$color-available; background: rgba(114, 214, 160, .1); }
-.form-panel, .preview-panel { display: grid; gap: tokens.$space-4; }
-form { display: grid; gap: tokens.$space-4; }
-.form-actions { display: flex; gap: tokens.$space-2; justify-content: flex-end; }
-.form-note { margin: 0; }
-dl { display: grid; gap: tokens.$space-4; margin: 0; }
-dl div { display: grid; gap: tokens.$space-1; }
-dt { color: tokens.$color-text-muted; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
-dd { margin: 0; }
+:host {
+  display: block;
+  color: tokens.$color-text;
+}
+.athletes-page {
+  max-width: tokens.$container-max-width;
+  margin: 0 auto;
+  padding: tokens.$space-8 tokens.$space-4;
+  display: grid;
+  gap: tokens.$space-6;
+}
+.page-header,
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: tokens.$space-4;
+}
+.eyebrow,
+.card-code {
+  color: tokens.$color-accent-soft;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.page-header h1 {
+  margin-top: tokens.$space-1;
+  font-size: 2.2rem;
+}
+.page-header p,
+.form-note,
+.empty-copy p {
+  margin: tokens.$space-2 0 0;
+  color: tokens.$color-text-muted;
+  line-height: 1.5;
+}
+.scope-picker {
+  min-width: 240px;
+  display: grid;
+  gap: tokens.$space-1;
+}
+label {
+  display: grid;
+  gap: tokens.$space-1;
+  color: tokens.$color-text-muted;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.field-help {
+  color: tokens.$color-text-muted;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+input,
+select {
+  min-height: tokens.$min-touch-target;
+  padding: tokens.$space-2 tokens.$space-4;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-md;
+  background: tokens.$color-canvas;
+  color: tokens.$color-text;
+  font: inherit;
+}
+input:focus,
+select:focus,
+button:focus-visible {
+  outline: tokens.$focus-outline-width solid tokens.$color-focus;
+  outline-offset: tokens.$focus-outline-offset;
+}
+.state-card,
+.panel-card,
+.form-panel,
+.preview-panel {
+  background: tokens.$color-surface;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-card;
+  padding: tokens.$space-6;
+  box-shadow: tokens.$shadow-raised;
+}
+.state-card {
+  display: grid;
+  gap: tokens.$space-2;
+}
+.state-card--error {
+  border-color: tokens.$color-unavailable;
+}
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: tokens.$space-6;
+}
+.panel-card--wide {
+  min-width: 0;
+}
+.card-header h2 {
+  margin-top: tokens.$space-1;
+  font-size: 1.55rem;
+}
+.button,
+.record-actions button,
+.text-button,
+.close-button {
+  min-height: tokens.$min-touch-target;
+  padding: tokens.$space-2 tokens.$space-4;
+  border-radius: tokens.$radius-md;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.button--primary {
+  border: 0;
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+}
+.button--secondary,
+.close-button {
+  border: 1px solid tokens.$color-border;
+  background: transparent;
+  color: tokens.$color-text;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.record-list {
+  list-style: none;
+  padding: 0;
+  margin: tokens.$space-6 0 0;
+  display: grid;
+  gap: tokens.$space-2;
+}
+.record-row {
+  display: flex;
+  justify-content: space-between;
+  gap: tokens.$space-4;
+  padding: tokens.$space-4 0;
+  border-top: 1px solid tokens.$color-border;
+}
+.record-row strong,
+.record-row span {
+  display: block;
+}
+.record-row > div:first-child span {
+  margin-top: tokens.$space-1;
+  color: tokens.$color-text-muted;
+  font-size: 0.875rem;
+}
+.record-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: tokens.$space-1;
+}
+.record-actions button,
+.text-button {
+  border: 0;
+  background: transparent;
+  color: tokens.$color-accent-soft;
+  padding-inline: tokens.$space-2;
+}
+.status-chip {
+  padding: tokens.$space-1 tokens.$space-2;
+  border-radius: tokens.$radius-full;
+  border: 1px solid tokens.$color-degraded;
+  color: tokens.$color-degraded;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.status-chip--published {
+  border-color: tokens.$color-available;
+  color: tokens.$color-available;
+}
+.version {
+  color: tokens.$color-text-muted;
+  font-size: 0.75rem;
+}
+.empty-copy {
+  padding: tokens.$space-8 0 tokens.$space-2;
+}
+.empty-copy h3 {
+  font-size: 1.3rem;
+}
+.alert {
+  padding: tokens.$space-4;
+  border-radius: tokens.$radius-md;
+}
+.alert--warning {
+  border: 1px solid tokens.$color-degraded;
+  color: tokens.$color-degraded;
+  background: rgba(245, 201, 92, 0.1);
+}
+.alert--success {
+  border: 1px solid tokens.$color-available;
+  color: tokens.$color-available;
+  background: rgba(114, 214, 160, 0.1);
+}
+.form-panel,
+.preview-panel {
+  display: grid;
+  gap: tokens.$space-4;
+}
+form {
+  display: grid;
+  gap: tokens.$space-4;
+}
+.form-actions {
+  display: flex;
+  gap: tokens.$space-2;
+  justify-content: flex-end;
+}
+.form-note {
+  margin: 0;
+}
+dl {
+  display: grid;
+  gap: tokens.$space-4;
+  margin: 0;
+}
+dl div {
+  display: grid;
+  gap: tokens.$space-1;
+}
+dt {
+  color: tokens.$color-text-muted;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+dd {
+  margin: 0;
+}
 @media (max-width: tokens.$breakpoint-mobile-max) {
-  .athletes-page { padding: tokens.$space-4; }
-  .page-header, .card-header, .record-row { flex-direction: column; }
-  .scope-picker { width: 100%; }
-  .record-actions { justify-content: flex-start; }
-  .button { width: 100%; }
+  .athletes-page {
+    padding: tokens.$space-4;
+  }
+  .page-header,
+  .card-header,
+  .record-row {
+    flex-direction: column;
+  }
+  .scope-picker {
+    width: 100%;
+  }
+  .record-actions {
+    justify-content: flex-start;
+  }
+  .button {
+    width: 100%;
+  }
 }

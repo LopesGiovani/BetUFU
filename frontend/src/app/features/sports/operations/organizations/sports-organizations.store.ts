@@ -63,10 +63,12 @@ export class SportsOrganizationsStore {
     }));
 
     try {
-      const result = await firstValueFrom(forkJoin({
-        organizations: this.adapter.fetchOrganizations(),
-        teams: this.adapter.fetchTeams(competitionId),
-      }));
+      const result = await firstValueFrom(
+        forkJoin({
+          organizations: this.adapter.fetchOrganizations(),
+          teams: this.adapter.fetchTeams(competitionId),
+        }),
+      );
       if (requestId !== this.requestSequence) return;
       this.state.set({
         ...INITIAL_STATE,
@@ -79,7 +81,8 @@ export class SportsOrganizationsStore {
       this.state.set({
         ...this.state(),
         status: 'error',
-        errorMessage: 'Os cadastros deste escopo nao estao disponiveis agora. Tente novamente antes de criar ou alterar uma equipe.',
+        errorMessage:
+          'Os cadastros deste escopo nao estao disponiveis agora. Tente novamente antes de criar ou alterar uma equipe.',
       });
     }
   }
@@ -100,13 +103,20 @@ export class SportsOrganizationsStore {
     competitionId: string,
   ): Promise<boolean> {
     return this.mutate(
-      () => firstValueFrom(this.adapter.updateOrganization(organizationId, expectedLockVersion, name, slug)),
+      () =>
+        firstValueFrom(
+          this.adapter.updateOrganization(organizationId, expectedLockVersion, name, slug),
+        ),
       'Organizacao atualizada.',
       competitionId,
     );
   }
 
-  async publishOrganization(organizationId: string, expectedLockVersion: number, competitionId: string): Promise<boolean> {
+  async publishOrganization(
+    organizationId: string,
+    expectedLockVersion: number,
+    competitionId: string,
+  ): Promise<boolean> {
     return this.mutate(
       () => firstValueFrom(this.adapter.publishOrganization(organizationId, expectedLockVersion)),
       'Organizacao publicada.',
@@ -124,7 +134,10 @@ export class SportsOrganizationsStore {
     competitionId: string,
   ): Promise<boolean> {
     return this.mutate(
-      () => firstValueFrom(this.adapter.createTeam(editionId, sportId, categoryId, organizationId, name, slug)),
+      () =>
+        firstValueFrom(
+          this.adapter.createTeam(editionId, sportId, categoryId, organizationId, name, slug),
+        ),
       'Equipe salva como rascunho.',
       competitionId,
     );
@@ -144,7 +157,11 @@ export class SportsOrganizationsStore {
     );
   }
 
-  async publishTeam(teamId: string, expectedLockVersion: number, competitionId: string): Promise<boolean> {
+  async publishTeam(
+    teamId: string,
+    expectedLockVersion: number,
+    competitionId: string,
+  ): Promise<boolean> {
     return this.mutate(
       () => firstValueFrom(this.adapter.publishTeam(teamId, expectedLockVersion)),
       'Equipe publicada.',
@@ -156,7 +173,11 @@ export class SportsOrganizationsStore {
     this.state.update((state) => ({ ...state, conflictMessage: null, feedbackMessage: null }));
   }
 
-  private async mutate(action: () => Promise<unknown>, successMessage: string, competitionId: string): Promise<boolean> {
+  private async mutate(
+    action: () => Promise<unknown>,
+    successMessage: string,
+    competitionId: string,
+  ): Promise<boolean> {
     this.state.update((state) => ({
       ...state,
       isMutating: true,
@@ -167,14 +188,19 @@ export class SportsOrganizationsStore {
     try {
       await action();
       await this.load(competitionId);
-      this.state.update((state) => ({ ...state, feedbackMessage: successMessage, isMutating: false }));
+      this.state.update((state) => ({
+        ...state,
+        feedbackMessage: successMessage,
+        isMutating: false,
+      }));
       return true;
     } catch (error: unknown) {
       if (this.adapter.isConflict(error)) {
         this.state.update((state) => ({
           ...state,
           isMutating: false,
-          conflictMessage: 'Este registro foi alterado por outra pessoa. Atualize a lista antes de tentar novamente.',
+          conflictMessage:
+            'Este registro foi alterado por outra pessoa. Atualize a lista antes de tentar novamente.',
         }));
       } else {
         this.state.update((state) => ({

@@ -29,7 +29,11 @@ export class DiagnosticPageComponent implements OnInit {
     }
 
     try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+      ) {
         await navigator.clipboard.writeText(correlationId);
         this.copyStatus.set('copied');
         this.copyFeedbackMessage.set('Código de referência copiado com sucesso.');

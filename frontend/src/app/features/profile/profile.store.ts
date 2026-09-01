@@ -22,8 +22,12 @@ export class ProfileStore {
   private readonly adapter = inject(ProfileApiAdapter);
 
   private readonly state = signal<ProfileState>(INITIAL_STATE);
-  private readonly favoriteOrganizationsState = signal<readonly SportsOrganizationSummary[]>(Object.freeze([]));
-  private readonly favoriteStatusState = signal<'initial' | 'loading' | 'ready' | 'empty'>('initial');
+  private readonly favoriteOrganizationsState = signal<readonly SportsOrganizationSummary[]>(
+    Object.freeze([]),
+  );
+  private readonly favoriteStatusState = signal<'initial' | 'loading' | 'ready' | 'empty'>(
+    'initial',
+  );
   private readonly favoriteErrorState = signal<string | null>(null);
   private readonly favoriteSavingState = signal(false);
 
@@ -40,10 +44,16 @@ export class ProfileStore {
   readonly favoriteErrorMessage = computed(() => this.favoriteErrorState());
   readonly isFavoriteLoading = computed(() => this.favoriteStatus() === 'loading');
   readonly isSavingFavorite = computed(() => this.favoriteSavingState());
-  readonly favoriteOrganizationId = computed(() => this.displayProfile()?.favoriteOrganizationId ?? null);
+  readonly favoriteOrganizationId = computed(
+    () => this.displayProfile()?.favoriteOrganizationId ?? null,
+  );
   readonly favoriteOrganizationName = computed(() => {
     const favoriteId = this.favoriteOrganizationId();
-    return this.favoriteOrganizations().find((organization) => organization.organizationId === favoriteId)?.name ?? null;
+    return (
+      this.favoriteOrganizations().find(
+        (organization) => organization.organizationId === favoriteId,
+      )?.name ?? null
+    );
   });
 
   readonly isLoading = computed(() => this.state().status === 'loading');
@@ -240,7 +250,10 @@ export class ProfileStore {
     if (error instanceof HttpErrorResponse) {
       if (error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
-        if (typeof errorBody['correlationId'] === 'string' && errorBody['correlationId'].trim() !== '') {
+        if (
+          typeof errorBody['correlationId'] === 'string' &&
+          errorBody['correlationId'].trim() !== ''
+        ) {
           correlationId = errorBody['correlationId'].trim();
         }
       }
@@ -269,7 +282,10 @@ export class ProfileStore {
     if (error instanceof HttpErrorResponse) {
       if (error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
-        if (typeof errorBody['correlationId'] === 'string' && errorBody['correlationId'].trim() !== '') {
+        if (
+          typeof errorBody['correlationId'] === 'string' &&
+          errorBody['correlationId'].trim() !== ''
+        ) {
           correlationId = errorBody['correlationId'].trim();
         }
       }

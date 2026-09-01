@@ -18,9 +18,11 @@ function routePath(url: string): string {
 
 function isExemptRoute(url: string): boolean {
   const path = routePath(url);
-  return path === PROFILE_COMPLETION_URL
-    || path === ERROR_URL
-    || AUTH_TECHNICAL_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix));
+  return (
+    path === PROFILE_COMPLETION_URL ||
+    path === ERROR_URL ||
+    AUTH_TECHNICAL_ROUTE_PREFIXES.some((prefix) => path.startsWith(prefix))
+  );
 }
 
 export const profileCompletionGuard: CanActivateChildFn = async (_route, state) => {
@@ -35,7 +37,5 @@ export const profileCompletionGuard: CanActivateChildFn = async (_route, state) 
     await profileStore.loadProfile();
   }
 
-  return profileStore.hasProfile()
-    ? true
-    : router.createUrlTree([PROFILE_COMPLETION_URL]);
+  return profileStore.hasProfile() ? true : router.createUrlTree([PROFILE_COMPLETION_URL]);
 };

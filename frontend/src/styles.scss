@@ -44,7 +44,7 @@
   --bt-type-display: clamp(4.75rem, 13vw, 11.5rem);
   --bt-type-heading: clamp(1.5rem, 4vw, 3.5rem);
   --bt-type-body: 1rem;
-  --bt-type-label: .875rem;
+  --bt-type-label: 0.875rem;
 }
 
 *,
@@ -172,7 +172,7 @@ app-public-agenda-page .empty-hero__court {
   width: min(76vw, 1080px);
   height: 540px;
   border: 1px solid var(--bt-border);
-  opacity: .62;
+  opacity: 0.62;
 }
 
 app-public-agenda-page .empty-hero__court::before {
@@ -209,7 +209,9 @@ app-public-agenda-page .empty-hero__sports {
   scrollbar-width: none;
 }
 
-app-public-agenda-page .empty-hero__sports::-webkit-scrollbar { display: none; }
+app-public-agenda-page .empty-hero__sports::-webkit-scrollbar {
+  display: none;
+}
 
 app-public-agenda-page .empty-hero__sports > span {
   display: grid;
@@ -234,7 +236,7 @@ app-public-agenda-page .empty-hero__stage {
   display: grid;
   min-height: 460px;
   padding: var(--bt-space-8) 0 var(--bt-space-6);
-  grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr);
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
   align-items: end;
   gap: var(--bt-space-12);
   border-block: 1px solid var(--bt-border);
@@ -261,13 +263,15 @@ app-public-agenda-page .empty-hero h1 strong {
   background: tokens.$color-accent-deep;
   color: tokens.$color-hero-on-deep;
   transform: rotate(-2deg);
-  box-shadow: 18px 0 0 tokens.$color-accent-deep, -18px 0 0 tokens.$color-accent-deep;
+  box-shadow:
+    18px 0 0 tokens.$color-accent-deep,
+    -18px 0 0 tokens.$color-accent-deep;
 }
 
 app-public-agenda-page .empty-hero__message {
   padding: var(--bt-space-6);
   border: 1px solid var(--bt-border-strong);
-  background: rgba(11, 11, 13, .88);
+  background: rgba(11, 11, 13, 0.88);
 }
 
 app-public-agenda-page .empty-hero__message h2 {
@@ -295,7 +299,9 @@ app-public-agenda-page .empty-hero__message p {
     height: 430px;
   }
 
-  app-public-agenda-page .empty-hero__sports { margin-bottom: var(--bt-space-6); }
+  app-public-agenda-page .empty-hero__sports {
+    margin-bottom: var(--bt-space-6);
+  }
 
   app-public-agenda-page .empty-hero__stage {
     min-height: 0;
@@ -304,7 +310,11 @@ app-public-agenda-page .empty-hero__message p {
     gap: var(--bt-space-12);
   }
 
-  app-public-agenda-page .empty-hero h1 strong { box-shadow: 8px 0 0 tokens.$color-accent-deep, -8px 0 0 tokens.$color-accent-deep; }
+  app-public-agenda-page .empty-hero h1 strong {
+    box-shadow:
+      8px 0 0 tokens.$color-accent-deep,
+      -8px 0 0 tokens.$color-accent-deep;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

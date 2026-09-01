@@ -3,7 +3,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { SportsTabularImportPreview } from '../../../../api/generated/model/sports-tabular-import-preview';
 import { SportsTabularImportResult } from '../../../../api/generated/model/sports-tabular-import-result';
-import { SportsTabularImportApiAdapter, TabularImportFormat } from './sports-tabular-import-api.adapter';
+import {
+  SportsTabularImportApiAdapter,
+  TabularImportFormat,
+} from './sports-tabular-import-api.adapter';
 
 export type SportsTabularImportStatus =
   | 'initial'
@@ -52,20 +55,26 @@ export class SportsTabularImportStore {
   readonly result = computed(() => this.state().result);
   readonly errorMessage = computed(() => this.state().errorMessage);
   readonly feedbackMessage = computed(() => this.state().feedbackMessage);
-  readonly isLoading = computed(() => this.status() === 'validating' || this.status() === 'committing');
+  readonly isLoading = computed(
+    () => this.status() === 'validating' || this.status() === 'committing',
+  );
   readonly isDenied = computed(() => this.status() === 'denied');
   readonly isError = computed(() => this.status() === 'error');
   readonly isIndeterminate = computed(() => this.status() === 'indeterminate');
   readonly hasFile = computed(() => this.state().file !== null);
   readonly hasPreview = computed(() => this.preview() !== null);
-  readonly canValidate = computed(() => this.hasFile() && !this.isLoading() && !this.isIndeterminate());
+  readonly canValidate = computed(
+    () => this.hasFile() && !this.isLoading() && !this.isIndeterminate(),
+  );
   readonly canCommit = computed(() => {
     const preview = this.preview();
-    return preview?.readyToImport === true
-      && typeof preview.importId === 'string'
-      && !this.isLoading()
-      && !this.isIndeterminate()
-      && !this.state().commitAttempted;
+    return (
+      preview?.readyToImport === true &&
+      typeof preview.importId === 'string' &&
+      !this.isLoading() &&
+      !this.isIndeterminate() &&
+      !this.state().commitAttempted
+    );
   });
   readonly canCheckStatus = computed(() => {
     const importId = this.preview()?.importId ?? this.result()?.importId;
@@ -148,13 +157,15 @@ export class SportsTabularImportStore {
         this.state.update((state) => ({
           ...state,
           status: 'indeterminate',
-          errorMessage: 'A resposta da confirmação não chegou. Não reenvie o arquivo; consulte o estado no servidor.',
+          errorMessage:
+            'A resposta da confirmação não chegou. Não reenvie o arquivo; consulte o estado no servidor.',
         }));
       } else {
         this.state.update((state) => ({
           ...state,
           status: 'error',
-          errorMessage: 'Não foi possível confirmar a importação. Consulte o estado antes de tentar qualquer ação.',
+          errorMessage:
+            'Não foi possível confirmar a importação. Consulte o estado antes de tentar qualquer ação.',
         }));
       }
       return false;
@@ -201,7 +212,8 @@ export class SportsTabularImportStore {
     this.state.update((state) => ({
       ...state,
       status: 'error',
-      errorMessage: 'Não foi possível validar ou consultar a importação agora. Nenhum dado bruto foi exibido.',
+      errorMessage:
+        'Não foi possível validar ou consultar a importação agora. Nenhum dado bruto foi exibido.',
     }));
   }
 
@@ -209,7 +221,8 @@ export class SportsTabularImportStore {
     this.state.set({
       ...INITIAL_STATE,
       status,
-      errorMessage: 'Seu acesso foi encerrado. O arquivo, o preview e o identificador privado foram removidos da memória.',
+      errorMessage:
+        'Seu acesso foi encerrado. O arquivo, o preview e o identificador privado foram removidos da memória.',
     });
   }
 

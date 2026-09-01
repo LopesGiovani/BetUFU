@@ -1,7 +1,4 @@
-import {
-  provideHttpClient,
-  withXsrfConfiguration,
-} from '@angular/common/http';
+import { provideHttpClient, withXsrfConfiguration } from '@angular/common/http';
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,

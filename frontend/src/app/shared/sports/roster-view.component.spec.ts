@@ -21,7 +21,15 @@ const PUBLICATION: SportsRosterPublication = {
   reason: null,
   publishedAt: '2026-08-30T12:00:00Z',
   baseLockVersion: 1,
-  members: [{ athleteId: 'athlete-a', athleteName: 'Ana Silva', athleteSlug: 'ana-silva', jerseyNumber: 10, positionName: 'Ala' }],
+  members: [
+    {
+      athleteId: 'athlete-a',
+      athleteName: 'Ana Silva',
+      athleteSlug: 'ana-silva',
+      jerseyNumber: 10,
+      positionName: 'Ala',
+    },
+  ],
 };
 
 describe('RosterViewComponent', () => {
@@ -45,6 +53,8 @@ describe('RosterViewComponent', () => {
 
   it('mostra estado honesto quando nao ha snapshot', () => {
     fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Nenhum elenco selecionado');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Nenhum elenco selecionado',
+    );
   });
 });

@@ -27,24 +27,92 @@ const COMPETITION: SportsCompetitionSummary = {
 const TREE: SportsCatalogTree = {
   competition: COMPETITION,
   sports: [{ sportId: 'sport-1', name: 'Futsal', slug: 'futsal', status: 'ATIVA', lockVersion: 0 }],
-  editions: [{ editionId: 'edition-1', competitionId: 'comp-1', name: 'Edição 2026', slug: '2026', startDate: null, endDate: null, status: 'ATIVA', lockVersion: 0 }],
-  categories: [{ categoryId: 'cat-1', editionId: 'edition-1', name: 'Livre', slug: 'livre', status: 'ATIVA', lockVersion: 0 }],
-  phases: [{ phaseId: 'phase-1', editionId: 'edition-1', categoryId: 'cat-1', name: 'Fase de Grupos', slug: 'grupos', status: 'ATIVA', lockVersion: 0 }],
-  venues: [{
-    venueId: 'venue-1',
-    competitionId: 'comp-1',
-    name: 'Ginásio Educação Física',
-    address: null,
-    mapUrl: null,
-    notes: null,
-    lockVersion: 0,
-    spaces: [{ venueSpaceId: 'space-1', venueId: 'venue-1', name: 'Quadra Principal', notes: null, lockVersion: 0 }],
-  }],
+  editions: [
+    {
+      editionId: 'edition-1',
+      competitionId: 'comp-1',
+      name: 'Edição 2026',
+      slug: '2026',
+      startDate: null,
+      endDate: null,
+      status: 'ATIVA',
+      lockVersion: 0,
+    },
+  ],
+  categories: [
+    {
+      categoryId: 'cat-1',
+      editionId: 'edition-1',
+      name: 'Livre',
+      slug: 'livre',
+      status: 'ATIVA',
+      lockVersion: 0,
+    },
+  ],
+  phases: [
+    {
+      phaseId: 'phase-1',
+      editionId: 'edition-1',
+      categoryId: 'cat-1',
+      name: 'Fase de Grupos',
+      slug: 'grupos',
+      status: 'ATIVA',
+      lockVersion: 0,
+    },
+  ],
+  venues: [
+    {
+      venueId: 'venue-1',
+      competitionId: 'comp-1',
+      name: 'Ginásio Educação Física',
+      address: null,
+      mapUrl: null,
+      notes: null,
+      lockVersion: 0,
+      spaces: [
+        {
+          venueSpaceId: 'space-1',
+          venueId: 'venue-1',
+          name: 'Quadra Principal',
+          notes: null,
+          lockVersion: 0,
+        },
+      ],
+    },
+  ],
 };
 
 const TEAMS: SportsTeamSummary[] = [
-  { teamId: 'team-1', organizationId: 'org-1', organizationName: 'Atlética Engenharia', competitionId: 'comp-1', editionId: 'edition-1', sportId: 'sport-1', sportName: 'Futsal', categoryId: 'cat-1', categoryName: 'Livre', name: 'Futsal Engenharia', slug: 'futsal-eng', status: 'PUBLICADO', lockVersion: 0 },
-  { teamId: 'team-2', organizationId: 'org-2', organizationName: 'Atlética Medicina', competitionId: 'comp-1', editionId: 'edition-1', sportId: 'sport-1', sportName: 'Futsal', categoryId: 'cat-1', categoryName: 'Livre', name: 'Futsal Medicina', slug: 'futsal-med', status: 'PUBLICADO', lockVersion: 0 },
+  {
+    teamId: 'team-1',
+    organizationId: 'org-1',
+    organizationName: 'Atlética Engenharia',
+    competitionId: 'comp-1',
+    editionId: 'edition-1',
+    sportId: 'sport-1',
+    sportName: 'Futsal',
+    categoryId: 'cat-1',
+    categoryName: 'Livre',
+    name: 'Futsal Engenharia',
+    slug: 'futsal-eng',
+    status: 'PUBLICADO',
+    lockVersion: 0,
+  },
+  {
+    teamId: 'team-2',
+    organizationId: 'org-2',
+    organizationName: 'Atlética Medicina',
+    competitionId: 'comp-1',
+    editionId: 'edition-1',
+    sportId: 'sport-1',
+    sportName: 'Futsal',
+    categoryId: 'cat-1',
+    categoryName: 'Livre',
+    name: 'Futsal Medicina',
+    slug: 'futsal-med',
+    status: 'PUBLICADO',
+    lockVersion: 0,
+  },
 ];
 
 const EVENT_1: SportsEventDetail = {
@@ -66,7 +134,12 @@ const EVENT_1: SportsEventDetail = {
   sourceReference: 'Boletim Oficial nº 01',
   lockVersion: 1,
   slots: [
-    { slotNo: 1, displayLabel: 'Futsal Engenharia', teamId: 'team-1', teamName: 'Futsal Engenharia' },
+    {
+      slotNo: 1,
+      displayLabel: 'Futsal Engenharia',
+      teamId: 'team-1',
+      teamName: 'Futsal Engenharia',
+    },
     { slotNo: 2, displayLabel: 'Futsal Medicina', teamId: 'team-2', teamName: 'Futsal Medicina' },
   ],
   createdAt: '2026-08-30T10:00:00Z',
@@ -87,8 +160,20 @@ const VERSION_1: SportsResultVersion = {
   confirmedAt: '2026-09-01T16:05:00Z',
   baseLockVersion: 1,
   scores: [
-    { slotNo: 1, displayLabel: 'Futsal Engenharia', score: 4, teamId: 'team-1', teamName: 'Futsal Engenharia' },
-    { slotNo: 2, displayLabel: 'Futsal Medicina', score: 2, teamId: 'team-2', teamName: 'Futsal Medicina' },
+    {
+      slotNo: 1,
+      displayLabel: 'Futsal Engenharia',
+      score: 4,
+      teamId: 'team-1',
+      teamName: 'Futsal Engenharia',
+    },
+    {
+      slotNo: 2,
+      displayLabel: 'Futsal Medicina',
+      score: 2,
+      teamId: 'team-2',
+      teamName: 'Futsal Medicina',
+    },
   ],
 };
 
@@ -152,7 +237,9 @@ describe('SportsEventResultPageComponent', () => {
     fixture = TestBed.createComponent(SportsEventResultPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();
-    await vi.waitFor(() => expect(eventResultAdapter['fetchEvents']).toHaveBeenCalled(), { timeout: 1000 });
+    await vi.waitFor(() => expect(eventResultAdapter['fetchEvents']).toHaveBeenCalled(), {
+      timeout: 1000,
+    });
     fixture.detectChanges();
   });
 

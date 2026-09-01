@@ -116,7 +116,9 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
     const rejectedCard = compiled.querySelector('.rejected-card');
     expect(rejectedCard).not.toBeNull();
     expect(rejectedCard?.querySelector('.aggregate-number')?.textContent).toContain('3');
-    expect(rejectedCard?.querySelector('.aggregate-label')?.textContent).toContain('3 recusas registradas');
+    expect(rejectedCard?.querySelector('.aggregate-label')?.textContent).toContain(
+      '3 recusas registradas',
+    );
     expect(rejectedCard?.querySelector('.pending-chip')?.textContent).toContain('Pendência');
 
     // Bloco 2: Correções
@@ -137,7 +139,9 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
     const unregisteredCard = compiled.querySelector('.unregistered-card');
     expect(unregisteredCard).not.toBeNull();
     expect(unregisteredCard?.querySelector('.aggregate-number')?.textContent).toContain('14');
-    expect(unregisteredCard?.querySelector('.aggregate-label')?.textContent).toContain('14 contas sem matrícula');
+    expect(unregisteredCard?.querySelector('.aggregate-label')?.textContent).toContain(
+      '14 contas sem matrícula',
+    );
   });
 
   it('Garantia [ausência no DOM]: blocos omitidos na resposta não existem no DOM', async () => {
@@ -180,7 +184,9 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
 
     expect(compiled.querySelector('.empty-state')).not.toBeNull();
     expect(compiled.querySelector('h2')?.textContent).toContain('Nenhum item no seu escopo');
-    expect(compiled.querySelector('.empty-state p')?.textContent).toContain('Seu papel não tem pendências abertas');
+    expect(compiled.querySelector('.empty-state p')?.textContent).toContain(
+      'Seu papel não tem pendências abertas',
+    );
     expect(compiled.querySelectorAll('.panel-card').length).toBe(0);
   });
 
@@ -335,7 +341,9 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
     expect(writeTextSpy).toHaveBeenCalledWith('corr-copy-test-11');
     expect(component.copyStatus()).toBe('copied');
 
-    const liveRegion = (fixture.nativeElement as HTMLElement).querySelector('#operations-live-region');
+    const liveRegion = (fixture.nativeElement as HTMLElement).querySelector(
+      '#operations-live-region',
+    );
     expect(liveRegion?.textContent).toContain('Código de referência copiado com sucesso.');
   });
 
@@ -495,9 +503,7 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
           },
         ],
       },
-      unavailableBlocks: [
-        OperationalPanelResponse.UnavailableBlocksEnum.RoleChanges,
-      ],
+      unavailableBlocks: [OperationalPanelResponse.UnavailableBlocksEnum.RoleChanges],
     };
 
     mockOperationalPanelService.getOperationalPanel.mockReturnValue(of(partialUnavailableResponse));

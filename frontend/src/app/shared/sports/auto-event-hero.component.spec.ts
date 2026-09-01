@@ -28,16 +28,19 @@ const EVENT: PublicAgendaEventViewModel = {
 
 describe('AutoEventHeroComponent', () => {
   beforeEach(() => {
-    vi.stubGlobal('IntersectionObserver', class {
-      constructor(callback: IntersectionObserverCallback) {
-        callback(
-          [{ isIntersecting: true } as IntersectionObserverEntry],
-          this as unknown as IntersectionObserver,
-        );
-      }
-      observe(): void {}
-      disconnect(): void {}
-    });
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          callback(
+            [{ isIntersecting: true } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+        observe(): void {}
+        disconnect(): void {}
+      },
+    );
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: vi.fn().mockReturnValue({
@@ -61,7 +64,9 @@ describe('AutoEventHeroComponent', () => {
     fixture.detectChanges();
 
     const slides = fixture.nativeElement.querySelectorAll('.hero-slide') as NodeListOf<HTMLElement>;
-    const links = fixture.nativeElement.querySelectorAll('.hero-slide a') as NodeListOf<HTMLAnchorElement>;
+    const links = fixture.nativeElement.querySelectorAll(
+      '.hero-slide a',
+    ) as NodeListOf<HTMLAnchorElement>;
     expect(slides).toHaveLength(2);
     expect(slides[0].getAttribute('aria-hidden')).toBe('false');
     expect(slides[0].hasAttribute('inert')).toBe(false);

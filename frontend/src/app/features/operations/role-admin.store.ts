@@ -3,9 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, retry, timer } from 'rxjs';
 import { OperationsApiAdapter } from './operations-api.adapter';
 import { OperationalRole } from '../../api/generated/model/operational-role';
-import {
-  RoleAdminState,
-} from './operations.models';
+import { RoleAdminState } from './operations.models';
 
 const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
@@ -67,7 +65,9 @@ export class RoleAdminStore {
 
     if (updatedAccount) {
       const hasActorContext = Boolean(actorIdentityId);
-      const isSelfTarget = Boolean(actorIdentityId && actorIdentityId === updatedAccount.targetIdentityId);
+      const isSelfTarget = Boolean(
+        actorIdentityId && actorIdentityId === updatedAccount.targetIdentityId,
+      );
       const updatedRoles = updatedAccount.roles.map((r) => {
         if (r.role === OperationalRole.AdministradorGeral) {
           const selfGrantBlocked = !r.isVigente && (!hasActorContext || isSelfTarget);
@@ -130,22 +130,20 @@ export class RoleAdminStore {
 
     try {
       const adapted = await firstValueFrom(
-        this.adapter
-          .getRoles(trimmedId, this.state().actorIdentityId)
-          .pipe(
-            retry({
-              count: 2,
-              delay: (error: unknown, retryCount) => {
-                if (
-                  error instanceof HttpErrorResponse &&
-                  (error.status === 401 || error.status === 403 || error.status === 404)
-                ) {
-                  throw error;
-                }
-                return timer(retryCount === 1 ? 250 : 500);
-              },
-            }),
-          ),
+        this.adapter.getRoles(trimmedId, this.state().actorIdentityId).pipe(
+          retry({
+            count: 2,
+            delay: (error: unknown, retryCount) => {
+              if (
+                error instanceof HttpErrorResponse &&
+                (error.status === 401 || error.status === 403 || error.status === 404)
+              ) {
+                throw error;
+              }
+              return timer(retryCount === 1 ? 250 : 500);
+            },
+          }),
+        ),
       );
 
       if (!adapted) {
@@ -197,7 +195,9 @@ export class RoleAdminStore {
    * Apenas ADMINISTRADOR_GERAL é acionável na UI na Fase 2 (D-48).
    * Nenhuma mutação repete automaticamente (D-16).
    */
-  async grantRole(role: 'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR'): Promise<boolean> {
+  async grantRole(
+    role: 'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR',
+  ): Promise<boolean> {
     if (role !== OperationalRole.AdministradorGeral) {
       return false;
     }
@@ -260,7 +260,9 @@ export class RoleAdminStore {
    * Apenas ADMINISTRADOR_GERAL é acionável na UI na Fase 2 (D-48).
    * Nenhuma mutação repete automaticamente (D-16).
    */
-  async revokeRole(role: 'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR'): Promise<boolean> {
+  async revokeRole(
+    role: 'ADMINISTRADOR_GERAL' | 'ADMINISTRADOR_COMPETICAO' | 'MODERADOR',
+  ): Promise<boolean> {
     if (role !== OperationalRole.AdministradorGeral) {
       return false;
     }
@@ -374,7 +376,10 @@ export class RoleAdminStore {
       }
       if (error.status === 409) {
         // Guarda (b) - Último administrador geral
-        if (errorCode.includes('LAST_ADMIN') || errorCode.includes('LAST_ADMIN_REVOCATION_BLOCKED')) {
+        if (
+          errorCode.includes('LAST_ADMIN') ||
+          errorCode.includes('LAST_ADMIN_REVOCATION_BLOCKED')
+        ) {
           const msg =
             correlationId !== 'N/D'
               ? `Você é o único administrador geral. Conceda o papel a outra pessoa antes de revogar o seu. Código de referência: ${correlationId}.`
@@ -384,7 +389,8 @@ export class RoleAdminStore {
       }
     }
 
-    const baseMessage = 'Não foi possível alterar o papel. Nenhuma alteração foi aplicada. Tente novamente.';
+    const baseMessage =
+      'Não foi possível alterar o papel. Nenhuma alteração foi aplicada. Tente novamente.';
     const message =
       correlationId !== 'N/D'
         ? `${baseMessage} Código de referência: ${correlationId}.`
@@ -397,11 +403,15 @@ export class RoleAdminStore {
     if (error instanceof HttpErrorResponse) {
       if (error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
-        if (typeof errorBody['correlationId'] === 'string' && errorBody['correlationId'].trim() !== '') {
+        if (
+          typeof errorBody['correlationId'] === 'string' &&
+          errorBody['correlationId'].trim() !== ''
+        ) {
           return errorBody['correlationId'].trim();
         }
       }
-      const headerVal = error.headers?.get('x-correlation-id') || error.headers?.get('correlationId');
+      const headerVal =
+        error.headers?.get('x-correlation-id') || error.headers?.get('correlationId');
       if (headerVal && headerVal.trim() !== '') {
         return headerVal.trim();
       }

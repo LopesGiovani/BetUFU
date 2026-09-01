@@ -50,10 +50,7 @@ export class SportsAthletesApiAdapter {
     return defer(() => this.service.updateSportsAthlete(request));
   }
 
-  publishAthlete(
-    athleteId: string,
-    expectedLockVersion: number,
-  ): Observable<SportsAthleteSummary> {
+  publishAthlete(athleteId: string, expectedLockVersion: number): Observable<SportsAthleteSummary> {
     const request: PublishSportsAthleteRequestParams = {
       athleteId,
       expectedLockVersion,
@@ -78,11 +75,11 @@ export class SportsAthletesApiAdapter {
     }
     const item = value as Partial<SportsAthleteSummary>;
     if (
-      typeof item.athleteId !== 'string'
-      || typeof item.name !== 'string'
-      || typeof item.slug !== 'string'
-      || (item.status !== 'RASCUNHO' && item.status !== 'PUBLICADO')
-      || typeof item.lockVersion !== 'number'
+      typeof item.athleteId !== 'string' ||
+      typeof item.name !== 'string' ||
+      typeof item.slug !== 'string' ||
+      (item.status !== 'RASCUNHO' && item.status !== 'PUBLICADO') ||
+      typeof item.lockVersion !== 'number'
     ) {
       throw new Error('CONTRATO_ATLETAS_INVALIDO: registro incompleto.');
     }
@@ -90,8 +87,10 @@ export class SportsAthletesApiAdapter {
   }
 
   private sortByName<T extends { name: string }>(items: readonly T[]): T[] {
-    return [...items].sort((left, right) =>
-      left.name.localeCompare(right.name, 'pt-BR')
-      || JSON.stringify(left).localeCompare(JSON.stringify(right), 'pt-BR'));
+    return [...items].sort(
+      (left, right) =>
+        left.name.localeCompare(right.name, 'pt-BR') ||
+        JSON.stringify(left).localeCompare(JSON.stringify(right), 'pt-BR'),
+    );
   }
 }

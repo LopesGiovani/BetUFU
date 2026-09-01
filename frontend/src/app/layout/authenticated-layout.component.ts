@@ -125,12 +125,10 @@ export class AuthenticatedLayoutComponent implements OnInit {
     this.menuOpen.set(false);
     const result = await this.sessionStore.logoutCurrentDevice();
     if (
-      result?.endSessionUrl
-      && (
-        result.endSessionUrl.startsWith('http://')
-        || result.endSessionUrl.startsWith('https://')
-        || result.endSessionUrl.startsWith('/')
-      )
+      result?.endSessionUrl &&
+      (result.endSessionUrl.startsWith('http://') ||
+        result.endSessionUrl.startsWith('https://') ||
+        result.endSessionUrl.startsWith('/'))
     ) {
       window.location.href = result.endSessionUrl;
     }
@@ -142,9 +140,9 @@ export class AuthenticatedLayoutComponent implements OnInit {
 
   private loadCapabilitiesIfAllowed(): void {
     if (
-      !this.sessionStore.isAuthenticated()
-      || this.isProfileCompletionRoute()
-      || this.capabilityRequestStarted
+      !this.sessionStore.isAuthenticated() ||
+      this.isProfileCompletionRoute() ||
+      this.capabilityRequestStarted
     ) {
       return;
     }

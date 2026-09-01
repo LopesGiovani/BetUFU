@@ -19,15 +19,29 @@ const mockSnapshot: SportsStandingsSnapshot = {
   lockVersion: 1,
   columns: ['PTS', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG'],
   rows: [
-    { position: 1, participantName: 'Engenharia Futsal', values: ['6', '2', '2', '0', '0', '8', '2', '6'] },
-    { position: 2, participantName: 'Medicina Futsal', values: ['3', '2', '1', '0', '1', '5', '4', '1'] },
-    { position: 3, participantName: 'Computação Futsal', values: ['0', '2', '0', '0', '2', '1', '8', '-7'] },
+    {
+      position: 1,
+      participantName: 'Engenharia Futsal',
+      values: ['6', '2', '2', '0', '0', '8', '2', '6'],
+    },
+    {
+      position: 2,
+      participantName: 'Medicina Futsal',
+      values: ['3', '2', '1', '0', '1', '5', '4', '1'],
+    },
+    {
+      position: 3,
+      participantName: 'Computação Futsal',
+      values: ['0', '2', '0', '0', '2', '1', '8', '-7'],
+    },
   ],
 };
 
 describe('ResponsiveDataViewComponent', () => {
   it('renderiza tabela semantica de classificacao com thead, tbody e colunas declaradas', async () => {
-    await TestBed.configureTestingModule({ imports: [ResponsiveDataViewComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [ResponsiveDataViewComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(ResponsiveDataViewComponent);
     fixture.componentRef.setInput('snapshot', mockSnapshot);
     fixture.detectChanges();
@@ -44,7 +58,18 @@ describe('ResponsiveDataViewComponent', () => {
     expect(caption?.textContent).toContain('Classificação oficial de Grupo A - Futsal');
 
     const thList = Array.from(root.querySelectorAll('th')).map((th) => th.textContent?.trim());
-    expect(thList).toEqual(['Posição', 'Participante', 'PTS', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG']);
+    expect(thList).toEqual([
+      'Posição',
+      'Participante',
+      'PTS',
+      'J',
+      'V',
+      'E',
+      'D',
+      'GP',
+      'GC',
+      'SG',
+    ]);
 
     const rows = Array.from(root.querySelectorAll('tbody tr'));
     expect(rows).toHaveLength(3);
@@ -54,7 +79,9 @@ describe('ResponsiveDataViewComponent', () => {
   });
 
   it('renderiza estrutura de cartoes rotulados para mobile com todas as metricas', async () => {
-    await TestBed.configureTestingModule({ imports: [ResponsiveDataViewComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [ResponsiveDataViewComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(ResponsiveDataViewComponent);
     fixture.componentRef.setInput('snapshot', mockSnapshot);
     fixture.detectChanges();
@@ -64,14 +91,18 @@ describe('ResponsiveDataViewComponent', () => {
     expect(cards).toHaveLength(3);
 
     expect(cards[0].querySelector('.data-card__position')?.textContent).toContain('1º');
-    expect(cards[0].querySelector('.data-card__participant')?.textContent).toContain('Engenharia Futsal');
+    expect(cards[0].querySelector('.data-card__participant')?.textContent).toContain(
+      'Engenharia Futsal',
+    );
 
     const dts = Array.from(cards[0].querySelectorAll('dt')).map((dt) => dt.textContent?.trim());
     expect(dts).toEqual(['PTS', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG']);
   });
 
   it('exibe aviso de que a classificacao e transcrita e nao calcula desempate', async () => {
-    await TestBed.configureTestingModule({ imports: [ResponsiveDataViewComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [ResponsiveDataViewComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(ResponsiveDataViewComponent);
     fixture.componentRef.setInput('snapshot', mockSnapshot);
     fixture.detectChanges();
@@ -79,11 +110,15 @@ describe('ResponsiveDataViewComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('Classificação transcrita do boletim oficial');
     expect(root.textContent).toContain('O sistema não calcula pontos ou critérios de desempate');
-    expect(root.querySelector('a.source-link')?.getAttribute('href')).toBe('https://proae.ufu.br/boletim-futsal-04');
+    expect(root.querySelector('a.source-link')?.getAttribute('href')).toBe(
+      'https://proae.ufu.br/boletim-futsal-04',
+    );
   });
 
   it('exibe nota de preview quando em modo preview', async () => {
-    await TestBed.configureTestingModule({ imports: [ResponsiveDataViewComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [ResponsiveDataViewComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(ResponsiveDataViewComponent);
     fixture.componentRef.setInput('snapshot', { ...mockSnapshot, status: 'RASCUNHO' });
     fixture.componentRef.setInput('preview', true);
@@ -96,7 +131,9 @@ describe('ResponsiveDataViewComponent', () => {
   });
 
   it('renderiza estado vazio quando snapshot for nulo', async () => {
-    await TestBed.configureTestingModule({ imports: [ResponsiveDataViewComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [ResponsiveDataViewComponent],
+    }).compileComponents();
     const fixture = TestBed.createComponent(ResponsiveDataViewComponent);
     fixture.componentRef.setInput('snapshot', null);
     fixture.detectChanges();

@@ -95,7 +95,8 @@ export class SportsRostersStore {
         this.state.set({
           ...this.state(),
           status: 'error',
-          errorMessage: 'O elenco deste escopo nao esta disponivel agora. Tente novamente antes de editar ou publicar.',
+          errorMessage:
+            'O elenco deste escopo nao esta disponivel agora. Tente novamente antes de editar ou publicar.',
         });
       }
     }
@@ -107,7 +108,9 @@ export class SportsRostersStore {
     return true;
   }
 
-  previewSnapshot(snapshot: SportsRosterSnapshot | null = this.draft() ?? this.publication()): void {
+  previewSnapshot(
+    snapshot: SportsRosterSnapshot | null = this.draft() ?? this.publication(),
+  ): void {
     this.state.update((state) => ({ ...state, preview: snapshot }));
   }
 
@@ -160,7 +163,11 @@ export class SportsRostersStore {
     try {
       await action();
       await this.load(this.selectedTeamId());
-      this.state.update((state) => ({ ...state, feedbackMessage: successMessage, isMutating: false }));
+      this.state.update((state) => ({
+        ...state,
+        feedbackMessage: successMessage,
+        isMutating: false,
+      }));
       return true;
     } catch (error: unknown) {
       if (this.adapter.isUnauthorized(error)) {
@@ -169,7 +176,8 @@ export class SportsRostersStore {
         this.state.update((state) => ({
           ...state,
           isMutating: false,
-          conflictMessage: 'Este elenco foi alterado por outra pessoa. Seu rascunho local foi preservado; recarregue para comparar antes de tentar novamente.',
+          conflictMessage:
+            'Este elenco foi alterado por outra pessoa. Seu rascunho local foi preservado; recarregue para comparar antes de tentar novamente.',
         }));
       } else {
         this.state.update((state) => ({
@@ -186,7 +194,10 @@ export class SportsRostersStore {
     this.state.set({
       ...INITIAL_STATE,
       status,
-      errorMessage: status === 'denied' ? 'Seu acesso a este elenco foi encerrado. Nenhum rascunho privado foi mantido.' : null,
+      errorMessage:
+        status === 'denied'
+          ? 'Seu acesso a este elenco foi encerrado. Nenhum rascunho privado foi mantido.'
+          : null,
     });
   }
 }

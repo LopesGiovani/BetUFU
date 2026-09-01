@@ -13,36 +13,34 @@ import org.springframework.web.bind.annotation.RestController;
 @Profile("runtime | integrated")
 public class LocalIdentityController {
 
-    private static final String PERSISTED_STATUS = "PERSISTED";
+  private static final String PERSISTED_STATUS = "PERSISTED";
 
-    private final LocalIdentityService service;
+  private final LocalIdentityService service;
 
-    public LocalIdentityController(LocalIdentityService service) {
-        this.service = service;
-    }
+  public LocalIdentityController(LocalIdentityService service) {
+    this.service = service;
+  }
 
-    @PutMapping(
-            path = "/api/v1/tracer/identity/current",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CurrentIdentityResponse> putCurrentIdentity(
-            @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser oidcUser) {
-        return OidcClaimsProjection.from(oidcUser)
-                .map(this::persist)
-                .orElseGet(LocalIdentityController::unauthorized);
-    }
+  @PutMapping(path = "/api/v1/tracer/identity/current", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<CurrentIdentityResponse> putCurrentIdentity(
+      @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser oidcUser) {
+    return OidcClaimsProjection.from(oidcUser)
+        .map(this::persist)
+        .orElseGet(LocalIdentityController::unauthorized);
+  }
 
-    private ResponseEntity<CurrentIdentityResponse> persist(OidcClaimsProjection claims) {
-        LocalIdentity identity =
-                service.persistCurrentIdentity(claims.issuer(), claims.subject());
+  private ResponseEntity<CurrentIdentityResponse> persist(OidcClaimsProjection claims) {
+    LocalIdentity identity = service.persistCurrentIdentity(claims.issuer(), claims.subject());
 
-        return ResponseEntity.ok(new CurrentIdentityResponse(
-                identity.getIdentityId(),
-                PERSISTED_STATUS,
-                identity.getCreatedAt(),
-                identity.getUpdatedAt()));
-    }
+    return ResponseEntity.ok(
+        new CurrentIdentityResponse(
+            identity.getIdentityId(),
+            PERSISTED_STATUS,
+            identity.getCreatedAt(),
+            identity.getUpdatedAt()));
+  }
 
-    private static ResponseEntity<CurrentIdentityResponse> unauthorized() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-    }
+  private static ResponseEntity<CurrentIdentityResponse> unauthorized() {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+  }
 }

@@ -25,9 +25,11 @@ export class AthleteProfileApiAdapter {
   }
 
   updateMine(request: AthletePublicProfileUpdateRequest): Observable<AthletePublicProfile> {
-    return defer(() => this.service.updateMyAthleteProfile({
-      athletePublicProfileUpdateRequest: request,
-    })).pipe(map((response) => this.adapt(response)));
+    return defer(() =>
+      this.service.updateMyAthleteProfile({
+        athletePublicProfileUpdateRequest: request,
+      }),
+    ).pipe(map((response) => this.adapt(response)));
   }
 
   clearMine(): Observable<AthletePublicProfile> {
@@ -46,15 +48,20 @@ export class AthleteProfileApiAdapter {
     );
   }
 
-  private adapt(response: AthletePublicProfile | null | undefined, expectedAthleteId?: string): AthletePublicProfile {
-    if (!response
-      || typeof response.athleteId !== 'string'
-      || typeof response.athleteName !== 'string'
-      || typeof response.athleteSlug !== 'string'
-      || !Number.isInteger(response.lockVersion)
-      || response.lockVersion < 0
-      || typeof response.updatedAt !== 'string'
-      || Number.isNaN(Date.parse(response.updatedAt))) {
+  private adapt(
+    response: AthletePublicProfile | null | undefined,
+    expectedAthleteId?: string,
+  ): AthletePublicProfile {
+    if (
+      !response ||
+      typeof response.athleteId !== 'string' ||
+      typeof response.athleteName !== 'string' ||
+      typeof response.athleteSlug !== 'string' ||
+      !Number.isInteger(response.lockVersion) ||
+      response.lockVersion < 0 ||
+      typeof response.updatedAt !== 'string' ||
+      Number.isNaN(Date.parse(response.updatedAt))
+    ) {
       throw new Error('CONTRATO_PERFIL_ATLETA_INVALIDO: resposta ausente ou malformada.');
     }
     if (expectedAthleteId && response.athleteId !== expectedAthleteId) {
@@ -104,11 +111,13 @@ export class AthleteProfileApiAdapter {
     } catch {
       throw new Error('CONTRATO_PERFIL_ATLETA_INVALIDO: link social invalido.');
     }
-    if (parsed.protocol !== 'https:'
-      || parsed.username
-      || parsed.password
-      || !SOCIAL_HOSTS[field].has(parsed.hostname.toLowerCase())
-      || parsed.pathname === '/') {
+    if (
+      parsed.protocol !== 'https:' ||
+      parsed.username ||
+      parsed.password ||
+      !SOCIAL_HOSTS[field].has(parsed.hostname.toLowerCase()) ||
+      parsed.pathname === '/'
+    ) {
       throw new Error('CONTRATO_PERFIL_ATLETA_INVALIDO: link social fora da allowlist.');
     }
     return parsed.toString();

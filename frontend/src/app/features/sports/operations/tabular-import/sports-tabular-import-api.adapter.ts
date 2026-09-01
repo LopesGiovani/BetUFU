@@ -71,14 +71,14 @@ export class SportsTabularImportApiAdapter {
     }
     const preview = value as Partial<SportsTabularImportPreview>;
     if (
-      !(typeof preview.importId === 'string' || preview.importId === null)
-      || (preview.format !== 'CSV' && preview.format !== 'XLSX')
-      || !isNonNegativeInteger(preview.totalRows)
-      || !isNonNegativeInteger(preview.validRows)
-      || !isNonNegativeInteger(preview.errorCount)
-      || !Array.isArray(preview.errors)
-      || !Array.isArray(preview.summary)
-      || typeof preview.readyToImport !== 'boolean'
+      !(typeof preview.importId === 'string' || preview.importId === null) ||
+      (preview.format !== 'CSV' && preview.format !== 'XLSX') ||
+      !isNonNegativeInteger(preview.totalRows) ||
+      !isNonNegativeInteger(preview.validRows) ||
+      !isNonNegativeInteger(preview.errorCount) ||
+      !Array.isArray(preview.errors) ||
+      !Array.isArray(preview.summary) ||
+      typeof preview.readyToImport !== 'boolean'
     ) {
       throw new Error('CONTRATO_IMPORTACAO_INVALIDO: preview incompleto.');
     }
@@ -101,11 +101,11 @@ export class SportsTabularImportApiAdapter {
     }
     const result = value as Partial<SportsTabularImportResult>;
     if (
-      typeof result.importId !== 'string'
-      || typeof result.status !== 'string'
-      || !isNonNegativeInteger(result.totalImportedAthletes)
-      || !isNonNegativeInteger(result.totalImportedRosters)
-      || typeof result.message !== 'string'
+      typeof result.importId !== 'string' ||
+      typeof result.status !== 'string' ||
+      !isNonNegativeInteger(result.totalImportedAthletes) ||
+      !isNonNegativeInteger(result.totalImportedRosters) ||
+      typeof result.message !== 'string'
     ) {
       throw new Error('CONTRATO_IMPORTACAO_INVALIDO: resultado incompleto.');
     }
@@ -123,7 +123,11 @@ export class SportsTabularImportApiAdapter {
       throw new Error('CONTRATO_IMPORTACAO_INVALIDO: erro de preview ausente.');
     }
     const error = value as { line?: unknown; field?: unknown };
-    if (!Number.isInteger(error.line) || (error.line as number) < 1 || typeof error.field !== 'string') {
+    if (
+      !Number.isInteger(error.line) ||
+      (error.line as number) < 1 ||
+      typeof error.field !== 'string'
+    ) {
       throw new Error('CONTRATO_IMPORTACAO_INVALIDO: erro de preview incompleto.');
     }
     const field = SAFE_FIELDS.has(error.field) ? error.field : 'arquivo';
@@ -140,11 +144,11 @@ export class SportsTabularImportApiAdapter {
     }
     const summary = value as Partial<SportsTabularImportPreview['summary'][number]>;
     if (
-      typeof summary.organizationName !== 'string'
-      || typeof summary.teamName !== 'string'
-      || typeof summary.sportName !== 'string'
-      || typeof summary.categoryName !== 'string'
-      || !isNonNegativeInteger(summary.athleteCount)
+      typeof summary.organizationName !== 'string' ||
+      typeof summary.teamName !== 'string' ||
+      typeof summary.sportName !== 'string' ||
+      typeof summary.categoryName !== 'string' ||
+      !isNonNegativeInteger(summary.athleteCount)
     ) {
       throw new Error('CONTRATO_IMPORTACAO_INVALIDO: resumo incompleto.');
     }
@@ -159,7 +163,8 @@ export class SportsTabularImportApiAdapter {
 
   private safeProblem(field: string): string {
     if (field === 'matricula') return 'Matrícula inválida conforme o template.';
-    if (field === 'equipe' || field.endsWith('_slug')) return 'Referência não encontrada no escopo autorizado.';
+    if (field === 'equipe' || field.endsWith('_slug'))
+      return 'Referência não encontrada no escopo autorizado.';
     if (field === 'numero_camisa') return 'Número de camisa inválido.';
     if (field === 'posicao') return 'Posição inválida.';
     if (field === 'linha') return 'Linha duplicada.';
@@ -168,7 +173,8 @@ export class SportsTabularImportApiAdapter {
 
   private safeResultMessage(status: string): string {
     if (status === 'CONCLUIDO') return 'Importação concluída como rascunho.';
-    if (status === 'VALIDADO_AGUARDANDO_CONFIRMACAO') return 'Validação concluída. Confirmação pendente.';
+    if (status === 'VALIDADO_AGUARDANDO_CONFIRMACAO')
+      return 'Validação concluída. Confirmação pendente.';
     return 'Estado da importação consultado.';
   }
 }

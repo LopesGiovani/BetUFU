@@ -9,7 +9,13 @@ import { SportsScopeStore } from '../scope/sports-scope.store';
 import { SportsAthletesStore } from './sports-athletes.store';
 
 type ActiveForm = 'athlete' | null;
-type PreviewItem = { kind: 'athlete'; name: string; status: string; scope: string; version: number };
+type PreviewItem = {
+  kind: 'athlete';
+  name: string;
+  status: string;
+  scope: string;
+  version: number;
+};
 
 @Component({
   selector: 'app-sports-athletes-page',
@@ -35,8 +41,14 @@ export class SportsAthletesPageComponent implements OnInit {
 
   readonly athleteForm = new FormGroup({
     teamId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-    name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(160)] }),
-    slug: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)] }),
+    name: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.maxLength(160)],
+    }),
+    slug: new FormControl('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)],
+    }),
     matricula: new FormControl('', { nonNullable: true }),
   });
 
@@ -48,7 +60,10 @@ export class SportsAthletesPageComponent implements OnInit {
 
   async changeScope(competitionId: string): Promise<void> {
     if (!competitionId || competitionId === this.scope.selectedCompetitionId()) return;
-    if (this.hasDirtyForm() && !this.confirm('Trocar de competicao e descartar alteracoes nao salvas?')) {
+    if (
+      this.hasDirtyForm() &&
+      !this.confirm('Trocar de competicao e descartar alteracoes nao salvas?')
+    ) {
       return;
     }
     if (!this.scope.selectCompetition(competitionId)) return;
@@ -71,7 +86,10 @@ export class SportsAthletesPageComponent implements OnInit {
       this.store.load(),
       firstValueFrom(this.organizationsAdapter.fetchTeams(competitionId)).then(
         (teams) => this.teams.set(teams),
-        () => this.teamsError.set('As equipes desta competicao nao estao disponiveis para associar ao cadastro do atleta.'),
+        () =>
+          this.teamsError.set(
+            'As equipes desta competicao nao estao disponiveis para associar ao cadastro do atleta.',
+          ),
       ),
     ]);
     this.teamsLoading.set(false);
@@ -120,7 +138,12 @@ export class SportsAthletesPageComponent implements OnInit {
       if (this.athleteForm.controls.name.invalid || this.athleteForm.controls.slug.invalid) return;
       const name = this.athleteForm.controls.name.value;
       const slug = this.athleteForm.controls.slug.value;
-      const saved = await this.store.updateAthlete(current.athleteId, current.lockVersion, name, slug);
+      const saved = await this.store.updateAthlete(
+        current.athleteId,
+        current.lockVersion,
+        name,
+        slug,
+      );
       if (saved) this.closeForm();
       return;
     }
@@ -133,7 +156,12 @@ export class SportsAthletesPageComponent implements OnInit {
     this.athleteForm.controls.matricula.setValue('', { emitEvent: false });
     this.athleteForm.controls.matricula.reset('', { emitEvent: false });
 
-    const saved = await this.store.createAthlete(value.teamId, value.name, value.slug, rawMatricula);
+    const saved = await this.store.createAthlete(
+      value.teamId,
+      value.name,
+      value.slug,
+      rawMatricula,
+    );
     if (saved) {
       this.closeForm();
     }
@@ -141,7 +169,8 @@ export class SportsAthletesPageComponent implements OnInit {
 
   async publishAthlete(athlete: SportsAthleteSummary): Promise<void> {
     if (athlete.status === 'PUBLICADO') return;
-    if (!this.confirm(`Publicar o atleta ${athlete.name} na versao ${athlete.lockVersion}?`)) return;
+    if (!this.confirm(`Publicar o atleta ${athlete.name} na versao ${athlete.lockVersion}?`))
+      return;
     await this.store.publishAthlete(athlete.athleteId, athlete.lockVersion);
   }
 
@@ -172,10 +201,16 @@ export class SportsAthletesPageComponent implements OnInit {
   }
 
   private confirm(message: string): boolean {
-    return typeof window === 'undefined' || typeof window.confirm !== 'function' ? false : window.confirm(message);
+    return typeof window === 'undefined' || typeof window.confirm !== 'function'
+      ? false
+      : window.confirm(message);
   }
 
   private async syncScopeUrl(competitionId: string): Promise<void> {
-    if (this.router) await this.router.navigate([], { relativeTo: this.route ?? undefined, queryParams: { competitionId } });
+    if (this.router)
+      await this.router.navigate([], {
+        relativeTo: this.route ?? undefined,
+        queryParams: { competitionId },
+      });
   }
 }

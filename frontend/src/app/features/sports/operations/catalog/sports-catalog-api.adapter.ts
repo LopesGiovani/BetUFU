@@ -70,7 +70,10 @@ export class SportsCatalogApiAdapter {
     return defer(() => this.catalogService.createSportsCatalogSport(request));
   }
 
-  createEdition(competitionId: string, requestBody: CreateSportsCatalogEditionRequestParams['sportsCatalogEditionRequest']) {
+  createEdition(
+    competitionId: string,
+    requestBody: CreateSportsCatalogEditionRequestParams['sportsCatalogEditionRequest'],
+  ) {
     const request: CreateSportsCatalogEditionRequestParams = {
       competitionId,
       sportsCatalogEditionRequest: requestBody,
@@ -94,7 +97,13 @@ export class SportsCatalogApiAdapter {
     return defer(() => this.catalogService.createSportsCatalogPhase(request));
   }
 
-  createVenue(competitionId: string, name: string, address?: string, mapUrl?: string, notes?: string) {
+  createVenue(
+    competitionId: string,
+    name: string,
+    address?: string,
+    mapUrl?: string,
+    notes?: string,
+  ) {
     const request: CreateSportsCatalogVenueRequestParams = {
       competitionId,
       sportsCatalogVenueRequest: { name, address, mapUrl, notes },
@@ -139,21 +148,33 @@ export class SportsCatalogApiAdapter {
   }
 
   adaptScope(response: SportsCatalogScope | null | undefined): SportsCatalogScope {
-    if (!response || !Array.isArray(response.competitions) || typeof response.bootstrapAllowed !== 'boolean') {
+    if (
+      !response ||
+      !Array.isArray(response.competitions) ||
+      typeof response.bootstrapAllowed !== 'boolean'
+    ) {
       throw new Error('CONTRATO_CATALOGO_INVALIDO: escopo ausente ou malformado.');
     }
 
     const seen = new Set<string>();
     const competitions = response.competitions
       .filter((competition) => {
-        if (!competition || typeof competition.competitionId !== 'string' || seen.has(competition.competitionId)) {
+        if (
+          !competition ||
+          typeof competition.competitionId !== 'string' ||
+          seen.has(competition.competitionId)
+        ) {
           return false;
         }
         seen.add(competition.competitionId);
         return typeof competition.name === 'string' && competition.name.trim() !== '';
       })
       .map((competition) => ({ ...competition, name: competition.name.trim() }))
-      .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR') || left.competitionId.localeCompare(right.competitionId));
+      .sort(
+        (left, right) =>
+          left.name.localeCompare(right.name, 'pt-BR') ||
+          left.competitionId.localeCompare(right.competitionId),
+      );
 
     return {
       competitions,
@@ -162,9 +183,15 @@ export class SportsCatalogApiAdapter {
   }
 
   adaptTree(response: SportsCatalogTree | null | undefined): SportsCatalogTree {
-    if (!response || !response.competition || !Array.isArray(response.sports)
-      || !Array.isArray(response.editions) || !Array.isArray(response.categories)
-      || !Array.isArray(response.phases) || !Array.isArray(response.venues)) {
+    if (
+      !response ||
+      !response.competition ||
+      !Array.isArray(response.sports) ||
+      !Array.isArray(response.editions) ||
+      !Array.isArray(response.categories) ||
+      !Array.isArray(response.phases) ||
+      !Array.isArray(response.venues)
+    ) {
       throw new Error('CONTRATO_CATALOGO_INVALIDO: arvore ausente ou malformada.');
     }
 
@@ -191,7 +218,9 @@ export class SportsCatalogApiAdapter {
     }
     const occurrences = new Map<unknown, number>();
     for (const value of raw) occurrences.set(value, (occurrences.get(value) ?? 0) + 1);
-    return Object.freeze(CAPABILITY_ORDER.filter((capability) => occurrences.get(capability) === 1));
+    return Object.freeze(
+      CAPABILITY_ORDER.filter((capability) => occurrences.get(capability) === 1),
+    );
   }
 
   private sortByName<T extends { name: string }>(items: readonly T[]): T[] {

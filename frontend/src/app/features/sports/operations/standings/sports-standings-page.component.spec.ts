@@ -19,8 +19,16 @@ const mockDraftSnapshot: SportsStandingsSnapshot = {
   phaseName: 'Fase de Grupos',
   columns: ['PTS', 'J', 'V', 'E', 'D', 'GP', 'GC', 'SG'],
   rows: [
-    { position: 1, participantName: 'Engenharia Futsal', values: ['6', '2', '2', '0', '0', '8', '2', '6'] },
-    { position: 2, participantName: 'Medicina Futsal', values: ['3', '2', '1', '0', '1', '5', '4', '1'] },
+    {
+      position: 1,
+      participantName: 'Engenharia Futsal',
+      values: ['6', '2', '2', '0', '0', '8', '2', '6'],
+    },
+    {
+      position: 2,
+      participantName: 'Medicina Futsal',
+      values: ['3', '2', '1', '0', '1', '5', '4', '1'],
+    },
   ],
 };
 

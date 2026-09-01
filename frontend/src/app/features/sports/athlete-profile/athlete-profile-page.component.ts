@@ -1,5 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AthleteProfileDraft, AthleteProfileStore } from './athlete-profile.store';
@@ -29,11 +37,11 @@ function socialUrl(platform: SocialControlName): ValidatorFn {
     } catch {
       return { socialUrl: true };
     }
-    return parsed.protocol === 'https:'
-      && !parsed.username
-      && !parsed.password
-      && SOCIAL_HOSTS[platform].has(parsed.hostname.toLowerCase())
-      && parsed.pathname !== '/'
+    return parsed.protocol === 'https:' &&
+      !parsed.username &&
+      !parsed.password &&
+      SOCIAL_HOSTS[platform].has(parsed.hostname.toLowerCase()) &&
+      parsed.pathname !== '/'
       ? null
       : { socialUrl: true };
   };
@@ -83,11 +91,27 @@ export class AthleteProfilePageComponent {
   });
 
   readonly bioLength = computed(() => this.store.preview()?.bio.length ?? 0);
-  readonly socialFields: readonly { control: SocialControlName; label: string; placeholder: string }[] = [
-    { control: 'instagramUrl', label: 'Instagram', placeholder: 'https://instagram.com/seu-perfil' },
+  readonly socialFields: readonly {
+    control: SocialControlName;
+    label: string;
+    placeholder: string;
+  }[] = [
+    {
+      control: 'instagramUrl',
+      label: 'Instagram',
+      placeholder: 'https://instagram.com/seu-perfil',
+    },
     { control: 'xUrl', label: 'X / Twitter', placeholder: 'https://x.com/seu-perfil' },
-    { control: 'linkedinUrl', label: 'LinkedIn', placeholder: 'https://linkedin.com/in/seu-perfil' },
-    { control: 'stravaUrl', label: 'Strava', placeholder: 'https://strava.com/athletes/seu-perfil' },
+    {
+      control: 'linkedinUrl',
+      label: 'LinkedIn',
+      placeholder: 'https://linkedin.com/in/seu-perfil',
+    },
+    {
+      control: 'stravaUrl',
+      label: 'Strava',
+      placeholder: 'https://strava.com/athletes/seu-perfil',
+    },
     { control: 'youtubeUrl', label: 'YouTube', placeholder: 'https://youtube.com/@seu-perfil' },
   ];
   readonly previewLinks = computed(() => {
@@ -113,15 +137,18 @@ export class AthleteProfilePageComponent {
       }
       if (profile.lockVersion === this.patchedVersion) return;
       this.patchedVersion = profile.lockVersion;
-      this.form.reset({
-        course: profile.course ?? '',
-        bio: profile.bio ?? '',
-        instagramUrl: profile.instagramUrl ?? '',
-        xUrl: profile.xUrl ?? '',
-        linkedinUrl: profile.linkedinUrl ?? '',
-        stravaUrl: profile.stravaUrl ?? '',
-        youtubeUrl: profile.youtubeUrl ?? '',
-      }, { emitEvent: false });
+      this.form.reset(
+        {
+          course: profile.course ?? '',
+          bio: profile.bio ?? '',
+          instagramUrl: profile.instagramUrl ?? '',
+          xUrl: profile.xUrl ?? '',
+          linkedinUrl: profile.linkedinUrl ?? '',
+          stravaUrl: profile.stravaUrl ?? '',
+          youtubeUrl: profile.youtubeUrl ?? '',
+        },
+        { emitEvent: false },
+      );
       this.form.markAsPristine();
     });
 
@@ -130,7 +157,9 @@ export class AthleteProfilePageComponent {
   }
 
   get saveDisabled(): boolean {
-    return this.form.invalid || this.form.pristine || this.store.isSaving() || this.store.isRemoving();
+    return (
+      this.form.invalid || this.form.pristine || this.store.isSaving() || this.store.isRemoving()
+    );
   }
 
   fieldError(controlName: keyof AthleteProfileDraft): string {
@@ -175,7 +204,13 @@ export class AthleteProfilePageComponent {
 
   private emptyDraft(): AthleteProfileDraft {
     return {
-      course: '', bio: '', instagramUrl: '', xUrl: '', linkedinUrl: '', stravaUrl: '', youtubeUrl: '',
+      course: '',
+      bio: '',
+      instagramUrl: '',
+      xUrl: '',
+      linkedinUrl: '',
+      stravaUrl: '',
+      youtubeUrl: '',
     };
   }
 }

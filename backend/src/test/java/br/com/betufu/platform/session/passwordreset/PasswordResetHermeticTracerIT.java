@@ -6,6 +6,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.betufu.audit.AuditRecorder;
+import br.com.betufu.platform.security.OidcRevocationClient;
+import br.com.betufu.platform.session.IdentitySessionTerminationService;
+import br.com.betufu.platform.session.OidcSessionRevocationService;
+import br.com.betufu.platform.session.RedisContainerSupport;
+import br.com.betufu.platform.session.SelectiveTouchSessionRepository;
+import br.com.betufu.platform.session.SessionInvalidationListener;
+import br.com.betufu.platform.session.SessionSecurityConfiguration;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
@@ -15,7 +23,6 @@ import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,159 +67,152 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import br.com.betufu.audit.AuditRecorder;
-import br.com.betufu.platform.security.OidcRevocationClient;
-import br.com.betufu.platform.session.IdentitySessionTerminationService;
-import br.com.betufu.platform.session.OidcSessionRevocationService;
-import br.com.betufu.platform.session.RedisContainerSupport;
-import br.com.betufu.platform.session.SelectiveTouchSessionRepository;
-import br.com.betufu.platform.session.SessionInvalidationListener;
-import br.com.betufu.platform.session.SessionSecurityConfiguration;
-
 /**
  * Hermetic tracer IT connecting the 02-24 Keycloak outbox event to the BETUFU password reset inbox
  * and session termination (02-09 IdentitySessionTerminationService).
  *
  * <p>Proves:
+ *
  * <ul>
- *   <li>A valid HMAC-signed envelope from the outbox is persisted and terminates all sessions of the target subject with SECURITY reason;
+ *   <li>A valid HMAC-signed envelope from the outbox is persisted and terminates all sessions of
+ *       the target subject with SECURITY reason;
  *   <li>Control sessions of a different subject remain active in Redis;
- *   <li>Tampered signature, method, path, body SHA-256 or prohibited payload fields are rejected before any effect.
+ *   <li>Tampered signature, method, path, body SHA-256 or prohibited payload fields are rejected
+ *       before any effect.
  * </ul>
  */
 @SpringBootTest(
-        classes = {
-            SessionSecurityConfiguration.class,
-            IdentitySessionTerminationService.class,
-            SessionInvalidationListener.class,
-            OidcSessionRevocationService.class,
-            PasswordResetSignedEnvelopeVerifier.class,
-            PasswordResetEventInboxService.class,
-            PasswordResetEventEndpoint.class,
-            // Necessario desde a Task 02-31-01: a chave passou a vir exclusivamente das
-            // propriedades. Este contexto nao importa a configuracao de seguranca dedicada, que
-            // e quem declara @EnableConfigurationProperties, entao o bean precisa ser registrado
-            // aqui — senao o endpoint recebe properties nulo e falha fechado com 401.
-            PasswordResetEventProperties.class,
-            PasswordResetHermeticTracerIT.TestApplication.class
-        },
-        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-        properties = {
-            "spring.docker.compose.enabled=false",
-            "BETUFU_OIDC_ISSUER_URI=https://idp.invalid",
-            "BETUFU_OIDC_CLIENT_ID=betufu-hermetic-tracer-it",
-            "BETUFU_OIDC_CLIENT_SECRET=unused",
-            // Consequencia direta da Task 02-31-01: a chave passou a ser resolvida somente pelo
-            // modelo current/previous das propriedades. O @Value do endpoint que lia
-            // BETUFU_PASSWORD_RESET_HMAC_KEY_V1 foi removido por exigir segredo fora desse modelo.
-            "betufu.session.password-reset.current-version=v1",
-            "betufu.session.password-reset.keys.v1=MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
-        })
+    classes = {
+      SessionSecurityConfiguration.class,
+      IdentitySessionTerminationService.class,
+      SessionInvalidationListener.class,
+      OidcSessionRevocationService.class,
+      PasswordResetSignedEnvelopeVerifier.class,
+      PasswordResetEventInboxService.class,
+      PasswordResetEventEndpoint.class,
+      // Necessario desde a Task 02-31-01: a chave passou a vir exclusivamente das
+      // propriedades. Este contexto nao importa a configuracao de seguranca dedicada, que
+      // e quem declara @EnableConfigurationProperties, entao o bean precisa ser registrado
+      // aqui — senao o endpoint recebe properties nulo e falha fechado com 401.
+      PasswordResetEventProperties.class,
+      PasswordResetHermeticTracerIT.TestApplication.class
+    },
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = {
+      "spring.docker.compose.enabled=false",
+      "BETUFU_OIDC_ISSUER_URI=https://idp.invalid",
+      "BETUFU_OIDC_CLIENT_ID=betufu-hermetic-tracer-it",
+      "BETUFU_OIDC_CLIENT_SECRET=unused",
+      // Consequencia direta da Task 02-31-01: a chave passou a ser resolvida somente pelo
+      // modelo current/previous das propriedades. O @Value do endpoint que lia
+      // BETUFU_PASSWORD_RESET_HMAC_KEY_V1 foi removido por exigir segredo fora desse modelo.
+      "betufu.session.password-reset.current-version=v1",
+      "betufu.session.password-reset.keys.v1=MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+    })
 @ActiveProfiles("integrated")
 @Testcontainers
 @Import(PasswordResetHermeticTracerIT.TestApplication.class)
 class PasswordResetHermeticTracerIT {
 
-    private static final String TARGET_SUBJECT_A = "tracer-target-user-alpha";
-    private static final String CONTROL_SUBJECT_B = "tracer-control-user-beta";
-    private static final String TEST_REALM = "betufu-local";
-    private static final String KEY_ID = "v1";
-    private static final byte[] RAW_SECRET_KEY = Base64.getDecoder().decode("MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
+  private static final String TARGET_SUBJECT_A = "tracer-target-user-alpha";
+  private static final String CONTROL_SUBJECT_B = "tracer-control-user-beta";
+  private static final String TEST_REALM = "betufu-local";
+  private static final String KEY_ID = "v1";
+  private static final byte[] RAW_SECRET_KEY =
+      Base64.getDecoder().decode("MTEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
 
-    private static final String APPROVED_ACTIVITY_ATTRIBUTE =
-            SelectiveTouchSessionRepository.class.getName() + ".approvedActivity";
-    private static final String LAST_VALID_EPOCH_SECOND_ATTRIBUTE =
-            "betufu.session.lastValidActivityAt.epochSecond";
-    private static final String LAST_VALID_NANO_ATTRIBUTE =
-            "betufu.session.lastValidActivityAt.nano";
+  private static final String APPROVED_ACTIVITY_ATTRIBUTE =
+      SelectiveTouchSessionRepository.class.getName() + ".approvedActivity";
+  private static final String LAST_VALID_EPOCH_SECOND_ATTRIBUTE =
+      "betufu.session.lastValidActivityAt.epochSecond";
+  private static final String LAST_VALID_NANO_ATTRIBUTE = "betufu.session.lastValidActivityAt.nano";
 
-    private static final String POSTGRES_IMAGE_REFERENCE =
-            "docker.io/library/postgres:18.4-trixie@sha256:"
-                    + "a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636";
+  private static final String POSTGRES_IMAGE_REFERENCE =
+      "docker.io/library/postgres:18.4-trixie@sha256:"
+          + "a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636";
 
-    private static final DockerImageName POSTGRES_IMAGE =
-            DockerImageName.parse(POSTGRES_IMAGE_REFERENCE)
-                    .asCompatibleSubstituteFor("postgres");
+  private static final DockerImageName POSTGRES_IMAGE =
+      DockerImageName.parse(POSTGRES_IMAGE_REFERENCE).asCompatibleSubstituteFor("postgres");
 
-    @Container
-    @ServiceConnection(name = "postgres")
-    static final PostgreSQLContainer POSTGRESQL = new PostgreSQLContainer(POSTGRES_IMAGE)
-            .withDatabaseName("betufu_app")
-            .withUsername("betufu_app")
-            .withPassword("betufu-test-only")
-            .withInitScript("postgres-audit-runtime-role.sql");
+  @Container
+  @ServiceConnection(name = "postgres")
+  static final PostgreSQLContainer POSTGRESQL =
+      new PostgreSQLContainer(POSTGRES_IMAGE)
+          .withDatabaseName("betufu_app")
+          .withUsername("betufu_app")
+          .withPassword("betufu-test-only")
+          .withInitScript("postgres-audit-runtime-role.sql");
 
-    @Container
-    static final GenericContainer<?> REDIS = RedisContainerSupport.REDIS;
+  @Container static final GenericContainer<?> REDIS = RedisContainerSupport.REDIS;
 
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        RedisContainerSupport.registerProperties(registry);
-    }
+  @DynamicPropertySource
+  static void dynamicProperties(DynamicPropertyRegistry registry) {
+    RedisContainerSupport.registerProperties(registry);
+  }
 
-    @Autowired
-    private WebApplicationContext applicationContext;
+  @Autowired private WebApplicationContext applicationContext;
 
-    @Autowired
-    private StringRedisTemplate redis;
+  @Autowired private StringRedisTemplate redis;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private MutableTestClock clock;
+  @Autowired private MutableTestClock clock;
 
-    @Autowired
-    private PasswordResetSignedEnvelopeVerifier verifier;
+  @Autowired private PasswordResetSignedEnvelopeVerifier verifier;
 
-    @Autowired
-    private PasswordResetEventEndpoint endpoint;
+  @Autowired private PasswordResetEventEndpoint endpoint;
 
-    @Autowired
-    private OAuth2AuthorizedClientService authorizedClientService;
+  @Autowired private OAuth2AuthorizedClientService authorizedClientService;
 
-    @Autowired
-    private ClientRegistrationRepository clientRegistrationRepository;
+  @Autowired private ClientRegistrationRepository clientRegistrationRepository;
 
-    private SelectiveTouchSessionRepository repository;
-    private MockMvc mockMvc;
+  private SelectiveTouchSessionRepository repository;
+  private MockMvc mockMvc;
 
-    @BeforeEach
-    void setup() {
-        redis.execute((RedisCallback<Void>) connection -> {
-            connection.serverCommands().flushDb();
-            connection.serverCommands().setConfig("notify-keyspace-events", "KEA");
-            return null;
-        });
-        jdbcTemplate.execute("TRUNCATE TABLE public.password_reset_event_inbox");
-        clock.set(Instant.now());
-        repository = (SelectiveTouchSessionRepository) applicationContext.getBean("sessionRepository");
-        mockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
-    }
+  @BeforeEach
+  void setup() {
+    redis.execute(
+        (RedisCallback<Void>)
+            connection -> {
+              connection.serverCommands().flushDb();
+              connection.serverCommands().setConfig("notify-keyspace-events", "KEA");
+              return null;
+            });
+    jdbcTemplate.execute("TRUNCATE TABLE public.password_reset_event_inbox");
+    clock.set(Instant.now());
+    repository = (SelectiveTouchSessionRepository) applicationContext.getBean("sessionRepository");
+    mockMvc = MockMvcBuilders.standaloneSetup(endpoint).build();
+  }
 
-    @Test
-    @DisplayName("Valid signed envelope from 02-24 outbox persists inbox and terminates target session while control user survives")
-    void validEnvelopePersistsInboxAndTerminatesTargetSessionsLeavingControlIntact() throws Exception {
-        // 1. Create 1 active session for Target A and 1 for Control B. The authorized-client
-        // store is principal-scoped, while multi-session deletion is covered by the session
-        // termination integration tests.
-        SelectiveTouchSessionRepository.SelectiveSession sessionA1 = createAuthenticatedSession(TARGET_SUBJECT_A);
-        repository.save(sessionA1);
+  @Test
+  @DisplayName(
+      "Valid signed envelope from 02-24 outbox persists inbox and terminates target session while control user survives")
+  void validEnvelopePersistsInboxAndTerminatesTargetSessionsLeavingControlIntact()
+      throws Exception {
+    // 1. Create 1 active session for Target A and 1 for Control B. The authorized-client
+    // store is principal-scoped, while multi-session deletion is covered by the session
+    // termination integration tests.
+    SelectiveTouchSessionRepository.SelectiveSession sessionA1 =
+        createAuthenticatedSession(TARGET_SUBJECT_A);
+    repository.save(sessionA1);
 
-        SelectiveTouchSessionRepository.SelectiveSession sessionB1 = createAuthenticatedSession(CONTROL_SUBJECT_B);
-        repository.save(sessionB1);
+    SelectiveTouchSessionRepository.SelectiveSession sessionB1 =
+        createAuthenticatedSession(CONTROL_SUBJECT_B);
+    repository.save(sessionB1);
 
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
-        assertThat(repository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+    assertThat(repository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
 
-        // 2. Build 02-24 outbox event contract representation
-        String sourceEventId = "evt-outbox-" + UUID.randomUUID();
-        Instant eventTime = clock.instant();
-        OutboxEventRepresentation outboxEvent = new OutboxEventRepresentation(
-                sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL", eventTime);
+    // 2. Build 02-24 outbox event contract representation
+    String sourceEventId = "evt-outbox-" + UUID.randomUUID();
+    Instant eventTime = clock.instant();
+    OutboxEventRepresentation outboxEvent =
+        new OutboxEventRepresentation(
+            sourceEventId, TARGET_SUBJECT_A, TEST_REALM, "UPDATE_CREDENTIAL", eventTime);
 
-        // 3. Hermetic pump builds JSON payload and computes signature
-        String jsonPayload = """
+    // 3. Hermetic pump builds JSON payload and computes signature
+    String jsonPayload =
+        """
                 {
                     "sourceEventId": "%s",
                     "subject": "%s",
@@ -220,62 +220,70 @@ class PasswordResetHermeticTracerIT {
                     "eventType": "%s",
                     "timestamp": "%s"
                 }
-                """.formatted(
-                        outboxEvent.sourceEventId(),
-                        outboxEvent.subject(),
-                        outboxEvent.realmId(),
-                        outboxEvent.eventType(),
-                        eventTime.toString());
+                """
+            .formatted(
+                outboxEvent.sourceEventId(),
+                outboxEvent.subject(),
+                outboxEvent.realmId(),
+                outboxEvent.eventType(),
+                eventTime.toString());
 
-        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
-        String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        String timestampHeader = String.valueOf(eventTime.toEpochMilli());
-        String signature = verifier.sign(
-                RAW_SECRET_KEY,
-                KEY_ID,
-                timestampHeader,
-                "POST",
-                PasswordResetEventEndpoint.ENDPOINT_PATH,
-                sourceEventId,
-                bodySha256);
+    byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+    String bodySha256 = verifier.computeBodySha256(bodyBytes);
+    String timestampHeader = String.valueOf(eventTime.toEpochMilli());
+    String signature =
+        verifier.sign(
+            RAW_SECRET_KEY,
+            KEY_ID,
+            timestampHeader,
+            "POST",
+            PasswordResetEventEndpoint.ENDPOINT_PATH,
+            sourceEventId,
+            bodySha256);
 
-        // 4. Send request to internal endpoint
-        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
-                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
-                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
-                        .content(bodyBytes))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("DELIVERED"))
-                .andExpect(jsonPath("$.sourceEventId").value(sourceEventId))
-                .andExpect(jsonPath("$.effectExecuted").value(true));
+    // 4. Send request to internal endpoint
+    mockMvc
+        .perform(
+            post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                .content(bodyBytes))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("DELIVERED"))
+        .andExpect(jsonPath("$.sourceEventId").value(sourceEventId))
+        .andExpect(jsonPath("$.effectExecuted").value(true));
 
-        // 5. Verify PostgreSQL inbox record
-        Long count = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ? AND status = 'DELIVERED'",
-                Long.class,
-                sourceEventId);
-        assertThat(count).isEqualTo(1L);
+    // 5. Verify PostgreSQL inbox record
+    Long count =
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ? AND status = 'DELIVERED'",
+            Long.class,
+            sourceEventId);
+    assertThat(count).isEqualTo(1L);
 
-        // 6. Verify Target A sessions are terminated in Redis
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
-        assertThat(repository.findById(sessionA1.getId())).isNull();
+    // 6. Verify Target A sessions are terminated in Redis
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+    assertThat(repository.findById(sessionA1.getId())).isNull();
 
-        // 7. Verify Control B session survives intact
-        assertThat(repository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
-        assertThat(repository.findById(sessionB1.getId())).isNotNull();
-    }
+    // 7. Verify Control B session survives intact
+    assertThat(repository.findByPrincipalName(CONTROL_SUBJECT_B)).hasSize(1);
+    assertThat(repository.findById(sessionB1.getId())).isNotNull();
+  }
 
-    @Test
-    @DisplayName("Tampered signature is rejected with 401 and produces no inbox persistence or session termination")
-    void tamperedSignatureIsRejectedWithoutEffect() throws Exception {
-        SelectiveTouchSessionRepository.SelectiveSession sessionA = createAuthenticatedSession(TARGET_SUBJECT_A);
-        repository.save(sessionA);
+  @Test
+  @DisplayName(
+      "Tampered signature is rejected with 401 and produces no inbox persistence or session termination")
+  void tamperedSignatureIsRejectedWithoutEffect() throws Exception {
+    SelectiveTouchSessionRepository.SelectiveSession sessionA =
+        createAuthenticatedSession(TARGET_SUBJECT_A);
+    repository.save(sessionA);
 
-        String sourceEventId = "evt-tamper-sig-" + UUID.randomUUID();
-        String jsonPayload = """
+    String sourceEventId = "evt-tamper-sig-" + UUID.randomUUID();
+    String jsonPayload =
+        """
                 {
                     "sourceEventId": "%s",
                     "subject": "%s",
@@ -283,39 +291,45 @@ class PasswordResetHermeticTracerIT {
                     "eventType": "UPDATE_CREDENTIAL",
                     "timestamp": "%s"
                 }
-                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+                """
+            .formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
 
-        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
-        String invalidSignature = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff";
+    byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+    String invalidSignature = "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff";
 
-        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
-                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, invalidSignature)
-                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
-                        .content(bodyBytes))
-                .andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(
+            post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, invalidSignature)
+                .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                .content(bodyBytes))
+        .andExpect(status().isUnauthorized());
 
-        // Inbox has no record
-        Long count = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
-                Long.class,
-                sourceEventId);
-        assertThat(count).isZero();
+    // Inbox has no record
+    Long count =
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
+            Long.class,
+            sourceEventId);
+    assertThat(count).isZero();
 
-        // Target session remains active
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
-    }
+    // Target session remains active
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+  }
 
-    @Test
-    @DisplayName("Tampered body SHA-256 or method/path is rejected with 401 before effect")
-    void tamperedEnvelopeComponentsAreRejected() throws Exception {
-        SelectiveTouchSessionRepository.SelectiveSession sessionA = createAuthenticatedSession(TARGET_SUBJECT_A);
-        repository.save(sessionA);
+  @Test
+  @DisplayName("Tampered body SHA-256 or method/path is rejected with 401 before effect")
+  void tamperedEnvelopeComponentsAreRejected() throws Exception {
+    SelectiveTouchSessionRepository.SelectiveSession sessionA =
+        createAuthenticatedSession(TARGET_SUBJECT_A);
+    repository.save(sessionA);
 
-        String sourceEventId = "evt-tamper-comp-" + UUID.randomUUID();
-        String jsonPayload = """
+    String sourceEventId = "evt-tamper-comp-" + UUID.randomUUID();
+    String jsonPayload =
+        """
                 {
                     "sourceEventId": "%s",
                     "subject": "%s",
@@ -323,33 +337,46 @@ class PasswordResetHermeticTracerIT {
                     "eventType": "UPDATE_CREDENTIAL",
                     "timestamp": "%s"
                 }
-                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+                """
+            .formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
 
-        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
-        // Compute signature for GET instead of POST
-        String signatureForGet = verifier.sign(
-                RAW_SECRET_KEY, KEY_ID, "123456789", "GET", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, verifier.computeBodySha256(bodyBytes));
+    byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+    // Compute signature for GET instead of POST
+    String signatureForGet =
+        verifier.sign(
+            RAW_SECRET_KEY,
+            KEY_ID,
+            "123456789",
+            "GET",
+            PasswordResetEventEndpoint.ENDPOINT_PATH,
+            sourceEventId,
+            verifier.computeBodySha256(bodyBytes));
 
-        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
-                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signatureForGet)
-                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
-                        .content(bodyBytes))
-                .andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(
+            post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, "123456789")
+                .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signatureForGet)
+                .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                .content(bodyBytes))
+        .andExpect(status().isUnauthorized());
 
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
-    }
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+  }
 
-    @Test
-    @DisplayName("Prohibited payload fields like password or email are rejected with 400 Bad Request before effect")
-    void prohibitedFieldsInPayloadAreRejectedWith400() throws Exception {
-        SelectiveTouchSessionRepository.SelectiveSession sessionA = createAuthenticatedSession(TARGET_SUBJECT_A);
-        repository.save(sessionA);
+  @Test
+  @DisplayName(
+      "Prohibited payload fields like password or email are rejected with 400 Bad Request before effect")
+  void prohibitedFieldsInPayloadAreRejectedWith400() throws Exception {
+    SelectiveTouchSessionRepository.SelectiveSession sessionA =
+        createAuthenticatedSession(TARGET_SUBJECT_A);
+    repository.save(sessionA);
 
-        String sourceEventId = "evt-prohibited-" + UUID.randomUUID();
-        String jsonPayloadWithPassword = """
+    String sourceEventId = "evt-prohibited-" + UUID.randomUUID();
+    String jsonPayloadWithPassword =
+        """
                 {
                     "sourceEventId": "%s",
                     "subject": "%s",
@@ -357,43 +384,57 @@ class PasswordResetHermeticTracerIT {
                     "password": "super-secret-password-attempt",
                     "timestamp": "%s"
                 }
-                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+                """
+            .formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
 
-        byte[] bodyBytes = jsonPayloadWithPassword.getBytes(StandardCharsets.UTF_8);
-        String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        // Instante real, nao epoch fixo: a Task 02-31-01 introduziu a janela de +-5 minutos, e
-        // o valor literal "123456789" corresponde a 1973 — corretamente recusado com 401.
-        String timestampHeader = String.valueOf(Instant.now().toEpochMilli());
-        String signature = verifier.sign(
-                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+    byte[] bodyBytes = jsonPayloadWithPassword.getBytes(StandardCharsets.UTF_8);
+    String bodySha256 = verifier.computeBodySha256(bodyBytes);
+    // Instante real, nao epoch fixo: a Task 02-31-01 introduziu a janela de +-5 minutos, e
+    // o valor literal "123456789" corresponde a 1973 — corretamente recusado com 401.
+    String timestampHeader = String.valueOf(Instant.now().toEpochMilli());
+    String signature =
+        verifier.sign(
+            RAW_SECRET_KEY,
+            KEY_ID,
+            timestampHeader,
+            "POST",
+            PasswordResetEventEndpoint.ENDPOINT_PATH,
+            sourceEventId,
+            bodySha256);
 
-        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
-                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
-                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
-                        .content(bodyBytes))
-                .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(
+            post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                .content(bodyBytes))
+        .andExpect(status().isBadRequest());
 
-        // Target session remains active
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
-        Long count = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
-                Long.class,
-                sourceEventId);
-        assertThat(count).isZero();
-    }
+    // Target session remains active
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+    Long count =
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM public.password_reset_event_inbox WHERE source_event_id = ?",
+            Long.class,
+            sourceEventId);
+    assertThat(count).isZero();
+  }
 
-    @Test
-    @DisplayName("Duplicate sourceEventId is idempotent and does not execute second session termination")
-    void duplicateSourceEventIdIsIdempotent() throws Exception {
-        // First delivery terminates initial session
-        SelectiveTouchSessionRepository.SelectiveSession session1 = createAuthenticatedSession(TARGET_SUBJECT_A);
-        repository.save(session1);
+  @Test
+  @DisplayName(
+      "Duplicate sourceEventId is idempotent and does not execute second session termination")
+  void duplicateSourceEventIdIsIdempotent() throws Exception {
+    // First delivery terminates initial session
+    SelectiveTouchSessionRepository.SelectiveSession session1 =
+        createAuthenticatedSession(TARGET_SUBJECT_A);
+    repository.save(session1);
 
-        String sourceEventId = "evt-idempotent-" + UUID.randomUUID();
-        String jsonPayload = """
+    String sourceEventId = "evt-idempotent-" + UUID.randomUUID();
+    String jsonPayload =
+        """
                 {
                     "sourceEventId": "%s",
                     "subject": "%s",
@@ -401,181 +442,189 @@ class PasswordResetHermeticTracerIT {
                     "eventType": "UPDATE_CREDENTIAL",
                     "timestamp": "%s"
                 }
-                """.formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
+                """
+            .formatted(sourceEventId, TARGET_SUBJECT_A, TEST_REALM, clock.instant().toString());
 
-        byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
-        String bodySha256 = verifier.computeBodySha256(bodyBytes);
-        // Instante real, nao epoch fixo: a Task 02-31-01 introduziu a janela de +-5 minutos, e
-        // o valor literal "123456789" corresponde a 1973 — corretamente recusado com 401.
-        String timestampHeader = String.valueOf(Instant.now().toEpochMilli());
-        String signature = verifier.sign(
-                RAW_SECRET_KEY, KEY_ID, timestampHeader, "POST", PasswordResetEventEndpoint.ENDPOINT_PATH, sourceEventId, bodySha256);
+    byte[] bodyBytes = jsonPayload.getBytes(StandardCharsets.UTF_8);
+    String bodySha256 = verifier.computeBodySha256(bodyBytes);
+    // Instante real, nao epoch fixo: a Task 02-31-01 introduziu a janela de +-5 minutos, e
+    // o valor literal "123456789" corresponde a 1973 — corretamente recusado com 401.
+    String timestampHeader = String.valueOf(Instant.now().toEpochMilli());
+    String signature =
+        verifier.sign(
+            RAW_SECRET_KEY,
+            KEY_ID,
+            timestampHeader,
+            "POST",
+            PasswordResetEventEndpoint.ENDPOINT_PATH,
+            sourceEventId,
+            bodySha256);
 
-        // 1st request
-        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
-                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
-                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
-                        .content(bodyBytes))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.effectExecuted").value(true));
+    // 1st request
+    mockMvc
+        .perform(
+            post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                .content(bodyBytes))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.effectExecuted").value(true));
 
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).isEmpty();
 
-        // Create new session for Target A after first reset
-        SelectiveTouchSessionRepository.SelectiveSession session2 = createAuthenticatedSession(TARGET_SUBJECT_A);
-        repository.save(session2);
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+    // Create new session for Target A after first reset
+    SelectiveTouchSessionRepository.SelectiveSession session2 =
+        createAuthenticatedSession(TARGET_SUBJECT_A);
+    repository.save(session2);
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
 
-        // 2nd request with SAME sourceEventId (replay/duplicate)
-        mockMvc.perform(post(PasswordResetEventEndpoint.ENDPOINT_PATH)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
-                        .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
-                        .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
-                        .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
-                        .content(bodyBytes))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.effectExecuted").value(false));
+    // 2nd request with SAME sourceEventId (replay/duplicate)
+    mockMvc
+        .perform(
+            post(PasswordResetEventEndpoint.ENDPOINT_PATH)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(PasswordResetEventEndpoint.HEADER_KEY_ID, KEY_ID)
+                .header(PasswordResetEventEndpoint.HEADER_TIMESTAMP, timestampHeader)
+                .header(PasswordResetEventEndpoint.HEADER_SIGNATURE, signature)
+                .header(PasswordResetEventEndpoint.HEADER_SOURCE_EVENT_ID, sourceEventId)
+                .content(bodyBytes))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.effectExecuted").value(false));
 
-        // The second session must survive because duplicate was recognized and effect was skipped!
-        assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
-        assertThat(repository.findById(session2.getId())).isNotNull();
+    // The second session must survive because duplicate was recognized and effect was skipped!
+    assertThat(repository.findByPrincipalName(TARGET_SUBJECT_A)).hasSize(1);
+    assertThat(repository.findById(session2.getId())).isNotNull();
+  }
+
+  private SelectiveTouchSessionRepository.SelectiveSession createAuthenticatedSession(
+      String subject) {
+    saveAuthorizedClient(subject);
+    SelectiveTouchSessionRepository.SelectiveSession session = repository.createSession();
+    Instant now = clock.instant();
+
+    OidcIdToken idToken =
+        OidcIdToken.withTokenValue("probe-token-" + subject)
+            .issuer("https://idp.invalid")
+            .subject(subject)
+            .claim("preferred_username", "user-" + subject)
+            .issuedAt(now)
+            .expiresAt(now.plusSeconds(3600))
+            .build();
+
+    DefaultOidcUser oidcUser =
+        new DefaultOidcUser(
+            AuthorityUtils.createAuthorityList("ROLE_USER"), idToken, IdTokenClaimNames.SUB);
+
+    OAuth2AuthenticationToken authentication =
+        new OAuth2AuthenticationToken(oidcUser, oidcUser.getAuthorities(), "keycloak");
+
+    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+    securityContext.setAuthentication(authentication);
+
+    session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
+    session.setAttribute(LAST_VALID_EPOCH_SECOND_ATTRIBUTE, now.getEpochSecond());
+    session.setAttribute(LAST_VALID_NANO_ATTRIBUTE, now.getNano());
+    session.setAttribute(APPROVED_ACTIVITY_ATTRIBUTE, now);
+
+    return session;
+  }
+
+  private void saveAuthorizedClient(String principalName) {
+    ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("keycloak");
+    Instant issuedAt = clock.instant();
+    OAuth2AuthorizedClient client =
+        new OAuth2AuthorizedClient(
+            registration,
+            principalName,
+            new OAuth2AccessToken(
+                OAuth2AccessToken.TokenType.BEARER,
+                "test-access-token",
+                issuedAt,
+                issuedAt.plusSeconds(300)),
+            new OAuth2RefreshToken("test-refresh-token", issuedAt));
+    authorizedClientService.saveAuthorizedClient(
+        client, new TestingAuthenticationToken(principalName, "not-used", "ROLE_USER"));
+  }
+
+  @TestConfiguration(proxyBeanMethods = false)
+  @EnableAutoConfiguration
+  static class TestApplication {
+
+    @Bean
+    @Primary
+    MutableTestClock mutableTestClock() {
+      return new MutableTestClock(Instant.EPOCH, ZoneOffset.UTC);
     }
 
-    private SelectiveTouchSessionRepository.SelectiveSession createAuthenticatedSession(String subject) {
-        saveAuthorizedClient(subject);
-        SelectiveTouchSessionRepository.SelectiveSession session = repository.createSession();
-        Instant now = clock.instant();
-
-        OidcIdToken idToken = OidcIdToken.withTokenValue("probe-token-" + subject)
-                .issuer("https://idp.invalid")
-                .subject(subject)
-                .claim("preferred_username", "user-" + subject)
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(3600))
-                .build();
-
-        DefaultOidcUser oidcUser = new DefaultOidcUser(
-                AuthorityUtils.createAuthorityList("ROLE_USER"),
-                idToken,
-                IdTokenClaimNames.SUB);
-
-        OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(
-                oidcUser,
-                oidcUser.getAuthorities(),
-                "keycloak");
-
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-        securityContext.setAuthentication(authentication);
-
-        session.setAttribute("SPRING_SECURITY_CONTEXT", securityContext);
-        session.setAttribute(LAST_VALID_EPOCH_SECOND_ATTRIBUTE, now.getEpochSecond());
-        session.setAttribute(LAST_VALID_NANO_ATTRIBUTE, now.getNano());
-        session.setAttribute(APPROVED_ACTIVITY_ATTRIBUTE, now);
-
-        return session;
+    @Bean
+    @Primary
+    OidcRevocationClient mockOidcRevocationClient() {
+      return mock(OidcRevocationClient.class);
     }
 
-    private void saveAuthorizedClient(String principalName) {
-        ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("keycloak");
-        Instant issuedAt = clock.instant();
-        OAuth2AuthorizedClient client = new OAuth2AuthorizedClient(
-                registration,
-                principalName,
-                new OAuth2AccessToken(
-                        OAuth2AccessToken.TokenType.BEARER,
-                        "test-access-token",
-                        issuedAt,
-                        issuedAt.plusSeconds(300)),
-                new OAuth2RefreshToken("test-refresh-token", issuedAt));
-        authorizedClientService.saveAuthorizedClient(
-                client,
-                new TestingAuthenticationToken(principalName, "not-used", "ROLE_USER"));
+    @Bean
+    AuditRecorder testAuditRecorder() {
+      return entry -> {};
     }
 
-    @TestConfiguration(proxyBeanMethods = false)
-    @EnableAutoConfiguration
-    static class TestApplication {
+    @Bean
+    ClientRegistrationRepository clientRegistrationRepository() {
+      ClientRegistration registration =
+          ClientRegistration.withRegistrationId("keycloak")
+              .clientId("betufu-hermetic-tracer-it")
+              .clientSecret("unused")
+              .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+              .scope("openid")
+              .authorizationUri("https://idp.invalid/authorize")
+              .tokenUri("https://idp.invalid/token")
+              .jwkSetUri("https://idp.invalid/jwks")
+              .issuerUri("https://idp.invalid")
+              .userNameAttributeName(IdTokenClaimNames.SUB)
+              .clientName("BETUFU Hermetic Tracer IT")
+              .build();
+      return new InMemoryClientRegistrationRepository(registration);
+    }
+  }
 
-        @Bean
-        @Primary
-        MutableTestClock mutableTestClock() {
-            return new MutableTestClock(Instant.EPOCH, ZoneOffset.UTC);
-        }
+  static final class MutableTestClock extends Clock {
 
-        @Bean
-        @Primary
-        OidcRevocationClient mockOidcRevocationClient() {
-            return mock(OidcRevocationClient.class);
-        }
+    private final AtomicReference<Instant> instant;
+    private final ZoneId zone;
 
-        @Bean
-        AuditRecorder testAuditRecorder() {
-            return entry -> { };
-        }
-
-        @Bean
-        ClientRegistrationRepository clientRegistrationRepository() {
-            ClientRegistration registration = ClientRegistration.withRegistrationId("keycloak")
-                    .clientId("betufu-hermetic-tracer-it")
-                    .clientSecret("unused")
-                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
-                    .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                    .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-                    .scope("openid")
-                    .authorizationUri("https://idp.invalid/authorize")
-                    .tokenUri("https://idp.invalid/token")
-                    .jwkSetUri("https://idp.invalid/jwks")
-                    .issuerUri("https://idp.invalid")
-                    .userNameAttributeName(IdTokenClaimNames.SUB)
-                    .clientName("BETUFU Hermetic Tracer IT")
-                    .build();
-            return new InMemoryClientRegistrationRepository(registration);
-        }
+    private MutableTestClock(Instant instant, ZoneId zone) {
+      this(new AtomicReference<>(Objects.requireNonNull(instant)), zone);
     }
 
-    static final class MutableTestClock extends Clock {
-
-        private final AtomicReference<Instant> instant;
-        private final ZoneId zone;
-
-        private MutableTestClock(Instant instant, ZoneId zone) {
-            this(new AtomicReference<>(Objects.requireNonNull(instant)), zone);
-        }
-
-        private MutableTestClock(AtomicReference<Instant> instant, ZoneId zone) {
-            this.instant = instant;
-            this.zone = Objects.requireNonNull(zone);
-        }
-
-        void set(Instant newInstant) {
-            instant.set(Objects.requireNonNull(newInstant));
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return zone;
-        }
-
-        @Override
-        public Clock withZone(ZoneId newZone) {
-            return new MutableTestClock(instant, newZone);
-        }
-
-        @Override
-        public Instant instant() {
-            return instant.get();
-        }
+    private MutableTestClock(AtomicReference<Instant> instant, ZoneId zone) {
+      this.instant = instant;
+      this.zone = Objects.requireNonNull(zone);
     }
 
-    record OutboxEventRepresentation(
-            String sourceEventId,
-            String subject,
-            String realmId,
-            String eventType,
-            Instant createdAt
-    ) {}
+    void set(Instant newInstant) {
+      instant.set(Objects.requireNonNull(newInstant));
+    }
+
+    @Override
+    public ZoneId getZone() {
+      return zone;
+    }
+
+    @Override
+    public Clock withZone(ZoneId newZone) {
+      return new MutableTestClock(instant, newZone);
+    }
+
+    @Override
+    public Instant instant() {
+      return instant.get();
+    }
+  }
+
+  record OutboxEventRepresentation(
+      String sourceEventId, String subject, String realmId, String eventType, Instant createdAt) {}
 }

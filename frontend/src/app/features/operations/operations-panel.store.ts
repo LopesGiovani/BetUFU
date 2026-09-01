@@ -84,7 +84,10 @@ export class OperationsPanelStore {
           retry({
             count: 2,
             delay: (error: unknown, retryCount) => {
-              if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+              if (
+                error instanceof HttpErrorResponse &&
+                (error.status === 401 || error.status === 403)
+              ) {
                 throw error;
               }
               this.state.update((s) => ({ ...s, isRetrying: true }));
@@ -178,7 +181,10 @@ export class OperationsPanelStore {
     if (error instanceof HttpErrorResponse) {
       if (error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
-        if (typeof errorBody['correlationId'] === 'string' && errorBody['correlationId'].trim() !== '') {
+        if (
+          typeof errorBody['correlationId'] === 'string' &&
+          errorBody['correlationId'].trim() !== ''
+        ) {
           correlationId = errorBody['correlationId'].trim();
         }
       }
@@ -190,7 +196,10 @@ export class OperationsPanelStore {
         return { message: 'Você não tem acesso a esta área.', correlationId };
       }
     } else if (error instanceof Error && error.message.startsWith('CONTRATO_')) {
-      return { message: 'Dados de painel operacional inválidos recebidos da plataforma.', correlationId };
+      return {
+        message: 'Dados de painel operacional inválidos recebidos da plataforma.',
+        correlationId,
+      };
     }
 
     let message = hasPreviousData

@@ -6,8 +6,15 @@ import { AthleteLinkProposalStore } from './athlete-link-proposal.store';
 import { AthleteLinkProposalPageComponent } from './athlete-link-proposal-page.component';
 
 const proposal: AthleteLinkProposal = {
-  proposalId: 'proposal-1', athleteId: 'athlete-1', athleteName: 'Atleta Um', athleteSlug: 'atleta-um', status: AthleteLinkProposal.StatusEnum.Pendente,
-  createdAt: '2026-08-30T10:00:00Z', updatedAt: '2026-08-30T10:00:00Z', expiresAt: '2026-09-30T10:00:00Z', decidedAt: null,
+  proposalId: 'proposal-1',
+  athleteId: 'athlete-1',
+  athleteName: 'Atleta Um',
+  athleteSlug: 'atleta-um',
+  status: AthleteLinkProposal.StatusEnum.Pendente,
+  createdAt: '2026-08-30T10:00:00Z',
+  updatedAt: '2026-08-30T10:00:00Z',
+  expiresAt: '2026-09-30T10:00:00Z',
+  decidedAt: null,
 };
 
 describe('AthleteLinkProposalPageComponent', () => {
@@ -16,11 +23,23 @@ describe('AthleteLinkProposalPageComponent', () => {
 
   beforeEach(async () => {
     store = {
-      proposal: signal(proposal), status: signal('ready'), errorMessage: signal<string | null>(null), feedbackMessage: signal<string | null>(null),
-      isLoading: signal(false), isEmpty: signal(false), isError: signal(false), isMutating: signal(false),
-      load: vi.fn().mockResolvedValue(undefined), accept: vi.fn().mockResolvedValue(true), reject: vi.fn().mockResolvedValue(true), contest: vi.fn().mockResolvedValue(true),
+      proposal: signal(proposal),
+      status: signal('ready'),
+      errorMessage: signal<string | null>(null),
+      feedbackMessage: signal<string | null>(null),
+      isLoading: signal(false),
+      isEmpty: signal(false),
+      isError: signal(false),
+      isMutating: signal(false),
+      load: vi.fn().mockResolvedValue(undefined),
+      accept: vi.fn().mockResolvedValue(true),
+      reject: vi.fn().mockResolvedValue(true),
+      contest: vi.fn().mockResolvedValue(true),
     };
-    await TestBed.configureTestingModule({ imports: [AthleteLinkProposalPageComponent], providers: [{ provide: AthleteLinkProposalStore, useValue: store }] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [AthleteLinkProposalPageComponent],
+      providers: [{ provide: AthleteLinkProposalStore, useValue: store }],
+    }).compileComponents();
     fixture = TestBed.createComponent(AthleteLinkProposalPageComponent);
     fixture.detectChanges();
   });
@@ -35,12 +54,16 @@ describe('AthleteLinkProposalPageComponent', () => {
 
   it('confirma contestação antes de chamar o store', async () => {
     const root = fixture.nativeElement as HTMLElement;
-    const contestButton = Array.from(root.querySelectorAll('button')).find((button) => button.textContent?.includes('Contestar')) as HTMLButtonElement;
+    const contestButton = Array.from(root.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Contestar'),
+    ) as HTMLButtonElement;
     contestButton.click();
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Contestar vínculo');
     expect(store['contest']).not.toHaveBeenCalled();
-    const confirm = Array.from(root.querySelectorAll('button')).find((button) => button.textContent?.includes('Enviar contestação')) as HTMLButtonElement;
+    const confirm = Array.from(root.querySelectorAll('button')).find((button) =>
+      button.textContent?.includes('Enviar contestação'),
+    ) as HTMLButtonElement;
     confirm.click();
     await fixture.whenStable();
     expect(store['contest']).toHaveBeenCalledTimes(1);

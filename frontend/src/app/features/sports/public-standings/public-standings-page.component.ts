@@ -31,8 +31,15 @@ import { PublicStandingsStore } from './public-standings.store';
         <header class="detail-head">
           <p class="eyebrow">P8 · Arena pública</p>
           <h1>{{ current.name }}</h1>
-          <p>{{ current.competitionName || 'Competição publicada' }}{{ current.editionName ? ' · ' + current.editionName : '' }}{{ current.phaseName ? ' · ' + current.phaseName : '' }}</p>
-          <p class="source">Classificação transcrita da fonte oficial: {{ current.sourceReference || 'Fonte publicada no registro' }}</p>
+          <p>
+            {{ current.competitionName || 'Competição publicada'
+            }}{{ current.editionName ? ' · ' + current.editionName : ''
+            }}{{ current.phaseName ? ' · ' + current.phaseName : '' }}
+          </p>
+          <p class="source">
+            Classificação transcrita da fonte oficial:
+            {{ current.sourceReference || 'Fonte publicada no registro' }}
+          </p>
         </header>
         <app-responsive-data-view [snapshot]="current" />
       } @else {
@@ -44,7 +51,10 @@ import { PublicStandingsStore } from './public-standings.store';
     </main>
   `,
   styles: `
-    :host { display: block; min-width: 0; }
+    :host {
+      display: block;
+      min-width: 0;
+    }
     .public-standings {
       width: var(--bt-container);
       margin-inline: auto;
@@ -62,20 +72,25 @@ import { PublicStandingsStore } from './public-standings.store';
       border-left: 4px solid var(--bt-signal);
       background: var(--bt-surface-raised);
     }
-    .eyebrow, .source {
+    .eyebrow,
+    .source {
       margin: 0;
       color: var(--bt-signal-soft);
       font-size: var(--bt-type-label);
-      letter-spacing: .08em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
     .detail-head h1 {
-      margin: .3rem 0;
+      margin: 0.3rem 0;
       color: var(--bt-display);
-      font: 600 var(--bt-type-display)/.9 'Barlow Condensed', sans-serif;
+      font:
+        600 var(--bt-type-display)/0.9 'Barlow Condensed',
+        sans-serif;
       text-transform: uppercase;
     }
-    .detail-head p { overflow-wrap: anywhere; }
+    .detail-head p {
+      overflow-wrap: anywhere;
+    }
     .state {
       display: grid;
       min-height: 320px;
@@ -89,13 +104,17 @@ import { PublicStandingsStore } from './public-standings.store';
     .state h1 {
       margin: 0;
       color: var(--bt-display);
-      font: 600 var(--bt-type-heading)/.9 'Barlow Condensed', sans-serif;
+      font:
+        600 var(--bt-type-heading)/0.9 'Barlow Condensed',
+        sans-serif;
     }
     .state p {
       margin: 0;
       color: var(--bt-text-muted);
     }
-    .state--error { border-color: var(--bt-danger); }
+    .state--error {
+      border-color: var(--bt-danger);
+    }
     .action {
       width: max-content;
       min-height: 44px;
@@ -111,8 +130,12 @@ import { PublicStandingsStore } from './public-standings.store';
       cursor: pointer;
     }
     @media (max-width: 680px) {
-      .public-standings { padding-inline: var(--bt-space-4); }
-      .detail-head { padding: var(--bt-space-4); }
+      .public-standings {
+        padding-inline: var(--bt-space-4);
+      }
+      .detail-head {
+        padding: var(--bt-space-4);
+      }
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

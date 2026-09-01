@@ -48,16 +48,20 @@ export class ProfileApiAdapter {
   fetchFavoriteOrganizations(): Observable<readonly SportsOrganizationSummary[]> {
     if (!this.organizationService) return of([]);
     return defer(() => this.organizationService!.listSportsOrganizations()).pipe(
-      map((response) => response
-        .filter((organization) => organization.status === 'PUBLICADO')
-        .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'))),
+      map((response) =>
+        response
+          .filter((organization) => organization.status === 'PUBLICADO')
+          .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR')),
+      ),
     );
   }
 
   updateFavoriteOrganization(organizationId: string | null): Observable<ProfileViewModel> {
-    return defer(() => this.profileService.putMyFavoriteOrganization({
-      favoriteOrganizationRequest: { organizationId },
-    })).pipe(
+    return defer(() =>
+      this.profileService.putMyFavoriteOrganization({
+        favoriteOrganizationRequest: { organizationId },
+      }),
+    ).pipe(
       map((response) => {
         const adapted = this.adapt(response);
         if (!adapted) throw new Error('CONTRATO_PERFIL_INVALIDO: resposta de favorito vazia');
@@ -79,7 +83,8 @@ export class ProfileApiAdapter {
       response.identityId.trim() === '' ||
       typeof response.nickname !== 'string' ||
       response.nickname.trim() === '' ||
-      (response.favoriteOrganizationId !== null && typeof response.favoriteOrganizationId !== 'string')
+      (response.favoriteOrganizationId !== null &&
+        typeof response.favoriteOrganizationId !== 'string')
     ) {
       throw new Error(
         'CONTRATO_PERFIL_INVALIDO: campos obrigatorios identityId ou nickname ausentes ou invalidos',

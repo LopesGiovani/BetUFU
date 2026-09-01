@@ -10,15 +10,50 @@ import { SportsOrganizationsPageComponent } from './sports-organizations-page.co
 import { SportsOrganizationsStore } from './sports-organizations.store';
 
 const ORGANIZATIONS = [
-  { organizationId: 'org-b', name: 'Volei UFU', slug: 'volei-ufu', status: 'PUBLICADO', lockVersion: 1 },
-  { organizationId: 'org-a', name: 'Atletica UFU', slug: 'atletica-ufu', status: 'RASCUNHO', lockVersion: 0 },
+  {
+    organizationId: 'org-b',
+    name: 'Volei UFU',
+    slug: 'volei-ufu',
+    status: 'PUBLICADO',
+    lockVersion: 1,
+  },
+  {
+    organizationId: 'org-a',
+    name: 'Atletica UFU',
+    slug: 'atletica-ufu',
+    status: 'RASCUNHO',
+    lockVersion: 0,
+  },
 ] as const;
 
 const TREE = {
-  competition: { competitionId: 'comp-a', name: 'Jogos UFU', slug: 'jogos-ufu', status: 'ATIVA', lockVersion: 0 },
+  competition: {
+    competitionId: 'comp-a',
+    name: 'Jogos UFU',
+    slug: 'jogos-ufu',
+    status: 'ATIVA',
+    lockVersion: 0,
+  },
   sports: [{ sportId: 'sport-a', name: 'Futsal', slug: 'futsal', status: 'ATIVA', lockVersion: 0 }],
-  editions: [{ editionId: 'edition-a', name: '2026', slug: '2026', startDate: null, endDate: null, lockVersion: 0 }],
-  categories: [{ categoryId: 'category-a', editionId: 'edition-a', name: 'Livre', slug: 'livre', lockVersion: 0 }],
+  editions: [
+    {
+      editionId: 'edition-a',
+      name: '2026',
+      slug: '2026',
+      startDate: null,
+      endDate: null,
+      lockVersion: 0,
+    },
+  ],
+  categories: [
+    {
+      categoryId: 'category-a',
+      editionId: 'edition-a',
+      name: 'Livre',
+      slug: 'livre',
+      lockVersion: 0,
+    },
+  ],
   phases: [],
   venues: [],
 };
@@ -31,7 +66,15 @@ describe('SportsOrganizationsPageComponent (O3)', () => {
 
   function createScopeMock() {
     return {
-      competitions: signal([{ competitionId: 'comp-a', name: 'Jogos UFU', slug: 'jogos-ufu', status: 'ATIVA', lockVersion: 0 }]),
+      competitions: signal([
+        {
+          competitionId: 'comp-a',
+          name: 'Jogos UFU',
+          slug: 'jogos-ufu',
+          status: 'ATIVA',
+          lockVersion: 0,
+        },
+      ]),
       selectedCompetitionId: signal<string | null>('comp-a'),
       hasSelection: signal(true),
       isDenied: signal(false),
@@ -50,11 +93,17 @@ describe('SportsOrganizationsPageComponent (O3)', () => {
       fetchTeams: vi.fn().mockReturnValue(of([])),
       createOrganization: vi.fn().mockReturnValue(of(ORGANIZATIONS[1])),
       updateOrganization: vi.fn().mockReturnValue(of(ORGANIZATIONS[1])),
-      publishOrganization: vi.fn().mockReturnValue(of({ ...ORGANIZATIONS[1], status: 'PUBLICADO' })),
+      publishOrganization: vi
+        .fn()
+        .mockReturnValue(of({ ...ORGANIZATIONS[1], status: 'PUBLICADO' })),
       createTeam: vi.fn().mockReturnValue(of({})),
       updateTeam: vi.fn().mockReturnValue(of({})),
       publishTeam: vi.fn().mockReturnValue(of({})),
-      isConflict: vi.fn().mockImplementation((error: unknown) => error instanceof HttpErrorResponse && error.status === 409),
+      isConflict: vi
+        .fn()
+        .mockImplementation(
+          (error: unknown) => error instanceof HttpErrorResponse && error.status === 409,
+        ),
     };
 
     await TestBed.configureTestingModule({
@@ -63,7 +112,10 @@ describe('SportsOrganizationsPageComponent (O3)', () => {
         SportsOrganizationsStore,
         { provide: SportsScopeStore, useValue: scope },
         { provide: SportsOrganizationsApiAdapter, useValue: organizationAdapter },
-        { provide: SportsCatalogApiAdapter, useValue: { fetchTree: vi.fn().mockReturnValue(of(TREE)) } },
+        {
+          provide: SportsCatalogApiAdapter,
+          useValue: { fetchTree: vi.fn().mockReturnValue(of(TREE)) },
+        },
       ],
     }).compileComponents();
 
@@ -84,13 +136,22 @@ describe('SportsOrganizationsPageComponent (O3)', () => {
   it('cria equipe com organizacao, edicao, modalidade e categoria selecionadas', async () => {
     component.openTeamForm();
     component.teamForm.setValue({
-      organizationId: 'org-b', editionId: 'edition-a', sportId: 'sport-a', categoryId: 'category-a',
-      name: 'Volei misto', slug: 'volei-misto',
+      organizationId: 'org-b',
+      editionId: 'edition-a',
+      sportId: 'sport-a',
+      categoryId: 'category-a',
+      name: 'Volei misto',
+      slug: 'volei-misto',
     });
     await component.saveTeam();
 
     expect(organizationAdapter['createTeam']).toHaveBeenCalledWith(
-      'edition-a', 'sport-a', 'category-a', 'org-b', 'Volei misto', 'volei-misto',
+      'edition-a',
+      'sport-a',
+      'category-a',
+      'org-b',
+      'Volei misto',
+      'volei-misto',
     );
   });
 
@@ -110,7 +171,9 @@ describe('SportsOrganizationsPageComponent (O3)', () => {
     component.organizationForm.setValue({ name: 'Nova', slug: 'nova' });
     await component.saveOrganization();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Este registro foi alterado por outra pessoa');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Este registro foi alterado por outra pessoa',
+    );
     expect(fixture.nativeElement.textContent).not.toContain('stack');
   });
 });

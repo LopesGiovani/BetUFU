@@ -1329,9 +1329,11 @@ test('rejeita segundo customizer que sobrescreveria os atributos aprovados', asy
     root,
     'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
     (source) => source.replace(
-      '        return repository;',
-      '        repository.setCookieCustomizer(cookie -> cookie.path("/unsafe"));\n'
-        + '        return repository;',
+      /(^[ \t]*)return repository;$/mu,
+      (_, indent) => indent
+        + 'repository.setCookieCustomizer(cookie -> cookie.path("/unsafe"));\n'
+        + indent
+        + 'return repository;',
     ),
   );
   await expectRule(root, 'CSRF_COOKIE');
@@ -1342,11 +1344,9 @@ test('rejeita bypass CSRF na SecurityConfiguration canonica', async () => {
   await mutate(
     root,
     'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
-    (source) => replaceAcrossLines(
-      source,
-      '.spa()\n                        .csrfTokenRepository(csrfTokenRepository)',
-      '.spa()\n                        .ignoringRequestMatchers("/api/v1/**")\n'
-        + '                        .csrfTokenRepository(csrfTokenRepository)',
+    (source) => source.replace(
+      '.spa().csrfTokenRepository(csrfTokenRepository)',
+      '.spa().ignoringRequestMatchers("/api/v1/**").csrfTokenRepository(csrfTokenRepository)',
     ),
   );
   await expectRule(root, 'CSRF_BYPASS');
@@ -1372,7 +1372,7 @@ test('rejeita oauth2Login sem configurador na SecurityConfiguration canonica', a
     root,
     'backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java',
     (source) => source.replace(
-      /http\.oauth2Login\(oauth2 -> \{[\s\S]*?\n\s*\}\);/u,
+      /http\.oauth2Login\(\s*oauth2\s*->\s*\{[\s\S]*?\}\s*\);/u,
       'http.oauth2Login();',
     ),
   );

@@ -45,10 +45,16 @@ export class AthleteLinkProposalApiAdapter {
   }
 
   private requireProposal(response: AthleteLinkProposal | null | undefined): AthleteLinkProposal {
-    if (!response || typeof response.proposalId !== 'string' || typeof response.athleteId !== 'string'
-      || typeof response.athleteName !== 'string' || typeof response.athleteSlug !== 'string'
-      || typeof response.status !== 'string' || typeof response.createdAt !== 'string'
-      || typeof response.updatedAt !== 'string') {
+    if (
+      !response ||
+      typeof response.proposalId !== 'string' ||
+      typeof response.athleteId !== 'string' ||
+      typeof response.athleteName !== 'string' ||
+      typeof response.athleteSlug !== 'string' ||
+      typeof response.status !== 'string' ||
+      typeof response.createdAt !== 'string' ||
+      typeof response.updatedAt !== 'string'
+    ) {
       throw new Error('CONTRATO_VINCULO_INVALIDO: proposta ausente ou malformada.');
     }
     return response;

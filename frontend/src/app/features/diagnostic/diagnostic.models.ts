@@ -4,12 +4,7 @@
  */
 
 export type DiagnosticStateStatus =
-  | 'initial'
-  | 'loading'
-  | 'empty'
-  | 'populated'
-  | 'partial'
-  | 'error';
+  'initial' | 'loading' | 'empty' | 'populated' | 'partial' | 'error';
 
 export type ComponentHealthStatus = 'UP' | 'DEGRADED' | 'DOWN';
 

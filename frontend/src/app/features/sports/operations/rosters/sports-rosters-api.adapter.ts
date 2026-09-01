@@ -87,17 +87,20 @@ export class SportsRostersApiAdapter {
     }
     const draft = value as Partial<SportsRosterDraft>;
     if (
-      typeof draft.rosterId !== 'string'
-      || typeof draft.teamId !== 'string'
-      || typeof draft.teamName !== 'string'
-      || typeof draft.competitionName !== 'string'
-      || (draft.status !== 'RASCUNHO' && draft.status !== 'PUBLICADO')
-      || typeof draft.lockVersion !== 'number'
-      || !Array.isArray(draft.members)
+      typeof draft.rosterId !== 'string' ||
+      typeof draft.teamId !== 'string' ||
+      typeof draft.teamName !== 'string' ||
+      typeof draft.competitionName !== 'string' ||
+      (draft.status !== 'RASCUNHO' && draft.status !== 'PUBLICADO') ||
+      typeof draft.lockVersion !== 'number' ||
+      !Array.isArray(draft.members)
     ) {
       throw new Error('CONTRATO_ELENCO_INVALIDO: rascunho incompleto.');
     }
-    return { ...draft, members: draft.members.map((member) => this.requireMember(member)) } as SportsRosterDraft;
+    return {
+      ...draft,
+      members: draft.members.map((member) => this.requireMember(member)),
+    } as SportsRosterDraft;
   }
 
   requirePublication(value: unknown): SportsRosterPublication {
@@ -106,19 +109,22 @@ export class SportsRostersApiAdapter {
     }
     const publication = value as Partial<SportsRosterPublication>;
     if (
-      typeof publication.publicationId !== 'string'
-      || typeof publication.rosterId !== 'string'
-      || typeof publication.teamId !== 'string'
-      || typeof publication.teamName !== 'string'
-      || typeof publication.competitionName !== 'string'
-      || typeof publication.versionNo !== 'number'
-      || typeof publication.publishedAt !== 'string'
-      || typeof publication.baseLockVersion !== 'number'
-      || !Array.isArray(publication.members)
+      typeof publication.publicationId !== 'string' ||
+      typeof publication.rosterId !== 'string' ||
+      typeof publication.teamId !== 'string' ||
+      typeof publication.teamName !== 'string' ||
+      typeof publication.competitionName !== 'string' ||
+      typeof publication.versionNo !== 'number' ||
+      typeof publication.publishedAt !== 'string' ||
+      typeof publication.baseLockVersion !== 'number' ||
+      !Array.isArray(publication.members)
     ) {
       throw new Error('CONTRATO_ELENCO_INVALIDO: snapshot incompleto.');
     }
-    return { ...publication, members: publication.members.map((member) => this.requireMember(member)) } as SportsRosterPublication;
+    return {
+      ...publication,
+      members: publication.members.map((member) => this.requireMember(member)),
+    } as SportsRosterPublication;
   }
 
   private requireMember(value: unknown): SportsRosterMemberItem {
@@ -127,11 +133,15 @@ export class SportsRostersApiAdapter {
     }
     const member = value as Partial<SportsRosterMemberItem>;
     if (
-      typeof member.athleteId !== 'string'
-      || typeof member.athleteName !== 'string'
-      || typeof member.athleteSlug !== 'string'
-      || (member.jerseyNumber !== null && member.jerseyNumber !== undefined && typeof member.jerseyNumber !== 'number')
-      || (member.positionName !== null && member.positionName !== undefined && typeof member.positionName !== 'string')
+      typeof member.athleteId !== 'string' ||
+      typeof member.athleteName !== 'string' ||
+      typeof member.athleteSlug !== 'string' ||
+      (member.jerseyNumber !== null &&
+        member.jerseyNumber !== undefined &&
+        typeof member.jerseyNumber !== 'number') ||
+      (member.positionName !== null &&
+        member.positionName !== undefined &&
+        typeof member.positionName !== 'string')
     ) {
       throw new Error('CONTRATO_ELENCO_INVALIDO: membro incompleto.');
     }

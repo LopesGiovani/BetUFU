@@ -4,12 +4,7 @@
  */
 
 export type EnrollmentStateStatus =
-  | 'initial'
-  | 'loading'
-  | 'empty'
-  | 'populated'
-  | 'partial'
-  | 'error';
+  'initial' | 'loading' | 'empty' | 'populated' | 'partial' | 'error';
 
 export interface EnrollmentViewModel {
   readonly status: string;

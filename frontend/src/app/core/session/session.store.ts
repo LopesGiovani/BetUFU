@@ -56,9 +56,7 @@ export class SessionStore {
     }));
 
     try {
-      const response: SessionStateResponse = await firstValueFrom(
-        this.sessionService.getSession(),
-      );
+      const response: SessionStateResponse = await firstValueFrom(this.sessionService.getSession());
 
       if (response.authenticated) {
         this.state.set({

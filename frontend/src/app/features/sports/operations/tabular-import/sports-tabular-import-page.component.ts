@@ -96,34 +96,54 @@ export class SportsTabularImportPageComponent implements OnInit {
 
   downloadTemplate(format: 'CSV' | 'XLSX'): void {
     const xlsxTemplate = format === 'XLSX' ? this.toArrayBuffer(this.createXlsxTemplate()) : null;
-    const blob = format === 'CSV'
-      ? new Blob([`${TEMPLATE_HEADERS.join(',')}\r\n`], { type: 'text/csv;charset=utf-8' })
-      : new Blob([xlsxTemplate!], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
+    const blob =
+      format === 'CSV'
+        ? new Blob([`${TEMPLATE_HEADERS.join(',')}\r\n`], { type: 'text/csv;charset=utf-8' })
+        : new Blob([xlsxTemplate!], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = format === 'CSV' ? 'betufu-template-roster.csv' : 'betufu-template-roster.xlsx';
+    anchor.download =
+      format === 'CSV' ? 'betufu-template-roster.csv' : 'betufu-template-roster.xlsx';
     anchor.click();
     URL.revokeObjectURL(url);
   }
 
   private createXlsxTemplate(): Uint8Array {
-    const escapeXml = (value: string): string => value
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&apos;');
-    const cells = TEMPLATE_HEADERS.map((header, index) =>
-      `<c r="${String.fromCharCode(65 + index)}1" t="inlineStr"><is><t>${escapeXml(header)}</t></is></c>`).join('');
+    const escapeXml = (value: string): string =>
+      value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&apos;');
+    const cells = TEMPLATE_HEADERS.map(
+      (header, index) =>
+        `<c r="${String.fromCharCode(65 + index)}1" t="inlineStr"><is><t>${escapeXml(header)}</t></is></c>`,
+    ).join('');
     const entries = [
-      ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
-      ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
-      ['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Roster" sheetId="1" r:id="rId1"/></sheets></workbook>'],
-      ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'],
-      ['xl/worksheets/sheet1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1">${cells}</row></sheetData></worksheet>`],
+      [
+        '[Content_Types].xml',
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+      ],
+      [
+        '_rels/.rels',
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+      ],
+      [
+        'xl/workbook.xml',
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Roster" sheetId="1" r:id="rId1"/></sheets></workbook>',
+      ],
+      [
+        'xl/_rels/workbook.xml.rels',
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+      ],
+      [
+        'xl/worksheets/sheet1.xml',
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData><row r="1">${cells}</row></sheetData></worksheet>`,
+      ],
     ].map(([name, content]) => ({ name, bytes: new TextEncoder().encode(content) }));
 
     const crc32 = (bytes: Uint8Array): number => {
@@ -137,39 +157,69 @@ export class SportsTabularImportPageComponent implements OnInit {
     const chunks: Uint8Array[] = [];
     const central: Uint8Array[] = [];
     let offset = 0;
-    const writeU16 = (view: DataView, position: number, value: number) => view.setUint16(position, value, true);
-    const writeU32 = (view: DataView, position: number, value: number) => view.setUint32(position, value, true);
+    const writeU16 = (view: DataView, position: number, value: number) =>
+      view.setUint16(position, value, true);
+    const writeU32 = (view: DataView, position: number, value: number) =>
+      view.setUint32(position, value, true);
     for (const entry of entries) {
       const name = new TextEncoder().encode(entry.name);
       const local = new Uint8Array(30 + name.length);
       const localView = new DataView(local.buffer);
-      writeU32(localView, 0, 0x04034b50); writeU16(localView, 4, 20); writeU16(localView, 6, 0);
-      writeU16(localView, 8, 0); writeU16(localView, 10, 0); writeU16(localView, 12, 0);
-      writeU32(localView, 14, crc32(entry.bytes)); writeU32(localView, 18, entry.bytes.length); writeU32(localView, 22, entry.bytes.length);
-      writeU16(localView, 26, name.length); writeU16(localView, 28, 0); local.set(name, 30);
+      writeU32(localView, 0, 0x04034b50);
+      writeU16(localView, 4, 20);
+      writeU16(localView, 6, 0);
+      writeU16(localView, 8, 0);
+      writeU16(localView, 10, 0);
+      writeU16(localView, 12, 0);
+      writeU32(localView, 14, crc32(entry.bytes));
+      writeU32(localView, 18, entry.bytes.length);
+      writeU32(localView, 22, entry.bytes.length);
+      writeU16(localView, 26, name.length);
+      writeU16(localView, 28, 0);
+      local.set(name, 30);
       chunks.push(local, entry.bytes);
       const directory = new Uint8Array(46 + name.length);
       const directoryView = new DataView(directory.buffer);
-      writeU32(directoryView, 0, 0x02014b50); writeU16(directoryView, 4, 20); writeU16(directoryView, 6, 20); writeU16(directoryView, 8, 0);
-      writeU16(directoryView, 10, 0); writeU16(directoryView, 12, 0); writeU16(directoryView, 14, 0);
-      writeU32(directoryView, 16, crc32(entry.bytes)); writeU32(directoryView, 20, entry.bytes.length); writeU32(directoryView, 24, entry.bytes.length);
-      writeU16(directoryView, 28, name.length); writeU16(directoryView, 30, 0); writeU16(directoryView, 32, 0); writeU16(directoryView, 34, 0); writeU16(directoryView, 36, 0);
-      writeU32(directoryView, 38, 0); writeU32(directoryView, 42, offset); directory.set(name, 46);
+      writeU32(directoryView, 0, 0x02014b50);
+      writeU16(directoryView, 4, 20);
+      writeU16(directoryView, 6, 20);
+      writeU16(directoryView, 8, 0);
+      writeU16(directoryView, 10, 0);
+      writeU16(directoryView, 12, 0);
+      writeU16(directoryView, 14, 0);
+      writeU32(directoryView, 16, crc32(entry.bytes));
+      writeU32(directoryView, 20, entry.bytes.length);
+      writeU32(directoryView, 24, entry.bytes.length);
+      writeU16(directoryView, 28, name.length);
+      writeU16(directoryView, 30, 0);
+      writeU16(directoryView, 32, 0);
+      writeU16(directoryView, 34, 0);
+      writeU16(directoryView, 36, 0);
+      writeU32(directoryView, 38, 0);
+      writeU32(directoryView, 42, offset);
+      directory.set(name, 46);
       central.push(directory);
       offset += local.length + entry.bytes.length;
     }
     const centralBytes = central.reduce((total, chunk) => total + chunk.length, 0);
     const end = new Uint8Array(22);
     const endView = new DataView(end.buffer);
-    writeU32(endView, 0, 0x06054b50); writeU16(endView, 8, entries.length); writeU16(endView, 10, entries.length);
-    writeU32(endView, 12, centralBytes); writeU32(endView, 16, offset); writeU16(endView, 20, 0);
+    writeU32(endView, 0, 0x06054b50);
+    writeU16(endView, 8, entries.length);
+    writeU16(endView, 10, entries.length);
+    writeU32(endView, 12, centralBytes);
+    writeU32(endView, 16, offset);
+    writeU16(endView, 20, 0);
     return this.concatBytes([...chunks, ...central, end]);
   }
 
   private concatBytes(chunks: readonly Uint8Array[]): Uint8Array {
     const result = new Uint8Array(chunks.reduce((total, chunk) => total + chunk.length, 0));
     let offset = 0;
-    for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
+    for (const chunk of chunks) {
+      result.set(chunk, offset);
+      offset += chunk.length;
+    }
     return result;
   }
 
@@ -187,14 +237,17 @@ export class SportsTabularImportPageComponent implements OnInit {
     try {
       const tree = await firstValueFrom(this.catalogAdapter.fetchTree(competitionId));
       this.tree.set(tree);
-      const edition = tree.editions.find((item) => item.editionId === requestedEditionId) ?? tree.editions[0];
+      const edition =
+        tree.editions.find((item) => item.editionId === requestedEditionId) ?? tree.editions[0];
       if (edition) {
         this.selectedEditionId.set(edition.editionId);
         this.selectedEditionName.set(edition.name);
       }
     } catch {
       this.tree.set(null);
-      this.contextError.set('As edições desta competição não estão disponíveis para importar o elenco.');
+      this.contextError.set(
+        'As edições desta competição não estão disponíveis para importar o elenco.',
+      );
     } finally {
       this.contextLoading.set(false);
     }
