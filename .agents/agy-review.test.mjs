@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import assert from 'node:assert/strict';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 
 import {
   PROJECT_ROOT,
@@ -110,6 +112,21 @@ function snapshotFixture(overrides = {}) {
   };
 }
 
+function aggregateEvidence(command, counts = { tests: 1, passed: 1, failures: 0, errors: 0, skipped: 0 }) {
+  const format = command === AGGREGATE_COMMANDS.backend ? 'junit' : 'tap';
+  const report = format === 'junit'
+    ? `<testsuites><testsuite tests="${counts.tests}" failures="${counts.failures}" errors="${counts.errors}" skipped="${counts.skipped}" /></testsuites>`
+    : [
+      'TAP version 13',
+      `# tests ${counts.tests}`,
+      `# pass ${counts.passed}`,
+      `# fail ${counts.failures}`,
+      `# skipped ${counts.skipped}`,
+      `# cancelled ${counts.errors}`,
+    ].join('\n');
+  return { command, status: 'PASS', counts, reports: [{ format, content: report }] };
+}
+
 test('perfis de revisao sao plan/read-only e exigem gates', async () => {
   const loaded = await manifest();
   assert.equal(validateSkillManifest(loaded), true);
@@ -186,7 +203,7 @@ test('worktree suja bloqueia o gate worktree-clean', async () => {
     expectedBase: BASE,
     expectedHead: HEAD,
   }, { runProcess: fake.runProcess });
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'verification',
     profile: await profile(),
     plan: planFixture(),
@@ -199,7 +216,7 @@ test('worktree suja bloqueia o gate worktree-clean', async () => {
 
 test('HEAD divergente ou base nao ancestral bloqueia o gate head', async () => {
   const snapshot = snapshotFixture({ head: 'c'.repeat(40), baseIsAncestor: false });
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'security',
     profile: await profile('security'),
     plan: planFixture(),
@@ -218,7 +235,7 @@ test('falha de diff-check bloqueia o gate e preserva a evidencia', async () => {
     expectedBase: BASE,
     expectedHead: HEAD,
   }, { runProcess: fake.runProcess });
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'security',
     profile: await profile('security'),
     plan: planFixture(),
@@ -232,7 +249,7 @@ test('falha de diff-check bloqueia o gate e preserva a evidencia', async () => {
 
 test('alteracao fora da allowlist bloqueia o gate scope', async () => {
   const snapshot = snapshotFixture({ changedFiles: [BACKEND_CHANGED] });
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'verification',
     profile: await profile(),
     plan: planFixture(),
@@ -243,7 +260,7 @@ test('alteracao fora da allowlist bloqueia o gate scope', async () => {
 });
 
 test('ausencia de evidencia de teste bloqueia o gate test-evidence', async () => {
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'verification',
     profile: await profile(),
     plan: planFixture(),
@@ -254,7 +271,7 @@ test('ausencia de evidencia de teste bloqueia o gate test-evidence', async () =>
 });
 
 test('teste focal sem discriminates true nao certifica a mudanca', async () => {
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'verification',
     profile: await profile(),
     plan: planFixture(),
@@ -272,7 +289,7 @@ test('teste focal sem discriminates true nao certifica a mudanca', async () => {
 });
 
 test('hashes OpenAPI divergentes bloqueiam o contrato', async () => {
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'security',
     profile: await profile('security'),
     plan: planFixture([OPENAPI_CHANGED]),
@@ -290,7 +307,7 @@ test('hashes OpenAPI divergentes bloqueiam o contrato', async () => {
 });
 
 test('agregado backend ausente bloqueia a revisao de mudanca Java', async () => {
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'security',
     profile: await profile('security'),
     plan: planFixture([BACKEND_CHANGED]),
@@ -303,22 +320,126 @@ test('agregado backend ausente bloqueia a revisao de mudanca Java', async () => 
 });
 
 test('mudanca Java exige agregados backend e Node', async () => {
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'security',
     profile: await profile('security'),
     plan: planFixture([BACKEND_CHANGED]),
     snapshot: snapshotFixture({ changedFiles: [BACKEND_CHANGED] }),
     evidence: {
       securityReview: 'PASS',
-      aggregate: [{ command: AGGREGATE_COMMANDS.backend, status: 'PASS' }],
+      aggregate: [aggregateEvidence(AGGREGATE_COMMANDS.backend)],
     },
   });
   assert.equal(gates.find((item) => item.id === 'aggregate-backend').status, 'PASS');
   assert.equal(gates.find((item) => item.id === 'aggregate-node').status, 'BLOCKED');
 });
 
+test('agregado PASS sem contagens ou relatorios reais permanece bloqueado', async () => {
+  const gates = await evaluateReviewGates({
+    reviewType: 'security',
+    profile: await profile('security'),
+    plan: planFixture([BACKEND_CHANGED]),
+    snapshot: snapshotFixture({ changedFiles: [BACKEND_CHANGED] }),
+    evidence: {
+      securityReview: 'PASS',
+      aggregate: [{
+        command: AGGREGATE_COMMANDS.backend,
+        status: 'PASS',
+        reports: [{ format: 'junit', content: '<testsuites><testsuite tests="1" /></testsuites>' }],
+      }],
+    },
+  });
+  const aggregate = gates.find((item) => item.id === 'aggregate-backend');
+  assert.equal(aggregate.status, 'BLOCKED');
+  assert.match(aggregate.detail, /contagens esperadas ausentes/u);
+});
+
+test('agregado bloqueia quando a contagem declarada diverge do relatorio', async () => {
+  const gates = await evaluateReviewGates({
+    reviewType: 'security',
+    profile: await profile('security'),
+    plan: planFixture([BACKEND_CHANGED]),
+    snapshot: snapshotFixture({ changedFiles: [BACKEND_CHANGED] }),
+    evidence: {
+      securityReview: 'PASS',
+      aggregate: [{
+        command: AGGREGATE_COMMANDS.backend,
+        status: 'PASS',
+        counts: { tests: 2, passed: 2, failures: 0, errors: 0, skipped: 0 },
+        reports: [{
+          format: 'junit',
+          content: '<testsuites><testsuite tests="1" failures="0" errors="0" skipped="0" /></testsuites>',
+        }],
+      }],
+    },
+  });
+  const aggregate = gates.find((item) => item.id === 'aggregate-backend');
+  assert.equal(aggregate.status, 'BLOCKED');
+  assert.match(aggregate.detail, /contagem tests divergente/u);
+});
+
+test('agregado por path le o relatorio dentro da worktree', async () => {
+  const worktree = await mkdtemp(join(tmpdir(), 'betufu-review-'));
+  try {
+    await writeFile(
+      join(worktree, 'aggregate.xml'),
+      '<testsuites><testsuite tests="2" failures="0" errors="0" skipped="0" /></testsuites>',
+      'utf8',
+    );
+    const gates = await evaluateReviewGates({
+      reviewType: 'security',
+      profile: await profile('security'),
+      plan: planFixture([BACKEND_CHANGED]),
+      snapshot: snapshotFixture({ worktree, changedFiles: [BACKEND_CHANGED] }),
+      evidence: {
+        securityReview: 'PASS',
+        aggregate: [{
+          command: AGGREGATE_COMMANDS.backend,
+          status: 'PASS',
+          counts: { tests: 2, passed: 2, failures: 0, errors: 0, skipped: 0 },
+          reports: [{ format: 'junit', path: 'aggregate.xml' }],
+        }],
+      },
+    });
+    assert.equal(gates.find((item) => item.id === 'aggregate-backend').status, 'PASS');
+  } finally {
+    await rm(worktree, { recursive: true, force: true });
+  }
+});
+
+test('agregado bloqueia falhas e paths de relatorio fora da worktree', async () => {
+  const failed = await evaluateReviewGates({
+    reviewType: 'security',
+    profile: await profile('security'),
+    plan: planFixture([BACKEND_CHANGED]),
+    snapshot: snapshotFixture({ changedFiles: [BACKEND_CHANGED] }),
+    evidence: {
+      securityReview: 'PASS',
+      aggregate: [aggregateEvidence(AGGREGATE_COMMANDS.backend, {
+        tests: 1, passed: 0, failures: 1, errors: 0, skipped: 0,
+      })],
+    },
+  });
+  assert.equal(failed.find((item) => item.id === 'aggregate-backend').status, 'BLOCKED');
+
+  const outside = await evaluateReviewGates({
+    reviewType: 'security',
+    profile: await profile('security'),
+    plan: planFixture([BACKEND_CHANGED]),
+    snapshot: snapshotFixture({ changedFiles: [BACKEND_CHANGED] }),
+    evidence: {
+      securityReview: 'PASS',
+      aggregate: [{
+        ...aggregateEvidence(AGGREGATE_COMMANDS.backend),
+        reports: [{ format: 'junit', path: '../outside.xml' }],
+      }],
+    },
+  });
+  assert.equal(outside.find((item) => item.id === 'aggregate-backend').status, 'BLOCKED');
+});
+
 test('mudanca Angular exige backend, Node e Angular', async () => {
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'ui',
     profile: await profile('ui'),
     plan: planFixture([FRONTEND_CHANGED]),
@@ -326,8 +447,8 @@ test('mudanca Angular exige backend, Node e Angular', async () => {
     evidence: {
       uiReview: 'PASS',
       aggregate: [
-        { command: AGGREGATE_COMMANDS.backend, status: 'PASS' },
-        { command: AGGREGATE_COMMANDS.node, status: 'PASS' },
+        aggregateEvidence(AGGREGATE_COMMANDS.backend),
+        aggregateEvidence(AGGREGATE_COMMANDS.node),
       ],
     },
   });
@@ -337,7 +458,7 @@ test('mudanca Angular exige backend, Node e Angular', async () => {
 });
 
 test('mudanca E2E exige Playwright alem dos agregados de aplicacao', async () => {
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: 'ui',
     profile: await profile('ui'),
     plan: planFixture([E2E_CHANGED]),
@@ -345,9 +466,9 @@ test('mudanca E2E exige Playwright alem dos agregados de aplicacao', async () =>
     evidence: {
       uiReview: 'PASS',
       aggregate: [
-        { command: AGGREGATE_COMMANDS.backend, status: 'PASS' },
-        { command: AGGREGATE_COMMANDS.node, status: 'PASS' },
-        { command: AGGREGATE_COMMANDS.angular, status: 'PASS' },
+        aggregateEvidence(AGGREGATE_COMMANDS.backend),
+        aggregateEvidence(AGGREGATE_COMMANDS.node),
+        aggregateEvidence(AGGREGATE_COMMANDS.angular),
       ],
     },
   });

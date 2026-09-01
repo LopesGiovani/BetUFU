@@ -6,6 +6,7 @@ import { test } from 'node:test';
 import {
   PROJECT_ROOT,
   assertPathWithinRoot,
+  assertPathWithinOrEqualRoot,
   assertPathsWithinAllowlist,
   buildAgyArgs,
   buildExecutorPrompt,
@@ -31,8 +32,8 @@ import { resolve } from 'node:path';
 
 const plansPromise = discoverPlans(PROJECT_ROOT, 2);
 const skillManifestPromise = loadSkillManifest(PROJECT_ROOT);
-const WORKSPACE_ROOT = resolve(PROJECT_ROOT, '..', 'gsd-workspaces-fixture');
-const WORKTREE = resolve(WORKSPACE_ROOT, '02-01');
+const WORKSPACE_ROOT = resolve(PROJECT_ROOT, '..');
+const WORKTREE = PROJECT_ROOT;
 const COMMON_GIT_DIRECTORY = resolve(PROJECT_ROOT, '.git');
 const BASE = 'a'.repeat(40);
 const BRANCH = 'worktree-agent-02-01';
@@ -240,6 +241,30 @@ test('manifesto seleciona bundles por paths e palavras sem carregar skill extern
   assert.ok(!routing.workerSkills.includes('penetration-testing-with-strix'));
   assert.ok(routing.reviewers.includes('security'));
   assert.ok(routing.reviewers.includes('ui'));
+});
+
+test('manifesto roteia tarefas de verificacao para verification-review', async () => {
+  const manifest = await skillManifestPromise;
+  const plan = {
+    id: '99-01',
+    filePath: '.planning/phases/99/99-01-PLAN.md',
+    requirements: [],
+  };
+  const task = {
+    id: '99-01-T1',
+    type: 'auto',
+    name: 'Auditar snapshot congelado e verificar integracao',
+    precondition: '',
+    files: ['.agents/agy-review.mjs'],
+    verificationCommands: [],
+  };
+  const routing = selectSkillRouting(plan, task, manifest);
+
+  assert.deepEqual(routing.bundles, ['verification-review']);
+  assert.ok(routing.reviewers.includes('verification'));
+  assert.ok(routing.reviewers.includes('security'));
+  assert.ok(routing.reviewers.includes('ui'));
+  assert.ok(routing.gates.includes('aggregate-backend'));
 });
 
 test('manifesto falha fechado para bundle ou skill local invalida', async () => {
@@ -880,6 +905,27 @@ test('drift de branch, HEAD ou JSON bloqueia o resultado', async () => {
     }),
     /JSON inválido/u,
   );
+});
+
+test('contextRoot deve ficar dentro da worktree e pode ser a propria raiz', async () => {
+  assert.equal(assertPathWithinOrEqualRoot(WORKTREE, WORKTREE, 'contextRoot'), WORKTREE);
+  assert.equal(
+    assertPathWithinOrEqualRoot(resolve(WORKTREE, '.agents'), WORKTREE, 'contextRoot'),
+    resolve(WORKTREE, '.agents'),
+  );
+  assert.throws(
+    () => assertPathWithinOrEqualRoot(resolve(WORKSPACE_ROOT, 'outra-worktree'), WORKTREE, 'contextRoot'),
+    /contextRoot fora da raiz/u,
+  );
+
+  const fake = fakeProcesses();
+  await assert.rejects(
+    executeTask(await baseExecutionOptions('02-01-T1', {
+      contextRoot: resolve(WORKSPACE_ROOT, 'outra-worktree'),
+    }), { runProcess: fake.runProcess }),
+    /contextRoot fora da raiz/u,
+  );
+  assert.equal(fake.calls.length, 0);
 });
 
 test('prompt incorpora somente guidance local e explicita gates e skills de controle', async () => {

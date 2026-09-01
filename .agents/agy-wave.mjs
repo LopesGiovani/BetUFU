@@ -318,18 +318,26 @@ function comparablePath(value) {
   return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 }
 
-export function assertPathWithinRoot(target, root) {
+function assertPathRelationship(target, root, { allowEqual, label }) {
   if (!isAbsolute(target) || !isAbsolute(root)) fail('worktree e workspace-root devem ser absolutos');
   const relationship = relative(resolve(root), resolve(target));
   if (
-    relationship === ''
+    (!allowEqual && relationship === '')
     || relationship === '..'
     || relationship.startsWith(`..${sep}`)
     || isAbsolute(relationship)
   ) {
-    fail(`worktree fora da raiz aprovada: ${target}`);
+    fail(`${label} fora da raiz aprovada: ${target}`);
   }
   return resolve(target);
+}
+
+export function assertPathWithinRoot(target, root) {
+  return assertPathRelationship(target, root, { allowEqual: false, label: 'worktree' });
+}
+
+export function assertPathWithinOrEqualRoot(target, root, label = 'caminho') {
+  return assertPathRelationship(target, root, { allowEqual: true, label });
 }
 
 const RECURSIVE_SUFFIX = '/**';
@@ -948,7 +956,11 @@ export async function executeTask(options, dependencies = {}) {
   if (!options.expectedBranch || options.expectedBranch.startsWith('-')) fail('expected-branch inválida');
   const worktree = assertPathWithinRoot(options.worktree, options.workspaceRoot);
   const projectRoot = resolve(options.projectRoot ?? PROJECT_ROOT);
-  const contextRoot = resolve(options.contextRoot ?? worktree);
+  const contextRoot = assertPathWithinOrEqualRoot(
+    options.contextRoot ?? worktree,
+    worktree,
+    'contextRoot',
+  );
   const routing = options.skillRouting
     ?? await resolveSkillRouting(plan, task, contextRoot, options.skillManifest);
 

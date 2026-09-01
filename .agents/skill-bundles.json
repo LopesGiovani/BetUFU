@@ -131,6 +131,12 @@
       "priority": 100,
       "path_prefixes": ["backend/", "scripts/maven.mjs"],
       "keywords": ["spring", "java", "backend", "controller", "repository", "migration", "flyway", "openapi", "dto", "persistence"]
+    },
+    {
+      "bundle": "verification-review",
+      "priority": 50,
+      "path_prefixes": [".agents/"],
+      "keywords": ["verification", "snapshot", "integration", "integracao", "audit", "auditoria"]
     }
   ],
   "reviewer_profiles": {

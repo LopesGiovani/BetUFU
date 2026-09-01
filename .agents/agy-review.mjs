@@ -6,12 +6,13 @@
  */
 
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, realpath } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
   assertPathWithinRoot,
+  assertPathWithinOrEqualRoot,
   assertPathsWithinAllowlist,
   discoverPlans,
   loadSkillManifest,
@@ -214,6 +215,110 @@ function evidenceList(evidence, field) {
   return Array.isArray(value) ? value : [];
 }
 
+const AGGREGATE_COUNT_FIELDS = ['tests', 'passed', 'failures', 'errors', 'skipped'];
+
+function validateCounts(value, label) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    fail(`${label} ausentes`);
+  }
+  for (const field of AGGREGATE_COUNT_FIELDS) {
+    if (!Number.isInteger(value[field]) || value[field] < 0) {
+      fail(`${label}.${field} invalido`);
+    }
+  }
+  if (value.tests === 0) fail(`${label}.tests deve ser maior que zero`);
+  if (value.passed !== value.tests - value.failures - value.errors - value.skipped) {
+    fail(`${label} inconsistentes`);
+  }
+  return value;
+}
+
+function parseJUnitReport(content, label) {
+  const suites = [...String(content).matchAll(/<testsuite\b[^>]*>/giu)];
+  if (suites.length === 0) fail(`${label} sem elemento testsuite`);
+  const counts = { tests: 0, passed: 0, failures: 0, errors: 0, skipped: 0 };
+  for (const suite of suites) {
+    const attributes = {};
+    for (const match of suite[0].matchAll(/\b(tests|failures|errors|skipped)\s*=\s*["'](\d+)["']/giu)) {
+      attributes[match[1].toLowerCase()] = Number.parseInt(match[2], 10);
+    }
+    const tests = attributes.tests;
+    if (!Number.isInteger(tests) || tests < 0) fail(`${label} com tests invalido`);
+    const failures = attributes.failures ?? 0;
+    const errors = attributes.errors ?? 0;
+    const skipped = attributes.skipped ?? 0;
+    const suiteCounts = { tests, passed: tests - failures - errors - skipped, failures, errors, skipped };
+    validateCounts(suiteCounts, `${label} testsuite`);
+    for (const field of AGGREGATE_COUNT_FIELDS) counts[field] += suiteCounts[field];
+  }
+  return validateCounts(counts, label);
+}
+
+function tapCount(content, label, required = true) {
+  const matches = [...String(content).matchAll(new RegExp(`^#\\s+${label}\\s+(\\d+)\\s*$`, 'gimu'))];
+  if (matches.length === 0) {
+    if (required) fail(`relatorio TAP sem contagem ${label}`);
+    return 0;
+  }
+  return Number.parseInt(matches.at(-1)[1], 10);
+}
+
+function parseTapReport(content, label) {
+  const tests = tapCount(content, 'tests');
+  const passed = tapCount(content, 'pass');
+  const failures = tapCount(content, 'fail');
+  const skipped = tapCount(content, 'skipped', false) + tapCount(content, 'todo', false);
+  const errors = tapCount(content, 'cancelled', false);
+  return validateCounts({ tests, passed, failures, errors, skipped }, label);
+}
+
+function parseAggregateReport(content, format, label) {
+  if (format === 'junit') return parseJUnitReport(content, label);
+  if (format === 'tap') return parseTapReport(content, label);
+  fail(`${label} formato invalido`);
+}
+
+function sumCounts(target, value) {
+  for (const field of AGGREGATE_COUNT_FIELDS) target[field] += value[field];
+  return target;
+}
+
+async function readAggregateReports(item, snapshot) {
+  const reports = Array.isArray(item?.reports) ? item.reports : [];
+  if (reports.length === 0) fail('relatorios agregados ausentes');
+  const counts = { tests: 0, passed: 0, failures: 0, errors: 0, skipped: 0 };
+  for (const [index, report] of reports.entries()) {
+    if (!report || typeof report !== 'object' || !['junit', 'tap'].includes(report.format)) {
+      fail(`relatorio agregado ${index + 1} invalido`);
+    }
+    let content;
+    const label = `relatorio agregado ${index + 1}`;
+    if (typeof report.content === 'string') {
+      content = report.content;
+    } else if (typeof report.path === 'string') {
+      const path = assertPathWithinOrEqualRoot(
+        resolve(snapshot.worktree, report.path),
+        snapshot.worktree,
+        'relatorio',
+      );
+      try {
+        const realPath = assertPathWithinOrEqualRoot(
+          await realpath(path),
+          snapshot.worktree,
+          'relatorio',
+        );
+        content = await readFile(realPath, 'utf8');
+      } catch (error) {
+        fail(`${label} nao pode ser lido: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    } else {
+      fail(`${label} exige path ou content`);
+    }
+    sumCounts(counts, parseAggregateReport(content, report.format, label));
+  }
+  return validateCounts(counts, 'contagens reais');
+}
+
 function testEvidenceGate(plan, evidence) {
   const tests = evidenceList(evidence, 'tests');
   if (tests.length === 0) return gate('test-evidence', 'BLOCKED', 'nenhuma evidencia de teste fornecida');
@@ -228,10 +333,23 @@ function testEvidenceGate(plan, evidence) {
   return gate('test-evidence', 'PASS', `${tests.length} teste(s) verificado(s)`);
 }
 
-function aggregateGate(id, command, evidence) {
+async function aggregateGate(id, command, evidence, snapshot) {
   const item = evidenceList(evidence, 'aggregate').find((candidate) => candidate?.command === command);
   if (!item || item.status !== 'PASS') return gate(id, 'BLOCKED', `evidencia ausente para ${command}`);
-  return gate(id, 'PASS', command);
+  try {
+    const expected = validateCounts(item.counts, 'contagens esperadas');
+    const actual = await readAggregateReports(item, snapshot);
+    const mismatch = AGGREGATE_COUNT_FIELDS.find((field) => expected[field] !== actual[field]);
+    if (mismatch) {
+      return gate(id, 'BLOCKED', `contagem ${mismatch} divergente: esperada ${expected[mismatch]}, real ${actual[mismatch]}`);
+    }
+    if (actual.failures > 0 || actual.errors > 0 || actual.skipped > 0) {
+      return gate(id, 'BLOCKED', `relatorio possui falhas, erros ou skips: ${JSON.stringify(actual)}`);
+    }
+    return gate(id, 'PASS', `${command}: ${actual.passed}/${actual.tests}, 0 falhas, 0 erros, 0 ignorados`);
+  } catch (error) {
+    return gate(id, 'BLOCKED', `${command}: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 function openApiGate(evidence) {
@@ -246,7 +364,7 @@ function openApiGate(evidence) {
   return gate('openapi-contract', 'PASS', 'governed-before/after e digest conferidos');
 }
 
-export function evaluateReviewGates({ reviewType, profile, plan, snapshot, evidence = {}, executionResult = null }) {
+export async function evaluateReviewGates({ reviewType, profile, plan, snapshot, evidence = {}, executionResult = null }) {
   validateReviewerProfile(profile, reviewType);
   const gates = [
     gate('worktree-clean', snapshot.dirtyFiles.length === 0 ? 'PASS' : 'BLOCKED', snapshot.dirtyFiles.length === 0
@@ -297,13 +415,13 @@ export function evaluateReviewGates({ reviewType, profile, plan, snapshot, evide
   // Application changes require both repository aggregate suites; frontend
   // changes additionally require Angular, and browser assets add Playwright.
   if (hasBackend || hasFrontend) {
-    gates.push(aggregateGate('aggregate-backend', AGGREGATE_COMMANDS.backend, evidence));
-    gates.push(aggregateGate('aggregate-node', AGGREGATE_COMMANDS.node, evidence));
+    gates.push(await aggregateGate('aggregate-backend', AGGREGATE_COMMANDS.backend, evidence, snapshot));
+    gates.push(await aggregateGate('aggregate-node', AGGREGATE_COMMANDS.node, evidence, snapshot));
   } else if (hasNodeProcess) {
-    gates.push(aggregateGate('aggregate-node', AGGREGATE_COMMANDS.node, evidence));
+    gates.push(await aggregateGate('aggregate-node', AGGREGATE_COMMANDS.node, evidence, snapshot));
   }
-  if (hasFrontend) gates.push(aggregateGate('aggregate-angular', AGGREGATE_COMMANDS.angular, evidence));
-  if (hasBrowserTests) gates.push(aggregateGate('aggregate-playwright', AGGREGATE_COMMANDS.playwright, evidence));
+  if (hasFrontend) gates.push(await aggregateGate('aggregate-angular', AGGREGATE_COMMANDS.angular, evidence, snapshot));
+  if (hasBrowserTests) gates.push(await aggregateGate('aggregate-playwright', AGGREGATE_COMMANDS.playwright, evidence, snapshot));
   if (changed.some((path) => path === 'backend/openapi/betufu.yaml' || path.startsWith('frontend/src/app/api/generated/'))) {
     gates.push(openApiGate(evidence));
   }
@@ -384,7 +502,7 @@ export async function prepareReview(options, dependencies = {}) {
   validateReviewerProfile(profile, options.reviewType);
   const plan = await readPlan(options.projectRoot ?? PROJECT_ROOT, options.planId);
   const snapshot = await captureReviewSnapshot(options, dependencies);
-  const gates = evaluateReviewGates({
+  const gates = await evaluateReviewGates({
     reviewType: options.reviewType,
     profile,
     plan,
