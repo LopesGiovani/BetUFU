@@ -2,7 +2,7 @@
 phase: 03-experi-ncia-esportiva-do-piloto
 plan: 13
 wave: 14
-status: complete-pending-git
+status: complete
 completed: 2026-08-31
 subsystem: sports-standings
 tags: [spring-boot, postgresql, flyway, openapi, angular, signals, testcontainers]
@@ -121,16 +121,16 @@ issues:
   - "A reducao do CSS do ResponsiveDataView pode ser tratada como manutencao sem alterar seu contrato visual ou semantico."
 
 git:
-  status: technical-committed
+  status: integrated
   implementation_commit: e03c0b535fc380ddf8e771b937b25dd2d822beb5
-  documentation_commit: pending authorization
-  integration: pending authorization
-  cleanup: pending authorization
-  push: pending authorization
+  documentation_commit: 4ba73ad
+  integration: fast-forward into master
+  cleanup: worktree-agent-03-13 and branch removed
+  push: included in origin/master at 93e7d65
 
 next-phase-readiness:
   - "O snapshot V18, P8 e O7 estao certificados e prontos para revisao somente leitura e operacoes Git separadas."
-  - "Depois da integracao linear e limpeza do 03-13, a proxima frente tecnica e 03-14/W15."
+  - "O 03-13 esta integrado, enviado e limpo; a proxima frente tecnica e 03-14/W15."
 ---
 
 # Fase 3 Plano 03-13: classificacao transcrita P8/O7
@@ -139,7 +139,7 @@ O plano entrega classificacoes oficiais como snapshots transcritos de boletins. 
 
 ## Operacoes Git
 
-O commit tecnico `e03c0b5` foi criado com os 32 paths certificados. O commit documental, a integracao, a limpeza de worktree/branch e o push permanecem separados e pendentes.
+O commit tecnico `e03c0b5` e o documental `4ba73ad` foram integrados por fast-forward em `master`; a worktree/branch exatas foram removidas e o resultado esta em `origin/master` `93e7d65`.
 
 ## Self-check
 

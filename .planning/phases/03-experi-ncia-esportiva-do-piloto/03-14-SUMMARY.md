@@ -2,7 +2,7 @@
 phase: 03-experi-ncia-esportiva-do-piloto
 plan: 14
 wave: 15
-status: complete-pending-git
+status: complete
 completed: 2026-08-31
 subsystem: sports-profile
 tags: [spring-boot, postgresql, flyway, openapi, angular, signals, security]
@@ -109,12 +109,12 @@ coverage:
     human_judgment: false
 
 git:
-  status: implementation-pending-git
-  implementation_commit: pending authorization
-  documentation_commit: pending authorization
-  integration: pending authorization
-  cleanup: pending authorization
-  push: pending authorization
+  status: integrated
+  implementation_commit: 022f5a1
+  documentation_commit: 93e7d65
+  integration: fast-forward into master
+  cleanup: worktree-agent-03-14 and branch removed
+  push: origin/master synchronized at 93e7d65
 ---
 
 # Fase 3 Plano 03-14: perfil esportivo textual/social
@@ -159,9 +159,9 @@ Maven emitted Redis/PostgreSQL connection and Netty teardown warnings while Test
 
 ## Next Phase Readiness
 
-- The implementation is certified and ready for the separate Git review gate.
-- Stage, implementation/documentation commits, integration into `master`, worktree cleanup and push remain unperformed pending explicit Git authorization.
-- `STATE.md`, `CLAUDE.md`, `HANDOFF.json` and `.continue-here.md` were not edited; `CLAUDE.md`, `HANDOFF.json` and `.continue-here.md` are absent in this worktree, and `STATE.md` remains historically stale as required.
+- The implementation is certified, integrated into `master`, sent to `origin/master` and ready for the next technical plan.
+- The next technical plan is 03-15/W16; the formatting worktree was integrated and removed.
+- No product, OpenAPI or generated-client changes remain pending for 03-14.
 
 ---
 *Phase: 03-experi-ncia-esportiva-do-piloto*

@@ -302,19 +302,19 @@ Plans:
 
 - [x] 03-11-PLAN.md — completar agenda e páginas públicas
 
-**Wave 13** *(blocked on Wave 12 completion)*
+**Wave 13** *(concluida, integrada, enviada e limpa em 2026-08-31)*
 
-- [ ] 03-12-PLAN.md — derivar chaveamento dos eventos
+- [x] 03-12-PLAN.md — derivar chaveamento dos eventos
 
-**Wave 14** *(blocked on Wave 13 completion)*
+**Wave 14** *(concluida, integrada, enviada e limpa em 2026-08-31)*
 
-- [ ] 03-13-PLAN.md — publicar classificação manual versionada
+- [x] 03-13-PLAN.md — publicar classificação manual versionada
 
-**Wave 15** *(blocked on Wave 14 completion)*
+**Wave 15** *(concluida, integrada, enviada e limpa em 2026-08-31)*
 
-- [ ] 03-14-PLAN.md — entregar perfil esportivo textual/social owner-only
+- [x] 03-14-PLAN.md — entregar perfil esportivo textual/social owner-only
 
-**Wave 16** *(blocked on Wave 15 completion)*
+**Wave 16** *(pronta para execucao; formatacao consolidada em 2026-09-01)*
 
 - [ ] 03-15-PLAN.md — processar e armazenar foto com segurança
 
@@ -416,7 +416,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 11/20 | In Progress|  |
+| 3. Experiência Esportiva do Piloto | 15/20 | In Progress |  |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
