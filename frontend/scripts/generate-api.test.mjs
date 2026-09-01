@@ -270,6 +270,7 @@ test('manifesto recusa bytes com URL absoluta escondida depois de regex literal'
 test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tabular e eventos/resultados', () => {
   assert.deepEqual(PUBLIC_GENERATOR_API_TAGS, [
     'AthleteLink',
+    'AthletePublicProfile',
     'Diagnostic',
     'Enrollment',
     'Identity',
@@ -290,6 +291,8 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'SportsTabularImport',
   ]);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('AthletePublicProfile'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('AthletePublicProfileUpdateRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicSportsEventPage'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventDetail'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventFormat'), true);

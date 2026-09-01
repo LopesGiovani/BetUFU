@@ -4,6 +4,8 @@ export * from './athlete-link-decision-request';
 export * from './athlete-link-proposal';
 export * from './athlete-link-review-page';
 export * from './athlete-link-review-summary';
+export * from './athlete-public-profile';
+export * from './athlete-public-profile-update-request';
 export * from './betufu-field-violation';
 export * from './betufu-problem-details';
 export * from './current-device-logout-response';

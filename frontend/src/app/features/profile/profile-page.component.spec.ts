@@ -246,6 +246,13 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     expect(matriculaLink).not.toBeNull();
     expect(matriculaLink.textContent?.trim()).toBe('Registrar matrícula');
     expect(matriculaLink.getAttribute('href') || matriculaLink.getAttribute('ng-reflect-router-link')).toContain('matricula');
+
+    const athleteProfileLink = compiled.querySelector('a.athlete-profile-link') as HTMLAnchorElement;
+    expect(athleteProfileLink).not.toBeNull();
+    expect(athleteProfileLink.textContent?.trim()).toBe('Gerenciar perfil esportivo');
+    expect(
+      athleteProfileLink.getAttribute('href') || athleteProfileLink.getAttribute('ng-reflect-router-link'),
+    ).toContain('conta/perfil/esportivo');
   });
 
   it('Garantia [populated] (S2): exibe chip de matrícula registrada quando cadastrada', async () => {
@@ -550,6 +557,10 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     expect(prodGateRoute).toBeDefined();
     expect(prodGateRoute?.loadComponent).toBeTypeOf('function');
 
+    const prodAthleteProfileRoute = prodRoot?.children?.find((r) => r.path === 'conta/perfil/esportivo');
+    expect(prodAthleteProfileRoute).toBeDefined();
+    expect(prodAthleteProfileRoute?.loadComponent).toBeTypeOf('function');
+
     // Prova que rotas de produção não contêm rotas técnicas de desenvolvimento
     expect(prodRoot?.children?.find((r) => r.path === 'tracer')).toBeUndefined();
     expect(prodRoot?.children?.find((r) => r.path === 'diagnostic')).toBeUndefined();
@@ -562,6 +573,10 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     const devProfileRoute = devRoot?.children?.find((r) => r.path === 'conta/perfil');
     expect(devProfileRoute).toBeDefined();
     expect(devProfileRoute?.loadComponent).toBeTypeOf('function');
+
+    const devAthleteProfileRoute = devRoot?.children?.find((r) => r.path === 'conta/perfil/esportivo');
+    expect(devAthleteProfileRoute).toBeDefined();
+    expect(devAthleteProfileRoute?.loadComponent).toBeTypeOf('function');
 
     // Prova que rotas de desenvolvimento contêm tracer e diagnostic
     expect(devRoot?.children?.find((r) => r.path === 'tracer')).toBeDefined();

@@ -91,10 +91,10 @@ class FlywayMigrationIT {
 
         MigrateResult result = flyway.migrate();
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(19);
+        assertThat(result.migrationsExecuted).isEqualTo(20);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(19);
+        assertThat(applied).hasSize(20);
 
         assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -153,6 +153,9 @@ class FlywayMigrationIT {
         assertThat(applied[18].getVersion().getVersion()).isEqualTo("18");
         assertThat(applied[18].getState()).isEqualTo(MigrationState.SUCCESS);
 
+        assertThat(applied[19].getVersion().getVersion()).isEqualTo("19");
+        assertThat(applied[19].getState()).isEqualTo(MigrationState.SUCCESS);
+
         Integer guardCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM public.platform_guard WHERE guard_key = 'PLATFORM_SCHEMA_AUTHORITATIVE'",
                 Integer.class);
@@ -168,7 +171,7 @@ class FlywayMigrationIT {
                 .load();
 
         MigrateResult firstRun = flyway.migrate();
-        assertThat(firstRun.migrationsExecuted).isEqualTo(19);
+        assertThat(firstRun.migrationsExecuted).isEqualTo(20);
 
         MigrateResult secondRun = flyway.migrate();
         assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -177,7 +180,7 @@ class FlywayMigrationIT {
         assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
         MigrationInfo[] applied = flyway.info().applied();
-        assertThat(applied).hasSize(19);
+        assertThat(applied).hasSize(20);
         assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     }
 
@@ -215,7 +218,7 @@ class FlywayMigrationIT {
             assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
             int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-            assertThat(totalExecuted).isEqualTo(19);
+            assertThat(totalExecuted).isEqualTo(20);
 
             Flyway verificationFlyway = Flyway.configure()
                     .dataSource(dataSource)
@@ -223,7 +226,7 @@ class FlywayMigrationIT {
                     .load();
 
             MigrationInfo[] applied = verificationFlyway.info().applied();
-            assertThat(applied).hasSize(19);
+            assertThat(applied).hasSize(20);
             assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
         } finally {
             start.countDown();
@@ -957,5 +960,88 @@ class FlywayMigrationIT {
                 "DELETE FROM public.sports_standings_publication_cell WHERE publication_id = ?",
                 publicationId))
                 .hasMessageContaining("snapshots are immutable");
+    }
+
+    @Test
+    @DisplayName("V19 aplica restrições de perfil público do atleta no PostgreSQL")
+    void v19EnforcesAthletePublicProfileConstraints() {
+        Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load()
+                .migrate();
+
+        UUID athleteId = jdbcTemplate.queryForObject(
+                "INSERT INTO public.sports_athlete (name, slug, status) VALUES ('Atleta V19', 'atleta-v19', 'PUBLICADO') RETURNING athlete_id",
+                UUID.class);
+
+        // Inserção válida
+        assertThat(jdbcTemplate.update(
+                """
+                INSERT INTO public.sports_athlete_public_profile (
+                    athlete_id, course, bio, instagram_url, x_url, linkedin_url, strava_url, youtube_url, lock_version
+                ) VALUES (?, 'Engenharia', 'Bio teste', 'https://instagram.com/atleta', 'https://x.com/atleta',
+                          'https://linkedin.com/in/atleta', 'https://strava.com/athletes/1', 'https://youtube.com/@atleta', 0)
+                """,
+                athleteId)).isEqualTo(1);
+
+        // Atualização válida incrementando lock_version
+        assertThat(jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET bio = 'Nova bio', lock_version = lock_version + 1 WHERE athlete_id = ?",
+                athleteId)).isEqualTo(1);
+
+        // Curso vazio viola CHECK (deve ser NULL ou não-vazio)
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET course = '   ' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_course");
+
+        // Bio vazia viola CHECK
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET bio = '   ' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_bio");
+
+        // URL do Instagram com host inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET instagram_url = 'https://fake.com/atleta' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_instagram_url");
+
+        // URL do Instagram com HTTP
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET instagram_url = 'http://instagram.com/atleta' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_instagram_url");
+
+        // URL do X com host inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET x_url = 'https://other.com/atleta' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_x_url");
+
+        // URL do LinkedIn com host inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET linkedin_url = 'https://other.com/atleta' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_linkedin_url");
+
+        // URL do Strava com host inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET strava_url = 'https://other.com/atleta' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_strava_url");
+
+        // URL do YouTube com host inválido
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "UPDATE public.sports_athlete_public_profile SET youtube_url = 'https://other.com/atleta' WHERE athlete_id = ?",
+                athleteId))
+                .hasMessageContaining("ck_sports_athlete_public_profile_youtube_url");
+
+        // FK para atleta inexistente
+        assertThatThrownBy(() -> jdbcTemplate.update(
+                "INSERT INTO public.sports_athlete_public_profile (athlete_id) VALUES (?)",
+                UUID.randomUUID()))
+                .hasMessageContaining("fk_sports_athlete_public_profile_athlete");
     }
 }

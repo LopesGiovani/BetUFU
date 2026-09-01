@@ -1,0 +1,128 @@
+<main class="athlete-profile" aria-labelledby="athlete-profile-title">
+  <a class="back-link" routerLink="/conta/perfil">Voltar para minha conta</a>
+
+  @if (store.isLoading()) {
+    <section class="state-card" role="status">
+      <p class="eyebrow">Perfil esportivo</p>
+      <h1 id="athlete-profile-title">Carregando seu perfil esportivo</h1>
+      <p>Estamos confirmando o vinculo aceito e os dados que voce pode editar.</p>
+    </section>
+  } @else if (store.isDenied()) {
+    <section class="state-card state-card--error" role="alert">
+      <p class="eyebrow">Sessao sem acesso</p>
+      <h1 id="athlete-profile-title">Nao foi possivel manter os dados de edicao</h1>
+      <p>O formulario e a pre-visualizacao foram limpos. Entre novamente antes de continuar.</p>
+    </section>
+  } @else if (store.isNotLinked()) {
+    <section class="state-card">
+      <p class="eyebrow">Perfil esportivo</p>
+      <h1 id="athlete-profile-title">Vinculo com atleta necessario</h1>
+      <p>Este perfil fica disponivel somente depois que uma proposta de vinculo com atleta for aceita.</p>
+    </section>
+  } @else if (store.profile(); as profile) {
+    <header class="page-head">
+      <div>
+        <p class="eyebrow">Conta / Perfil esportivo</p>
+        <h1 id="athlete-profile-title">{{ profile.athleteName }}</h1>
+        <p>Edite somente seu conteudo textual e social. Equipes, modalidades e resultados continuam vindo do cadastro esportivo oficial.</p>
+      </div>
+      <a class="public-link" [routerLink]="['/atletas', profile.athleteId]">Ver perfil publico</a>
+    </header>
+
+    @if (store.errorMessage()) {
+      <section class="feedback feedback--error" role="alert">
+        <strong>{{ store.isConflict() ? 'Perfil atualizado em outra tela' : 'Nao foi possivel concluir a acao' }}</strong>
+        <p>{{ store.errorMessage() }}</p>
+        @if (store.isConflict()) {
+          <button type="button" class="button button--secondary" (click)="retry()">Recarregar perfil</button>
+        }
+      </section>
+    }
+
+    <div class="workspace">
+      <form class="profile-form" [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <section class="form-section" aria-labelledby="about-title">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Texto simples</p>
+              <h2 id="about-title">Sobre voce</h2>
+            </div>
+            <span>Todos os campos sao opcionais</span>
+          </div>
+
+          <label for="athlete-course">Curso</label>
+          <input id="athlete-course" type="text" formControlName="course" maxlength="120"
+            autocomplete="organization-title" [attr.aria-invalid]="form.controls.course.invalid && form.controls.course.touched"
+            aria-describedby="course-help course-error">
+          <p id="course-help" class="help">Texto simples, ate 120 caracteres.</p>
+          @if (fieldError('course'); as message) { <p id="course-error" class="error" role="alert">{{ message }}</p> }
+
+          <div class="label-row">
+            <label for="athlete-bio">Biografia</label>
+            <span aria-hidden="true">{{ bioLength() }}/500</span>
+          </div>
+          <textarea id="athlete-bio" formControlName="bio" maxlength="500" rows="8"
+            [attr.aria-invalid]="form.controls.bio.invalid && form.controls.bio.touched"
+            aria-describedby="bio-help bio-error"></textarea>
+          <p id="bio-help" class="help">As quebras de linha sao preservadas. Tags HTML nao sao aceitas.</p>
+          @if (fieldError('bio'); as message) { <p id="bio-error" class="error" role="alert">{{ message }}</p> }
+        </section>
+
+        <section class="form-section" aria-labelledby="social-title">
+          <div class="section-head">
+            <div><p class="eyebrow">Links seguros</p><h2 id="social-title">Redes sociais</h2></div>
+            <span>Somente HTTPS</span>
+          </div>
+
+          @for (field of socialFields; track field.control) {
+            <label [for]="field.control">{{ field.label }}</label>
+            <input [id]="field.control" type="url" [formControlName]="field.control" maxlength="255"
+              [placeholder]="field.placeholder" autocomplete="url"
+              [attr.aria-invalid]="isInvalid(field.control)"
+              [attr.aria-describedby]="field.control + '-error'">
+            @if (fieldError(field.control); as message) {
+              <p [id]="field.control + '-error'" class="error" role="alert">{{ message }}</p>
+            }
+          }
+        </section>
+
+        <div class="form-actions">
+          <button class="button button--primary" type="submit" [disabled]="saveDisabled">
+            {{ store.isSaving() ? 'Salvando...' : 'Salvar perfil esportivo' }}
+          </button>
+          <button class="button button--danger" type="button" (click)="remove()"
+            [disabled]="!store.hasOptionalContent() || store.isRemoving()">
+            {{ store.isRemoving() ? 'Removendo...' : 'Remover conteudo opcional' }}
+          </button>
+        </div>
+      </form>
+
+      <aside class="preview" aria-labelledby="preview-title">
+        <p class="eyebrow">Pre-visualizacao publica</p>
+        <h2 id="preview-title">Como seu texto aparecera</h2>
+        <div class="avatar" aria-hidden="true">{{ profile.athleteName.charAt(0) }}</div>
+        <h3>{{ profile.athleteName }}</h3>
+        @if (store.preview()?.course) { <p class="course">{{ store.preview()!.course }}</p> }
+        @if (store.preview()?.bio) { <p class="bio-preview">{{ store.preview()!.bio }}</p> }
+        @if (previewLinks().length) {
+          <nav class="social-preview" aria-label="Redes sociais da pre-visualizacao">
+            @for (link of previewLinks(); track link.label) {
+              <a [href]="link.href" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+            }
+          </nav>
+        } @else {
+          <p class="preview-empty">Nenhum link social informado.</p>
+        }
+      </aside>
+    </div>
+
+    <p class="live-region" role="status" aria-live="polite">{{ store.feedbackMessage() }}</p>
+  } @else if (store.isError()) {
+    <section class="state-card state-card--error" role="alert">
+      <p class="eyebrow">Perfil esportivo</p>
+      <h1 id="athlete-profile-title">Nao foi possivel carregar seu perfil esportivo</h1>
+      <p>{{ store.errorMessage() }}</p>
+      <button class="button button--primary" type="button" (click)="retry()">Tentar novamente</button>
+    </section>
+  }
+</main>

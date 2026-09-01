@@ -99,6 +99,11 @@ const APPROVED_PRODUCT_ROUTES = Object.freeze([
     'ProfilePageComponent',
   ),
   approvedRoute(
+    'conta/perfil/esportivo',
+    './features/sports/athlete-profile/athlete-profile-page.component',
+    'AthleteProfilePageComponent',
+  ),
+  approvedRoute(
     'conta/matricula',
     './features/enrollment/enrollment-page.component',
     'EnrollmentPageComponent',

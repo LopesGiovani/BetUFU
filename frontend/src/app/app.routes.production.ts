@@ -50,6 +50,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
           ),
       },
       {
+        path: 'conta/perfil/esportivo',
+        loadComponent: () =>
+          import('./features/sports/athlete-profile/athlete-profile-page.component').then(
+            ({ AthleteProfilePageComponent }) => AthleteProfilePageComponent,
+          ),
+      },
+      {
         path: 'conta/perfil',
         loadComponent: () =>
           import('./features/profile/profile-page.component').then(

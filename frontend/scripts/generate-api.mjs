@@ -72,6 +72,7 @@ const APPROVED_GENERATOR = Object.freeze({
 });
 export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'AthleteLink',
+  'AthletePublicProfile',
   'Diagnostic',
   'Enrollment',
   'Identity',
@@ -98,6 +99,8 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'AthleteLinkProposal',
   'AthleteLinkReviewPage',
   'AthleteLinkReviewSummary',
+  'AthletePublicProfileUpdateRequest',
+  'AthletePublicProfile',
   'BetufuFieldViolation',
   'BetufuProblemDetails',
   'CurrentDeviceLogoutResponse',
@@ -222,6 +225,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api.module.ts',
   'api/api.ts',
   'api/athlete-link.service.ts',
+  'api/athlete-public-profile.service.ts',
   'api/diagnostic.service.ts',
   'api/enrollment.service.ts',
   'api/identity.service.ts',
@@ -249,6 +253,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/athlete-link-proposal.ts',
   'model/athlete-link-review-page.ts',
   'model/athlete-link-review-summary.ts',
+  'model/athlete-public-profile-update-request.ts',
+  'model/athlete-public-profile.ts',
   'model/betufu-field-violation.ts',
   'model/betufu-problem-details.ts',
   'model/current-device-logout-response.ts',
@@ -387,7 +393,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // chaveamento derivado, apos a conferencia do candidato OpenAPI e dos endpoints operacionais.
 // 5BC25D... foi aprovado para a Wave 14; acrescenta o servico e os modelos fechados da
 // classificacao oficial transcrita/versionada (03-13), apos a conferencia do candidato OpenAPI.
-export const APPROVED_GENERATED_DIGEST = '5BC25D0DC503474976AFC5223037464CB66205D4DD29725A796011B78DC0295B';
+// A519EC... foi aprovado literalmente pelo responsavel na Wave 15 (03-14); acrescenta
+// o perfil publico esportivo e os dois modelos de leitura/atualizacao.
+export const APPROVED_GENERATED_DIGEST = 'A519EC31AF3F6CF504DB180A9606B700288A76C2CB6504BEEA3802A4A4726B93';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

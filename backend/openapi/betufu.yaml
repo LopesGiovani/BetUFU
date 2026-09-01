@@ -308,6 +308,97 @@ paths:
         "409":
           description: Proposta em estado terminal conflitante ou concorrência.
 
+  /api/v1/me/sports/athlete-profile:
+    get:
+      tags:
+        - AthletePublicProfile
+      operationId: getMyAthleteProfile
+      summary: Consultar o perfil esportivo próprio do atleta vinculado
+      description: >-
+        Retorna o perfil esportivo textual/social do atleta vinculado à conta autenticada atual (D-76, SPRT-16).
+        Se a conta ainda não possui perfil salvo, retorna os dados esportivos com campos opcionais nulos.
+        Retorna 404 se a conta não tiver vínculo aceito com um atleta.
+      responses:
+        "200":
+          description: Perfil esportivo do atleta autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AthletePublicProfile"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "401":
+          description: Requisição não autenticada.
+        "404":
+          description: Vínculo com atleta não encontrado.
+    put:
+      tags:
+        - AthletePublicProfile
+      operationId: updateMyAthleteProfile
+      summary: Atualizar o perfil esportivo próprio do atleta vinculado
+      description: >-
+        Atualiza curso, biografia e redes sociais opcionais do atleta vinculado (D-76, D-78, SPRT-16).
+        Biografia é estritamente texto simples (HTML/scripts são rejeitados com 400).
+        Links de redes sociais exigem HTTPS e host da allowlist permitida.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AthletePublicProfileUpdateRequest"
+      responses:
+        "200":
+          description: Perfil esportivo atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AthletePublicProfile"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "400":
+          description: Validação falhou (XSS, URL insegura, limites excedidos).
+        "401":
+          description: Requisição não autenticada.
+        "404":
+          description: Vínculo com atleta não encontrado.
+        "409":
+          description: Versão de concorrência desatualizada (STALE_VERSION).
+    delete:
+      tags:
+        - AthletePublicProfile
+      operationId: deleteMyAthleteProfile
+      summary: Limpar campos opcionais do perfil esportivo próprio
+      description: >-
+        Remove curso, biografia e redes sociais do atleta vinculado, preservando o vínculo esportivo oficial (D-76).
+      responses:
+        "200":
+          description: Perfil esportivo limpo com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AthletePublicProfile"
+        "302":
+          description: Requisição anônima redirecionada ao fluxo OIDC do BFF.
+          headers:
+            Location:
+              description: Destino do fluxo de autenticação hospedado.
+              schema:
+                type: string
+        "401":
+          description: Requisição não autenticada.
+        "404":
+          description: Vínculo com atleta não encontrado.
+
   /api/v1/operations/roles/{targetIdentityId}:
     get:
       tags:
@@ -2791,6 +2882,33 @@ paths:
                 $ref: "#/components/schemas/PublicAthleteDetail"
         "404":
           description: Atleta não encontrado ou em rascunho (Problem Details).
+
+  /api/v1/public/sports/athletes/{athleteId}/profile:
+    get:
+      tags:
+        - AthletePublicProfile
+      operationId: getAthletePublicProfile
+      summary: Consultar o perfil textual/social público de um atleta
+      description: >-
+        Retorna curso, biografia e links sociais públicos de um atleta publicado (D-76, D-78, SPRT-16).
+        Nenhum identificador privado (matrícula, HMAC, e-mail, identityId) é retornado.
+      parameters:
+        - name: athleteId
+          in: path
+          required: true
+          description: Identificador único do atleta.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Perfil textual/social público do atleta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AthletePublicProfile"
+        "404":
+          description: Atleta não encontrado ou em rascunho.
 
   /api/v1/diagnostic:
     get:
@@ -7032,3 +7150,90 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SportsStandingsRow"
+
+    AthletePublicProfile:
+      type: object
+      additionalProperties: false
+      required:
+        - athleteId
+        - athleteName
+        - athleteSlug
+        - lockVersion
+        - updatedAt
+      properties:
+        athleteId:
+          type: string
+          format: uuid
+          description: Identificador único do atleta.
+        athleteName:
+          type: string
+          description: Nome esportivo do atleta.
+        athleteSlug:
+          type: string
+          description: Slug esportivo do atleta.
+        course:
+          type: [string, "null"]
+          description: Curso de graduação ou pós-graduação informado pelo atleta.
+        bio:
+          type: [string, "null"]
+          description: Biografia textual em texto simples (sem tags HTML).
+        instagramUrl:
+          type: [string, "null"]
+          description: Link de perfil no Instagram (HTTPS validado).
+        xUrl:
+          type: [string, "null"]
+          description: Link de perfil no X/Twitter (HTTPS validado).
+        linkedinUrl:
+          type: [string, "null"]
+          description: Link de perfil no LinkedIn (HTTPS validado).
+        stravaUrl:
+          type: [string, "null"]
+          description: Link de perfil no Strava (HTTPS validado).
+        youtubeUrl:
+          type: [string, "null"]
+          description: Link de perfil no YouTube (HTTPS validado).
+        lockVersion:
+          type: integer
+          format: int64
+          description: Versão de concorrência otimista.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Instante em UTC da última atualização.
+
+    AthletePublicProfileUpdateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        course:
+          type: [string, "null"]
+          maxLength: 120
+          description: Curso do atleta (máximo de 120 caracteres).
+        bio:
+          type: [string, "null"]
+          maxLength: 500
+          description: Biografia em texto simples (máximo de 500 caracteres).
+        instagramUrl:
+          type: [string, "null"]
+          maxLength: 255
+          description: URL HTTPS do Instagram.
+        xUrl:
+          type: [string, "null"]
+          maxLength: 255
+          description: URL HTTPS do X/Twitter.
+        linkedinUrl:
+          type: [string, "null"]
+          maxLength: 255
+          description: URL HTTPS do LinkedIn.
+        stravaUrl:
+          type: [string, "null"]
+          maxLength: 255
+          description: URL HTTPS do Strava.
+        youtubeUrl:
+          type: [string, "null"]
+          maxLength: 255
+          description: URL HTTPS do YouTube.
+        lockVersion:
+          type: [integer, "null"]
+          format: int64
+          description: Versão de lock esperada para verificação de concorrência.
