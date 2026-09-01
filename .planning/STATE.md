@@ -4,8 +4,8 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: "03-15 integrated and cleaned; 03-16/W17 ready for preflight; push pending"
-last_updated: "2026-09-01T15:10:00-03:00"
+stopped_at: "03-16 integrated and cleaned; 03-19/W18 ready for preflight; push pending"
+last_updated: "2026-09-01T20:45:00-03:00"
 last_activity: 2026-09-01
 last_activity_desc: 03-15/W16 foi integrado e limpo em 7809a93; processo e formatacao seguem sincronizados em 112ca13; origin/master esta atrasada e o push permanece pendente.
 state_head: 7809a93e11d2b372a5bdf6dee8a1c0fa0903fefa
@@ -13,25 +13,27 @@ progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 79
+  completed_plans: 80
 milestone_name: milestone
 ---
 
 # Estado do Projeto
+
+Git - Fase 3 / Wave 17 (integrada e limpa, 2026-09-01): o 03-16 foi executado na worktree dedicada sobre `32c6af3`; os commits tecnico `a5e0714` e documental `df1a7ca` foram integrados por fast-forward em `master`. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `354/354`, builds e Playwright `3/3` passaram; capabilities, isolamento de escopo e rotas O1-O8 ficaram verdes. A worktree e a branch exatas foram removidas; `origin/master` permanece em `112ca13` aguardando push. O validador live de rotas aguarda a atualização semântica prevista no 03-19.
 
 ## Project Reference
 
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-16/W17 pronta para preflight; 03-15/W16 integrado e limpo; master em 7809a93 e origin/master em 112ca13, com push pendente.
+**Current focus:** 03-19/W18 pronta para preflight; 03-16/W17 integrado e limpo; master em df1a7ca e origin/master em 112ca13, com push pendente.
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-15 de 20 concluido, integrado e limpo; a proxima frente tecnica e 03-16/W17.
-Status: In progress - foto de atleta processada com seguranca, contrato governado e UI owner/public certificada; `master` esta em `7809a93` e `origin/master` em `112ca13`.
-Last activity: 2026-09-01 - 03-15/W16 integrado por fast-forward e worktree/branch exatas removidas; push permanece pendente.
+Plan: 03-16 de 20 concluido, integrado e limpo; a proxima frente tecnica e 03-19/W18.
+Status: In progress - Console esportivo O1-O8 com capabilities server-side e escopo fail-closed; `master` esta em `df1a7ca` e `origin/master` em `112ca13`, com push pendente.
+Last activity: 2026-09-01 - 03-16/W17 integrado por fast-forward e worktree/branch exatas removidas; push permanece pendente.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
