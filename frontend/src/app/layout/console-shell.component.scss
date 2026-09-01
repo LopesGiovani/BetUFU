@@ -163,13 +163,13 @@
     padding-bottom: tokens.$space-2;
   }
   .console-nav {
+    max-width: 100%;
     gap: 0;
+    overflow-x: auto;
   }
   .console-nav a {
-    display: none;
-  }
-  .console-nav a:last-of-type {
     display: inline-flex;
+    flex: 0 0 auto;
   }
   .console-main {
     padding-block: tokens.$space-6;

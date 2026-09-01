@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OperationalPanelService } from '../../api/generated/api/operational-panel.service';
+import { OperationalCapabilitiesService } from '../../api/generated/api/operational-capabilities.service';
 import { OperationalPanelResponse } from '../../api/generated/model/operational-panel-response';
 import { OperationsPanelPageComponent } from './operations-panel-page.component';
 import { OperationsPanelStore } from './operations-panel.store';
@@ -72,10 +74,16 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
   let component: OperationsPanelPageComponent;
   let store: OperationsPanelStore;
   let mockOperationalPanelService: { getOperationalPanel: ReturnType<typeof vi.fn> };
+  let mockOperationalCapabilitiesService: {
+    getOperationalCapabilities: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     mockOperationalPanelService = {
       getOperationalPanel: vi.fn(),
+    };
+    mockOperationalCapabilitiesService = {
+      getOperationalCapabilities: vi.fn(() => of({ capabilities: [] })),
     };
 
     await TestBed.configureTestingModule({
@@ -84,6 +92,11 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
         OperationsApiAdapter,
         OperationsPanelStore,
         { provide: OperationalPanelService, useValue: mockOperationalPanelService },
+        {
+          provide: OperationalCapabilitiesService,
+          useValue: mockOperationalCapabilitiesService,
+        },
+        provideRouter([]),
       ],
     }).compileComponents();
 
@@ -94,6 +107,36 @@ describe('OperationsPanelPageComponent (Garantias de UI S4)', () => {
     fixture = TestBed.createComponent(OperationsPanelPageComponent);
     component = fixture.componentInstance;
   }
+
+  it('mostra Operação esportiva somente após capability válida do BFF', async () => {
+    mockOperationalPanelService.getOperationalPanel.mockReturnValue(of(MOCK_POPULATED_RESPONSE));
+    mockOperationalCapabilitiesService.getOperationalCapabilities.mockReturnValue(
+      of({ capabilities: ['MANAGE_SPORTS_CATALOG'] }),
+    );
+    createComponent();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const link = (fixture.nativeElement as HTMLElement).querySelector('.sports-operation-link');
+    expect(link?.textContent).toContain('Operação esportiva');
+    expect(link?.getAttribute('href')).toBe('/operacao/esportes');
+  });
+
+  it('falha fechado e omite Operação esportiva para payload malformado', async () => {
+    mockOperationalPanelService.getOperationalPanel.mockReturnValue(of(MOCK_POPULATED_RESPONSE));
+    mockOperationalCapabilitiesService.getOperationalCapabilities.mockReturnValue(
+      of({ capabilities: 'MANAGE_SPORTS_CATALOG' } as never),
+    );
+    createComponent();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.sports-operation-link'),
+    ).toBeNull();
+  });
 
   it('Garantia [populated]: renderiza os 4 blocos presentes com agregados, pendencias e listas de auditoria', async () => {
     mockOperationalPanelService.getOperationalPanel.mockReturnValue(of(MOCK_POPULATED_RESPONSE));

@@ -16,16 +16,12 @@
     </div>
 
     <nav class="console-nav" aria-label="Navegacao do console">
-      @if (hasSportsCatalog()) {
+      @for (destination of operationDestinations(); track destination.path) {
         <a
-          routerLink="/operacao/esportes"
+          [routerLink]="destination.path"
           routerLinkActive="is-active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          >Escopo</a
-        >
-        <a routerLink="/operacao/esportes/catalogo" routerLinkActive="is-active">Catalogo</a>
-        <a routerLink="/operacao/esportes/organizacoes" routerLinkActive="is-active"
-          >Organizacoes e equipes</a
+          [routerLinkActiveOptions]="{ exact: destination.path === '/operacao/esportes' }"
+          >{{ destination.label }}</a
         >
       }
       <a routerLink="/" (click)="closeMenu()">Arena</a>
@@ -40,9 +36,6 @@
 
     @if (menuOpen()) {
       <div class="console-menu">
-        @if (hasBootstrap()) {
-          <span class="console-menu__hint">Administrador geral</span>
-        }
         <a routerLink="/conta/perfil" (click)="closeMenu()">Meu perfil</a>
         <button type="button" (click)="logout()">Sair</button>
       </div>
@@ -50,6 +43,6 @@
   </div>
 </header>
 
-<main id="console-main" class="console-main" tabindex="-1">
+<main #consoleMain id="console-main" class="console-main" tabindex="-1">
   <router-outlet />
 </main>

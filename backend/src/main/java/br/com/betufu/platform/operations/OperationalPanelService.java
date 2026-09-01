@@ -48,6 +48,9 @@ import org.springframework.stereotype.Service;
 @Profile("runtime | integrated")
 public class OperationalPanelService {
 
+  private static final String GENERAL_ADMIN = "ADMINISTRADOR_GERAL";
+  private static final String COMPETITION_ADMIN = "ADMINISTRADOR_COMPETICAO";
+
   private static final Logger log = LoggerFactory.getLogger(OperationalPanelService.class);
 
   public static final Duration DEFAULT_TIME_WINDOW = Duration.ofDays(7);
@@ -111,11 +114,11 @@ public class OperationalPanelService {
     Set<GrantedRole> roles = identityOpt.get().roles();
     boolean isGlobalAdmin =
         roles.stream()
-            .anyMatch(
-                grant ->
-                    "ADMINISTRADOR_GERAL".equals(grant.roleName()) && grant.scopeRef() == null);
+            .anyMatch(grant -> GENERAL_ADMIN.equals(grant.roleName()) && grant.scopeRef() == null);
     boolean isCompAdmin =
-        roles.stream().anyMatch(grant -> "ADMINISTRADOR_COMPETICAO".equals(grant.roleName()));
+        roles.stream()
+            .anyMatch(
+                grant -> COMPETITION_ADMIN.equals(grant.roleName()) && grant.scopeRef() != null);
 
     RoleChangesBlock roleChanges = null;
     RejectedEnrollmentsBlock rejectedEnrollments = null;

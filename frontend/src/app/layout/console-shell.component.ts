@@ -1,16 +1,66 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  ElementRef,
   OnInit,
+  ViewChild,
   computed,
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
-import { OperationalCapabilitiesService } from '../api/generated/api/operational-capabilities.service';
-import { OperationalCapability } from '../api/generated/model/operational-capability';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter, firstValueFrom } from 'rxjs';
 import { SessionStore } from '../core/session/session.store';
+import { OperationsApiAdapter } from '../features/operations/operations-api.adapter';
+import {
+  OperationalCapabilityName,
+  OperationalNavigationItem,
+} from '../features/operations/operations.models';
+
+const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Object.freeze([
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Visão geral',
+    path: '/operacao/esportes',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Catálogo',
+    path: '/operacao/esportes/catalogo',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Organizações e equipes',
+    path: '/operacao/esportes/organizacoes',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Atletas e elencos',
+    path: '/operacao/esportes/atletas',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Importar CSV/XLSX',
+    path: '/operacao/esportes/importacao',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Eventos e resultados',
+    path: '/operacao/esportes/eventos',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Chaveamento e classificação',
+    path: '/operacao/esportes/chaveamentos',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_SPORTS_CATALOG',
+    label: 'Revisões de vínculo',
+    path: '/operacao/esportes/revisoes',
+  }),
+]);
 
 @Component({
   selector: 'app-console-shell',
@@ -21,18 +71,30 @@ import { SessionStore } from '../core/session/session.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConsoleShellComponent implements OnInit {
+  @ViewChild('consoleMain') private consoleMain?: ElementRef<HTMLElement>;
+
   readonly sessionStore = inject(SessionStore);
-  private readonly capabilitiesService = inject(OperationalCapabilitiesService);
-  readonly capabilities = signal<readonly string[]>([]);
+  private readonly operationsApiAdapter = inject(OperationsApiAdapter);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly capabilities = signal<readonly OperationalCapabilityName[]>([]);
   readonly menuOpen = signal(false);
-  readonly hasSportsCatalog = computed(() =>
-    this.capabilities().includes(OperationalCapability.ManageSportsCatalog),
-  );
-  readonly hasBootstrap = computed(() =>
-    this.capabilities().includes(OperationalCapability.BootstrapSportsCompetition),
+  readonly operationDestinations = computed(() =>
+    SPORTS_OPERATION_DESTINATIONS.filter((destination) =>
+      this.capabilities().includes(destination.capability),
+    ),
   );
 
   ngOnInit(): void {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.closeMenu();
+        setTimeout(() => this.consoleMain?.nativeElement.focus());
+      });
     void this.sessionStore.loadSession();
     void this.loadCapabilities();
   }
@@ -55,10 +117,9 @@ export class ConsoleShellComponent implements OnInit {
 
   private async loadCapabilities(): Promise<void> {
     try {
-      const response = await firstValueFrom(this.capabilitiesService.getOperationalCapabilities());
-      const raw: unknown = response?.capabilities;
-      const values: readonly unknown[] = Array.isArray(raw) ? raw : [];
-      this.capabilities.set(values.filter((value): value is string => typeof value === 'string'));
+      this.capabilities.set(
+        await firstValueFrom(this.operationsApiAdapter.fetchOperationalCapabilities()),
+      );
     } catch {
       this.capabilities.set([]);
     }

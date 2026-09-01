@@ -50,12 +50,8 @@ export class SportsScopeStore {
 
   async load(requestedCompetitionId?: string | null): Promise<void> {
     const requestId = ++this.requestSequence;
-    this.state.set({
-      ...this.state(),
-      status: 'loading',
-      errorMessage: null,
-      deepLinkRejected: false,
-    });
+    // Clear the previous scope while the server revalidates it so privileged data cannot linger.
+    this.state.set({ ...INITIAL_STATE, status: 'loading' });
 
     try {
       const { scope, capabilities } = await firstValueFrom(

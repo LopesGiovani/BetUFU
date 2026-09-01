@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, defer, map } from 'rxjs';
+import { Observable, defer, map, shareReplay } from 'rxjs';
 import { OperationalCapabilitiesService } from '../../api/generated/api/operational-capabilities.service';
 import { OperationalPanelService } from '../../api/generated/api/operational-panel.service';
 import { RoleService } from '../../api/generated/api/role.service';
@@ -13,6 +13,7 @@ import { AdministrativeCorrectionEventDto } from '../../api/generated/model/admi
 import { RoleChangesBlock } from '../../api/generated/model/role-changes-block';
 import { RoleChangeEventDto } from '../../api/generated/model/role-change-event-dto';
 import { UnregisteredEnrollmentsBlock } from '../../api/generated/model/unregistered-enrollments-block';
+import { SessionStore } from '../../core/session/session.store';
 import {
   AdministrativeCorrectionEventViewModel,
   AdministrativeCorrectionsViewModel,
@@ -34,6 +35,8 @@ const OPERATIONAL_CAPABILITY_ORDER: readonly OperationalCapabilityName[] = Objec
   GeneratedOperationalCapability.ViewOperationalPanel,
   GeneratedOperationalCapability.ManageRoles,
   GeneratedOperationalCapability.CorrectEnrollment,
+  GeneratedOperationalCapability.ManageSportsCatalog,
+  GeneratedOperationalCapability.BootstrapSportsCompetition,
 ]);
 
 @Injectable({
@@ -43,6 +46,8 @@ export class OperationsApiAdapter {
   private readonly operationalCapabilitiesService = inject(OperationalCapabilitiesService);
   private readonly operationalPanelService = inject(OperationalPanelService);
   private readonly roleService = inject(RoleService);
+  private readonly sessionStore = inject(SessionStore, { optional: true });
+  private capabilities$?: Observable<readonly OperationalCapabilityName[]>;
 
   /**
    * Consulta o painel operacional do BFF e adapta o payload OpenAPI para o ViewModel estrito.
@@ -55,9 +60,17 @@ export class OperationsApiAdapter {
   }
 
   fetchOperationalCapabilities(): Observable<readonly OperationalCapabilityName[]> {
-    return defer(() => this.operationalCapabilitiesService.getOperationalCapabilities()).pipe(
+    // Reuse one in-flight/session result, but never carry it across an unauthenticated state.
+    if (this.sessionStore && !this.sessionStore.isAuthenticated()) {
+      this.capabilities$ = undefined;
+    }
+    this.capabilities$ ??= defer(() =>
+      this.operationalCapabilitiesService.getOperationalCapabilities(),
+    ).pipe(
       map((response) => this.adaptOperationalCapabilities(response)),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
+    return this.capabilities$;
   }
 
   adaptOperationalCapabilities(response: unknown): readonly OperationalCapabilityName[] {

@@ -250,6 +250,10 @@ public class SecurityConfiguration {
                     // acima.
                     .requestMatchers("/api/v1/operations/password-reset-events/**")
                     .hasRole("ADMINISTRADOR_GERAL")
+                    // Capabilities are a filtered navigation contract, but remain behind the
+                    // authenticated session; the server never exposes role names to the client.
+                    .requestMatchers(HttpMethod.GET, "/api/v1/operations/capabilities")
+                    .authenticated()
                     // Painel operacional permite qualquer um dos três papéis operacionais
                     // (ADMINISTRADOR_GERAL,
                     // ADMINISTRADOR_COMPETICAO, MODERADOR). A autorização e a filtragem de blocos

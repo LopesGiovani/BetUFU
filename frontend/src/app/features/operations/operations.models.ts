@@ -7,7 +7,11 @@ export type OperationsPanelStateStatus =
   'initial' | 'loading' | 'empty' | 'populated' | 'partial' | 'error';
 
 export type OperationalCapabilityName =
-  'VIEW_OPERATIONAL_PANEL' | 'MANAGE_ROLES' | 'CORRECT_ENROLLMENT';
+  | 'VIEW_OPERATIONAL_PANEL'
+  | 'MANAGE_ROLES'
+  | 'CORRECT_ENROLLMENT'
+  | 'MANAGE_SPORTS_CATALOG'
+  | 'BOOTSTRAP_SPORTS_COMPETITION';
 
 export interface OperationalNavigationItem {
   readonly capability: OperationalCapabilityName;

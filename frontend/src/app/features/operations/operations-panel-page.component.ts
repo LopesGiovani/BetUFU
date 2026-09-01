@@ -1,23 +1,53 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { NgClass } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { OperationalCapability } from '../../api/generated/model/operational-capability';
+import { OperationsApiAdapter } from './operations-api.adapter';
 import { OperationsPanelStore } from './operations-panel.store';
 
 @Component({
   selector: 'app-operations-panel-page',
   standalone: true,
-  imports: [NgClass],
+  imports: [NgClass, RouterLink],
   templateUrl: './operations-panel-page.component.html',
   styleUrl: './operations-panel-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationsPanelPageComponent implements OnInit {
   readonly store = inject(OperationsPanelStore);
+  private readonly adapter = inject(OperationsApiAdapter);
 
   readonly copyStatus = signal<'idle' | 'copied' | 'error'>('idle');
   readonly copyFeedbackMessage = signal<string | null>(null);
+  readonly capabilities = signal<readonly string[]>([]);
+  readonly canOpenSportsOperation = computed(
+    () =>
+      !this.store.isError() &&
+      this.capabilities().includes(OperationalCapability.ManageSportsCatalog),
+  );
 
   ngOnInit(): void {
     void this.store.loadPanel();
+    if (!this.store.isError()) {
+      void this.loadCapabilities();
+    }
+  }
+
+  private async loadCapabilities(): Promise<void> {
+    try {
+      const capabilities = await firstValueFrom(this.adapter.fetchOperationalCapabilities());
+      this.capabilities.set(capabilities);
+    } catch {
+      this.capabilities.set([]);
+    }
   }
 
   async onRefresh(): Promise<void> {

@@ -405,6 +405,21 @@ class OperationalCapabilitiesIT {
   }
 
   @Test
+  @DisplayName("Escopo A nao autoriza escopo B quando o scopeRef persistido diverge")
+  void scopeA_doesNotAuthorizeScopeB() {
+    GrantedRole grant = new GrantedRole("ADMINISTRADOR_COMPETICAO", scopeId);
+    UUID otherScope = UUID.randomUUID();
+
+    assertThat(OperationalCapabilitiesService.scopeMatches(grant, scopeId)).isTrue();
+    assertThat(OperationalCapabilitiesService.scopeMatches(grant, otherScope)).isFalse();
+    assertThat(OperationalCapabilitiesService.scopeMatches(grant, null)).isTrue();
+    assertThat(
+            OperationalCapabilitiesService.scopeMatches(
+                new GrantedRole("MODERADOR", null), scopeId))
+        .isFalse();
+  }
+
+  @Test
   @DisplayName("Extração empírica de iss aceita tipos String, java.net.URL e java.net.URI")
   void handlesEmpiricalIssTypesCorrectly() throws Exception {
     // String

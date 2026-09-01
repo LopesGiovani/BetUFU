@@ -24,6 +24,10 @@
     </div>
 
     <div class="header-actions">
+      @if (canOpenSportsOperation()) {
+        <a class="sports-operation-link" routerLink="/operacao/esportes"> Operação esportiva </a>
+      }
+
       @if (store.displaySnapshot(); as snapshot) {
         <span class="queried-at-label"> Consultado às {{ formatTime(snapshot.queriedAt) }} </span>
       }

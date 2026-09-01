@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,10 @@ import org.springframework.stereotype.Service;
 @Profile("runtime | integrated")
 public class OperationalCapabilitiesService {
 
+  private static final String GENERAL_ADMIN = "ADMINISTRADOR_GERAL";
+  private static final String COMPETITION_ADMIN = "ADMINISTRADOR_COMPETICAO";
+  private static final String MODERATOR = "MODERADOR";
+
   private final OperationalIdentityLookup identityLookup;
 
   public OperationalCapabilitiesService(OperationalIdentityLookup identityLookup) {
@@ -51,6 +56,17 @@ public class OperationalCapabilitiesService {
    * @return resposta imutável com as capacidades concedidas na ordem canônica
    */
   public OperationalCapabilitiesResponse getCapabilities(String issuer, String subject) {
+    return getCapabilities(issuer, subject, null);
+  }
+
+  /**
+   * Resolve capacidades considerando, quando informado, o escopo exato da competicao.
+   *
+   * <p>O UUID recebido aqui nunca e aceito como prova de autoridade: ele apenas restringe uma
+   * concessao persistida que ja precisa conter o mesmo {@code scopeRef}.
+   */
+  public OperationalCapabilitiesResponse getCapabilities(
+      String issuer, String subject, UUID requestedCompetitionId) {
     if (issuer == null || subject == null || issuer.isBlank() || subject.isBlank()) {
       return new OperationalCapabilitiesResponse(List.of());
     }
@@ -61,20 +77,19 @@ public class OperationalCapabilitiesService {
     }
 
     Set<GrantedRole> roles = identityOpt.get().roles();
-    boolean isGlobalAdmin =
-        roles.stream()
-            .anyMatch(
-                grant ->
-                    "ADMINISTRADOR_GERAL".equals(grant.roleName()) && grant.scopeRef() == null);
+    boolean isGlobalAdmin = roles.stream().anyMatch(grant -> isGlobalGrant(grant, GENERAL_ADMIN));
     boolean isScopedCompAdmin =
         roles.stream()
             .anyMatch(
                 grant ->
-                    "ADMINISTRADOR_COMPETICAO".equals(grant.roleName())
-                        && grant.scopeRef() != null);
+                    COMPETITION_ADMIN.equals(grant.roleName())
+                        && scopeMatches(grant, requestedCompetitionId));
     boolean isScopedModerator =
         roles.stream()
-            .anyMatch(grant -> "MODERADOR".equals(grant.roleName()) && grant.scopeRef() != null);
+            .anyMatch(
+                grant ->
+                    MODERATOR.equals(grant.roleName())
+                        && scopeMatches(grant, requestedCompetitionId));
 
     List<OperationalCapability> capabilities = new ArrayList<>();
     if (isGlobalAdmin || isScopedCompAdmin || isScopedModerator) {
@@ -90,5 +105,21 @@ public class OperationalCapabilitiesService {
     }
 
     return new OperationalCapabilitiesResponse(capabilities);
+  }
+
+  /**
+   * Compara o escopo persistido com a competicao solicitada sem normalizacao ou fallback.
+   *
+   * <p>Quando nenhuma competicao e solicitada, uma concessao escopada continua sendo elegivel para
+   * a listagem do workspace; a lista de competicoes autorizadas continua vindo do BFF.
+   */
+  public static boolean scopeMatches(GrantedRole grant, UUID requestedCompetitionId) {
+    return grant != null
+        && grant.scopeRef() != null
+        && (requestedCompetitionId == null || grant.scopeRef().equals(requestedCompetitionId));
+  }
+
+  private static boolean isGlobalGrant(GrantedRole grant, String roleName) {
+    return grant != null && roleName.equals(grant.roleName()) && grant.scopeRef() == null;
   }
 }
