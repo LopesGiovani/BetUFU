@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "purpose": "Local routing manifest for BETUFU agents. It selects focused guidance; it does not grant authorization or install skills.",
+  "selection": "Choose the smallest bundle matching the active plan. Always include betufu-wave-guardrails.",
+  "bundles": {
+    "planning": {
+      "when": "Exploring the codebase, preparing a plan, or assessing refactor impact.",
+      "skills": [
+        "betufu-wave-guardrails",
+        "codebase-exploration",
+        "architectural-decisions",
+        "pre-modification-check"
+      ],
+      "repowise": ["get_impact", "get_deps", "find_references"]
+    },
+    "backend-api": {
+      "when": "Changing Spring Boot, Java, persistence, authorization, migrations, or HTTP APIs.",
+      "skills": [
+        "betufu-wave-guardrails",
+        "architectural-decisions",
+        "pre-modification-check",
+        "code-health",
+        "change-review"
+      ],
+      "repowise": ["find_symbol", "lsp_definition", "lsp_hover", "get_impact"]
+    },
+    "frontend-angular": {
+      "when": "Changing Angular components, Signals, stores, adapters, routes, or templates.",
+      "skills": [
+        "betufu-wave-guardrails",
+        "angular-signals-patterns",
+        "frontend-accessibility-wcag",
+        "pre-modification-check"
+      ],
+      "repowise": ["find_symbol", "lsp_definition", "find_references", "get_impact"]
+    },
+    "ui-e2e": {
+      "when": "Changing visible behavior, responsive layout, accessibility, or browser flows.",
+      "skills": [
+        "betufu-wave-guardrails",
+        "frontend-accessibility-wcag",
+        "playwright-cli",
+        "change-review"
+      ],
+      "repowise": ["find_callers", "find_references", "get_impact"]
+    },
+    "security": {
+      "when": "Reviewing authentication, authorization, privacy, injection, XSS, SSRF, running Strix pentests, fixing findings, or gating CI.",
+      "skills": [
+        "betufu-wave-guardrails",
+        "architectural-decisions",
+        "gsd-secure-phase",
+        "penetration-testing-with-strix",
+        "fix-security-vulnerabilities-with-strix",
+        "ci-security-scanning-with-strix",
+        "managed-pentesting-with-strix",
+        "change-review"
+      ],
+      "repowise": ["get_impact", "find_callers", "find_references"]
+    },
+    "verification-review": {
+      "when": "Verifying a completed plan, auditing tests, reviewing a snapshot, or checking phase integration.",
+      "skills": [
+        "betufu-wave-guardrails",
+        "gsd-nyquist-auditor",
+        "gsd-integration-checker",
+        "gsd-code-review",
+        "change-review",
+        "code-health"
+      ],
+      "repowise": ["find_tests_for_symbol", "find_references", "get_impact", "find_callers"]
+    }
+  },
+  "repowise_policy": {
+    "tool_prefix": "mcp__RepoWise_MCP_for_BetUFU__",
+    "preferred_order": "Use RepoWise MCP/LSP before native search whenever the tools are available.",
+    "batching": "Call independent structural lookups together; chain only when one result is the next query input.",
+    "fallback": "If RepoWise is unavailable, use read-only native inspection, record the limitation, and never claim a RepoWise lookup occurred."
+  }
+}

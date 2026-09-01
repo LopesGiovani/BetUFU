@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BETUFU Antigravity executor result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "plan_id",
+    "task_id",
+    "summary",
+    "files_changed",
+    "tests_executed",
+    "tests_requested",
+    "decisions_required",
+    "blockers"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["COMPLETED", "BLOCKED", "FAILED"]
+    },
+    "plan_id": {
+      "type": "string",
+      "pattern": "^\\d{2}-\\d{2}$"
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^\\d{2}-\\d{2}-T\\d+$"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "files_changed": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tests_executed": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tests_requested": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "decisions_required": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

@@ -36,8 +36,8 @@ O responsável é um desenvolvedor Java júnior e usa a construção da BETUFU t
 
 ## Orquestração de implementação e revisão
 
-- Antes de retomar, ler `CLAUDE.md`, `.planning/STATE.md`, o `PLAN.md` atual, seus predecessores e a validação da fase. `STATE.md` é a fonte do ponto corrente; handoffs cujo HEAD, plano ou timestamp divergirem devem ser tratados como obsoletos.
-- O Codex/GSD atua como plano de controle: apresenta o briefing, cria isolamento, coordena verificações, congela o snapshot e conduz a revisão. Gemini via Antigravity ou Claude em modo EXECUTOR podem implementar somente o plano e a allowlist atribuídos.
+- Antes de retomar, ler `AGENTS.md`, `.planning/STATE.md`, o `PLAN.md` atual, seus predecessores e a validação da fase. `STATE.md` é a fonte do ponto corrente; handoffs cujo HEAD, plano ou timestamp divergirem devem ser tratados como obsoletos.
+- O Codex/GSD atua como plano de controle: apresenta o briefing, cria isolamento, coordena verificações, congela o snapshot e conduz a revisão. Um executor autorizado pode implementar somente o plano e a allowlist atribuídos.
 - Usar uma worktree e uma branch neutra por plano, nunca por task. Tasks do mesmo plano são sequenciais; até três planos independentes da mesma onda podem executar em paralelo. Nunca permitir dois executores no mesmo checkout.
 - Quando Antigravity for usado, seguir `.agents/antigravity-wave-orchestration.md`. O worker não executa Git, instalações, rede, Docker, Testcontainers nem suítes agregadas. Testes focais rápidos podem ser liberados somente por comando literal do `<verify>`, com aprovação específica por chamada, limite curto e registro em `tests_executed`; sem essa liberação, terminal e testes continuam proibidos.
 - Teste executado pelo worker serve apenas ao ciclo de desenvolvimento. O orquestrador deve repeti-lo independentemente e continua sendo o único responsável pelos testes materiais, pela certificação focal e pelas suítes completas.
