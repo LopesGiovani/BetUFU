@@ -128,7 +128,11 @@
               <li
                 class="event-item"
                 [class.event-item--selected]="event.eventId === store.selectedEventId()"
-                (click)="selectEvent(event.eventId)">
+                role="button"
+                tabindex="0"
+                (click)="selectEvent(event.eventId)"
+                (keydown.enter)="selectEvent(event.eventId)"
+                (keydown.space)="$event.preventDefault(); selectEvent(event.eventId)">
                 <div class="event-item__header">
                   <span class="event-item__time"
                     >{{ event.scheduledAt | slice: 0 : 16 }} ({{ event.zoneId }})</span

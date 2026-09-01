@@ -299,7 +299,7 @@ export class EnrollmentAdminStore {
       const invalidatesResolvedTarget =
         error instanceof HttpErrorResponse && (error.status === 403 || error.status === 404);
 
-      let fieldErrors = { ...this.state().fieldErrors };
+      const fieldErrors = { ...this.state().fieldErrors };
       if (error instanceof HttpErrorResponse && error.error && typeof error.error === 'object') {
         const errorBody = error.error as Record<string, unknown>;
         if (Array.isArray(errorBody['fieldErrors'])) {

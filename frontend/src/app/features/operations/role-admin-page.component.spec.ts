@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { of, Subject, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RoleService } from '../../api/generated/api/role.service';
@@ -61,8 +61,6 @@ describe('RoleAdminPageComponent (Superfície S5 - OPER-01, OPER-02, OPER-04, D-
   let fixture: ComponentFixture<RoleAdminPageComponent>;
   let component: RoleAdminPageComponent;
   let store: RoleAdminStore;
-  let profileStore: ProfileStore;
-  let sessionStore: SessionStore;
 
   let mockRoleService: {
     getRoles: ReturnType<typeof vi.fn>;
@@ -123,8 +121,6 @@ describe('RoleAdminPageComponent (Superfície S5 - OPER-01, OPER-02, OPER-04, D-
     }).compileComponents();
 
     store = TestBed.inject(RoleAdminStore);
-    profileStore = TestBed.inject(ProfileStore);
-    sessionStore = TestBed.inject(SessionStore);
   });
 
   async function createComponent(): Promise<void> {

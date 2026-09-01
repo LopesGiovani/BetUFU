@@ -6,28 +6,26 @@
   </p>
 
   <!-- Recusa de negócio ou erro de transporte em bloco de alerta no topo -->
-  <div
-    *ngIf="store.isError() && store.errorMessage()"
-    class="alert-box"
-    role="alert"
-    aria-live="assertive">
-    <div class="alert-content">
-      <p class="alert-message">{{ store.errorMessage() }}</p>
-      <div
-        *ngIf="store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D'"
-        class="correlation-box">
-        <span>Código de referência:</span>
-        <span class="code-value">{{ store.errorCorrelationId() }}</span>
-        <button
-          type="button"
-          class="btn-copy-small"
-          (click)="copyCorrelationId(store.errorCorrelationId()!)"
-          aria-label="Copiar código de referência">
-          Copiar
-        </button>
+  @if (store.isError() && store.errorMessage()) {
+    <div class="alert-box" role="alert" aria-live="assertive">
+      <div class="alert-content">
+        <p class="alert-message">{{ store.errorMessage() }}</p>
+        @if (store.errorCorrelationId() && store.errorCorrelationId() !== 'N/D') {
+          <div class="correlation-box">
+            <span>Código de referência:</span>
+            <span class="code-value">{{ store.errorCorrelationId() }}</span>
+            <button
+              type="button"
+              class="btn-copy-small"
+              (click)="copyCorrelationId(store.errorCorrelationId()!)"
+              aria-label="Copiar código de referência">
+              Copiar
+            </button>
+          </div>
+        }
       </div>
     </div>
-  </div>
+  }
 
   <!-- Formulário de apelido obrigatório -->
   <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="gate-form">
@@ -56,9 +54,11 @@
         De 3 a 20 caracteres. Use letras sem acento, números, hífen (-) ou sublinhado (_).
       </p>
 
-      <p *ngIf="hasFieldError" id="nickname-error" class="field-error" role="alert">
-        {{ fieldErrorMessage }}
-      </p>
+      @if (hasFieldError) {
+        <p id="nickname-error" class="field-error" role="alert">
+          {{ fieldErrorMessage }}
+        </p>
+      }
     </div>
 
     <div class="form-actions">

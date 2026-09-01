@@ -1,10 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom, forkJoin } from 'rxjs';
 import { SportsCompetitionSummary } from '../../../../api/generated/model/sports-competition-summary';
-import {
-  SportsCatalogApiAdapter,
-  SportsCatalogCapability,
-} from '../catalog/sports-catalog-api.adapter';
+import { SportsCatalogApiAdapter } from '../catalog/sports-catalog-api.adapter';
 
 export type SportsScopeStatus = 'initial' | 'loading' | 'ready' | 'empty' | 'denied' | 'error';
 

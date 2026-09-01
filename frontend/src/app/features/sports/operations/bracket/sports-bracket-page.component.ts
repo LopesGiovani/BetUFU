@@ -11,7 +11,6 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SportsBracketMatchConfigureRequest } from '../../../../api/generated/model/sports-bracket-match-configure-request';
 import { SportsBracketSlotConfigureRequest } from '../../../../api/generated/model/sports-bracket-slot-configure-request';
-import { SportsBracketUpdateRequest } from '../../../../api/generated/model/sports-bracket-update-request';
 import { BracketViewComponent } from '../../../../shared/sports/bracket-view.component';
 import { SportsBracketStore } from './sports-bracket.store';
 

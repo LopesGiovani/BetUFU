@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, retry, timer } from 'rxjs';
 import { SportsOrganizationSummary } from '../../api/generated/model/sports-organization-summary';
 import { ProfileApiAdapter } from './profile-api.adapter';
-import { ProfileState, ProfileViewModel } from './profile.models';
+import { ProfileState } from './profile.models';
 
 const INITIAL_STATE: ProfileState = Object.freeze({
   status: 'initial',

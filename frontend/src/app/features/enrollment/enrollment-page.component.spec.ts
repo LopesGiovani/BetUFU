@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
-import { provideRouter, Router, RouterOutlet } from '@angular/router';
+import { provideRouter, RouterOutlet } from '@angular/router';
 import { NEVER, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EnrollmentService } from '../../api/generated/api/enrollment.service';
@@ -33,7 +33,6 @@ describe('EnrollmentPageComponent (Superfície S3)', () => {
   let fixture: ComponentFixture<EnrollmentPageComponent>;
   let component: EnrollmentPageComponent;
   let enrollmentStore: EnrollmentStore;
-  let router: Router;
 
   let mockEnrollmentService: {
     getEnrollment: ReturnType<typeof vi.fn>;
@@ -57,7 +56,6 @@ describe('EnrollmentPageComponent (Superfície S3)', () => {
     }).compileComponents();
 
     enrollmentStore = TestBed.inject(EnrollmentStore);
-    router = TestBed.inject(Router);
   });
 
   afterEach(() => {
@@ -209,7 +207,6 @@ describe('EnrollmentPageComponent (Superfície S3)', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     const input = compiled.querySelector('#matricula-input') as HTMLInputElement;
-    const submitBtn = compiled.querySelector('button[type="submit"]') as HTMLButtonElement;
 
     input.value = '11811BCC001';
     input.dispatchEvent(new Event('input'));

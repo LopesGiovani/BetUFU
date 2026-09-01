@@ -14,11 +14,18 @@ import { OperationsApiAdapter } from '../features/operations/operations-api.adap
 import { OperationsPanelPageComponent } from '../features/operations/operations-panel-page.component';
 import type { SessionStateResponse } from '../api/generated/model/session-state-response';
 import type { CurrentDeviceLogoutResponse } from '../api/generated/model/current-device-logout-response';
+type NodeFileSystem = {
+  readFileSync(path: string, encoding: 'utf8'): string;
+};
 
-declare const require: any;
-declare const process: any;
-const fs = require('node:fs');
-const path = require('node:path');
+type NodePath = {
+  resolve(...paths: string[]): string;
+};
+
+declare const require: (moduleName: string) => unknown;
+declare const process: { cwd(): string };
+const fs = require('node:fs') as NodeFileSystem;
+const path = require('node:path') as NodePath;
 
 @Component({
   standalone: true,
@@ -28,9 +35,11 @@ class EmptyRouteComponent {}
 
 describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, IDEN-03, IDEN-04)', () => {
   let store: SessionStore;
-  let mockSessionService: Partial<SessionService>;
+  let mockSessionService: {
+    getSession: ReturnType<typeof vi.fn>;
+    logoutCurrentSession: ReturnType<typeof vi.fn>;
+  };
   let fixture: ComponentFixture<AuthenticatedLayoutComponent>;
-  let component: AuthenticatedLayoutComponent;
   let mockOperationsApiAdapter: { fetchOperationalCapabilities: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -89,7 +98,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
       lastValidActivityAt: '2026-08-18T19:00:00Z',
     };
 
-    (mockSessionService.getSession as any).mockReturnValue(of(mockResponse));
+    mockSessionService.getSession.mockReturnValue(of(mockResponse));
 
     await store.loadSession();
 
@@ -111,7 +120,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
       lastValidActivityAt: null,
     };
 
-    (mockSessionService.getSession as any).mockReturnValue(of(mockResponse));
+    mockSessionService.getSession.mockReturnValue(of(mockResponse));
 
     await store.loadSession();
 
@@ -123,7 +132,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Transição: loadSession com erro HTTP/rede trata como "expired" (fail-closed)', async () => {
-    (mockSessionService.getSession as any).mockReturnValue(
+    mockSessionService.getSession.mockReturnValue(
       throwError(() => new Error('Http failure response for /api/v1/session: 401 Unauthorized')),
     );
 
@@ -142,7 +151,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
         'http://localhost:8080/realms/betufu/protocol/openid-connect/logout?client_id=betufu-web',
     };
 
-    (mockSessionService.logoutCurrentSession as any).mockReturnValue(of(mockLogoutResponse));
+    mockSessionService.logoutCurrentSession.mockReturnValue(of(mockLogoutResponse));
 
     const result = await store.logoutCurrentDevice();
 
@@ -163,14 +172,14 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
       lastValidActivityAt: '2026-08-18T19:30:00Z',
     };
 
-    (mockSessionService.getSession as any).mockReturnValue(of(mockResponse));
+    mockSessionService.getSession.mockReturnValue(of(mockResponse));
     await store.loadSession();
 
     const mockLogout: CurrentDeviceLogoutResponse = {
       status: 'LOGGED_OUT',
       endSessionUrl: null,
     };
-    (mockSessionService.logoutCurrentSession as any).mockReturnValue(of(mockLogout));
+    mockSessionService.logoutCurrentSession.mockReturnValue(of(mockLogout));
     await store.logoutCurrentDevice();
 
     expect(Storage.prototype.setItem).not.toHaveBeenCalled();
@@ -181,7 +190,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Contrato e Isolamento de Código: SessionStore não contém polling, retry nem tokens manuais', () => {
-    const basePath = typeof process !== 'undefined' && process.cwd ? process.cwd() : '';
+    const basePath = process.cwd();
     const storePath = path.resolve(basePath, 'src/app/core/session/session.store.ts');
     const storeContent: string = fs.readFileSync(storePath, 'utf8');
 
@@ -206,9 +215,8 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Layout UI: checking renderiza mensagem de carregamento sem router-outlet ou dados sensíveis', () => {
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: false }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: false }));
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
-    component = fixture.componentInstance;
     // Sem disparar loadSession() ainda, o estado é checking
     fixture.detectChanges();
 
@@ -220,7 +228,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Layout UI: authenticated renderiza header sem nome do usuario e menu com Sair', async () => {
-    (mockSessionService.getSession as any).mockReturnValue(
+    mockSessionService.getSession.mockReturnValue(
       of({
         authenticated: true,
         displayName: 'GiovaniLopes',
@@ -229,7 +237,6 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     );
 
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -251,7 +258,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Layout responsivo: contem o menu sem reintroduzir nome ou alargar o header em 320px', () => {
-    const basePath = typeof process !== 'undefined' && process.cwd ? process.cwd() : '';
+    const basePath = process.cwd();
     const stylePath = path.resolve(basePath, 'src/app/layout/authenticated-layout.component.scss');
     const styleContent: string = fs.readFileSync(stylePath, 'utf8');
 
@@ -264,7 +271,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Layout UI: expired oculta router-outlet e exibe aviso com CTA para entrar', async () => {
-    (mockSessionService.getSession as any).mockReturnValue(
+    mockSessionService.getSession.mockReturnValue(
       of({
         authenticated: false,
         displayName: null,
@@ -273,7 +280,6 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     );
 
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -286,7 +292,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Acessibilidade UI: Skip link está presente apontando para main#main-content com tabindex="-1"', async () => {
-    (mockSessionService.getSession as any).mockReturnValue(
+    mockSessionService.getSession.mockReturnValue(
       of({
         authenticated: true,
         displayName: 'UserAcessivel',
@@ -295,7 +301,6 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     );
 
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
-    component = fixture.componentInstance;
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -315,7 +320,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     mockOperationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(
       of(['VIEW_OPERATIONAL_PANEL', 'MANAGE_ROLES', 'CORRECT_ENROLLMENT']),
     );
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: true }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: true }));
     await TestBed.inject(Router).navigateByUrl('/conta/perfil/completar');
 
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
@@ -334,7 +339,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     mockOperationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(
       of(['CORRECT_ENROLLMENT', 'VIEW_OPERATIONAL_PANEL']),
     );
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: true }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: true }));
     await TestBed.inject(Router).navigateByUrl('/conta/perfil');
 
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
@@ -374,7 +379,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
     mockOperationsApiAdapter.fetchOperationalCapabilities
       .mockReturnValueOnce(of(['MANAGE_ROLES']))
       .mockReturnValueOnce(of([]));
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: true }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: true }));
 
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
     fixture.detectChanges();
@@ -385,14 +390,14 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
       '/operacao/papeis',
     ]);
 
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: false }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: false }));
     await store.loadSession();
     fixture.detectChanges();
     await fixture.whenStable();
 
     expect(fixture.componentInstance.operationItems()).toEqual([]);
 
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: true }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: true }));
     await store.loadSession();
     fixture.detectChanges();
     await fixture.whenStable();
@@ -402,7 +407,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('Enter e Espaco alternam o disclosure; Tab preserva a ordem nativa; Escape devolve foco', async () => {
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: true }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: true }));
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -456,7 +461,7 @@ describe('SessionStore & AuthenticatedLayoutComponent (D-01, D-08, D-09, D-16, I
   });
 
   it('usa copia generica para sessao encerrada sem inferir timeout ou causa de seguranca', async () => {
-    (mockSessionService.getSession as any).mockReturnValue(of({ authenticated: false }));
+    mockSessionService.getSession.mockReturnValue(of({ authenticated: false }));
     fixture = TestBed.createComponent(AuthenticatedLayoutComponent);
     fixture.detectChanges();
     await fixture.whenStable();

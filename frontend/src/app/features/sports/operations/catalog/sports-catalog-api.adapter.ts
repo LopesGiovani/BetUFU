@@ -9,7 +9,6 @@ import {
   CreateSportsCatalogSportRequestParams,
   CreateSportsCatalogVenueRequestParams,
   CreateSportsCatalogVenueSpaceRequestParams,
-  GetSportsCatalogTreeRequestParams,
   SportsCatalogService,
   UpdateSportsCatalogCategoryRequestParams,
   UpdateSportsCatalogEditionRequestParams,

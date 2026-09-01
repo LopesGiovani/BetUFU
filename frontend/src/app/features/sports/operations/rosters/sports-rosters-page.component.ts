@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { SportsRosterMemberRequest } from '../../../../api/generated/model/sports-roster-member-request';
 import { SportsRosterMemberItem } from '../../../../api/generated/model/sports-roster-member-item';
-import { SportsRosterSnapshot, SportsRostersStore } from './sports-rosters.store';
+import { SportsRostersStore } from './sports-rosters.store';
 import { SportsTeamSummary } from '../../../../api/generated/model/sports-team-summary';
 import { SportsOrganizationsApiAdapter } from '../organizations/sports-organizations-api.adapter';
 import { SportsScopeStore } from '../scope/sports-scope.store';

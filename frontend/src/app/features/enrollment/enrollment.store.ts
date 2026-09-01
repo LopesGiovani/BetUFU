@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom, retry, timer } from 'rxjs';
 import { EnrollmentApiAdapter } from './enrollment-api.adapter';
-import { EnrollmentState, EnrollmentViewModel } from './enrollment.models';
+import { EnrollmentState } from './enrollment.models';
 
 const INITIAL_STATE: EnrollmentState = Object.freeze({
   status: 'initial',

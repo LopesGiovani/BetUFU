@@ -1,10 +1,32 @@
 import { describe, it, expect } from 'vitest';
+type NodeBuffer = {
+  subarray(start?: number, end?: number): NodeBuffer;
+  toString(encoding?: string): string;
+};
 
-declare const require: any;
-declare const process: any;
-const fs = require('node:fs');
-const path = require('node:path');
-const crypto = require('node:crypto');
+type NodeFileSystem = {
+  readFileSync(path: string, encoding: 'utf8'): string;
+  readFileSync(path: string): NodeBuffer;
+};
+
+type NodePath = {
+  resolve(...paths: string[]): string;
+};
+
+type NodeHash = {
+  update(data: NodeBuffer): NodeHash;
+  digest(encoding: 'hex'): string;
+};
+
+type NodeCrypto = {
+  createHash(algorithm: string): NodeHash;
+};
+
+declare const require: (moduleName: string) => unknown;
+declare const process: { cwd(): string };
+const fs = require('node:fs') as NodeFileSystem;
+const path = require('node:path') as NodePath;
+const crypto = require('node:crypto') as NodeCrypto;
 
 /**
  * Funções auxiliares para cálculo estrito de contraste per WCAG 2.2
@@ -45,7 +67,7 @@ function extractScssVariable(scssContent: string, varName: string): string {
 
 describe('BETUFU Design System & Theme Specs (D-01 & UI-SPEC)', () => {
   // Leitura direta dos arquivos SCSS entregues no repositório
-  const basePath = typeof process !== 'undefined' && process.cwd ? process.cwd() : '';
+  const basePath = process.cwd();
   const tokensFilePath = path.resolve(basePath, 'src/styles/_tokens.scss');
   const stylesFilePath = path.resolve(basePath, 'src/styles.scss');
   const fontsFilePath = path.resolve(basePath, 'src/styles/_fonts.scss');

@@ -13,7 +13,6 @@ import { RoleAdminStore } from './role-admin.store';
 import { ProfileStore } from '../profile/profile.store';
 import { SessionStore } from '../../core/session/session.store';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
-import { OperationalRole } from '../../api/generated/model/operational-role';
 import { RoleItemViewModel } from './operations.models';
 
 @Component({

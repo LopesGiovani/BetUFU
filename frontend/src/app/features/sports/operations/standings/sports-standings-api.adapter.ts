@@ -35,7 +35,7 @@ export class SportsStandingsApiAdapter {
       this.service.updateSportsStandings({
         standingsId,
         expectedLockVersion,
-        sportsStandingsUpdateRequest: payload as any,
+        sportsStandingsUpdateRequest: payload,
       }),
     );
   }
@@ -71,7 +71,7 @@ export class SportsStandingsApiAdapter {
           sourceReference,
           columns,
           rows,
-        } as any,
+        },
       }),
     );
   }

@@ -20,7 +20,6 @@ const MOCK_SAVED_PROFILE_RESPONSE: CurrentProfileResponse = {
 describe('ProfileGatePageComponent (Superfície S1)', () => {
   let fixture: ComponentFixture<ProfileGatePageComponent>;
   let component: ProfileGatePageComponent;
-  let profileStore: ProfileStore;
   let router: Router;
 
   let mockProfileService: {
@@ -52,7 +51,6 @@ describe('ProfileGatePageComponent (Superfície S1)', () => {
       ],
     }).compileComponents();
 
-    profileStore = TestBed.inject(ProfileStore);
     router = TestBed.inject(Router);
   });
 

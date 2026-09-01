@@ -41,7 +41,6 @@ describe('ProfilePageComponent (Superfície S2)', () => {
   let fixture: ComponentFixture<ProfilePageComponent>;
   let component: ProfilePageComponent;
   let profileStore: ProfileStore;
-  let router: Router;
 
   let mockProfileService: {
     getMyProfile: ReturnType<typeof vi.fn>;
@@ -86,7 +85,6 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     }).compileComponents();
 
     profileStore = TestBed.inject(ProfileStore);
-    router = TestBed.inject(Router);
   });
 
   function createComponent(): void {

@@ -24,7 +24,6 @@ import {
   SportsOrganizationService,
   SportsPublicService,
   SportsResultVersion,
-  SportsStandingsRow,
   SportsStandingsService,
   SportsStandingsSnapshot,
   provideApi,

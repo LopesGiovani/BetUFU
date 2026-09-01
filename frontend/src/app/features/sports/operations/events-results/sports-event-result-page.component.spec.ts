@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SportsCatalogTree } from '../../../../api/generated/model/sports-catalog-tree';
 import { SportsCompetitionSummary } from '../../../../api/generated/model/sports-competition-summary';
