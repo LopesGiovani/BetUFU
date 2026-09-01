@@ -314,11 +314,11 @@ Plans:
 
 - [x] 03-14-PLAN.md — entregar perfil esportivo textual/social owner-only
 
-**Wave 16** *(pronta para execucao; formatacao consolidada em 2026-09-01)*
+**Wave 16** *(concluida, integrada e limpa em 2026-09-01; push pendente)*
 
-- [ ] 03-15-PLAN.md — processar e armazenar foto com segurança
+- [x] 03-15-PLAN.md — processar e armazenar foto com segurança
 
-**Wave 17** *(blocked on Wave 16 completion)*
+**Wave 17** *(pronta para preflight; depende apenas da revisão do snapshot anterior)*
 
 - [ ] 03-16-PLAN.md — consolidar capabilities e workspace O1–O8
 
