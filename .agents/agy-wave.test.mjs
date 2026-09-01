@@ -12,20 +12,25 @@ import {
   buildWaveDryRun,
   discoverPlans,
   executeTask,
+  loadSkillManifest,
+  loadWorkerSkillGuidance,
   parseAgyOutput,
   parseArguments,
   parsePlan,
   parsePorcelainPaths,
   sanitizeAgyDiagnostic,
   selectPlanRoot,
+  selectSkillRouting,
   sha256Hex,
   validateInteractiveConfig,
+  validateSkillManifest,
   validateWorkerTests,
 } from './agy-wave.mjs';
 
 import { resolve } from 'node:path';
 
 const plansPromise = discoverPlans(PROJECT_ROOT, 2);
+const skillManifestPromise = loadSkillManifest(PROJECT_ROOT);
 const WORKSPACE_ROOT = resolve(PROJECT_ROOT, '..', 'gsd-workspaces-fixture');
 const WORKTREE = resolve(WORKSPACE_ROOT, '02-01');
 const COMMON_GIT_DIRECTORY = resolve(PROJECT_ROOT, '.git');
@@ -124,6 +129,7 @@ async function baseExecutionOptions(taskId = '02-01-T1', overrides = {}) {
     timeoutMs: 60_000,
     plans: await plansPromise,
     projectRoot: PROJECT_ROOT,
+    contextRoot: PROJECT_ROOT,
     satisfiedPlans: [],
     satisfiedTasks: [],
     evidence: [],
@@ -185,7 +191,7 @@ requirements: []
 });
 
 test('dry-run da onda 1 libera 02-01 e 02-02, mas bloqueia 02-03 no gate A-7', async () => {
-  const result = buildWaveDryRun(await plansPromise, 2, 1);
+  const result = buildWaveDryRun(await plansPromise, 2, 1, await skillManifestPromise);
 
   assert.deepEqual(result.initialDispatch.map((item) => item.task), ['02-01-T1', '02-02-T1']);
   assert.deepEqual(result.blockedDispatch, [{
@@ -197,6 +203,61 @@ test('dry-run da onda 1 libera 02-01 e 02-02, mas bloqueia 02-03 no gate A-7', a
   assert.deepEqual(result.overlap, []);
   assert.deepEqual(result.concurrency, { codingProcesses: 3, verificationProcesses: 1 });
   assert.ok(Object.values(result.safety).every((value) => value === false));
+  assert.deepEqual(result.initialDispatch[0].skillRouting.bundles, ['backend-api']);
+  assert.ok(result.initialDispatch[0].skillRouting.workerSkills.includes('betufu-wave-guardrails'));
+  assert.ok(result.initialDispatch[0].skillRouting.reviewers.includes('verification'));
+});
+
+test('manifesto seleciona bundles por paths e palavras sem carregar skill externa no worker', async () => {
+  const manifest = await skillManifestPromise;
+  assert.equal(validateSkillManifest(manifest), true);
+  const plan = {
+    id: '03-15',
+    filePath: '.planning/phases/03/03-15-PLAN.md',
+    requirements: ['SPRT-16'],
+  };
+  const task = {
+    id: '03-15-T5',
+    type: 'auto',
+    name: 'Entregar componente owner-only com Signal store',
+    precondition: '',
+    files: [
+      'frontend/src/app/features/sports/athlete-profile/athlete-profile.store.ts',
+      'frontend/src/app/features/sports/athlete-profile/athlete-photo-field.component.ts',
+    ],
+    verificationCommands: ['npm --prefix frontend run test -- --watch=false'],
+  };
+  const routing = selectSkillRouting(plan, task, manifest);
+
+  assert.deepEqual(routing.bundles, ['security', 'frontend-angular']);
+  assert.deepEqual(routing.workerSkills, [
+    'betufu-wave-guardrails',
+    'angular-signals-patterns',
+    'frontend-accessibility-wcag',
+  ]);
+  assert.ok(routing.controlSkills.includes('gsd-secure-phase'));
+  assert.ok(routing.controlSkills.includes('penetration-testing-with-strix'));
+  assert.ok(!routing.workerSkills.includes('penetration-testing-with-strix'));
+  assert.ok(routing.reviewers.includes('security'));
+  assert.ok(routing.reviewers.includes('ui'));
+});
+
+test('manifesto falha fechado para bundle ou skill local invalida', async () => {
+  const manifest = structuredClone(await skillManifestPromise);
+  manifest.routing[0].bundle = 'inexistente';
+  assert.throws(() => validateSkillManifest(manifest), /bundle inexistente/u);
+
+  const missing = structuredClone(await skillManifestPromise);
+  missing.bundles.planning.worker_skills = ['skill-inexistente'];
+  missing.selection.always_worker_skills = ['skill-inexistente'];
+  const plans = await plansPromise;
+  const plan = plans.find((candidate) => candidate.id === '02-01');
+  const routing = selectSkillRouting(plan, plan.tasks[0], missing);
+  assert.deepEqual(routing.workerSkills, ['skill-inexistente', 'betufu-wave-guardrails']);
+  await assert.rejects(
+    loadWorkerSkillGuidance(PROJECT_ROOT, routing),
+    /worker skill local ausente/u,
+  );
 });
 
 test('comando Antigravity fixa modelo, sandbox, modo e schema sem bypass perigoso', () => {
@@ -821,6 +882,27 @@ test('drift de branch, HEAD ou JSON bloqueia o resultado', async () => {
   );
 });
 
+test('prompt incorpora somente guidance local e explicita gates e skills de controle', async () => {
+  const plan = (await plansPromise).find((candidate) => candidate.id === '02-01');
+  const prompt = buildExecutorPrompt(plan, plan.tasks[0], 'CONTRATO', null, [], {
+    bundles: ['backend-api'],
+    gates: ['scope', 'focal-tests'],
+    workerSkills: ['betufu-wave-guardrails'],
+    controlSkills: ['change-review'],
+    guidance: [{
+      skill: 'betufu-wave-guardrails',
+      path: '.agents/skills/betufu-wave-guardrails/SKILL.md',
+      content: 'GUIDANCE_LOCAL',
+    }],
+  });
+
+  assert.match(prompt, /Bundles selecionados deterministicamente: backend-api/u);
+  assert.match(prompt, /Gates .*scope, focal-tests/u);
+  assert.match(prompt, /<worker_skill name="betufu-wave-guardrails"/u);
+  assert.match(prompt, /GUIDANCE_LOCAL/u);
+  assert.doesNotMatch(prompt, /conteúdo.*change-review/iu);
+});
+
 test('checkpoint e pré-condição parcial nunca são enviados automaticamente', async () => {
   await assert.rejects(executeTask(await baseExecutionOptions('02-01-T3')), /checkpoint humano/u);
 
@@ -833,6 +915,14 @@ test('config guard exige execução interativa sem avanço automático', () => {
     mode: 'interactive',
     workflow: { auto_advance: false },
     manager: { flags: { execute: '--interactive' } },
+    agent_skills: {
+      manifest: '.agents/skill-bundles.json',
+      selection: 'deterministic',
+      always_worker_skills: ['betufu-wave-guardrails'],
+      worker_content: 'local-only',
+      missing_worker_skill: 'fail',
+      external_skills: 'control-plane-only',
+    },
   };
 
   assert.equal(validateInteractiveConfig(valid), true);

@@ -10,7 +10,11 @@
     "build:production": "ng build --configuration production",
     "generate:api": "node scripts/generate-api.mjs",
     "generate:api:check": "node scripts/generate-api.mjs --check",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "eslint \"src/**/*.{ts,html}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,html}\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,html,scss}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss}\""
   },
   "private": true,
   "packageManager": "npm@10.9.8",
@@ -30,8 +34,13 @@
     "@angular/compiler-cli": "22.1.0",
     "@openapitools/openapi-generator-cli": "2.40.1",
     "@playwright/test": "1.62.1",
+    "angular-eslint": "22.2.0",
+    "eslint": "10.9.1",
+    "eslint-config-prettier": "10.1.8",
     "jsdom": "28.1.0",
+    "prettier": "3.9.6",
     "typescript": "6.0.3",
+    "typescript-eslint": "8.69.0",
     "vitest": "4.1.10"
   }
 }

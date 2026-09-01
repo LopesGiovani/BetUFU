@@ -24,8 +24,10 @@ export const RESULT_SCHEMA = resolve(
   '.agents',
   'agy-executor-result.schema.json',
 );
+export const SKILL_MANIFEST_PATH = '.agents/skill-bundles.json';
 
 const SAFE_ID = /^\d{2}-\d{2}$/u;
+const SAFE_SKILL_ID = /^[A-Za-z0-9][A-Za-z0-9-]*$/u;
 const TASK_REFERENCE = /\b(\d{2}-\d{2}-T\d+)\b/gu;
 const EVIDENCE_REFERENCE = /\b(A-\d+)\b/gu;
 const FORBIDDEN_FLAGS = new Set(['--all', '--auto', '--force']);
@@ -81,6 +83,186 @@ function unique(values) {
 
 export function sha256Hex(value) {
   return createHash('sha256').update(value).digest('hex').toUpperCase();
+}
+
+function stringList(value, label, { allowEmpty = true } = {}) {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string' || item.trim().length === 0)) {
+    fail(`${label} deve ser uma lista de strings nao vazias`);
+  }
+  const values = value.map((item) => item.trim());
+  if (!allowEmpty && values.length === 0) fail(`${label} nao pode ser vazia`);
+  if (values.length !== unique(values).length) fail(`${label} nao aceita itens duplicados`);
+  return values;
+}
+
+function validateSkillId(value, label) {
+  if (typeof value !== 'string' || !SAFE_SKILL_ID.test(value)) {
+    fail(`${label} contem nome de skill invalido: ${String(value)}`);
+  }
+  return value;
+}
+
+export function validateSkillManifest(manifest) {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    fail('manifesto de skills deve ser um objeto JSON');
+  }
+  if (manifest.version !== 2) fail('manifesto de skills exige version 2');
+  const selection = manifest.selection;
+  if (!selection || typeof selection !== 'object' || Array.isArray(selection)) {
+    fail('manifesto de skills sem selection');
+  }
+  if (selection.mode !== 'deterministic') fail('selection.mode deve ser deterministic');
+  stringList(selection.always_worker_skills, 'selection.always_worker_skills', { allowEmpty: false })
+    .forEach((skill) => validateSkillId(skill, 'selection.always_worker_skills'));
+  if (typeof selection.fallback_bundle !== 'string' || selection.fallback_bundle.length === 0) {
+    fail('selection.fallback_bundle deve ser uma string nao vazia');
+  }
+  if (selection.worker_content !== 'Only versioned .agents/skills/*/SKILL.md files are injected into the worker prompt.') {
+    fail('selection.worker_content deve manter a fronteira local versionada');
+  }
+  if (selection.external_skills !== 'control-plane-only') {
+    fail('selection.external_skills deve ser control-plane-only');
+  }
+
+  const bundles = manifest.bundles;
+  if (!bundles || typeof bundles !== 'object' || Array.isArray(bundles)) {
+    fail('manifesto de skills sem bundles');
+  }
+  const bundleNames = Object.keys(bundles);
+  if (bundleNames.length === 0) fail('manifesto de skills sem bundles definidos');
+  if (!Object.hasOwn(bundles, selection.fallback_bundle)) {
+    fail(`fallback_bundle inexistente: ${selection.fallback_bundle}`);
+  }
+  for (const [name, bundle] of Object.entries(bundles)) {
+    if (!bundle || typeof bundle !== 'object' || Array.isArray(bundle)) fail(`bundle invalido: ${name}`);
+    for (const field of ['skills', 'worker_skills', 'control_skills', 'reviewers', 'gates']) {
+      stringList(bundle[field], `bundle ${name}.${field}`, { allowEmpty: field === 'control_skills' })
+        .forEach((value) => field === 'worker_skills' || field === 'skills'
+          ? validateSkillId(value, `bundle ${name}.${field}`)
+          : value);
+    }
+  }
+  for (const skill of selection.always_worker_skills) {
+    if (!bundleNames.some((name) => bundles[name].worker_skills.includes(skill))) {
+      fail(`skill obrigatoria nao pertence a bundle: ${skill}`);
+    }
+  }
+
+  if (!Array.isArray(manifest.routing) || manifest.routing.length === 0) {
+    fail('manifesto de skills sem regras de routing');
+  }
+  for (const rule of manifest.routing) {
+    if (!rule || typeof rule !== 'object' || Array.isArray(rule)) fail('regra de routing invalida');
+    if (!Object.hasOwn(bundles, rule.bundle)) fail(`routing aponta para bundle inexistente: ${rule.bundle}`);
+    if (!Number.isInteger(rule.priority)) fail(`routing.priority invalido para ${rule.bundle}`);
+    stringList(rule.path_prefixes, `routing ${rule.bundle}.path_prefixes`);
+    stringList(rule.keywords, `routing ${rule.bundle}.keywords`);
+    if (rule.path_prefixes.length === 0 && rule.keywords.length === 0) {
+      fail(`routing sem criterio para ${rule.bundle}`);
+    }
+  }
+  if (!manifest.reviewer_profiles || typeof manifest.reviewer_profiles !== 'object') {
+    fail('manifesto de skills sem reviewer_profiles');
+  }
+  for (const [name, profile] of Object.entries(manifest.reviewer_profiles)) {
+    if (!profile || profile.mode !== 'plan' || profile.readonly !== true) {
+      fail(`reviewer ${name} deve ser plan/read-only`);
+    }
+    stringList(profile.skills, `reviewer ${name}.skills`)
+      .forEach((skill) => validateSkillId(skill, `reviewer ${name}.skills`));
+    stringList(profile.focus, `reviewer ${name}.focus`, { allowEmpty: false });
+    stringList(profile.required_gates, `reviewer ${name}.required_gates`, { allowEmpty: false });
+  }
+  return true;
+}
+
+export async function loadSkillManifest(projectRoot = PROJECT_ROOT) {
+  const path = resolve(projectRoot, SKILL_MANIFEST_PATH);
+  let manifest;
+  try {
+    manifest = JSON.parse(await readFile(path, 'utf8'));
+  } catch (error) {
+    fail(`manifesto de skills invalido: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  validateSkillManifest(manifest);
+  return manifest;
+}
+
+function routingCorpus(plan, task) {
+  return [
+    plan.id,
+    plan.filePath,
+    ...(plan.requirements ?? []),
+    task.id,
+    task.type,
+    task.name,
+    task.precondition,
+    ...(task.files ?? []),
+  ].filter(Boolean).join('\n').toLowerCase();
+}
+
+export function selectSkillRouting(plan, task, manifest) {
+  validateSkillManifest(manifest);
+  const corpus = routingCorpus(plan, task);
+  const matches = manifest.routing
+    .map((rule) => {
+      const pathMatches = rule.path_prefixes.filter((prefix) => (task.files ?? [])
+        .some((path) => path.startsWith(prefix)));
+      const keywordMatches = rule.keywords.filter((keyword) => corpus.includes(keyword.toLowerCase()));
+      return { rule, pathMatches, keywordMatches };
+    })
+    .filter((match) => match.pathMatches.length > 0 || match.keywordMatches.length > 0)
+    .sort((left, right) => right.rule.priority - left.rule.priority || left.rule.bundle.localeCompare(right.rule.bundle));
+  const selectedNames = unique(matches.map((match) => match.rule.bundle));
+  if (selectedNames.length === 0) selectedNames.push(manifest.selection.fallback_bundle);
+  const selectedBundles = selectedNames.map((name) => manifest.bundles[name]);
+  const workerSkills = unique([
+    ...manifest.selection.always_worker_skills,
+    ...selectedBundles.flatMap((bundle) => bundle.worker_skills),
+  ]);
+  const controlSkills = unique(selectedBundles.flatMap((bundle) => bundle.control_skills));
+  const reviewers = unique(selectedBundles.flatMap((bundle) => bundle.reviewers));
+  const gates = unique([
+    ...selectedBundles.flatMap((bundle) => bundle.gates),
+    ...(task.verificationCommands?.length > 0 ? ['focal-tests'] : ['verification-command']),
+    ...((task.files ?? []).some((path) => path === 'backend/openapi/betufu.yaml'
+      || path.startsWith('frontend/src/app/api/generated/')) ? ['openapi-contract'] : []),
+  ]);
+  const reasons = matches.map(({ rule, pathMatches, keywordMatches }) => ({
+    bundle: rule.bundle,
+    paths: pathMatches,
+    keywords: keywordMatches,
+  }));
+  if (reasons.length === 0) reasons.push({ bundle: manifest.selection.fallback_bundle, paths: [], keywords: ['fallback'] });
+  return {
+    bundles: selectedNames,
+    workerSkills,
+    controlSkills,
+    reviewers,
+    gates,
+    reasons,
+  };
+}
+
+export async function loadWorkerSkillGuidance(projectRoot, routing) {
+  const guidance = [];
+  for (const skill of routing.workerSkills) {
+    validateSkillId(skill, 'worker skill');
+    const path = resolve(projectRoot, '.agents', 'skills', skill, 'SKILL.md');
+    try {
+      guidance.push({ skill, path: normalizeRepositoryPath(relative(projectRoot, path)), content: await readFile(path, 'utf8') });
+    } catch (error) {
+      fail(`worker skill local ausente: ${skill} (${error instanceof Error ? error.message : String(error)})`);
+    }
+  }
+  return guidance;
+}
+
+export async function resolveSkillRouting(plan, task, projectRoot = PROJECT_ROOT, manifest = null) {
+  const loadedManifest = manifest ?? await loadSkillManifest(projectRoot);
+  const routing = selectSkillRouting(plan, task, loadedManifest);
+  const guidance = await loadWorkerSkillGuidance(projectRoot, routing);
+  return { ...routing, guidance };
 }
 
 export function validateWorkerTests(requested, verificationCommands) {
@@ -366,6 +548,21 @@ export function validateInteractiveConfig(config) {
   if (!executeFlags.includes('--interactive')) fail('manager.flags.execute deve conter --interactive');
   const forbidden = executeFlags.filter((flag) => FORBIDDEN_FLAGS.has(flag));
   if (forbidden.length > 0) fail(`flags proibidas na execução: ${forbidden.join(', ')}`);
+  const agentSkills = config.agent_skills;
+  if (!agentSkills || typeof agentSkills !== 'object' || Array.isArray(agentSkills)) {
+    fail('agent_skills deve apontar para o manifesto local');
+  }
+  if (agentSkills.manifest !== SKILL_MANIFEST_PATH) {
+    fail(`agent_skills.manifest deve ser ${SKILL_MANIFEST_PATH}`);
+  }
+  if (agentSkills.selection !== 'deterministic') fail('agent_skills.selection deve ser deterministic');
+  if (agentSkills.worker_content !== 'local-only') fail('agent_skills.worker_content deve ser local-only');
+  if (agentSkills.missing_worker_skill !== 'fail') fail('agent_skills.missing_worker_skill deve ser fail');
+  if (agentSkills.external_skills !== 'control-plane-only') {
+    fail('agent_skills.external_skills deve ser control-plane-only');
+  }
+  stringList(agentSkills.always_worker_skills, 'agent_skills.always_worker_skills', { allowEmpty: false })
+    .forEach((skill) => validateSkillId(skill, 'agent_skills.always_worker_skills'));
   return true;
 }
 
@@ -428,6 +625,7 @@ export function buildExecutorPrompt(
   agentsContract = '',
   continuation = null,
   workerTests = [],
+  routing = null,
 ) {
   const prompt = [
     'Modo EXECUTOR.',
@@ -452,6 +650,21 @@ export function buildExecutorPrompt(
     );
   } else {
     prompt.push('Em tests_executed devolva uma lista vazia.');
+  }
+  if (routing) {
+    prompt.push(
+      `Bundles selecionados deterministicamente: ${routing.bundles.join(', ')}.`,
+      `Gates obrigatÃ³rios desta task: ${routing.gates.join(', ')}.`,
+      `Skills locais incorporadas ao briefing: ${routing.workerSkills.join(', ')}.`,
+      'As skills externas do plano de controle nÃ£o foram carregadas no worker.',
+    );
+    for (const item of routing.guidance ?? []) {
+      prompt.push(
+        `<worker_skill name="${item.skill}" path="${item.path}">`,
+        item.content,
+        '</worker_skill>',
+      );
+    }
   }
   if (continuation) {
     prompt.push(
@@ -735,6 +948,9 @@ export async function executeTask(options, dependencies = {}) {
   if (!options.expectedBranch || options.expectedBranch.startsWith('-')) fail('expected-branch inválida');
   const worktree = assertPathWithinRoot(options.worktree, options.workspaceRoot);
   const projectRoot = resolve(options.projectRoot ?? PROJECT_ROOT);
+  const contextRoot = resolve(options.contextRoot ?? worktree);
+  const routing = options.skillRouting
+    ?? await resolveSkillRouting(plan, task, contextRoot, options.skillManifest);
 
   const topLevel = (await gitOutput(runProcess, worktree, ['rev-parse', '--show-toplevel'])).trim();
   if (comparablePath(topLevel) !== comparablePath(worktree)) fail('path informado não é a raiz da worktree');
@@ -770,9 +986,16 @@ export async function executeTask(options, dependencies = {}) {
     fail('worktree deve estar limpa antes do Gemini');
   }
 
-  const agentsContract = await readFile(resolve(projectRoot, 'AGENTS.md'), 'utf8');
+  const agentsContract = await readFile(resolve(contextRoot, 'AGENTS.md'), 'utf8');
   if (!agentsContract.trim()) fail('AGENTS.md local está ausente ou vazio');
-  const prompt = buildExecutorPrompt(plan, task, agentsContract, continuationSnapshot, workerTests);
+  const prompt = buildExecutorPrompt(
+    plan,
+    task,
+    agentsContract,
+    continuationSnapshot,
+    workerTests,
+    routing,
+  );
   const agyResult = await runProcess(
     'agy',
     buildAgyArgs(worktree, prompt, options.timeoutMs ?? DEFAULT_AGY_TIMEOUT_MS),
@@ -837,6 +1060,13 @@ export async function executeTask(options, dependencies = {}) {
     worktreeFiles: actualFiles,
     invocationFiles,
     diagnostic: sanitizeAgyDiagnostic(agyResult),
+    skillRouting: {
+      bundles: routing.bundles,
+      workerSkills: routing.workerSkills,
+      controlSkills: routing.controlSkills,
+      reviewers: routing.reviewers,
+      gates: routing.gates,
+    },
   };
   if (continuationSnapshot) {
     diagnosticRecord.snapshot = {
@@ -893,6 +1123,13 @@ export async function executeTask(options, dependencies = {}) {
     testsExecuted: executorResult.tests_executed,
     decisionsRequired: executorResult.decisions_required,
     blockers: executorResult.blockers,
+    skillRouting: {
+      bundles: routing.bundles,
+      workerSkills: routing.workerSkills,
+      controlSkills: routing.controlSkills,
+      reviewers: routing.reviewers,
+      gates: routing.gates,
+    },
   };
   if (continuationSnapshot) {
     record.snapshot = {
@@ -906,7 +1143,8 @@ export async function executeTask(options, dependencies = {}) {
   return { ...record, recordPath };
 }
 
-export function buildWaveDryRun(plans, phaseNumber, waveNumber) {
+export function buildWaveDryRun(plans, phaseNumber, waveNumber, skillManifest) {
+  validateSkillManifest(skillManifest);
   const wavePlans = plans.filter((plan) => plan.wave === waveNumber);
   if (wavePlans.length === 0) fail(`onda ${waveNumber} não existe na fase ${phaseNumber}`);
   if (wavePlans.some((plan) => plan.autonomous)) fail('todos os planos da onda devem ser autonomous:false');
@@ -930,9 +1168,14 @@ export function buildWaveDryRun(plans, phaseNumber, waveNumber) {
     }
   }
 
+  const routedTasks = new Map(wavePlans.flatMap((plan) => plan.tasks.map((task) => [
+    task.id,
+    selectSkillRouting(plan, task, skillManifest),
+  ])));
   const firstTasks = wavePlans.map((plan) => ({ plan, task: plan.tasks[0] }));
-  const ready = firstTasks.filter(({ task }) => task.taskReferences.length === 0);
-  const blocked = firstTasks.filter(({ task }) => task.taskReferences.length > 0);
+  const checkpoints = firstTasks.filter(({ task }) => task.type.startsWith('checkpoint:'));
+  const ready = firstTasks.filter(({ task }) => !task.type.startsWith('checkpoint:') && task.taskReferences.length === 0);
+  const blocked = firstTasks.filter(({ task }) => !task.type.startsWith('checkpoint:') && task.taskReferences.length > 0);
   const focalCommands = unique(
     wavePlans.flatMap((plan) => plan.tasks.flatMap((task) => task.verificationCommands)),
   );
@@ -953,7 +1196,20 @@ export function buildWaveDryRun(plans, phaseNumber, waveNumber) {
       plan: plan.id,
       task: task.id,
       worktree: `<WORKTREE:${plan.id}>`,
-      command: ['agy', ...buildAgyArgs(`<WORKTREE:${plan.id}>`, buildExecutorPrompt(plan, task))],
+      skillRouting: routedTasks.get(task.id),
+      command: [
+        'agy',
+        ...buildAgyArgs(
+          `<WORKTREE:${plan.id}>`,
+          buildExecutorPrompt(plan, task, '', null, [], routedTasks.get(task.id)),
+        ),
+      ],
+    })),
+    checkpointDispatch: checkpoints.map(({ plan, task }) => ({
+      plan: plan.id,
+      task: task.id,
+      waitsForHuman: true,
+      skillRouting: routedTasks.get(task.id),
     })),
     blockedDispatch: blocked.map(({ plan, task }) => ({
       plan: plan.id,
@@ -970,6 +1226,7 @@ export function buildWaveDryRun(plans, phaseNumber, waveNumber) {
         name: task.name,
         files: task.files,
         checkpoints: task.type.startsWith('checkpoint:'),
+        skillRouting: routedTasks.get(task.id),
       })),
     })),
     overlap: [],
@@ -1094,8 +1351,9 @@ export async function runDryRun(argv, projectRoot = PROJECT_ROOT) {
   const { phase, wave } = parsed;
   const config = JSON.parse(await readFile(resolve(projectRoot, '.planning', 'config.json'), 'utf8'));
   validateInteractiveConfig(config);
+  const skillManifest = await loadSkillManifest(projectRoot);
   const plans = await discoverPlans(projectRoot, phase);
-  return buildWaveDryRun(plans, phase, wave);
+  return buildWaveDryRun(plans, phase, wave, skillManifest);
 }
 
 export function selectPlanRoot(parsed, projectRoot = PROJECT_ROOT) {
@@ -1106,11 +1364,13 @@ export async function runCli(argv, projectRoot = PROJECT_ROOT) {
   const parsed = parseArguments(argv);
   const config = JSON.parse(await readFile(resolve(projectRoot, '.planning', 'config.json'), 'utf8'));
   validateInteractiveConfig(config);
-  const plans = await discoverPlans(selectPlanRoot(parsed, projectRoot), parsed.phase);
+  const planRoot = selectPlanRoot(parsed, projectRoot);
+  const skillManifest = await loadSkillManifest(planRoot);
+  const plans = await discoverPlans(planRoot, parsed.phase);
   if (parsed.mode === 'dry-run') {
-    return buildWaveDryRun(plans, parsed.phase, parsed.wave);
+    return buildWaveDryRun(plans, parsed.phase, parsed.wave, skillManifest);
   }
-  return executeTask({ ...parsed, plans, projectRoot });
+  return executeTask({ ...parsed, plans, projectRoot, contextRoot: planRoot, skillManifest });
 }
 
 async function main() {

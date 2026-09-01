@@ -1,7 +1,13 @@
 {
-  "version": 1,
-  "purpose": "Local routing manifest for BETUFU agents. It selects focused guidance; it does not grant authorization or install skills.",
-  "selection": "Choose the smallest bundle matching the active plan. Always include betufu-wave-guardrails.",
+  "version": 2,
+  "purpose": "Deterministic routing manifest for BETUFU agents. It selects focused guidance; it does not grant authorization or install skills.",
+  "selection": {
+    "mode": "deterministic",
+    "always_worker_skills": ["betufu-wave-guardrails"],
+    "fallback_bundle": "planning",
+    "worker_content": "Only versioned .agents/skills/*/SKILL.md files are injected into the worker prompt.",
+    "external_skills": "control-plane-only"
+  },
   "bundles": {
     "planning": {
       "when": "Exploring the codebase, preparing a plan, or assessing refactor impact.",
@@ -11,6 +17,10 @@
         "architectural-decisions",
         "pre-modification-check"
       ],
+      "worker_skills": ["betufu-wave-guardrails"],
+      "control_skills": ["codebase-exploration", "architectural-decisions", "pre-modification-check"],
+      "reviewers": ["verification"],
+      "gates": ["scope", "structured-result", "evidence"],
       "repowise": ["get_impact", "get_deps", "find_references"]
     },
     "backend-api": {
@@ -22,6 +32,10 @@
         "code-health",
         "change-review"
       ],
+      "worker_skills": ["betufu-wave-guardrails"],
+      "control_skills": ["architectural-decisions", "pre-modification-check", "code-health", "change-review"],
+      "reviewers": ["verification", "security"],
+      "gates": ["scope", "structured-result", "discriminating-tests", "aggregate-backend", "aggregate-node"],
       "repowise": ["find_symbol", "lsp_definition", "lsp_hover", "get_impact"]
     },
     "frontend-angular": {
@@ -32,6 +46,10 @@
         "frontend-accessibility-wcag",
         "pre-modification-check"
       ],
+      "worker_skills": ["betufu-wave-guardrails", "angular-signals-patterns", "frontend-accessibility-wcag"],
+      "control_skills": ["pre-modification-check"],
+      "reviewers": ["verification", "ui"],
+      "gates": ["scope", "structured-result", "discriminating-tests", "aggregate-backend", "aggregate-node", "aggregate-angular"],
       "repowise": ["find_symbol", "lsp_definition", "find_references", "get_impact"]
     },
     "ui-e2e": {
@@ -42,6 +60,10 @@
         "playwright-cli",
         "change-review"
       ],
+      "worker_skills": ["betufu-wave-guardrails", "frontend-accessibility-wcag", "playwright-cli"],
+      "control_skills": ["change-review"],
+      "reviewers": ["ui", "verification"],
+      "gates": ["scope", "structured-result", "aggregate-backend", "aggregate-node", "aggregate-angular", "aggregate-playwright"],
       "repowise": ["find_callers", "find_references", "get_impact"]
     },
     "security": {
@@ -56,6 +78,16 @@
         "managed-pentesting-with-strix",
         "change-review"
       ],
+      "worker_skills": ["betufu-wave-guardrails"],
+      "control_skills": [
+        "architectural-decisions",
+        "gsd-secure-phase",
+        "penetration-testing-with-strix",
+        "fix-security-vulnerabilities-with-strix",
+        "change-review"
+      ],
+      "reviewers": ["security", "verification"],
+      "gates": ["scope", "structured-result", "security-review", "discriminating-tests"],
       "repowise": ["get_impact", "find_callers", "find_references"]
     },
     "verification-review": {
@@ -68,7 +100,60 @@
         "change-review",
         "code-health"
       ],
+      "worker_skills": ["betufu-wave-guardrails"],
+      "control_skills": ["gsd-nyquist-auditor", "gsd-integration-checker", "gsd-code-review", "change-review", "code-health"],
+      "reviewers": ["verification", "security", "ui"],
+      "gates": ["scope", "structured-result", "aggregate-backend", "aggregate-node"],
       "repowise": ["find_tests_for_symbol", "find_references", "get_impact", "find_callers"]
+    }
+  },
+  "routing": [
+    {
+      "bundle": "security",
+      "priority": 400,
+      "path_prefixes": ["backend/src/main/java/br/com/betufu/identity/", "backend/src/main/java/br/com/betufu/platform/session/", "backend/src/main/java/br/com/betufu/platform/security/", "frontend/src/app/core/auth/", "frontend/src/app/features/sports/athlete-profile/", "frontend/src/app/features/sports/public-athlete/"],
+      "keywords": ["security", "authorization", "authentication", "permission", "owner-only", "xss", "ssrf", "csrf", "sanitiz", "privacy", "token", "password", "keycloak", "hmac"]
+    },
+    {
+      "bundle": "ui-e2e",
+      "priority": 300,
+      "path_prefixes": ["frontend/e2e/", "frontend/playwright/"],
+      "keywords": ["playwright", "browser", "responsive", "accessibility", "wcag", "template", "visual", "e2e"]
+    },
+    {
+      "bundle": "frontend-angular",
+      "priority": 200,
+      "path_prefixes": ["frontend/src/app/", "frontend/src/environments/"],
+      "keywords": ["angular", "signal", "store", "component", "route", "template", "rxjs"]
+    },
+    {
+      "bundle": "backend-api",
+      "priority": 100,
+      "path_prefixes": ["backend/", "scripts/maven.mjs"],
+      "keywords": ["spring", "java", "backend", "controller", "repository", "migration", "flyway", "openapi", "dto", "persistence"]
+    }
+  ],
+  "reviewer_profiles": {
+    "security": {
+      "mode": "plan",
+      "readonly": true,
+      "skills": ["gsd-secure-phase", "change-review"],
+      "focus": ["authorization", "data exposure", "injection", "XSS", "SSRF", "secrets"],
+      "required_gates": ["scope", "worktree-clean", "diff-check", "security-review"]
+    },
+    "ui": {
+      "mode": "plan",
+      "readonly": true,
+      "skills": ["frontend-accessibility-wcag", "change-review"],
+      "focus": ["responsive behavior", "keyboard access", "semantics", "visual regressions"],
+      "required_gates": ["scope", "worktree-clean", "diff-check", "ui-review"]
+    },
+    "verification": {
+      "mode": "plan",
+      "readonly": true,
+      "skills": ["gsd-nyquist-auditor", "gsd-integration-checker", "change-review"],
+      "focus": ["allowlist", "test evidence", "generated artifacts", "integration boundaries"],
+      "required_gates": ["scope", "worktree-clean", "diff-check", "structured-result", "test-evidence"]
     }
   },
   "repowise_policy": {

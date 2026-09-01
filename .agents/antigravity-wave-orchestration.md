@@ -70,7 +70,51 @@ como certificação.
 9. Congele HEAD, refs, status e hashes. Um novo Codex revisa somente leitura o
    intervalo entre a base e o HEAD da onda. P0, P1 ou P2 devolvem a onda ao
    executor; qualquer correção invalida o parecer anterior e exige nova revisão.
-10. Com `PASS`, apresente o handoff e pause. A próxima onda requer nova aprovação.
+10. Prepare os revisores especializados com o coordenador read-only:
+
+   ```js
+   import { prepareReview } from './.agents/agy-review.mjs';
+
+   const prepared = await prepareReview({
+     projectRoot,
+     worktree,
+     workspaceRoot,
+     reviewType: 'verification', // security, ui ou verification
+     planId,
+     expectedBase,
+     expectedHead,
+     evidence,
+     executionResult,
+   }, { runProcess });
+   ```
+
+   `prepareReview` captura o snapshot, verifica worktree/HEAD/ancestralidade,
+   allowlist, diff-check, evidências, agregados e contrato OpenAPI. Gates
+   ausentes ficam `BLOCKED`; eles não são convertidos em sucesso por omissão.
+   O perfil selecionado é sempre `plan` + `readonly` e devolve somente o
+   schema `.agents/agy-review-result.schema.json`.
+
+   O mesmo preflight pode ser executado pela CLI, sem chamada externa:
+
+   ```powershell
+   node .agents/agy-review.mjs `
+     --prepare --reviewer verification --plan 03-14 `
+     --worktree C:\Users\giova\gsd-workspaces\phase-03\03-14 `
+     --workspace-root C:\Users\giova\gsd-workspaces\phase-03 `
+     --expected-base <SHA_COMPLETO> --expected-head <SHA_COMPLETO> `
+     --evidence-file <evidence.json> --execution-result-file <result.json>
+   ```
+
+   Troque `verification` por `security` ou `ui` conforme o risco. O modo
+   `--prepare` apenas captura e avalia gates; ele nunca executa o revisor.
+11. Uma chamada externa só pode ocorrer após aprovação específica para aquele
+    revisor e usa `invokeReviewer({ ...options, allowExternalCall: true })`.
+    Sem essa flag, o coordenador recusa a chamada. O comando gerado usa
+    `--mode plan`, `--sandbox` e o schema local; o revisor não pode editar,
+    executar Git mutável, instalar dependências, usar rede ou alterar a
+    worktree. O resultado é rejeitado se base, HEAD, paths, gates ou findings
+    divergirem do snapshot.
+12. Com `PASS`, apresente o handoff e pause. A próxima onda requer nova aprovação.
 
 ## Particularidade da onda 1
 
