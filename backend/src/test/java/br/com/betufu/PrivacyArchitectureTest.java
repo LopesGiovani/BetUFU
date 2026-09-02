@@ -3,6 +3,9 @@ package br.com.betufu;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.betufu.sports.EnrollmentFingerprintPort;
+import br.com.betufu.sports.internal.media.AthleteMediaStorage;
+import com.tngtech.archunit.core.domain.Dependency;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
@@ -272,6 +275,48 @@ class PrivacyArchitectureTest {
 
   // ── Regra 4: Controlador com matrícula em rotas, templates, PathVariable ou RequestParam ──
 
+  // Rule 5: sports reaches verification and storage through declared ports only.
+  @ArchTest
+  public static final ArchRule SPORTS_USES_DECLARED_BOUNDARY_PORTS =
+      ArchRuleDefinition.noClasses()
+          .that()
+          .resideInAnyPackage("br.com.betufu.sports.internal..")
+          .and()
+          .doNotHaveFullyQualifiedName("br.com.betufu.sports.internal.media.AthleteMediaStorage")
+          .and()
+          .doNotHaveFullyQualifiedName(
+              "br.com.betufu.sports.internal.media.AthleteMediaStorageConfiguration")
+          .and()
+          .doNotHaveFullyQualifiedName(
+              "br.com.betufu.sports.internal.media.AthleteMediaStorageConfiguration$1")
+          .should()
+          .dependOnClassesThat()
+          .resideInAnyPackage(
+              "br.com.betufu.verification.internal..", "br.com.betufu.platform.persistence..");
+
+  // Rule 6: public HTTP DTOs must not carry private identity or credential material.
+  @ArchTest
+  public static final ArchRule NO_FORBIDDEN_PUBLIC_DTO_DATA =
+      ArchRuleDefinition.classes()
+          .that()
+          .areAnnotatedWith(RestController.class)
+          .or()
+          .areAnnotatedWith(Controller.class)
+          .or()
+          .areAnnotatedWith(RestControllerAdvice.class)
+          .or()
+          .areAnnotatedWith(ControllerAdvice.class)
+          .should(
+              new ArchCondition<JavaClass>(
+                  "not expose e-mail, auth material, object keys, or internal identity types in HTTP DTOs") {
+                @Override
+                public void check(JavaClass controllerClass, ConditionEvents events) {
+                  for (JavaClass recordClass : extractResponseRecords(controllerClass)) {
+                    checkPublicDtoRecordStructure(recordClass, controllerClass, events);
+                  }
+                }
+              });
+
   @ArchTest
   public static final ArchRule NO_MATRICULA_IN_CONTROLLER_URL_OR_PARAMS =
       ArchRuleDefinition.classes()
@@ -398,6 +443,18 @@ class PrivacyArchitectureTest {
         .hasMessageContaining("SyntheticResponseRecordViolator")
         .hasMessageContaining("SyntheticNestedSensitiveRecord")
         .hasMessageContaining("SyntheticTypeResponseRecord");
+
+    assertThatThrownBy(
+            () ->
+                NO_FORBIDDEN_PUBLIC_DTO_DATA.check(
+                    new ClassFileImporter()
+                        .importClasses(
+                            SyntheticPublicSensitiveDtoController.class,
+                            SyntheticPublicSensitiveDto.class)))
+        .isInstanceOf(AssertionError.class)
+        .hasMessageContaining("SyntheticPublicSensitiveDto")
+        .hasMessageContaining("email")
+        .hasMessageContaining("objectKey");
   }
 
   @Test
@@ -489,6 +546,38 @@ class PrivacyArchitectureTest {
   }
 
   // ── Auxiliares de Extração Estrutural de Records ───────────────────────────
+
+  @Test
+  @DisplayName(
+      "Prova de não vacuidade: sports usa EnrollmentFingerprintPort e AthleteMediaStorage sem acessar internos de verification ou persistência")
+  void verifiesSportsBoundaryPortsAndRestrictions() {
+    JavaClasses productionClasses =
+        new ClassFileImporter()
+            .withImportOption(new ImportOption.DoNotIncludeTests())
+            .importPackages("br.com.betufu");
+
+    long fingerprintConsumers =
+        productionClasses.stream()
+            .filter(c -> c.getPackageName().startsWith("br.com.betufu.sports.internal"))
+            .filter(c -> hasDirectDependencyOn(c, EnrollmentFingerprintPort.class.getName()))
+            .count();
+    long mediaConsumers =
+        productionClasses.stream()
+            .filter(c -> c.getPackageName().startsWith("br.com.betufu.sports.internal"))
+            .filter(c -> hasDirectDependencyOn(c, AthleteMediaStorage.class.getName()))
+            .count();
+
+    assertThat(fingerprintConsumers).isGreaterThan(0);
+    assertThat(mediaConsumers).isGreaterThan(0);
+    SPORTS_USES_DECLARED_BOUNDARY_PORTS.check(productionClasses);
+    NO_FORBIDDEN_PUBLIC_DTO_DATA.check(productionClasses);
+  }
+
+  private static boolean hasDirectDependencyOn(JavaClass source, String targetName) {
+    return source.getDirectDependenciesFromSelf().stream()
+        .map(Dependency::getTargetClass)
+        .anyMatch(target -> targetName.equals(target.getName()));
+  }
 
   private static Set<JavaClass> extractResponseRecords(JavaClass controllerClass) {
     Set<Class<?>> recordClasses = new LinkedHashSet<>();
@@ -661,6 +750,86 @@ class PrivacyArchitectureTest {
                     rc.getName(),
                     rc.getType().getName());
             events.add(SimpleConditionEvent.violated(controllerClass, message));
+          }
+        }
+      }
+    } catch (Exception ignored) {
+    }
+  }
+
+  private static void checkPublicDtoRecordStructure(
+      JavaClass recordClass, JavaClass controllerClass, ConditionEvents events) {
+    for (JavaField field : recordClass.getAllFields()) {
+      if (isEnumConstant(field, recordClass)) {
+        continue;
+      }
+      if (isForbiddenPublicDtoVocabulary(field.getName())) {
+        events.add(
+            SimpleConditionEvent.violated(
+                controllerClass,
+                String.format(
+                    "HTTP public DTO %s (in controller %s) declares forbidden field '%s'",
+                    recordClass.getName(), controllerClass.getSimpleName(), field.getName())));
+      }
+      if (isForbiddenPublicDtoType(field.getRawType())) {
+        events.add(
+            SimpleConditionEvent.violated(
+                controllerClass,
+                String.format(
+                    "HTTP public DTO %s (in controller %s) exposes forbidden type '%s'",
+                    recordClass.getName(),
+                    controllerClass.getSimpleName(),
+                    field.getRawType().getName())));
+      }
+    }
+
+    for (JavaConstructor constructor : recordClass.getConstructors()) {
+      for (JavaParameter parameter : constructor.getParameters()) {
+        String parameterName = getParameterName(parameter);
+        if (isForbiddenPublicDtoVocabulary(parameterName)) {
+          events.add(
+              SimpleConditionEvent.violated(
+                  controllerClass,
+                  String.format(
+                      "HTTP public DTO %s (in controller %s) declares forbidden constructor parameter '%s'",
+                      recordClass.getName(), controllerClass.getSimpleName(), parameterName)));
+        }
+        if (isForbiddenPublicDtoType(parameter.getRawType())) {
+          events.add(
+              SimpleConditionEvent.violated(
+                  controllerClass,
+                  String.format(
+                      "HTTP public DTO %s (in controller %s) exposes forbidden constructor type '%s'",
+                      recordClass.getName(),
+                      controllerClass.getSimpleName(),
+                      parameter.getRawType().getName())));
+        }
+      }
+    }
+
+    try {
+      Class<?> reflected = recordClass.reflect();
+      if (reflected.isRecord()) {
+        for (RecordComponent component : reflected.getRecordComponents()) {
+          if (isForbiddenPublicDtoVocabulary(component.getName())) {
+            events.add(
+                SimpleConditionEvent.violated(
+                    controllerClass,
+                    String.format(
+                        "HTTP public DTO %s (in controller %s) declares forbidden component '%s'",
+                        recordClass.getName(),
+                        controllerClass.getSimpleName(),
+                        component.getName())));
+          }
+          if (isForbiddenPublicDtoTypeName(component.getType().getName())) {
+            events.add(
+                SimpleConditionEvent.violated(
+                    controllerClass,
+                    String.format(
+                        "HTTP public DTO %s (in controller %s) exposes forbidden component type '%s'",
+                        recordClass.getName(),
+                        controllerClass.getSimpleName(),
+                        component.getType().getName())));
           }
         }
       }
@@ -855,6 +1024,44 @@ class PrivacyArchitectureTest {
         || lower.contains("matricula")
         || lower.contains("digest")
         || lower.contains("hmac");
+  }
+
+  private static boolean isForbiddenPublicDtoVocabulary(String name) {
+    if (name == null || name.isBlank()) {
+      return false;
+    }
+    String lower = name.toLowerCase(Locale.ROOT);
+    if (lower.contains("status")
+        || lower.equals("authenticated")
+        || lower.equals("mfaauthenticated")) {
+      return false;
+    }
+    return lower.contains("email")
+        || lower.contains("e-mail")
+        || lower.contains("hmac")
+        || lower.contains("digest")
+        || lower.contains("objectkey")
+        || lower.equals("auth")
+        || lower.equals("authorization")
+        || (lower.startsWith("auth") && !lower.endsWith("enticated"))
+        || lower.contains("token")
+        || lower.contains("claim")
+        || lower.equals("issuer")
+        || lower.equals("subject")
+        || lower.contains("password")
+        || lower.contains("secret");
+  }
+
+  private static boolean isForbiddenPublicDtoType(JavaClass type) {
+    return type != null && isForbiddenPublicDtoTypeName(type.getName());
+  }
+
+  private static boolean isForbiddenPublicDtoTypeName(String typeName) {
+    if (typeName == null || typeName.isBlank()) {
+      return false;
+    }
+    return typeName.startsWith("br.com.betufu.identity.internal.")
+        || typeName.startsWith("org.springframework.security.");
   }
 
   private static boolean isLoggerType(JavaClass type) {
@@ -1084,6 +1291,16 @@ class PrivacyArchitectureTest {
     @GetMapping("/api/test-violation-type")
     public ResponseEntity<SyntheticTypeResponseRecord> getTypeViolation() {
       return ResponseEntity.ok(null);
+    }
+  }
+
+  record SyntheticPublicSensitiveDto(String email, String objectKey) {}
+
+  @RestController
+  static class SyntheticPublicSensitiveDtoController {
+    @GetMapping("/api/test-public-sensitive-dto")
+    public SyntheticPublicSensitiveDto expose() {
+      return new SyntheticPublicSensitiveDto("hidden@example.test", "private/object");
     }
   }
 

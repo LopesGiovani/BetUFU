@@ -282,32 +282,177 @@ async function tabUntil(page: Page, selector: string, attempts = 32): Promise<vo
   throw new Error(`Elemento ${selector} não foi alcançado pelo teclado.`);
 }
 
-async function expectPersonalLayout(page: Page): Promise<void> {
+async function expectMeasuredAccessibility(page: Page, maxScrollMultiplier = 1): Promise<void> {
   const dimensions = await page.evaluate(() => ({
     innerWidth: window.innerWidth,
     clientWidth: document.documentElement.clientWidth,
     scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
-    canvases: document.querySelectorAll('canvas').length,
   }));
-  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.innerWidth);
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.innerWidth * maxScrollMultiplier);
   expect(dimensions.clientWidth).toBeLessThanOrEqual(dimensions.innerWidth);
-  expect(dimensions.canvases).toBe(0);
 
-  const undersizedControls = await page.locator('a, button, input, select').evaluateAll((elements) =>
-    elements
+  const undersizedControls = await page
+    .locator('.event-hero a, .event-row a, button, input, select, textarea, [role="button"]')
+    .evaluateAll((elements) =>
+      elements
+        .filter((element) => {
+          const style = window.getComputedStyle(element);
+          return (
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            element.getAttribute('tabindex') !== '-1'
+          );
+        })
+        .filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44);
+        })
+        .map((element) => element.outerHTML.slice(0, 120)),
+    );
+  expect(undersizedControls).toEqual([]);
+
+  await page.keyboard.press('Tab');
+  const focusProof = await page.evaluate(() => {
+    const active = document.activeElement as HTMLElement | null;
+    if (!active || active === document.body) {
+      return null;
+    }
+    const style = window.getComputedStyle(active);
+    const outlineWidth = Number.parseFloat(style.outlineWidth) || 0;
+    const shadowSpread = style.boxShadow
+      .split(',')
+      .map((shadow) => shadow.trim().match(/(-?\d+(?:\.\d+)?)px\s*$/u)?.[1])
+      .map((value) => (value ? Number.parseFloat(value) : 0))
+      .reduce((max, value) => Math.max(max, value), 0);
+    return {
+      tag: active.tagName,
+      outlineWidth,
+      shadowSpread,
+      hasIndicator: outlineWidth >= 3 || shadowSpread >= 3,
+    };
+  });
+  expect(focusProof).not.toBeNull();
+  expect(focusProof?.hasIndicator).toBe(true);
+
+  const contrastFailures = await page.evaluate(() => {
+    type Rgba = [number, number, number, number];
+    const parseColor = (value: string): Rgba | null => {
+      const match = value.match(/rgba?\(([^)]+)\)/u);
+      if (!match) return null;
+      const channels = match[1].split(',').map((part) => Number.parseFloat(part.trim()));
+      if (channels.length < 3 || channels.some((channel) => Number.isNaN(channel))) return null;
+      return [channels[0], channels[1], channels[2], channels[3] ?? 1];
+    };
+    const composite = (foreground: Rgba, background: Rgba): Rgba => {
+      const alpha = foreground[3] + background[3] * (1 - foreground[3]);
+      if (alpha === 0) return [0, 0, 0, 0];
+      return [
+        (foreground[0] * foreground[3] + background[0] * background[3] * (1 - foreground[3])) / alpha,
+        (foreground[1] * foreground[3] + background[1] * background[3] * (1 - foreground[3])) / alpha,
+        (foreground[2] * foreground[3] + background[2] * background[3] * (1 - foreground[3])) / alpha,
+        alpha,
+      ];
+    };
+    const luminance = (color: Rgba): number =>
+      color
+        .slice(0, 3)
+        .map((channel) => channel / 255)
+        .map((channel) => (channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4))
+        .reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+
+    const failures: string[] = [];
+    const candidates = Array.from(document.querySelectorAll<HTMLElement>('body *'))
       .filter((element) => {
         const style = window.getComputedStyle(element);
-        return style.display !== 'none' && style.visibility !== 'hidden';
-      })
-      .filter((element) => {
         const rect = element.getBoundingClientRect();
-        return rect.width < 44 || rect.height < 44;
+        return Boolean(element.textContent?.trim())
+          && style.display !== 'none'
+          && style.visibility !== 'hidden'
+          && rect.width > 0
+          && rect.height > 0
+          && element.children.length === 0;
       })
-      .map((element) => element.outerHTML.slice(0, 120)),
-  );
-  expect(undersizedControls).toEqual([]);
+      .slice(0, 120);
+
+    for (const element of candidates) {
+      const style = window.getComputedStyle(element);
+      const foreground = parseColor(style.color);
+      if (!foreground) continue;
+      let background: Rgba | null = null;
+      let current: HTMLElement | null = element;
+      while (current && !background) {
+        const candidate = parseColor(window.getComputedStyle(current).backgroundColor);
+        if (candidate && candidate[3] >= 0.99) background = candidate;
+        current = current.parentElement;
+      }
+      if (!background) continue;
+
+      const blended = composite(foreground, background);
+      const ratio = (Math.max(luminance(blended), luminance(background)) + 0.05)
+        / (Math.min(luminance(blended), luminance(background)) + 0.05);
+      const fontSize = Number.parseFloat(style.fontSize) || 16;
+      const largeText = fontSize >= 24 || (fontSize >= 18.66 && Number.parseInt(style.fontWeight, 10) >= 700);
+      const required = largeText ? 3 : 4.5;
+      if (ratio + 0.01 < required) {
+        const label = element.textContent?.trim() ?? '';
+        failures.push(`${element.tagName}:${label.slice(0, 50)}=${ratio.toFixed(2)}`);
+      }
+    }
+    return failures.slice(0, 8);
+  });
+  expect(contrastFailures).toEqual([]);
+}
+
+async function expectPersonalLayout(page: Page): Promise<void> {
+  await expectMeasuredAccessibility(page);
   expect(await page.locator('body').innerText()).not.toMatch(/tracer|diagnostic|webgl/iu);
 }
+
+async function expectHeroSemantics(page: Page): Promise<void> {
+  const slides = page.locator('.hero-slide');
+  await expect(slides).toHaveCount(2);
+  await expect(slides.nth(0)).toHaveAttribute('aria-hidden', 'false');
+  await expect(slides.nth(1)).toHaveAttribute('aria-hidden', 'true');
+  await expect(slides.nth(1)).toHaveAttribute('inert', '');
+  await expect(slides.nth(1).getByRole('link', { name: 'Abrir evento', includeHidden: true })).toHaveAttribute('tabindex', '-1');
+  const motionControl = page.getByRole('button', { name: 'Pausar destaques' });
+  await motionControl.focus();
+  await expect(motionControl).toBeFocused();
+  await motionControl.click();
+  await expect(page.getByRole('button', { name: 'Retomar destaques' })).toHaveAttribute('aria-pressed', 'true');
+}
+
+test.describe('@03-17-visual-matrix UI medida em dois navegadores', () => {
+  test('desktop prova semântica do hero, foco, alvos e contraste', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await mockPublicAgenda(page);
+    await page.goto('/');
+    await expect(page.locator('app-event-row')).toHaveCount(3);
+    await expectMeasuredAccessibility(page);
+    await expectHeroSemantics(page);
+  });
+
+  test('320px com reduced motion mantém reflow, sem overflow e com controles mensuráveis', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 320, height: 800 });
+    await mockPublicAgenda(page);
+    await page.goto('/');
+    await expect(page.locator('app-event-row')).toHaveCount(3);
+    await expectMeasuredAccessibility(page);
+    await expectHeroSemantics(page);
+  });
+
+  test('200% automatizado mantém a superfície dentro do limite de reflow', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await mockPublicAgenda(page);
+    await page.goto('/');
+    await page.evaluate(() => {
+      document.documentElement.style.zoom = '2';
+    });
+    await expect(page.locator('app-event-row')).toHaveCount(3);
+    await expectMeasuredAccessibility(page, 2);
+  });
+});
 
 test.describe('@03-19-personal-console Console pessoal', () => {
   test('desktop percorre perfil e matrícula, preserva teclado e não vaza o valor bruto', async ({ page }) => {

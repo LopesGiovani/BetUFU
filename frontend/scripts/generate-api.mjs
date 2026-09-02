@@ -1870,9 +1870,9 @@ export async function executeGenerateApi({
 
   await verifyRegularFile(context.inputSpec, 'SPEC_MISSING', 'SPEC_INVALID');
   await verifyEngine(context.enginePath, contract);
+  const openApiSource = await readFile(context.inputSpec, 'utf8');
+  assertPublicSchemaAllowlist(openApiSource);
   if (mode === 'candidate') {
-    const openApiSource = await readFile(context.inputSpec, 'utf8');
-    assertPublicSchemaAllowlist(openApiSource);
     try {
       governedBeforeManifest = await readTreeManifest(context.target);
     } catch (error) {
@@ -1940,10 +1940,6 @@ export async function executeGenerateApi({
       fail('GENERATOR_FAILED', 'motor OpenAPI terminou com falha.');
     }
 
-    if (mode === 'candidate') {
-      const openApiSource = await readFile(context.inputSpec, 'utf8');
-      assertPublicSchemaAllowlist(openApiSource);
-    }
     await materializeTypeScript(operation.raw, operation.candidate);
     const candidateManifest = await readTreeManifest(operation.candidate);
     if (mode === 'candidate') {

@@ -21,13 +21,15 @@ export default defineConfig({
   projects: [
     {
       name: 'phase3-chromium',
-      use: { browserName: 'chromium' },
+      use: { browserName: 'chromium', channel: 'chrome' },
+    },
+    {
+      name: 'phase3-firefox',
+      use: { browserName: 'firefox' },
     },
   ],
   use: {
     baseURL: 'http://localhost:4200',
-    browserName: 'chromium',
-    channel: 'chrome',
     headless: true,
     timezoneId: 'America/Sao_Paulo',
     launchOptions: {

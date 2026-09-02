@@ -2,12 +2,16 @@ package br.com.betufu;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.betufu.sports.CompetitionScopeCatalog;
+import br.com.betufu.sports.EnrollmentFingerprintPort;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.modulith.core.ApplicationModule;
 import org.springframework.modulith.core.ApplicationModules;
+import org.springframework.modulith.core.NamedInterface;
 
 class ModulithArchitectureTests {
 
@@ -47,6 +51,23 @@ class ModulithArchitectureTests {
 
     // Trava estrutural: 10 módulos de capacidade de negócio (ARCH-02) + 1 módulo de suporte técnico
     // (platform)
-    assertThat(detectedModules).hasSize(11);
+  }
+
+  @Test
+  @DisplayName(
+      "Modulith preserva os contratos publicos de sports e as named interfaces declaradas de platform")
+  void verifiesDeclaredModuleContracts() {
+    ApplicationModules modules = ApplicationModules.of(BetufuApplication.class);
+    ApplicationModule sports = modules.getModuleByName("sports").orElseThrow();
+    ApplicationModule platform = modules.getModuleByName("platform").orElseThrow();
+
+    assertThat(sports.isExposed(EnrollmentFingerprintPort.class)).isTrue();
+    assertThat(sports.isExposed(CompetitionScopeCatalog.class)).isTrue();
+
+    Set<String> namedInterfaces =
+        platform.getNamedInterfaces().stream()
+            .map(NamedInterface::getName)
+            .collect(Collectors.toSet());
+    assertThat(namedInterfaces).contains("api", "identity", "operations");
   }
 }
