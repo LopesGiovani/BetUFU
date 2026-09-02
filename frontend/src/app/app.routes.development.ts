@@ -6,6 +6,7 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
   {
     path: 'operacao/esportes',
     component: ConsoleShellComponent,
+    data: { consoleVariant: 'operational' },
     children: [
       {
         path: '',
@@ -39,6 +40,34 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
     ],
   },
   {
+    path: 'conta',
+    component: ConsoleShellComponent,
+    data: { consoleVariant: 'personal' },
+    children: [
+      {
+        path: 'perfil/completar',
+        loadComponent: () =>
+          import('./features/profile/profile-gate-page.component').then(
+            ({ ProfileGatePageComponent }) => ProfileGatePageComponent,
+          ),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/profile/profile-page.component').then(
+            ({ ProfilePageComponent }) => ProfilePageComponent,
+          ),
+      },
+      {
+        path: 'matricula',
+        loadComponent: () =>
+          import('./features/enrollment/enrollment-page.component').then(
+            ({ EnrollmentPageComponent }) => EnrollmentPageComponent,
+          ),
+      },
+    ],
+  },
+  {
     path: '',
     component: AuthenticatedLayoutComponent,
     children: [
@@ -57,31 +86,10 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
           ),
       },
       {
-        path: 'conta/perfil/completar',
-        loadComponent: () =>
-          import('./features/profile/profile-gate-page.component').then(
-            ({ ProfileGatePageComponent }) => ProfileGatePageComponent,
-          ),
-      },
-      {
         path: 'conta/perfil/esportivo',
         loadComponent: () =>
           import('./features/sports/athlete-profile/athlete-profile-page.component').then(
             ({ AthleteProfilePageComponent }) => AthleteProfilePageComponent,
-          ),
-      },
-      {
-        path: 'conta/perfil',
-        loadComponent: () =>
-          import('./features/profile/profile-page.component').then(
-            ({ ProfilePageComponent }) => ProfilePageComponent,
-          ),
-      },
-      {
-        path: 'conta/matricula',
-        loadComponent: () =>
-          import('./features/enrollment/enrollment-page.component').then(
-            ({ EnrollmentPageComponent }) => EnrollmentPageComponent,
           ),
       },
       {

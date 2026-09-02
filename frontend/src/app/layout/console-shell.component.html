@@ -1,48 +1,94 @@
-<a class="skip-link" href="#console-main">Pular para o conteudo principal</a>
+<a class="skip-link" href="#console-main">Pular para o conteúdo principal</a>
 
-<header class="console-header">
-  <div class="console-header__inner">
-    <a
-      class="console-brand"
-      routerLink="/operacao/esportes"
-      aria-label="BETUFU - operacao esportiva">
-      <span class="console-brand__mark" aria-hidden="true">B</span>
-      <span>BETUFU</span>
-    </a>
-
-    <div class="console-context">
-      <span class="console-context__eyebrow">Console operacional</span>
-      <strong>Operacao esportiva</strong>
+@if (sessionStore.isChecking()) {
+  <section class="session-state" role="status" aria-live="polite">
+    <div class="session-state__card">
+      <span class="session-state__spinner" aria-hidden="true"></span>
+      <h1>Preparando sua sessão</h1>
+      <p>Validando autenticação com a plataforma segura.</p>
     </div>
+  </section>
+}
 
-    <nav class="console-nav" aria-label="Navegacao do console">
-      @for (destination of operationDestinations(); track destination.path) {
-        <a
-          [routerLink]="destination.path"
-          routerLinkActive="is-active"
-          [routerLinkActiveOptions]="{ exact: destination.path === '/operacao/esportes' }"
-          >{{ destination.label }}</a
-        >
-      }
-      <a routerLink="/" (click)="closeMenu()">Arena</a>
-      <button
-        type="button"
-        class="console-nav__account"
-        (click)="toggleMenu()"
-        [attr.aria-expanded]="menuOpen()">
-        {{ sessionStore.displayName() || 'Conta' }}
-      </button>
-    </nav>
+@if (sessionStore.isAuthenticated()) {
+  <header class="console-header" [class.console-header--personal]="isPersonal">
+    <div class="console-header__inner">
+      <a
+        class="console-brand"
+        [routerLink]="isPersonal ? '/conta/perfil' : '/operacao/esportes'"
+        [attr.aria-label]="isPersonal ? 'BETUFU - área pessoal' : 'BETUFU - operação esportiva'">
+        <span class="console-brand__mark" aria-hidden="true">B</span>
+        <span>BETUFU</span>
+      </a>
 
-    @if (menuOpen()) {
-      <div class="console-menu">
-        <a routerLink="/conta/perfil" (click)="closeMenu()">Meu perfil</a>
-        <button type="button" (click)="logout()">Sair</button>
+      <div class="console-context">
+        <span class="console-context__eyebrow">{{
+          isPersonal ? 'Área pessoal' : 'Console operacional'
+        }}</span>
+        <strong>{{ isPersonal ? 'Minha conta' : 'Operação esportiva' }}</strong>
       </div>
-    }
-  </div>
-</header>
 
-<main #consoleMain id="console-main" class="console-main" tabindex="-1">
-  <router-outlet />
-</main>
+      <nav class="console-nav" aria-label="Navegação do console">
+        @if (isPersonal) {
+          @for (destination of personalDestinations; track destination.path) {
+            <a
+              [routerLink]="destination.path"
+              routerLinkActive="is-active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              >{{ destination.label }}</a
+            >
+          }
+        } @else {
+          @for (destination of operationDestinations(); track destination.path) {
+            <a
+              [routerLink]="destination.path"
+              routerLinkActive="is-active"
+              [routerLinkActiveOptions]="{ exact: destination.path === '/operacao/esportes' }"
+              >{{ destination.label }}</a
+            >
+          }
+        }
+        <a routerLink="/" (click)="closeMenu()">Arena</a>
+        <button
+          type="button"
+          class="console-nav__account"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="menuOpen()">
+          {{ sessionStore.displayName() || 'Conta' }}
+        </button>
+      </nav>
+
+      @if (menuOpen()) {
+        <div class="console-menu">
+          <a routerLink="/conta/perfil" (click)="closeMenu()">Meu perfil</a>
+          <a routerLink="/conta/matricula" (click)="closeMenu()">Matrícula UFU</a>
+          <button type="button" (click)="logout()">Sair</button>
+        </div>
+      }
+    </div>
+  </header>
+
+  <main #consoleMain id="console-main" class="console-main" tabindex="-1">
+    <router-outlet />
+  </main>
+}
+
+@if (sessionStore.isExpired()) {
+  <section class="session-state" role="alert" aria-live="assertive">
+    <div class="session-state__card">
+      <h1>Sessão encerrada</h1>
+      <p>Sua sessão foi encerrada. Entre novamente para continuar.</p>
+      <a class="session-state__action" href="/oauth2/authorization/keycloak">Entrar novamente</a>
+    </div>
+  </section>
+}
+
+@if (sessionStore.isLoggedOut()) {
+  <section class="session-state" role="status" aria-live="polite">
+    <div class="session-state__card">
+      <h1>Sessão encerrada</h1>
+      <p>Você saiu com sucesso da plataforma BETUFU neste dispositivo.</p>
+      <a class="session-state__action" href="/oauth2/authorization/keycloak">Entrar novamente</a>
+    </div>
+  </section>
+}

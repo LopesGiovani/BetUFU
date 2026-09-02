@@ -10,7 +10,14 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { filter, firstValueFrom } from 'rxjs';
 import { SessionStore } from '../core/session/session.store';
 import { OperationsApiAdapter } from '../features/operations/operations-api.adapter';
@@ -62,6 +69,13 @@ const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Obje
   }),
 ]);
 
+const PERSONAL_DESTINATIONS = Object.freeze([
+  Object.freeze({ label: 'Meu perfil', path: '/conta/perfil' }),
+  Object.freeze({ label: 'Matrícula UFU', path: '/conta/matricula' }),
+]);
+
+export type ConsoleShellVariant = 'operational' | 'personal';
+
 @Component({
   selector: 'app-console-shell',
   standalone: true,
@@ -74,16 +88,23 @@ export class ConsoleShellComponent implements OnInit {
   @ViewChild('consoleMain') private consoleMain?: ElementRef<HTMLElement>;
 
   readonly sessionStore = inject(SessionStore);
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly operationsApiAdapter = inject(OperationsApiAdapter);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   readonly capabilities = signal<readonly OperationalCapabilityName[]>([]);
   readonly menuOpen = signal(false);
+  readonly variant: ConsoleShellVariant =
+    this.activatedRoute.snapshot.data['consoleVariant'] === 'personal' ? 'personal' : 'operational';
+  readonly isPersonal = this.variant === 'personal';
   readonly operationDestinations = computed(() =>
-    SPORTS_OPERATION_DESTINATIONS.filter((destination) =>
-      this.capabilities().includes(destination.capability),
-    ),
+    this.isPersonal
+      ? []
+      : SPORTS_OPERATION_DESTINATIONS.filter((destination) =>
+          this.capabilities().includes(destination.capability),
+        ),
   );
+  readonly personalDestinations = PERSONAL_DESTINATIONS;
 
   ngOnInit(): void {
     this.router.events
@@ -96,7 +117,9 @@ export class ConsoleShellComponent implements OnInit {
         setTimeout(() => this.consoleMain?.nativeElement.focus());
       });
     void this.sessionStore.loadSession();
-    void this.loadCapabilities();
+    if (!this.isPersonal) {
+      void this.loadCapabilities();
+    }
   }
 
   toggleMenu(): void {

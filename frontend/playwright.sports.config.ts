@@ -1,6 +1,9 @@
 import { defineConfig } from '@playwright/test';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
-const outputDir = process.env['BETUFU_PLAYWRIGHT_OUTPUT_DIR'];
+const outputDir = process.env['BETUFU_PLAYWRIGHT_OUTPUT_DIR']
+  ?? join(tmpdir(), 'betufu-playwright-sports');
 if (typeof outputDir !== 'string' || outputDir.length === 0) {
   throw new Error('O diretório efêmero do Playwright não foi fornecido.');
 }
@@ -15,6 +18,12 @@ export default defineConfig({
   reporter: [['line']],
   outputDir,
   preserveOutput: 'never',
+  projects: [
+    {
+      name: 'phase3-chromium',
+      use: { browserName: 'chromium' },
+    },
+  ],
   use: {
     baseURL: 'http://localhost:4200',
     browserName: 'chromium',
@@ -30,7 +39,7 @@ export default defineConfig({
     video: 'off',
   },
   webServer: {
-    command: 'npm run start -- --host 127.0.0.1 --port 4200',
+    command: 'npm exec -- ng serve --configuration production --host 127.0.0.1 --port 4200',
     url: 'http://localhost:4200',
     reuseExistingServer: false,
     timeout: 120_000,

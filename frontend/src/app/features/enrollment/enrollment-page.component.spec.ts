@@ -416,17 +416,19 @@ describe('EnrollmentPageComponent (Superfície S3)', () => {
   });
 
   it('Garantia de rotas: prova que PROD_ROUTES e DEV_ROUTES definem conta/matricula por carregamento sob demanda', () => {
-    const prodRoot = PROD_ROUTES.find((r) => r.path === '');
+    const prodRoot = PROD_ROUTES.find((r) => r.path === 'conta');
     expect(prodRoot).toBeDefined();
+    expect(prodRoot?.data?.['consoleVariant']).toBe('personal');
 
-    const prodEnrollmentRoute = prodRoot?.children?.find((r) => r.path === 'conta/matricula');
+    const prodEnrollmentRoute = prodRoot?.children?.find((r) => r.path === 'matricula');
     expect(prodEnrollmentRoute).toBeDefined();
     expect(prodEnrollmentRoute?.loadComponent).toBeTypeOf('function');
 
-    const devRoot = DEV_ROUTES.find((r) => r.path === 'children' || r.path === '');
+    const devRoot = DEV_ROUTES.find((r) => r.path === 'conta');
     expect(devRoot).toBeDefined();
+    expect(devRoot?.data?.['consoleVariant']).toBe('personal');
 
-    const devEnrollmentRoute = devRoot?.children?.find((r) => r.path === 'conta/matricula');
+    const devEnrollmentRoute = devRoot?.children?.find((r) => r.path === 'matricula');
     expect(devEnrollmentRoute).toBeDefined();
     expect(devEnrollmentRoute?.loadComponent).toBeTypeOf('function');
   });

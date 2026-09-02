@@ -5,7 +5,7 @@
   width: 100%;
   justify-content: center;
   align-items: flex-start;
-  padding: tokens.$space-8 0;
+  padding: clamp(tokens.$space-4, 5vw, tokens.$space-12) 0;
   color: tokens.$color-text;
 }
 .visually-hidden {
@@ -21,10 +21,19 @@
 .profile-container {
   box-sizing: border-box;
   width: 100%;
-  max-width: tokens.$form-max-width;
+  max-width: 760px;
   display: flex;
   flex-direction: column;
   gap: tokens.$space-6;
+}
+
+.page-kicker {
+  margin: 0;
+  color: tokens.$color-accent-soft;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .profile-title {
@@ -37,9 +46,10 @@
 }
 
 .status-feedback {
-  background: tokens.$color-surface;
+  background:
+    linear-gradient(145deg, rgba(255, 98, 107, 0.08), transparent 38%), tokens.$color-surface;
   border: 1px solid tokens.$color-border;
-  border-radius: tokens.$radius-md;
+  border-radius: tokens.$radius-card;
   padding: tokens.$space-8 tokens.$space-4;
   text-align: center;
   display: flex;
@@ -106,10 +116,11 @@
 .profile-card {
   box-sizing: border-box;
   width: 100%;
-  background: tokens.$color-surface;
+  background:
+    linear-gradient(145deg, rgba(255, 98, 107, 0.06), transparent 34%), tokens.$color-surface;
   border: 1px solid tokens.$color-border;
-  border-radius: tokens.$radius-md;
-  padding: tokens.$space-6;
+  border-radius: tokens.$radius-card;
+  padding: clamp(tokens.$space-4, 4vw, tokens.$space-6);
   box-shadow: tokens.$shadow-raised;
 }
 
@@ -123,9 +134,9 @@
 }
 
 .alert-box {
-  background: rgba(255, 107, 107, 0.12);
+  background: rgba(255, 122, 130, 0.12);
   border: 1px solid tokens.$color-unavailable;
-  border-radius: tokens.$radius-md;
+  border-radius: tokens.$radius-card;
   padding: tokens.$space-4;
 }
 
@@ -225,10 +236,10 @@
   font: inherit;
   min-height: tokens.$min-touch-target;
   padding: tokens.$space-2 tokens.$space-4;
-  background: tokens.$color-canvas;
+  background: rgba(18, 11, 18, 0.72);
   color: tokens.$color-text;
   border: 1px solid tokens.$color-border;
-  border-radius: tokens.$radius-md;
+  border-radius: tokens.$radius-field;
 }
 
 .form-field-group {
@@ -260,10 +271,10 @@
   font-size: 1rem;
   min-height: tokens.$min-touch-target;
   padding: tokens.$space-2 tokens.$space-4;
-  background: tokens.$color-canvas;
+  background: rgba(18, 11, 18, 0.72);
   color: tokens.$color-text;
   border: 1px solid tokens.$color-border;
-  border-radius: tokens.$radius-md;
+  border-radius: tokens.$radius-field;
   transition: border-color 160ms ease-in-out;
 
   &:focus {
@@ -307,7 +318,7 @@
   background: tokens.$color-accent;
   color: tokens.$color-on-accent;
   border: none;
-  border-radius: tokens.$radius-md;
+  border-radius: tokens.$radius-full;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -338,7 +349,7 @@
   background: tokens.$color-surface;
   color: tokens.$color-text;
   border: 1px solid tokens.$color-border;
-  border-radius: tokens.$radius-md;
+  border-radius: tokens.$radius-full;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -386,9 +397,9 @@
   overflow-wrap: anywhere;
   word-break: break-all;
   user-select: all;
-  background: tokens.$color-canvas;
+  background: rgba(18, 11, 18, 0.72);
   padding: tokens.$space-2 tokens.$space-4;
-  border-radius: tokens.$radius-md;
+  border-radius: tokens.$radius-field;
   border: 1px solid tokens.$color-border;
   box-sizing: border-box;
   width: 100%;
@@ -475,6 +486,10 @@
 
   .profile-card {
     padding: tokens.$space-4;
+  }
+
+  .profile-container {
+    padding-inline: tokens.$space-2;
   }
 
   .btn-primary,

@@ -61,6 +61,41 @@ const APPROVED_PUBLIC_ROUTES = Object.freeze([
     'PublicAgendaPageComponent',
     'full',
   ),
+  approvedRoute(
+    'competicoes/:competitionId',
+    './features/sports/public-competition/public-competition-page.component',
+    'PublicCompetitionPageComponent',
+  ),
+  approvedRoute(
+    'eventos/:eventId',
+    './features/sports/public-event/public-event-page.component',
+    'PublicEventPageComponent',
+  ),
+  approvedRoute(
+    'organizacoes/:organizationId',
+    './features/sports/public-organization/public-organization-page.component',
+    'PublicOrganizationPageComponent',
+  ),
+  approvedRoute(
+    'equipes/:teamId',
+    './features/sports/public-team/public-team-page.component',
+    'PublicTeamPageComponent',
+  ),
+  approvedRoute(
+    'atletas/:athleteId',
+    './features/sports/public-athlete/public-athlete-page.component',
+    'PublicAthletePageComponent',
+  ),
+  approvedRoute(
+    'chaveamentos/:bracketId',
+    './features/sports/public-bracket/public-bracket-page.component',
+    'PublicBracketPageComponent',
+  ),
+  approvedRoute(
+    'classificacoes/:standingsId',
+    './features/sports/public-standings/public-standings-page.component',
+    'PublicStandingsPageComponent',
+  ),
 ]);
 
 const APPROVED_CONSOLE_ROUTES = Object.freeze([
@@ -125,6 +160,45 @@ const APPROVED_PRODUCT_ROUTES = Object.freeze([
   ),
 ]);
 
+const APPROVED_SPORTS_OPERATION_IMPORTS = Object.freeze([
+  './catalog/sports-catalog-page.component',
+  './catalog/sports-catalog-page.component',
+  './organizations/sports-organizations-page.component',
+  './athletes/sports-athletes-page.component',
+  './rosters/sports-rosters-page.component',
+  './tabular-import/sports-tabular-import-page.component',
+  './events-results/sports-event-result-page.component',
+  './bracket/sports-bracket-page.component',
+  './bracket/sports-bracket-page.component',
+  './standings/sports-standings-page.component',
+  './standings/sports-standings-page.component',
+  './link-review/athlete-link-review-page.component',
+].map((modulePath) => approvedRoute(modulePath, modulePath, 'LazyComponent')));
+
+const APPROVED_PERSONAL_ROUTES = Object.freeze([
+  approvedRoute(
+    'perfil/completar',
+    './features/profile/profile-gate-page.component',
+    'ProfileGatePageComponent',
+  ),
+  approvedRoute(
+    'perfil',
+    './features/profile/profile-page.component',
+    'ProfilePageComponent',
+  ),
+  approvedRoute(
+    'matricula',
+    './features/enrollment/enrollment-page.component',
+    'EnrollmentPageComponent',
+  ),
+]);
+
+const APPROVED_LEGACY_AUTHENTICATED_ROUTES = Object.freeze(
+  APPROVED_PRODUCT_ROUTES.filter(
+    (route) => !new Set(['conta/perfil/completar', 'conta/perfil', 'conta/matricula']).has(route.path),
+  ),
+);
+
 const APPROVED_TECHNICAL_ROUTES = Object.freeze([
   approvedRoute(
     'tracer',
@@ -139,13 +213,16 @@ const APPROVED_TECHNICAL_ROUTES = Object.freeze([
 ]);
 
 const APP_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*import\s*\{\s*ArenaShellComponent\s*\}\s*from\s*'\.\/layout\/arena-shell\.component'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*ArenaShellComponent\s*,\s*children\s*:\s*\[(?<publicChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*BUILD_SPECIFIC_ROUTES\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
+const APP_ROUTES_HYBRID_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*import\s*\{\s*ArenaShellComponent\s*\}\s*from\s*'\.\/layout\/arena-shell\.component'\s*;\s*import\s*\{\s*sportsOperationsRoutes\s*\}\s*from\s*'\.\/features\/sports\/operations\/sports-operations\.routes'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*ArenaShellComponent\s*,\s*children\s*:\s*\[(?<publicChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*\[\.\.\.sportsOperationsRoutes\s*,\s*\.\.\.BUILD_SPECIFIC_ROUTES\s*\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
 const BUILD_SPECIFIC_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\.\/layout\/authenticated-layout\.component'\s*;\s*import\s*\{\s*ConsoleShellComponent\s*\}\s*from\s*'\.\/layout\/console-shell\.component'\s*;\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*'operacao\/esportes'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*children\s*:\s*\[(?<consoleChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*AuthenticatedLayoutComponent\s*,\s*children\s*:\s*\[(?<authenticatedChildren>[\s\S]*?)\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
+const BUILD_SPECIFIC_ROUTES_HYBRID_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\.\/layout\/authenticated-layout\.component'\s*;\s*import\s*\{\s*ConsoleShellComponent\s*\}\s*from\s*'\.\/layout\/console-shell\.component'\s*;\s*export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*'operacao\/esportes'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'operational'\s*\}\s*,\s*children\s*:\s*\[(?<consoleChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*'conta'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'personal'\s*\}\s*,\s*children\s*:\s*\[(?<personalChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*AuthenticatedLayoutComponent\s*,\s*children\s*:\s*\[(?<authenticatedChildren>[\s\S]*?)\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
 const LAZY_CHILD_ROUTE_PATTERN = /\{\s*path\s*:\s*'(?<path>[^']*)'\s*,\s*(?:pathMatch\s*:\s*'(?<pathMatch>full)'\s*,\s*)?loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'(?<modulePath>[^']+)'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*(?<component>[A-Za-z_$][\w$]*)\s*\}\s*\)\s*=>\s*\k<component>\s*,?\s*\)\s*,?\s*\}\s*,?/gu;
 
 const ROUTE_SOURCE_PATHS = new Set([
   PATHS.seam,
   PATHS.development,
   PATHS.production,
+  'frontend/src/app/features/sports/operations/sports-operations.routes.ts',
 ]);
 
 const HOST_SOURCE_PATHS = Object.freeze([
@@ -602,12 +679,17 @@ function approvedDynamicImportsFor(relativePath) {
   if (relativePath === PATHS.production) {
     return [...APPROVED_CONSOLE_ROUTES, ...APPROVED_PRODUCT_ROUTES];
   }
+  if (relativePath === 'frontend/src/app/features/sports/operations/sports-operations.routes.ts') {
+    return APPROVED_SPORTS_OPERATION_IMPORTS;
+  }
   return null;
 }
 
 function validateApprovedDynamicImports(relativePath, code, executableCode) {
   const approvedRoutes = approvedDynamicImportsFor(relativePath);
-  const dynamicImportCount = countMatches(executableCode, /\bimport\s*\(/u);
+  // TypeScript's `import()` type references are not runtime lazy imports.
+  const dynamicImportCount = countMatches(executableCode, /\bimport\s*\(/u)
+    - countMatches(code, /:\s*import\s*\([^)]*\)/u);
 
   if (approvedRoutes === null) {
     expect(
@@ -1530,6 +1612,28 @@ function parseLazyRoutes(children, rule, environmentLabel) {
 }
 
 function parseBuildSpecificRoutes(source, rule, environmentLabel) {
+  const hybridMatch = BUILD_SPECIFIC_ROUTES_HYBRID_PATTERN.exec(source);
+  if (hybridMatch !== null) {
+    return Object.freeze({
+      hybrid: true,
+      consoleRoutes: parseLazyRoutes(
+        hybridMatch.groups.consoleChildren,
+        rule,
+        `${environmentLabel}/Console operacional`,
+      ),
+      personalRoutes: parseLazyRoutes(
+        hybridMatch.groups.personalChildren,
+        rule,
+        `${environmentLabel}/Console pessoal`,
+      ),
+      authenticatedRoutes: parseLazyRoutes(
+        hybridMatch.groups.authenticatedChildren,
+        rule,
+        `${environmentLabel}/conta legada`,
+      ),
+    });
+  }
+
   const match = BUILD_SPECIFIC_ROUTES_PATTERN.exec(source);
   expect(
     match !== null,
@@ -1538,11 +1642,13 @@ function parseBuildSpecificRoutes(source, rule, environmentLabel) {
   );
 
   return Object.freeze({
+    hybrid: false,
     consoleRoutes: parseLazyRoutes(
       match.groups.consoleChildren,
       rule,
       `${environmentLabel}/Console`,
     ),
+    personalRoutes: [],
     authenticatedRoutes: parseLazyRoutes(
       match.groups.authenticatedChildren,
       rule,
@@ -1629,7 +1735,8 @@ function validateRouteSources(sources) {
     'ARENA_SHELL_IMPORT',
     'import do shell publico da Arena',
   );
-  const appRoutesMatch = APP_ROUTES_PATTERN.exec(seam);
+  const hybridAppRoutesMatch = APP_ROUTES_HYBRID_PATTERN.exec(seam);
+  const appRoutesMatch = hybridAppRoutesMatch ?? APP_ROUTES_PATTERN.exec(seam);
   expect(
     appRoutesMatch !== null,
     'PROFILE_GUARD_COMPOSITION',
@@ -1642,7 +1749,7 @@ function validateRouteSources(sources) {
   );
   expectExactApprovedRoutes(
     publicRoutes,
-    APPROVED_PUBLIC_ROUTES,
+    hybridAppRoutesMatch === null ? [APPROVED_PUBLIC_ROUTES[0]] : APPROVED_PUBLIC_ROUTES,
     'PUBLIC_ARENA_ROUTES',
     'Arena publica',
   );
@@ -1654,7 +1761,7 @@ function validateRouteSources(sources) {
     'a guarda deve declarar somente S1 e as rotas tecnicas de autenticacao e erro como excecoes.',
   );
   expect(
-    /return\s+path\s*===\s*PROFILE_COMPLETION_URL\s*\|\|\s*path\s*===\s*ERROR_URL\s*\|\|\s*AUTH_TECHNICAL_ROUTE_PREFIXES\.some\s*\(\s*\(\s*prefix\s*\)\s*=>\s*path\.startsWith\s*\(\s*prefix\s*\)\s*\)\s*;/u.test(profileGuard)
+    /return\s+\(?\s*path\s*===\s*PROFILE_COMPLETION_URL\s*\|\|\s*path\s*===\s*ERROR_URL\s*\|\|\s*AUTH_TECHNICAL_ROUTE_PREFIXES\.some\s*\(\s*\(\s*prefix\s*\)\s*=>\s*path\.startsWith\s*\(\s*prefix\s*\)\s*\)\s*\)?\s*;/u.test(profileGuard)
       && /if\s*\(\s*isExemptRoute\s*\(\s*state\.url\s*\)\s*\)\s*\{\s*return\s+true\s*;\s*\}/u.test(profileGuard),
     'PROFILE_GUARD_EXEMPTION',
     'a guarda deve liberar S1 e rotas tecnicas antes de consultar o perfil, evitando loop.',
@@ -1687,18 +1794,37 @@ function validateRouteSources(sources) {
     'PRODUCTION_AUTHENTICATED_LAYOUT',
     'production',
   );
-  const productionRoutes = productionRouteGroups.authenticatedRoutes;
-  expect(
-    productionRoutes.length > 0,
-    'PRODUCTION_ROUTES_ALLOWLIST',
-    'production deve publicar ao menos uma rota de produto aprovada.',
-  );
-  expectApprovedRoutes(
-    productionRoutes,
-    APPROVED_PRODUCT_ROUTES,
-    'PRODUCTION_ROUTES_ALLOWLIST',
-    'production',
-  );
+  const productionRoutes = productionRouteGroups.hybrid
+    ? [
+      ...productionRouteGroups.personalRoutes.map((route) => ({
+        ...route,
+        path: `conta/${route.path}`,
+      })),
+      ...productionRouteGroups.authenticatedRoutes,
+    ]
+    : productionRouteGroups.authenticatedRoutes;
+  expect(productionRoutes.length > 0, 'PRODUCTION_ROUTES_ALLOWLIST', 'production deve publicar ao menos uma rota de produto aprovada.');
+  if (productionRouteGroups.hybrid) {
+    expectExactApprovedRoutes(
+      productionRouteGroups.personalRoutes,
+      APPROVED_PERSONAL_ROUTES,
+      'PRODUCTION_PERSONAL_ROUTES',
+      'Console pessoal production',
+    );
+    expectApprovedRoutes(
+      productionRouteGroups.authenticatedRoutes,
+      APPROVED_LEGACY_AUTHENTICATED_ROUTES,
+      'PRODUCTION_ROUTES_ALLOWLIST',
+      'production/conta legada',
+    );
+  } else {
+    expectApprovedRoutes(
+      productionRoutes,
+      APPROVED_PRODUCT_ROUTES,
+      'PRODUCTION_ROUTES_ALLOWLIST',
+      'production',
+    );
+  }
   expectExactApprovedRoutes(
     productionRouteGroups.consoleRoutes,
     APPROVED_CONSOLE_ROUTES,
@@ -1711,13 +1837,36 @@ function validateRouteSources(sources) {
     'DEVELOPMENT_ROUTES_SHAPE',
     'development',
   );
-  const developmentRoutes = developmentRouteGroups.authenticatedRoutes;
-  expectApprovedRoutes(
-    developmentRoutes,
-    [...APPROVED_PRODUCT_ROUTES, ...APPROVED_TECHNICAL_ROUTES],
-    'DEVELOPMENT_ROUTES_ALLOWLIST',
-    'development',
-  );
+  const developmentRoutes = developmentRouteGroups.hybrid
+    ? [
+      ...developmentRouteGroups.personalRoutes.map((route) => ({
+        ...route,
+        path: `conta/${route.path}`,
+      })),
+      ...developmentRouteGroups.authenticatedRoutes,
+    ]
+    : developmentRouteGroups.authenticatedRoutes;
+  if (developmentRouteGroups.hybrid) {
+    expectExactApprovedRoutes(
+      developmentRouteGroups.personalRoutes,
+      APPROVED_PERSONAL_ROUTES,
+      'DEVELOPMENT_PERSONAL_ROUTES',
+      'Console pessoal development',
+    );
+    expectApprovedRoutes(
+      developmentRouteGroups.authenticatedRoutes,
+      [...APPROVED_LEGACY_AUTHENTICATED_ROUTES, ...APPROVED_TECHNICAL_ROUTES],
+      'DEVELOPMENT_ROUTES_ALLOWLIST',
+      'development/conta legada',
+    );
+  } else {
+    expectApprovedRoutes(
+      developmentRoutes,
+      [...APPROVED_PRODUCT_ROUTES, ...APPROVED_TECHNICAL_ROUTES],
+      'DEVELOPMENT_ROUTES_ALLOWLIST',
+      'development',
+    );
+  }
   expectExactApprovedRoutes(
     developmentRouteGroups.consoleRoutes,
     APPROVED_CONSOLE_ROUTES,
@@ -1818,8 +1967,9 @@ function validateTracerRuntimeBoundary(runtimeSources) {
     const decodedSource = decodeUrlEscapes(activeSource);
 
     if (relativePath.endsWith('.ts') && !ROUTE_SOURCE_PATHS.has(relativePath)) {
+      const typeOnlyImportsRemoved = activeSource.replace(/:\s*import\s*\([^)]*\)/gu, '');
       expect(
-        countMatches(maskScriptStrings(activeSource), /\bimport\s*\(/u) === 0,
+        countMatches(maskScriptStrings(typeOnlyImportsRemoved), /\bimport\s*\(/u) === 0,
         'DYNAMIC_IMPORT_FORBIDDEN',
         `${relativePath} nao pode usar import dinamico fora das rotas lazy canonicas.`,
       );

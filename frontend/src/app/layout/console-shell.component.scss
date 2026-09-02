@@ -2,7 +2,7 @@
 
 :host {
   display: block;
-  min-height: 100%;
+  min-height: 100vh;
   background: tokens.$color-canvas;
 }
 
@@ -26,6 +26,10 @@
   z-index: 20;
   border-bottom: 1px solid tokens.$color-border;
   background: tokens.$color-ink;
+}
+
+.console-header--personal {
+  background: linear-gradient(115deg, tokens.$color-ink 0%, tokens.$color-wine 100%);
 }
 
 .console-header__inner {
@@ -151,6 +155,67 @@
   padding-block: tokens.$space-8;
 }
 
+.session-state {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: tokens.$space-8 tokens.$space-4;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(tokens.$color-accent, 0.12), transparent 35%),
+    tokens.$color-canvas;
+}
+
+.session-state__card {
+  width: min(100%, 32rem);
+  padding: tokens.$space-8;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-card;
+  background: tokens.$color-surface;
+  box-shadow: tokens.$shadow-raised;
+  text-align: center;
+}
+
+.session-state__card h1 {
+  margin: 0 0 tokens.$space-2;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+
+.session-state__card p {
+  margin: 0 0 tokens.$space-6;
+  color: tokens.$color-text-muted;
+}
+
+.session-state__spinner {
+  display: block;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  margin: 0 auto tokens.$space-4;
+  border: 3px solid tokens.$color-surface-raised;
+  border-top-color: tokens.$color-accent;
+  border-radius: 50%;
+  animation: console-spin 1s linear infinite;
+}
+
+.session-state__action {
+  display: inline-flex;
+  min-block-size: tokens.$min-touch-target;
+  align-items: center;
+  justify-content: center;
+  padding-inline: tokens.$space-6;
+  border-radius: tokens.$radius-full;
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@keyframes console-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 760px) {
   .console-header__inner {
     flex-wrap: wrap;
@@ -173,5 +238,9 @@
   }
   .console-main {
     padding-block: tokens.$space-6;
+  }
+
+  .session-state__card {
+    padding: tokens.$space-6 tokens.$space-4;
   }
 }

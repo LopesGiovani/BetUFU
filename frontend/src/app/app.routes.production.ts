@@ -6,6 +6,7 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
   {
     path: 'operacao/esportes',
     component: ConsoleShellComponent,
+    data: { consoleVariant: 'operational' },
     children: [
       {
         path: '',
@@ -39,35 +40,42 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
     ],
   },
   {
-    path: '',
-    component: AuthenticatedLayoutComponent,
+    path: 'conta',
+    component: ConsoleShellComponent,
+    data: { consoleVariant: 'personal' },
     children: [
       {
-        path: 'conta/perfil/completar',
+        path: 'perfil/completar',
         loadComponent: () =>
           import('./features/profile/profile-gate-page.component').then(
             ({ ProfileGatePageComponent }) => ProfileGatePageComponent,
           ),
       },
       {
-        path: 'conta/perfil/esportivo',
-        loadComponent: () =>
-          import('./features/sports/athlete-profile/athlete-profile-page.component').then(
-            ({ AthleteProfilePageComponent }) => AthleteProfilePageComponent,
-          ),
-      },
-      {
-        path: 'conta/perfil',
+        path: 'perfil',
         loadComponent: () =>
           import('./features/profile/profile-page.component').then(
             ({ ProfilePageComponent }) => ProfilePageComponent,
           ),
       },
       {
-        path: 'conta/matricula',
+        path: 'matricula',
         loadComponent: () =>
           import('./features/enrollment/enrollment-page.component').then(
             ({ EnrollmentPageComponent }) => EnrollmentPageComponent,
+          ),
+      },
+    ],
+  },
+  {
+    path: '',
+    component: AuthenticatedLayoutComponent,
+    children: [
+      {
+        path: 'conta/perfil/esportivo',
+        loadComponent: () =>
+          import('./features/sports/athlete-profile/athlete-profile-page.component').then(
+            ({ AthleteProfilePageComponent }) => AthleteProfilePageComponent,
           ),
       },
       {

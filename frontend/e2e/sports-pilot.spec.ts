@@ -173,3 +173,194 @@ test('@03-11-public-p1-p6 abre os detalhes públicos por URL direta e navega ent
   await expect(page.getByRole('heading', { level: 1, name: 'Engenharia × Direito' })).toBeVisible();
   await expect(page.getByText('sumula-publica').first()).toBeVisible();
 });
+
+type PersonalConsoleProbe = {
+  readonly sensitiveMatricula: string;
+  readonly putRequests: Array<{ url: string; body: string | null }>;
+  readonly consoleMessages: string[];
+};
+
+async function mockPersonalConsole(page: Page): Promise<PersonalConsoleProbe> {
+  const sensitiveMatricula = '2026123456';
+  const putRequests: Array<{ url: string; body: string | null }> = [];
+  const consoleMessages: string[] = [];
+  let enrollmentRegistered = false;
+
+  page.on('request', (request) => {
+    if (request.method() === 'PUT') {
+      putRequests.push({ url: request.url(), body: request.postData() });
+    }
+  });
+  page.on('console', (message) => consoleMessages.push(message.text()));
+
+  await page.route('**/api/v1/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        displayName: 'Jogador UFU',
+        idleTimeout: 'PT15M',
+        absoluteTimeout: null,
+        lastValidActivityAt: new Date().toISOString(),
+      }),
+    });
+  });
+  await page.route('**/api/v1/profile/me', async (route) => {
+    if (route.request().method() === 'PUT') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          identityId: 'identity-personal-console',
+          nickname: 'jogador_ufu',
+          nicknameUpdatedAt: new Date().toISOString(),
+          matriculaStatus: enrollmentRegistered ? 'REGISTRADA' : 'NAO_REGISTRADA',
+          favoriteOrganizationId: null,
+        }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        identityId: 'identity-personal-console',
+        nickname: 'jogador_ufu',
+        nicknameUpdatedAt: '2026-08-21T10:00:00.000Z',
+        matriculaStatus: enrollmentRegistered ? 'REGISTRADA' : 'NAO_REGISTRADA',
+        favoriteOrganizationId: null,
+      }),
+    });
+  });
+  await page.route('**/api/v1/profile/me/favorite-organization', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        identityId: 'identity-personal-console',
+        nickname: 'jogador_ufu',
+        nicknameUpdatedAt: '2026-08-21T10:00:00.000Z',
+        matriculaStatus: enrollmentRegistered ? 'REGISTRADA' : 'NAO_REGISTRADA',
+        favoriteOrganizationId: null,
+      }),
+    });
+  });
+  await page.route('**/api/v1/operations/sports/organizations', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
+  });
+  await page.route('**/api/v1/enrollment/me', async (route) => {
+    if (route.request().method() === 'PUT') {
+      enrollmentRegistered = true;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ status: 'REGISTRADA', createdAt: '2026-08-21T12:00:00.000Z' }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: enrollmentRegistered ? 'REGISTRADA' : 'NAO_REGISTRADA',
+        createdAt: enrollmentRegistered ? '2026-08-21T12:00:00.000Z' : null,
+      }),
+    });
+  });
+
+  return { sensitiveMatricula, putRequests, consoleMessages };
+}
+
+async function tabUntil(page: Page, selector: string, attempts = 32): Promise<void> {
+  for (let index = 0; index < attempts; index += 1) {
+    if (await page.locator(selector).evaluate((element) => element === document.activeElement)) {
+      return;
+    }
+    await page.keyboard.press('Tab');
+  }
+  throw new Error(`Elemento ${selector} não foi alcançado pelo teclado.`);
+}
+
+async function expectPersonalLayout(page: Page): Promise<void> {
+  const dimensions = await page.evaluate(() => ({
+    innerWidth: window.innerWidth,
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+    canvases: document.querySelectorAll('canvas').length,
+  }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.innerWidth);
+  expect(dimensions.clientWidth).toBeLessThanOrEqual(dimensions.innerWidth);
+  expect(dimensions.canvases).toBe(0);
+
+  const undersizedControls = await page.locator('a, button, input, select').evaluateAll((elements) =>
+    elements
+      .filter((element) => {
+        const style = window.getComputedStyle(element);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      })
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.width < 44 || rect.height < 44;
+      })
+      .map((element) => element.outerHTML.slice(0, 120)),
+  );
+  expect(undersizedControls).toEqual([]);
+  expect(await page.locator('body').innerText()).not.toMatch(/tracer|diagnostic|webgl/iu);
+}
+
+test.describe('@03-19-personal-console Console pessoal', () => {
+  test('desktop percorre perfil e matrícula, preserva teclado e não vaza o valor bruto', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const probe = await mockPersonalConsole(page);
+
+    await page.goto('/conta/perfil');
+    await expect(page.locator('.console-header--personal')).toBeVisible();
+    await expect(page.locator('.profile-title')).toHaveText('Seu perfil');
+    await expectPersonalLayout(page);
+    await tabUntil(page, 'a.skip-link');
+    await expect(page.locator('a.skip-link')).toBeFocused();
+
+    await page.locator('.console-nav a[href="/conta/matricula"]').click();
+    await expect(page).toHaveURL(/\/conta\/matricula$/u);
+    await expect(page.locator('.enrollment-title')).toBeVisible();
+    await expectPersonalLayout(page);
+    await tabUntil(page, '#matricula-input');
+    await expect(page.locator('#matricula-input')).toBeFocused();
+
+    await page.locator('#matricula-input').fill(probe.sensitiveMatricula);
+    await page.getByRole('button', { name: /Registrar matr/ }).click();
+    await expect(page.locator('.success-feedback')).toBeVisible();
+    await expect(page.locator('body')).not.toContainText(probe.sensitiveMatricula);
+    await expect(page).not.toHaveURL(new RegExp(probe.sensitiveMatricula, 'u'));
+
+    const storage = await page.evaluate(() =>
+      JSON.stringify({
+        local: Object.entries(localStorage),
+        session: Object.entries(sessionStorage),
+      }),
+    );
+    expect(storage).not.toContain(probe.sensitiveMatricula);
+    expect(probe.putRequests).toHaveLength(1);
+    expect(probe.putRequests[0]?.url).toMatch(/\/api\/v1\/enrollment\/me$/u);
+    expect(probe.putRequests[0]?.body).toContain(probe.sensitiveMatricula);
+    expect(probe.consoleMessages.join('\n')).not.toContain(probe.sensitiveMatricula);
+  });
+
+  test('320px mantém reflow, foco e alvos sem overflow nas três rotas pessoais', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 320, height: 800 });
+    const probe = await mockPersonalConsole(page);
+
+    for (const path of ['/conta/perfil/completar', '/conta/perfil', '/conta/matricula']) {
+      await page.goto(path);
+      await expect(page.locator('.console-header--personal')).toBeVisible();
+      await expectPersonalLayout(page);
+    }
+
+    await page.goto('/conta/perfil/completar');
+    await tabUntil(page, '#nickname-input');
+    await expect(page.locator('#nickname-input')).toBeFocused();
+    expect(probe.putRequests).toHaveLength(0);
+  });
+});
