@@ -2,7 +2,7 @@
 phase: 03-experi-ncia-esportiva-do-piloto
 plan: 20
 wave: 19
-status: complete-pending-git
+status: complete
 completed: 2026-09-02
 subsystem: legacy-operational-console
 tags: [angular, routing, accessibility, capabilities, playwright]
@@ -86,24 +86,24 @@ key-files:
 ## Issues
 
 - No known product, authorization, privacy, route-isolation, or business-rule regression remains in the verified implementation snapshot.
-- The 03-17/W20 certification remains blocked until this wave completes its separately authorized Git integration, cleanup, and push sequence.
+- The 03-17/W20 certification is the next technical front now that this wave is integrated, cleaned, and pushed.
 
 ## Git
 
 ```yaml
-status: complete-pending-git
+status: complete
 base_sha: 8e1b8937363003f4d007f12d97182838748a7b5a
 branch: worktree-agent-03-20
 worktree: C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-03-20
 implementation_commit: fa2985d1c9b94c5c79491f58212f81c4c36bb45a
-documentation_commit: pending-authorization
-integration: pending-authorization
-cleanup: pending-authorization
-push: pending-authorization
+documentation_commit: 88eb9646af08bf7061a3dd4fcda9e27d1701fe1e
+integration: fast-forward complete
+cleanup: exact worktree and branch removed
+push: Wave 19 published; confirm live refs after the non-self-referential maintenance fold
 ```
 
 ## Next-Phase Readiness
 
 - Task 5 human checkpoint was approved with `aprovar Console convergido 03-20`.
-- The technical snapshot is isolated, verified, and ready for the separately authorized documentation stage/commit.
-- After Wave 19 is integrated, cleaned, and pushed, 03-17/W20 can proceed as the Phase 3 certification front.
+- The technical snapshot was isolated, verified, integrated, cleaned, and pushed.
+- 03-17/W20 can proceed as the Phase 3 certification front; no new visual dependency or fixture is introduced.

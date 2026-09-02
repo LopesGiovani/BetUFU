@@ -326,11 +326,11 @@ Plans:
 
 - [x] 03-19-PLAN.md — convergir perfil incompleto, perfil e matrícula para o Console pessoal sem alterar lógica
 
-**Wave 19** *(concluida tecnicamente na worktree; integracao Git permanece separada)*
+**Wave 19** *(concluida, integrada, enviada e limpa)*
 
 - [x] 03-20-PLAN.md — convergir operacao legada e aposentar o AuthenticatedLayoutComponent com prova equivalente; implementacao, verificacoes e checkpoint humano concluidos
 
-**Wave 20** *(blocked on Wave 19 completion and integration)*
+**Wave 20** *(proxima; Wave 19 integrada, enviada e limpa)*
 
 - [ ] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação
 
