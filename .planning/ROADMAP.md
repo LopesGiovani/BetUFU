@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 13/20 plans executed
+**Plans**: 19/20 plans executed
 
 Plans:
 **Wave 1**
@@ -326,11 +326,11 @@ Plans:
 
 - [x] 03-19-PLAN.md — convergir perfil incompleto, perfil e matrícula para o Console pessoal sem alterar lógica
 
-**Wave 19** *(pronta para preflight; depende apenas da revisão do snapshot anterior)*
+**Wave 19** *(concluida tecnicamente na worktree; integracao Git permanece separada)*
 
-- [ ] 03-20-PLAN.md — convergir operação legada e aposentar o AuthenticatedLayoutComponent com prova equivalente
+- [x] 03-20-PLAN.md — convergir operacao legada e aposentar o AuthenticatedLayoutComponent com prova equivalente; implementacao, verificacoes e checkpoint humano concluidos
 
-**Wave 20** *(blocked on Wave 19 completion)*
+**Wave 20** *(blocked on Wave 19 completion and integration)*
 
 - [ ] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação
 
@@ -416,7 +416,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 15/20 | In Progress |  |
+| 3. Experiência Esportiva do Piloto | 19/20 | In Progress |  |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |

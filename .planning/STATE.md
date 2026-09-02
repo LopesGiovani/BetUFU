@@ -4,20 +4,22 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: "03-19 integrated, pushed and cleaned; 03-20/W19 ready for preflight"
+stopped_at: "03-20/W19 technical implementation and human checkpoint complete; documentation Git block pending"
 last_updated: "2026-09-02T00:20:00-03:00"
 last_activity: 2026-09-02
-last_activity_desc: 03-19/W18 foi normalizado em dois commits, integrado, enviado e limpo; master e origin/master estao sincronizadas.
-state_head: 975f9f62a86106c1763bf0dddd6a00a12c2ee94d
+last_activity_desc: 03-20/W19 convergiu as superficies operacionais, aposentou o shell legado e passou as verificacoes; o commit documental e as operacoes Git permanecem pendentes.
+state_head: fa2985d1c9b94c5c79491f58212f81c4c36bb45a
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 81
+  completed_plans: 82
 milestone_name: milestone
 ---
 
 # Estado do Projeto
+
+Git - Fase 3 / Wave 19 (snapshot tecnico concluido na worktree, 2026-09-02): o 03-20 foi executado na worktree dedicada `worktree-agent-03-20` sobre `8e1b893`; o commit tecnico `fa2985d` converge as seis rotas de produto para o ConsoleShell, remove o AuthenticatedLayoutComponent e consolida a prova operacional. Angular focal `22/22` e `35/35`, Angular completo `342/342`, Node `625/625`, validador de rotas `173/173`, validador vivo `OK`, build production e Playwright legado `4/4` passaram. O checkpoint humano `aprovar Console convergido 03-20` foi recebido. O SUMMARY, ROADMAP e STATE ainda aguardam stage e segundo commit; integracao, cleanup e push continuam separados e nao autorizados.
 
 Git - Fase 3 / Wave 18 (integrada, enviada e limpa, 2026-09-02): o 03-19 foi executado na worktree dedicada sobre `d63d3bd` e normalizado no padrao de dois commits: tecnico `975f9f6` e documental corrente, que nao cita o proprio hash. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `356/356`, build production, lint, validador de rotas e Playwright pessoal `2/2` passaram; a variante pessoal do ConsoleShell e as tres rotas de conta ficaram verdes. A worktree e a branch exatas foram removidas; `master` e `origin/master` estao sincronizadas.
 
@@ -28,14 +30,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-20/W19 pronta para preflight; 03-19/W18 integrado, enviado e limpo; master e origin/master sincronizadas.
+**Current focus:** 03-20/W19 tecnicamente concluida na worktree; stage e commit documental aguardam aprovacao separada; 03-17/W20 permanece bloqueado ate a conclusao Git da wave.
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-19 de 20 concluido, integrado e limpo; a proxima frente tecnica e 03-20/W19.
-Status: In progress - Console pessoal convergido para a variante V com stores, adapters, guards e contratos preservados; `master` e `origin/master` estao sincronizadas.
-Last activity: 2026-09-02 - 03-19/W18 normalizado em dois commits, integrado, enviado e limpo.
+Plan: 03-20 de 20 concluido tecnicamente na worktree; o proximo plano 03-17/W20 depende da integracao e limpeza desta wave.
+Status: In progress - Console pessoal e operacional convergidos para variantes V com stores, adapters, guards, capabilities e contratos preservados; `master` e `origin/master` continuam sincronizadas na base `8e1b893`.
+Last activity: 2026-09-02 - 03-20/W19 passou o checkpoint humano; formalizacao e operacoes Git estao pendentes.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -105,7 +107,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [████████░░] 15/20 planos da Fase 3 (75%)
+Progress: [█████████░] 19/20 planos da Fase 3 (95%)
 
 ## Métricas de desempenho
 
@@ -270,8 +272,8 @@ Progress: [████████░░] 15/20 planos da Fase 3 (75%)
 ## Session Continuity
 
 Last session: 2026-09-02T00:30:00-03:00
-Stopped at: 03-19/W18 integrated, pushed and cleaned; 03-20/W19 ready for preflight
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-20-PLAN.md
+Stopped at: 03-20/W19 technical implementation and human checkpoint complete; documentation Git block pending
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-20-SUMMARY.md
 
 ## Accumulated Context
 
