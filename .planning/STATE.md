@@ -4,36 +4,38 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: "03-16 integrated and cleaned; 03-19/W18 ready for preflight; push pending"
-last_updated: "2026-09-01T20:45:00-03:00"
-last_activity: 2026-09-01
-last_activity_desc: 03-16/W17 foi integrado e limpo em df1a7ca; processo e formatacao seguem sincronizados em 112ca13; origin/master esta atrasada e o push permanece pendente.
-state_head: 3dcf3ba033df642c5d23b92e209592b7144e36a3
+stopped_at: "03-19 integrated, pushed and cleaned; 03-20/W19 ready for preflight"
+last_updated: "2026-09-02T00:20:00-03:00"
+last_activity: 2026-09-02
+last_activity_desc: 03-19/W18 foi normalizado em dois commits, integrado, enviado e limpo; master e origin/master estao sincronizadas.
+state_head: 975f9f62a86106c1763bf0dddd6a00a12c2ee94d
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 83
-  completed_plans: 80
+  completed_plans: 81
 milestone_name: milestone
 ---
 
 # Estado do Projeto
 
-Git - Fase 3 / Wave 17 (integrada e limpa, 2026-09-01): o 03-16 foi executado na worktree dedicada sobre `32c6af3`; os commits tecnico `a5e0714` e documental `df1a7ca` foram integrados por fast-forward em `master`. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `354/354`, builds e Playwright `3/3` passaram; capabilities, isolamento de escopo e rotas O1-O8 ficaram verdes. A worktree e a branch exatas foram removidas; `origin/master` permanece em `112ca13` aguardando push. O validador live de rotas aguarda a atualização semântica prevista no 03-19.
+Git - Fase 3 / Wave 18 (integrada, enviada e limpa, 2026-09-02): o 03-19 foi executado na worktree dedicada sobre `d63d3bd` e normalizado no padrao de dois commits: tecnico `975f9f6` e documental corrente, que nao cita o proprio hash. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `356/356`, build production, lint, validador de rotas e Playwright pessoal `2/2` passaram; a variante pessoal do ConsoleShell e as tres rotas de conta ficaram verdes. A worktree e a branch exatas foram removidas; `master` e `origin/master` estao sincronizadas.
+
+Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi executado na worktree dedicada sobre `32c6af3`; os commits tecnico `a5e0714` e documental `df1a7ca` foram integrados por fast-forward em `master`. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `354/354`, builds e Playwright `3/3` passaram; capabilities, isolamento de escopo e rotas O1-O8 ficaram verdes. A worktree e a branch exatas foram removidas e o resultado esta contido em `origin/master`.
 
 ## Project Reference
 
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-19/W18 pronta para preflight; 03-16/W17 integrado e limpo; master em df1a7ca e origin/master em 112ca13, com push pendente.
+**Current focus:** 03-20/W19 pronta para preflight; 03-19/W18 integrado, enviado e limpo; master e origin/master sincronizadas.
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-16 de 20 concluido, integrado e limpo; a proxima frente tecnica e 03-19/W18.
-Status: In progress - Console esportivo O1-O8 com capabilities server-side e escopo fail-closed; `master` esta em `df1a7ca` e `origin/master` em `112ca13`, com push pendente.
-Last activity: 2026-09-01 - 03-16/W17 integrado por fast-forward e worktree/branch exatas removidas; push permanece pendente.
+Plan: 03-19 de 20 concluido, integrado e limpo; a proxima frente tecnica e 03-20/W19.
+Status: In progress - Console pessoal convergido para a variante V com stores, adapters, guards e contratos preservados; `master` e `origin/master` estao sincronizadas.
+Last activity: 2026-09-02 - 03-19/W18 normalizado em dois commits, integrado, enviado e limpo.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -41,7 +43,7 @@ Git — Fase 3 / Wave 12 (concluida, enviada e limpa, 2026-08-31): o 03-11 foi e
 Git — Fase 3 / Wave 13 (integrada, limpa e enviada, 2026-08-31): o 03-12 foi executado na `worktree-agent-03-12` sobre `b84e3db`; apos rebase sobre o commit legitimo `424d98b`, o tecnico `7088123` contem 42 paths certificados e o documental foi integrado na sequencia. O candidato OpenAPI aprovado e `8BE63578F11D7D3DBC4F771A8A0F03B41482C1B7C00698AAC69165EF1A216396`, com governed-before/after iguais. Maven completo `416/416`, Node `625/625`, Angular `316/316`, Playwright esportivo `3/3`, builds e gerador passaram. A worktree e a branch exatas foram removidas e `master`/`origin/master` estao em `9f3bbea`.
 Git — Fase 3 / Wave 14 (integrada, enviada e limpa, 2026-08-31): o 03-13 foi executado na `worktree-agent-03-13` sobre `8537c4b`; o commit tecnico `e03c0b5` contem exatamente 32 paths certificados da allowlist e o documental `4ba73ad` formaliza o plano e o estado. `frontend/src/app/api/generated/index.ts` permaneceu inalterado. O candidato aprovado e `5BC25D0DC503474976AFC5223037464CB66205D4DD29725A796011B78DC0295B`, com governed-before/after iguais. Surefire `266/266`, Failsafe `421/421`, Node `625/625`, Angular final `330/330`, Playwright esportivo `3/3`, builds e gerador passaram. A primeira suite Angular teve um timeout intermitente fora do escopo, depois verde isolado e na repeticao completa. A integracao foi fast-forward em `master`, a worktree e a branch exatas foram removidas, e o resultado esta contido em `origin/master` `93e7d65`.
 Git — Fase 3 / Wave 15 (integrada, enviada e limpa, 2026-08-31): o 03-14 foi executado na worktree dedicada; o commit tecnico `022f5a1` e o documental `93e7d65` foram integrados por fast-forward em `master`. O candidato aprovado e `A519EC31AF3F6CF504DB180A9606B700288A76C2CB6504BEEA3802A4A4726B93`, com governed-before/after `5BC25D0DC503474976AFC5223037464CB66205D4DD29725A796011B78DC0295B`. Maven, Node, Angular, builds e Playwright passaram; a worktree e a branch exatas foram removidas e `origin/master` esta em `93e7d65`.
-Git - Fase 3 / Wave 16 (integrada e limpa, 2026-09-01): o 03-15 foi executado na worktree dedicada sobre `112ca13`; o commit tecnico `0474365` e o documental `7809a93` foram integrados por fast-forward em `master`. O candidato OpenAPI aprovado e `1BE6BAB88EA2F208A38BE115E3CB4D9B0DA2EBB8E04FBF038FD122E5A2B43F27`, com governed-before/after `A519EC31AF3F6CF504DB180A9606B700288A76C2CB6504BEEA3802A4A4726B93`. Surefire `266/266`, Failsafe `431/431`, Node `625/625`, Angular `346/346`, builds e gerador passaram; Flyway `14/14`, media IT `7/7` e matriz S3 `19/19` passaram. A worktree e a branch exatas foram removidas; `origin/master` permanece em `112ca13` aguardando push.
+Git - Fase 3 / Wave 16 (integrada, enviada e limpa, 2026-09-01): o 03-15 foi executado na worktree dedicada sobre `112ca13`; o commit tecnico `0474365` e o documental `7809a93` foram integrados por fast-forward em `master`. O candidato OpenAPI aprovado e `1BE6BAB88EA2F208A38BE115E3CB4D9B0DA2EBB8E04FBF038FD122E5A2B43F27`, com governed-before/after `A519EC31AF3F6CF504DB180A9606B700288A76C2CB6504BEEA3802A4A4726B93`. Surefire `266/266`, Failsafe `431/431`, Node `625/625`, Angular `346/346`, builds e gerador passaram; Flyway `14/14`, media IT `7/7` e matriz S3 `19/19` passaram. A worktree e a branch exatas foram removidas e o resultado esta contido em `origin/master`.
 Git - Processo de desenvolvimento (sincronizado, 2026-09-01): os commits `9600e82`, `e9cb00b`, `1761ef4` e `3d5679f` integram bundles de skills, guardrails, coordenadores, preflight e gates de revisao; os commits `75522a6` e `a20b6d4` consolidam a formatacao. Os seis commits estao em `master` e `origin/master` por meio de `112ca13`; a worktree e a branch de formatacao foram removidas.
 Git — Fase 3: Wave 1, Wave 2 e o fechamento documental do 03-18 foram enviados. A Wave 4 foi criada na `worktree-agent-03-03` a partir de `7d3cbc6`; o commit técnico `9399a7c` contém exatamente 44 paths e o documental `3368d73` contém os seis documentos GSD. A integração fast-forward levou ambos para `master`; limpeza da worktree/branch e push continuam pendentes de aprovação específica.
 
@@ -267,9 +269,9 @@ Progress: [████████░░] 15/20 planos da Fase 3 (75%)
 
 ## Session Continuity
 
-Last session: 2026-09-01T14:34:31-03:00
-Stopped at: 03-14 integrated; process improvements and formatting integrated; push pending
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-15-PLAN.md
+Last session: 2026-09-02T00:30:00-03:00
+Stopped at: 03-19/W18 integrated, pushed and cleaned; 03-20/W19 ready for preflight
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-20-PLAN.md
 
 ## Accumulated Context
 

@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 12/20 plans executed
+**Plans**: 13/20 plans executed
 
 Plans:
 **Wave 1**
@@ -314,19 +314,19 @@ Plans:
 
 - [x] 03-14-PLAN.md — entregar perfil esportivo textual/social owner-only
 
-**Wave 16** *(concluida, integrada e limpa em 2026-09-01; push pendente)*
+**Wave 16** *(concluida, integrada, enviada e limpa em 2026-09-01)*
 
 - [x] 03-15-PLAN.md — processar e armazenar foto com segurança
 
-**Wave 17** *(concluída, integrada e limpa em 2026-09-01; push pendente)*
+**Wave 17** *(concluída, integrada, enviada e limpa em 2026-09-01)*
 
 - [x] 03-16-PLAN.md — consolidar capabilities e workspace O1–O8
 
-**Wave 18** *(pronta para preflight; depende apenas da revisão do snapshot anterior)*
+**Wave 18** *(concluída, integrada, enviada e limpa em 2026-09-02)*
 
-- [ ] 03-19-PLAN.md — convergir perfil incompleto, perfil e matrícula para o Console pessoal sem alterar lógica
+- [x] 03-19-PLAN.md — convergir perfil incompleto, perfil e matrícula para o Console pessoal sem alterar lógica
 
-**Wave 19** *(blocked on Wave 18 completion)*
+**Wave 19** *(pronta para preflight; depende apenas da revisão do snapshot anterior)*
 
 - [ ] 03-20-PLAN.md — convergir operação legada e aposentar o AuthenticatedLayoutComponent com prova equivalente
 
