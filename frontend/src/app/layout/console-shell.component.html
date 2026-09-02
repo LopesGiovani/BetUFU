@@ -53,13 +53,19 @@
           type="button"
           class="console-nav__account"
           (click)="toggleMenu()"
+          (keydown)="onMenuTriggerKeydown($event)"
+          aria-controls="console-account-menu"
           [attr.aria-expanded]="menuOpen()">
           {{ sessionStore.displayName() || 'Conta' }}
         </button>
       </nav>
 
       @if (menuOpen()) {
-        <div class="console-menu">
+        <div
+          id="console-account-menu"
+          class="console-menu"
+          tabindex="-1"
+          (keydown)="onMenuKeydown($event)">
           <a routerLink="/conta/perfil" (click)="closeMenu()">Meu perfil</a>
           <a routerLink="/conta/matricula" (click)="closeMenu()">Matrícula UFU</a>
           <button type="button" (click)="logout()">Sair</button>

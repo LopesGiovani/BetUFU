@@ -28,6 +28,21 @@ import {
 
 const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Object.freeze([
   Object.freeze({
+    capability: 'VIEW_OPERATIONAL_PANEL',
+    label: 'Painel operacional',
+    path: '/operacao/painel',
+  }),
+  Object.freeze({
+    capability: 'MANAGE_ROLES',
+    label: 'Papéis operacionais',
+    path: '/operacao/papeis',
+  }),
+  Object.freeze({
+    capability: 'CORRECT_ENROLLMENT',
+    label: 'Corrigir matrícula',
+    path: '/operacao/matriculas/corrigir',
+  }),
+  Object.freeze({
     capability: 'MANAGE_SPORTS_CATALOG',
     label: 'Visão geral',
     path: '/operacao/esportes',
@@ -128,6 +143,31 @@ export class ConsoleShellComponent implements OnInit {
 
   closeMenu(): void {
     this.menuOpen.set(false);
+  }
+
+  onMenuTriggerKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.menuOpen()) {
+        this.closeMenu();
+        (event.currentTarget as HTMLElement | null)?.focus();
+      }
+      return;
+    }
+
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    this.toggleMenu();
+  }
+
+  onMenuKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Escape') {
+      return;
+    }
+    event.preventDefault();
+    this.closeMenu();
+    document.querySelector<HTMLElement>('.console-nav__account')?.focus();
   }
 
   async logout(): Promise<void> {

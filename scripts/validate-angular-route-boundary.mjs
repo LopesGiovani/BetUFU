@@ -193,6 +193,32 @@ const APPROVED_PERSONAL_ROUTES = Object.freeze([
   ),
 ]);
 
+const APPROVED_PERSONAL_EXTRA_ROUTES = Object.freeze([
+  approvedRoute(
+    '',
+    './features/sports/athlete-profile/athlete-profile-page.component',
+    'AthleteProfilePageComponent',
+  ),
+]);
+
+const APPROVED_LEGACY_OPERATIONAL_ROUTES = Object.freeze([
+  approvedRoute(
+    'painel',
+    './features/operations/operations-panel-page.component',
+    'OperationsPanelPageComponent',
+  ),
+  approvedRoute(
+    'papeis',
+    './features/operations/role-admin-page.component',
+    'RoleAdminPageComponent',
+  ),
+  approvedRoute(
+    'matriculas/corrigir',
+    './features/operations/enrollment-admin-page.component',
+    'EnrollmentAdminPageComponent',
+  ),
+]);
+
 const APPROVED_LEGACY_AUTHENTICATED_ROUTES = Object.freeze(
   APPROVED_PRODUCT_ROUTES.filter(
     (route) => !new Set(['conta/perfil/completar', 'conta/perfil', 'conta/matricula']).has(route.path),
@@ -1611,11 +1637,91 @@ function parseLazyRoutes(children, rule, environmentLabel) {
   }));
 }
 
+function parseLooseLazyRoutes(source) {
+  return [...source.matchAll(LAZY_CHILD_ROUTE_PATTERN)].map((routeMatch) => Object.freeze({
+    path: routeMatch.groups.path,
+    modulePath: routeMatch.groups.modulePath,
+    component: routeMatch.groups.component,
+    pathMatch: routeMatch.groups.pathMatch ?? null,
+  }));
+}
+
 function parseBuildSpecificRoutes(source, rule, environmentLabel) {
+  if (!/AuthenticatedLayoutComponent/u.test(source)) {
+    const staticImports = [...source.matchAll(/^\s*import\s+(?!\()/gmu)].map((match) => match[0]);
+    expect(
+      staticImports.length === 2
+        && /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*['"]@angular\/router['"]\s*;/mu.test(source)
+        && /^\s*import\s*\{\s*ConsoleShellComponent\s*\}\s*from\s*['"]\.\/layout\/console-shell\.component['"]\s*;/mu.test(source),
+      environmentLabel === 'production' ? 'PRODUCTION_AUTHENTICATED_LAYOUT' : 'DEVELOPMENT_ROUTES_SHAPE',
+      `${environmentLabel} deve importar somente Routes e ConsoleShellComponent estaticamente.`,
+    );
+    const consoleMatch = source.match(
+      /path\s*:\s*'operacao\/esportes'[\s\S]*?children\s*:\s*\[(?<consoleChildren>[\s\S]*?)\]\s*,?\s*\}/u,
+    );
+    const personalMatch = source.match(
+      /path\s*:\s*'conta'[\s\S]*?data\s*:\s*\{\s*consoleVariant\s*:\s*'personal'\s*\}[\s\S]*?children\s*:\s*\[(?<personalChildren>[\s\S]*?)\]\s*,?\s*\}/u,
+    );
+    const operationalMatch = source.match(
+      /path\s*:\s*'operacao'[\s\S]*?data\s*:\s*\{\s*consoleVariant\s*:\s*'operational'\s*\}[\s\S]*?children\s*:\s*\[(?<operationalChildren>[\s\S]*?)\]\s*,?\s*\}/u,
+    );
+    const athleteMatch = source.match(
+      /path\s*:\s*'conta\/perfil\/esportivo'[\s\S]*?data\s*:\s*\{\s*consoleVariant\s*:\s*'personal'\s*\}[\s\S]*?children\s*:\s*\[(?<athleteChildren>[\s\S]*?)\]\s*,?\s*\}/u,
+    );
+    expect(
+      consoleMatch && personalMatch && operationalMatch && athleteMatch,
+      rule,
+      `${environmentLabel} deve declarar os consoles pessoal e operacional sem o shell legado.`,
+    );
+    const technicalChildren = source
+      .replace(consoleMatch[0], '')
+      .replace(personalMatch[0], '')
+      .replace(operationalMatch[0], '')
+      .replace(athleteMatch[0], '');
+    const technicalBodyMatch = technicalChildren.match(
+      /export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[([\s\S]*?)\]\s*;/u,
+    );
+    expect(
+      technicalBodyMatch !== null,
+      rule,
+      `${environmentLabel} deve manter as rotas técnicas na mesma lista de build.`,
+    );
+    return Object.freeze({
+      final: true,
+      hybrid: false,
+      consoleRoutes: parseLazyRoutes(
+        consoleMatch.groups.consoleChildren,
+        rule,
+        `${environmentLabel}/Console operacional esportivo`,
+      ),
+      personalRoutes: parseLazyRoutes(
+        personalMatch.groups.personalChildren,
+        rule,
+        `${environmentLabel}/Console pessoal`,
+      ),
+      personalExtraRoutes: parseLazyRoutes(
+        athleteMatch.groups.athleteChildren,
+        rule,
+        `${environmentLabel}/Console pessoal esportivo`,
+      ),
+      operationalRoutes: parseLazyRoutes(
+        operationalMatch.groups.operationalChildren,
+        rule,
+        `${environmentLabel}/Console operacional legado`,
+      ),
+      technicalRoutes: parseLooseLazyRoutes(technicalBodyMatch[1]),
+      authenticatedRoutes: [],
+    });
+  }
+
   const hybridMatch = BUILD_SPECIFIC_ROUTES_HYBRID_PATTERN.exec(source);
   if (hybridMatch !== null) {
     return Object.freeze({
       hybrid: true,
+      final: false,
+      personalExtraRoutes: [],
+      operationalRoutes: [],
+      technicalRoutes: [],
       consoleRoutes: parseLazyRoutes(
         hybridMatch.groups.consoleChildren,
         rule,
@@ -1643,6 +1749,10 @@ function parseBuildSpecificRoutes(source, rule, environmentLabel) {
 
   return Object.freeze({
     hybrid: false,
+    final: false,
+    personalExtraRoutes: [],
+    operationalRoutes: [],
+    technicalRoutes: [],
     consoleRoutes: parseLazyRoutes(
       match.groups.consoleChildren,
       rule,
@@ -1802,9 +1912,49 @@ function validateRouteSources(sources) {
       })),
       ...productionRouteGroups.authenticatedRoutes,
     ]
+    : productionRouteGroups.final
+      ? [
+        ...productionRouteGroups.personalRoutes.map((route) => ({
+          ...route,
+          path: `conta/${route.path}`,
+        })),
+        ...productionRouteGroups.personalExtraRoutes.map((route) => ({
+          ...route,
+          path: 'conta/perfil/esportivo',
+        })),
+        ...productionRouteGroups.operationalRoutes.map((route) => ({
+          ...route,
+          path: `operacao/${route.path}`,
+        })),
+      ]
     : productionRouteGroups.authenticatedRoutes;
   expect(productionRoutes.length > 0, 'PRODUCTION_ROUTES_ALLOWLIST', 'production deve publicar ao menos uma rota de produto aprovada.');
-  if (productionRouteGroups.hybrid) {
+  if (productionRouteGroups.final) {
+    expectExactApprovedRoutes(
+      productionRouteGroups.personalRoutes,
+      APPROVED_PERSONAL_ROUTES,
+      'PRODUCTION_PERSONAL_ROUTES',
+      'Console pessoal production',
+    );
+    expectExactApprovedRoutes(
+      productionRouteGroups.personalExtraRoutes,
+      APPROVED_PERSONAL_EXTRA_ROUTES,
+      'PRODUCTION_PERSONAL_EXTRA_ROUTES',
+      'Console pessoal esportivo production',
+    );
+    expectExactApprovedRoutes(
+      productionRouteGroups.operationalRoutes,
+      APPROVED_LEGACY_OPERATIONAL_ROUTES,
+      'PRODUCTION_OPERATIONAL_ROUTES',
+      'Console operacional legado production',
+    );
+    expectExactApprovedRoutes(
+      productionRoutes,
+      APPROVED_PRODUCT_ROUTES,
+      'PRODUCTION_ROUTES_ALLOWLIST',
+      'production',
+    );
+  } else if (productionRouteGroups.hybrid) {
     expectExactApprovedRoutes(
       productionRouteGroups.personalRoutes,
       APPROVED_PERSONAL_ROUTES,
@@ -1845,8 +1995,54 @@ function validateRouteSources(sources) {
       })),
       ...developmentRouteGroups.authenticatedRoutes,
     ]
+    : developmentRouteGroups.final
+      ? [
+        ...developmentRouteGroups.personalRoutes.map((route) => ({
+          ...route,
+          path: `conta/${route.path}`,
+        })),
+        ...developmentRouteGroups.personalExtraRoutes.map((route) => ({
+          ...route,
+          path: 'conta/perfil/esportivo',
+        })),
+        ...developmentRouteGroups.operationalRoutes.map((route) => ({
+          ...route,
+          path: `operacao/${route.path}`,
+        })),
+      ]
     : developmentRouteGroups.authenticatedRoutes;
-  if (developmentRouteGroups.hybrid) {
+  if (developmentRouteGroups.final) {
+    expectExactApprovedRoutes(
+      developmentRouteGroups.personalRoutes,
+      APPROVED_PERSONAL_ROUTES,
+      'DEVELOPMENT_PERSONAL_ROUTES',
+      'Console pessoal development',
+    );
+    expectExactApprovedRoutes(
+      developmentRouteGroups.personalExtraRoutes,
+      APPROVED_PERSONAL_EXTRA_ROUTES,
+      'DEVELOPMENT_PERSONAL_EXTRA_ROUTES',
+      'Console pessoal esportivo development',
+    );
+    expectExactApprovedRoutes(
+      developmentRouteGroups.operationalRoutes,
+      APPROVED_LEGACY_OPERATIONAL_ROUTES,
+      'DEVELOPMENT_OPERATIONAL_ROUTES',
+      'Console operacional legado development',
+    );
+    expectApprovedRoutes(
+      developmentRouteGroups.technicalRoutes,
+      APPROVED_TECHNICAL_ROUTES,
+      'DEVELOPMENT_TECHNICAL_ROUTES',
+      'rotas técnicas development',
+    );
+    expectExactApprovedRoutes(
+      developmentRoutes,
+      APPROVED_PRODUCT_ROUTES,
+      'DEVELOPMENT_ROUTES_ALLOWLIST',
+      'development',
+    );
+  } else if (developmentRouteGroups.hybrid) {
     expectExactApprovedRoutes(
       developmentRouteGroups.personalRoutes,
       APPROVED_PERSONAL_ROUTES,
@@ -1885,6 +2081,14 @@ function validateRouteSources(sources) {
     'PRODUCTION_TRACER_FORBIDDEN',
     'production nao pode importar, mencionar nem expor o tracer ou o diagnostico.',
   );
+  if (productionRouteGroups.final && developmentRouteGroups.final) {
+    expect(
+      !/AuthenticatedLayoutComponent|authenticated-layout\.component/u.test(production)
+        && !/AuthenticatedLayoutComponent|authenticated-layout\.component/u.test(development),
+      'AUTHENTICATED_LAYOUT_RETIRED',
+      'development e production nao podem referenciar o AuthenticatedLayoutComponent apos o corte.',
+    );
+  }
   for (const [relativePath, source, executableSource] of scriptSources) {
     const developmentImportCount = countActiveModuleReferences(
       source,

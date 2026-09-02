@@ -561,16 +561,17 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     expect(prodGateRoute).toBeDefined();
     expect(prodGateRoute?.loadComponent).toBeTypeOf('function');
 
-    const prodLegacyRoot = PROD_ROUTES.find((r) => r.path === '');
-    const prodAthleteProfileRoute = prodLegacyRoot?.children?.find(
+    const prodAthleteProfileRoot = PROD_ROUTES.find(
       (r) => r.path === 'conta/perfil/esportivo',
     );
-    expect(prodAthleteProfileRoute).toBeDefined();
+    expect(prodAthleteProfileRoot).toBeDefined();
+    expect(prodAthleteProfileRoot?.data?.['consoleVariant']).toBe('personal');
+    const prodAthleteProfileRoute = prodAthleteProfileRoot?.children?.find((r) => r.path === '');
     expect(prodAthleteProfileRoute?.loadComponent).toBeTypeOf('function');
 
     // Prova que rotas de produção não contêm rotas técnicas de desenvolvimento
-    expect(prodLegacyRoot?.children?.find((r) => r.path === 'tracer')).toBeUndefined();
-    expect(prodLegacyRoot?.children?.find((r) => r.path === 'diagnostic')).toBeUndefined();
+    expect(PROD_ROUTES.find((r) => r.path === 'tracer')).toBeUndefined();
+    expect(PROD_ROUTES.find((r) => r.path === 'diagnostic')).toBeUndefined();
 
     // Prova as rotas de desenvolvimento
     const devPersonalRoot = DEV_ROUTES.find((r) => r.path === 'conta');
@@ -582,16 +583,17 @@ describe('ProfilePageComponent (Superfície S2)', () => {
     expect(devProfileRoute).toBeDefined();
     expect(devProfileRoute?.loadComponent).toBeTypeOf('function');
 
-    const devLegacyRoot = DEV_ROUTES.find((r) => r.path === '');
-    const devAthleteProfileRoute = devLegacyRoot?.children?.find(
+    const devAthleteProfileRoot = DEV_ROUTES.find(
       (r) => r.path === 'conta/perfil/esportivo',
     );
-    expect(devAthleteProfileRoute).toBeDefined();
+    expect(devAthleteProfileRoot).toBeDefined();
+    expect(devAthleteProfileRoot?.data?.['consoleVariant']).toBe('personal');
+    const devAthleteProfileRoute = devAthleteProfileRoot?.children?.find((r) => r.path === '');
     expect(devAthleteProfileRoute?.loadComponent).toBeTypeOf('function');
 
     // Prova que rotas de desenvolvimento contêm tracer e diagnostic
-    expect(devLegacyRoot?.children?.find((r) => r.path === 'tracer')).toBeDefined();
-    expect(devLegacyRoot?.children?.find((r) => r.path === 'diagnostic')).toBeDefined();
+    expect(DEV_ROUTES.find((r) => r.path === 'tracer')).toBeDefined();
+    expect(DEV_ROUTES.find((r) => r.path === 'diagnostic')).toBeDefined();
   });
 
   it('Garantia de integração: fluxo real salvar S1 → redirecionamento para /conta/perfil → renderização de S2 via lazy routing real', async () => {

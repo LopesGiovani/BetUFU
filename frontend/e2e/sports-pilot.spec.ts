@@ -364,3 +364,115 @@ test.describe('@03-19-personal-console Console pessoal', () => {
     expect(probe.putRequests).toHaveLength(0);
   });
 });
+
+async function mockLegacyOperations(page: Page): Promise<void> {
+  await page.route('**/api/v1/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ authenticated: true, displayName: 'Administrador Geral' }),
+    });
+  });
+  await page.route('**/api/v1/profile/me', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        identityId: 'admin-id-01',
+        nickname: 'admin_geral_01',
+        matriculaStatus: 'REGISTRADA',
+        favoriteOrganizationId: null,
+      }),
+    });
+  });
+  await page.route('**/api/v1/operations/capabilities', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        capabilities: ['VIEW_OPERATIONAL_PANEL', 'MANAGE_ROLES', 'CORRECT_ENROLLMENT'],
+      }),
+    });
+  });
+  await page.route('**/api/v1/operations/panel', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        queriedAt: '2026-08-20T14:30:00.000Z',
+        timeWindow: {
+          since: '2026-08-13T00:00:00.000Z',
+          until: '2026-08-20T14:30:00.000Z',
+        },
+        rejectedEnrollmentsCount: { duplicateCount: 1, attemptLimitCount: 0, totalCount: 1 },
+        administrativeCorrections: { recentEvents: [] },
+        roleChanges: { recentEvents: [] },
+        unregisteredEnrollmentsCount: { count: 2 },
+        unavailableBlocks: [],
+      }),
+    });
+  });
+  await page.route('**/api/v1/operations/roles/*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        identityId: 'bbbbbbbb-2222-4222-8222-222222222222',
+        nickname: 'usuario_alvo',
+        roles: [
+          { role: 'ADMINISTRADOR_GERAL', status: 'NAO_CONCEDIDO' },
+          { role: 'ADMINISTRADOR_COMPETICAO', status: 'NAO_CONCEDIDO' },
+          { role: 'MODERADOR', status: 'NAO_CONCEDIDO' },
+        ],
+      }),
+    });
+  });
+  await page.route('**/api/v1/operations/enrollments/correction', async (route) => {
+    await route.fulfill({ status: 403, contentType: 'application/json', body: '{}' });
+  });
+}
+
+test.describe('@03-20-legacy-operations Console operacional legado', () => {
+  test('desktop percorre painel, papéis e correção sob o Console V', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await mockLegacyOperations(page);
+
+    await page.goto('/operacao/painel');
+    await expect(page.locator('.console-header:not(.console-header--personal)')).toBeVisible();
+    await expect(page.locator('#operations-panel-title')).toHaveText('Painel operacional');
+    await expect(page.locator('.panel-card')).toHaveCount(4);
+
+    await page.goto('/operacao/papeis');
+    await expect(page.locator('.console-header:not(.console-header--personal)')).toBeVisible();
+    await expect(page.locator('.page-title')).toHaveText('Papéis operacionais');
+
+    await page.goto('/operacao/matriculas/corrigir');
+    await expect(page.locator('.console-header:not(.console-header--personal)')).toBeVisible();
+    await expect(page.locator('.page-title')).toHaveText('Corrigir matrícula');
+    await expect(page.locator('body')).not.toContainText(/AuthenticatedLayoutComponent/u);
+  });
+
+  test('320px preserva reflow, foco, alvos e ausência de overflow horizontal', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 320, height: 800 });
+    await mockLegacyOperations(page);
+
+    for (const path of ['/operacao/painel', '/operacao/papeis', '/operacao/matriculas/corrigir']) {
+      await page.goto(path);
+      await expect(page.locator('.console-header:not(.console-header--personal)')).toBeVisible();
+      const dimensions = await page.evaluate(() => ({
+        innerWidth: window.innerWidth,
+        scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+      }));
+      expect(dimensions.innerWidth).toBe(320);
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(320);
+      const undersized = await page.locator('a, button, input, textarea').evaluateAll((elements) =>
+        elements.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.width > 0 && (rect.width < 44 || rect.height < 44);
+        }).length,
+      );
+      expect(undersized).toBe(0);
+    }
+  });
+});

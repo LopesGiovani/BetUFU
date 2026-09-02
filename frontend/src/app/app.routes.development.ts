@@ -1,5 +1,4 @@
 import type { Routes } from '@angular/router';
-import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';
 import { ConsoleShellComponent } from './layout/console-shell.component';
 
 export const BUILD_SPECIFIC_ROUTES: Routes = [
@@ -68,51 +67,59 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
     ],
   },
   {
-    path: '',
-    component: AuthenticatedLayoutComponent,
+    path: 'operacao',
+    component: ConsoleShellComponent,
+    data: { consoleVariant: 'operational' },
     children: [
       {
-        path: 'tracer',
-        loadComponent: () =>
-          import('./features/tracer/tracer-page.component').then(
-            ({ TracerPageComponent }) => TracerPageComponent,
-          ),
-      },
-      {
-        path: 'diagnostic',
-        loadComponent: () =>
-          import('./features/diagnostic/diagnostic-page.component').then(
-            ({ DiagnosticPageComponent }) => DiagnosticPageComponent,
-          ),
-      },
-      {
-        path: 'conta/perfil/esportivo',
-        loadComponent: () =>
-          import('./features/sports/athlete-profile/athlete-profile-page.component').then(
-            ({ AthleteProfilePageComponent }) => AthleteProfilePageComponent,
-          ),
-      },
-      {
-        path: 'operacao/painel',
+        path: 'painel',
         loadComponent: () =>
           import('./features/operations/operations-panel-page.component').then(
             ({ OperationsPanelPageComponent }) => OperationsPanelPageComponent,
           ),
       },
       {
-        path: 'operacao/papeis',
+        path: 'papeis',
         loadComponent: () =>
           import('./features/operations/role-admin-page.component').then(
             ({ RoleAdminPageComponent }) => RoleAdminPageComponent,
           ),
       },
       {
-        path: 'operacao/matriculas/corrigir',
+        path: 'matriculas/corrigir',
         loadComponent: () =>
           import('./features/operations/enrollment-admin-page.component').then(
             ({ EnrollmentAdminPageComponent }) => EnrollmentAdminPageComponent,
           ),
       },
     ],
+  },
+  {
+    path: 'conta/perfil/esportivo',
+    component: ConsoleShellComponent,
+    data: { consoleVariant: 'personal' },
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/sports/athlete-profile/athlete-profile-page.component').then(
+            ({ AthleteProfilePageComponent }) => AthleteProfilePageComponent,
+          ),
+      },
+    ],
+  },
+  {
+    path: 'tracer',
+    loadComponent: () =>
+      import('./features/tracer/tracer-page.component').then(
+        ({ TracerPageComponent }) => TracerPageComponent,
+      ),
+  },
+  {
+    path: 'diagnostic',
+    loadComponent: () =>
+      import('./features/diagnostic/diagnostic-page.component').then(
+        ({ DiagnosticPageComponent }) => DiagnosticPageComponent,
+      ),
   },
 ];
