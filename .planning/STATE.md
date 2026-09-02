@@ -4,22 +4,24 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: In progress
-stopped_at: "03-17/W20 preflight complete; worktree creation pending approval"
-last_updated: "2026-09-02T00:20:00-03:00"
+stopped_at: "03-17/W20 complete; Phase 4 planning pending"
+last_updated: "2026-09-02T13:27:12-03:00"
 last_activity: 2026-09-02
-last_activity_desc: 03-20/W19 convergiu as superficies operacionais, aposentou o shell legado e passou as verificacoes; formalizacao, integracao, cleanup e push foram concluidos e os registros finais foram reconciliados.
-state_head: fa2985d1c9b94c5c79491f58212f81c4c36bb45a
+last_activity_desc: 03-17/W20 foi certificado, integrado e limpo; os registros de continuidade da Fase 3 foram reconciliados.
+state_head: 41abcdb11024d21647f64d1b6f3c3445d44e6f48
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 83
-  completed_plans: 82
+  completed_plans: 83
 milestone_name: milestone
 ---
 
 # Estado do Projeto
 
 Git - Fase 3 / Wave 19 (integrada, enviada e limpa, 2026-09-02): o 03-20 foi executado na worktree dedicada `worktree-agent-03-20` sobre `8e1b893`; o commit tecnico `fa2985d` converge as seis rotas de produto para o ConsoleShell, remove o AuthenticatedLayoutComponent e consolida a prova operacional. Angular focal `22/22` e `35/35`, Angular completo `342/342`, Node `625/625`, validador de rotas `173/173`, validador vivo `OK`, build production e Playwright legado `4/4` passaram. O checkpoint humano `aprovar Console convergido 03-20` foi recebido. O commit documental `88eb964` foi integrado por fast-forward; a worktree e a branch exatas foram removidas e `master`/`origin/master` foram sincronizadas. O follow-up de manutenibilidade permanece registrado na formalizacao corrente.
+
+Git - Fase 3 / Wave 20 (concluida, integrada e limpa, 2026-09-02): o 03-17 certificou arquitetura/privacidade, matriz Chromium/Firefox, acessibilidade medida e mutacoes negativas restauraveis. Os commits tecnico e documental foram integrados por fast-forward; a worktree e a branch exatas foram removidas. A divida de manutenibilidade da prova permanece registrada como follow-up.
 
 Git - Fase 3 / Wave 18 (integrada, enviada e limpa, 2026-09-02): o 03-19 foi executado na worktree dedicada sobre `d63d3bd` e normalizado no padrao de dois commits: tecnico `975f9f6` e documental corrente, que nao cita o proprio hash. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `356/356`, build production, lint, validador de rotas e Playwright pessoal `2/2` passaram; a variante pessoal do ConsoleShell e as tres rotas de conta ficaram verdes. A worktree e a branch exatas foram removidas; `master` e `origin/master` estao sincronizadas.
 
@@ -30,14 +32,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** 03-17/W20 e a proxima frente tecnica; o preflight foi concluido e a criacao da worktree aguarda aprovacao. 03-20/W19 foi integrada, enviada e limpa com as superficies pessoais e operacionais convergidas para o Console V.
+**Current focus:** Fase 3 concluida em 20/20; a proxima frente e discutir e planejar a Fase 4, que depende de decisoes explicitas sobre Elo, empate e confrontos de referencia.
 
 ## Current Position
 
 Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-17/W20 e o proximo plano da Fase 3; a dependencia 03-20/W19 esta integrada e limpa.
-Status: In progress - Console pessoal e operacional convergidos para variantes V com stores, adapters, guards, capabilities e contratos preservados; os refs finais devem ser confirmados ao vivo apos a dobra documental de manutencao.
-Last activity: 2026-09-02 - 03-20/W19 passou o checkpoint humano, foi formalizado, integrado, limpo e enviado; os registros documentais foram reconciliados e o preflight do 03-17/W20 foi concluido.
+Plan: 03-17/W20 concluido; nao ha plano tecnico pendente na Fase 3. A proxima acao e discutir e planejar a Fase 4.
+Status: In progress - Fase 3 concluida com contratos, autorizacao, stores, adapters e capabilities preservados; o milestone v1.0 continua nas fases seguintes.
+Last activity: 2026-09-02 - 03-17/W20 passou o checkpoint humano, foi formalizado, integrado, limpo e publicado; os registros documentais foram reconciliados.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -107,7 +109,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [█████████░] 19/20 planos da Fase 3 (95%)
+Progress: [██████████] 20/20 planos da Fase 3 (100%)
 
 ## Métricas de desempenho
 
@@ -226,6 +228,7 @@ Progress: [█████████░] 19/20 planos da Fase 3 (95%)
 - **P3 da Wave 10 — vocabulário dos exemplos OpenAPI.** Dois exemplos ainda usam `PERMITTED`/`BLOCKED`, enquanto o runtime usa `PERMITIDO`/`BLOQUEADO`. Tipos e comportamento estão corretos; falta alinhar apenas os exemplos documentais.
 - **P3 da Wave 10 — orçamento de estilo.** O build passa, mas o SCSS do painel excede o orçamento de 4 kB em 2,67 kB; o perfil já excedia em 1,94 kB. Tratar antes de ampliar a S4 para evitar crescimento silencioso do bundle.
 - **P3 da Wave 19 — manutenibilidade do validador e da prova de navegador.** A análise RepoWise (parcial, 7/17 arquivos) sinalizou complexidade ciclomática 26 e aninhamento em `validateRouteSources`, além de duplicação aproximada de 34% em `frontend/e2e/sports-pilot.spec.ts`. As suítes `173/173` e Playwright `4/4` passaram; não há defeito funcional confirmado. Reavaliar em manutenção futura, antes de ampliar o validador ou a lane E2E.
+- **P3 da Wave 20 — manutenibilidade da certificação.** O RepoWise sinalizou complexidade elevada em `frontend/e2e/sports-pilot.spec.ts` e `backend/src/test/java/br/com/betufu/PrivacyArchitectureTest.java`, além de aninhamento no harness `scripts/validate-phase3-negative-mutations.mjs`. As suítes e mutações passaram; não há defeito funcional confirmado. Reavaliar antes de ampliar a prova de navegador ou o harness.
 - **Varrer os demais validadores atrás de guards que pinam artefato em vez de propriedade.** Dois apareceram no 01-26 e ambos foram escritos quando existia um único artefato do tipo.
 - **O adiamento do contrato OpenAPI tem custo medido.** A dívida aberta no 01-22 e repetida no 01-12 custou **4 dos 7 arquivos novos** do cliente regenerado no 01-26. Paga na época, o 01-26 teria acrescentado 3. Registrar como custo real de adiamento, não como observação.
 - ~~Dois validadores em contradição sobre o usuário técnico do Keycloak.~~ **Resolvido pelo Plano 01-30.** `validate-keycloak-realm.mjs` exigia exatamente 9 chaves em `realm.users[0]` e rejeitava `firstName`/`lastName`, que `016390b` (01-29) acrescentou ao realm para destravar o provider `VERIFY_PROFILE`, e que `validate-runtime-prerequisites.mjs:1290-1297` já exigia. O contrato foi ampliado para 11 chaves com valores pinados; o realm não foi alterado, porque o defeito estava no validador. Qual lado cedia não dependeu de julgamento: `01-03-PLAN.md:203` proíbe required action na conta técnica, e `VERIFY_PROFILE` é required action de provider, então o 01-29 respeitou o contrato de origem.
@@ -251,7 +254,7 @@ Progress: [█████████░] 19/20 planos da Fase 3 (95%)
 
 ### Bloqueios e pontos de atenção
 
- - ~~A Wave 3 permanecia bloqueada até integração e limpeza do 03-02.~~ **Resolvido em 2026-08-28:** o 03-18 foi reaberto para cobrir a convergência visual legada e agora está fechado. **Ordem corrente:** A2/B2/C2 passaram; o 03-03/W4 foi implementado, testado e aprovado na worktree isolada; após as operações Git separadas, o próximo plano é 03-04/W5. 03-19/W18 e 03-20/W19 entram antes da certificação 03-17/W20.
+ - **Wave 20 resolvida em 2026-09-02:** o 03-17 foi implementado, certificado, integrado, limpo e publicado. A Fase 3 está completa; o próximo passo é planejar a Fase 4.
 
 - Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
 - ~~Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.~~ **Resolvido em 2026-08-26:** a Fase 3 adotou catálogo esportivo genérico, registrou as modalidades conhecidas apenas como dados iniciais e definiu página oficial, regulamento e boletins oficiais como fontes autoritativas; detalhes de 2026 serão dados operacionais, não bloqueio arquitetural.
@@ -272,9 +275,9 @@ Progress: [█████████░] 19/20 planos da Fase 3 (95%)
 
 ## Session Continuity
 
-Last session: 2026-09-02T00:30:00-03:00
-Stopped at: 03-17/W20 preflight complete; worktree creation pending approval
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-17-PLAN.md
+Last session: 2026-09-02T13:27:12-03:00
+Stopped at: 03-17/W20 complete; planning the next Phase 4 decision block
+Resume file: .planning/ROADMAP.md
 
 ## Accumulated Context
 

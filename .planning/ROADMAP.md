@@ -330,9 +330,9 @@ Plans:
 
 - [x] 03-20-PLAN.md — convergir operacao legada e aposentar o AuthenticatedLayoutComponent com prova equivalente; implementacao, verificacoes e checkpoint humano concluidos
 
-**Wave 20** *(proxima; Wave 19 integrada, enviada e limpa)*
+**Wave 20** *(concluida, integrada, enviada e limpa em 2026-09-02)*
 
-- [ ] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação
+- [x] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação; implementação, verificações e checkpoint humano concluídos
 
 **UI hint**: yes
 
@@ -416,7 +416,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 19/20 | In Progress |  |
+| 3. Experiência Esportiva do Piloto | 20/20 | Complete | 2026-09-02 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |

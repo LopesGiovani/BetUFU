@@ -511,6 +511,43 @@ A evidência do `03-03` está verde no escopo do plano. `AUTH-01` e `SPRT-12` pe
 
 ## Mandatory Negative Mutations
 
+## Wave 20 - Certificacao do 03-17 (checkpoint humano pendente)
+
+Execucao realizada em 2026-09-02 na worktree `worktree-agent-03-17`, branch `worktree-agent-03-17`, sobre o HEAD/base `a8b1834cb619f84d9ea612a460a3bd5c0f9970e7`. A master permaneceu intocada. O indice RepoWise estava fresco no mesmo commit; algumas paginas retornaram estado stale e tiveram suas conclusoes confirmadas nos arquivos vivos.
+
+### Allowlist e mutacoes
+
+- A unica diferenca fora da lista `files_modified` e a emenda documental, autorizada pelo responsavel, que adiciona `frontend/scripts/generate-api.mjs` ao `03-17-PLAN.md`; ela nao altera produto nem runtime.
+- Paths alterados no snapshot: `.planning/phases/03-experi-ncia-esportiva-do-piloto/03-17-PLAN.md`, `backend/src/test/java/br/com/betufu/ModulithArchitectureTests.java`, `backend/src/test/java/br/com/betufu/PrivacyArchitectureTest.java`, `frontend/e2e/sports-pilot.spec.ts`, `frontend/playwright.sports.config.ts`, `frontend/scripts/generate-api.mjs`, `scripts/validate-phase3-negative-mutations.mjs`, `scripts/validate-phase3-negative-mutations.test.mjs` e este arquivo de validacao.
+- Targets temporarios `backend/openapi/betufu.yaml`, `backend/src/main/java/br/com/betufu/platform/operations/OperationalCapabilitiesService.java` e `frontend/src/app/shared/sports/auto-event-hero.component.ts` foram mutados somente durante M1-M3 e restaurados byte a byte; nao permanecem no diff.
+- A allowlist inclui `frontend/scripts/generate-api.mjs` para que `--check` execute `assertPublicSchemaAllowlist`; o `generate-api --check` passou sem mutacao.
+
+### Evidencia por task
+
+| Task | Evidencia | Resultado |
+|---|---|---|
+| T1 | Arquitetura/privacidade focal: 18 testes, 0 falhas | PASS |
+| T2 | Firefox Playwright instalado pela versao ja fixada; manifests e lockfiles inalterados | PASS |
+| T3 | Matriz focal `@03-17-visual-matrix`: 6/6 em Chromium + Firefox | PASS |
+| T4 | Harness Node: 6/6; M1, M2 e M3 com vermelho discriminante e restauracao SHA-256 | PASS |
+
+Hashes finais das mutacoes: M1 `4c9698c576f329d7dfdf9521c10850b13e7c559851f0be76463f27f464384cf5`, M2 `5e06793ba9e251cdbc9a1c2d082906796831135c3025ca379e5937c3d4088f6c` e M3 `1b24d2a9711686f2c20df7395838957b38e1e0ebdd96d9522afead097dac3dd8`.
+
+### Gate completo da Wave 20
+
+| Suite | Resultado |
+|---|---|
+| Maven `verify` com HMAC de teste efemero de 32 bytes | Surefire 270/270 + Failsafe 441/441; 0 failures, 0 errors, 0 skipped; `BUILD SUCCESS` |
+| Node `node --test scripts/*.test.mjs` | 631/631 pass; 0 fail; 0 skipped; 8 suites |
+| Angular `npm --prefix frontend run test -- --watch=false` | 57 arquivos; 342/342 pass |
+| Playwright completo (Chromium + Firefox) | 20/20 pass |
+
+A primeira execucao Maven, sem as variaveis HMAC no processo, produziu 67 erros de bootstrap com o placeholder literal `${BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION}`. A repeticao com chave aleatoria apenas em memoria eliminou esses erros. Os avisos NG8102/orcamento SCSS do Angular e as mensagens de reconexao/encerramento tardio de Redis, Hikari e Surefire permaneceram nao bloqueantes; nenhuma assercao falhou.
+
+O comando literal do Playwright precisou ser executado com `frontend` como diretorio atual, pois `npm --prefix` no Windows manteve a raiz para resolver `--config playwright.sports.config.ts`; a mesma config e os mesmos projetos foram usados. `git diff --check`, reconciliacao final da allowlist e snapshot de hashes permanecem como verificacao read-only do checkpoint. Stage, commits, integracao, cleanup e push nao foram executados.
+
+**Status:** evidencias automatizadas PASS; checkpoint funcional aprovado pelo responsavel e Task 5 encerrada. A aprovacao Git continua separada.
+
 - [ ] Colocar o matcher público depois de `/api/v1/**.authenticated()` deixa AUTH-01 vermelho.
 - [ ] Remover a comparação de `scopeRef` ou usar apenas `hasRole` deixa SPRT-01/SPRT-02 vermelhos.
 - [ ] Remover o filtro de versão publicada faz o teste anônimo falhar.
