@@ -56,8 +56,21 @@ class SportsAthleteService {
   }
 
   List<SportsAthleteSummary> listAthletes(String issuer, String subject) {
-    requireCatalogAccess(resolve(issuer, subject));
-    return repository.findAthletes();
+    OperationalIdentity actor = resolve(issuer, subject);
+    requireCatalogAccess(actor);
+    if (isGlobal(actor)) {
+      return repository.findAthletes();
+    }
+    List<UUID> competitionIds =
+        actor.roles().stream()
+            .filter(role -> COMPETITION_ADMIN.equals(role.roleName()))
+            .map(OperationalIdentityLookup.GrantedRole::scopeRef)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    return competitionIds.isEmpty()
+        ? List.of()
+        : repository.findAthletesForCompetitions(competitionIds);
   }
 
   SportsAthleteSummary createAthlete(
@@ -104,7 +117,7 @@ class SportsAthleteService {
       NameSlugRequest request,
       Long expectedLockVersion) {
     requireExpected(expectedLockVersion);
-    requireCatalogAccess(resolve(issuer, subject));
+    requireGlobalAdmin(resolve(issuer, subject));
     validateNameSlug(request);
     repository.findAthlete(athleteId).orElseThrow(SportsAthleteService::notFound);
     updateOrConflict(
@@ -118,7 +131,7 @@ class SportsAthleteService {
   SportsAthleteSummary publishAthlete(
       String issuer, String subject, UUID athleteId, Long expectedLockVersion) {
     requireExpected(expectedLockVersion);
-    requireCatalogAccess(resolve(issuer, subject));
+    requireGlobalAdmin(resolve(issuer, subject));
     repository.findAthlete(athleteId).orElseThrow(SportsAthleteService::notFound);
     updateOrConflict(() -> repository.publishAthlete(athleteId, expectedLockVersion) > 0);
     return repository.findAthlete(athleteId).orElseThrow(SportsAthleteService::notFound);
@@ -141,6 +154,12 @@ class SportsAthleteService {
                     (GENERAL_ADMIN.equals(role.roleName()) && role.scopeRef() == null)
                         || (COMPETITION_ADMIN.equals(role.roleName()) && role.scopeRef() != null));
     if (!allowed) {
+      throw new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
+    }
+  }
+
+  private static void requireGlobalAdmin(OperationalIdentity actor) {
+    if (!isGlobal(actor)) {
       throw new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
     }
   }

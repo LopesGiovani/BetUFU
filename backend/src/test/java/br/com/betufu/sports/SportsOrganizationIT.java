@@ -2,6 +2,7 @@ package br.com.betufu.sports;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -162,7 +163,7 @@ class SportsOrganizationIT {
     UUID competitionB = createCompetition("Competição B", "competicao-b");
     grantRole(identityId("competition-b-admin-sub"), "ADMINISTRADOR_COMPETICAO", competitionB);
     UUID orgId = createOrganization();
-    UUID teamId = createTeam();
+    UUID teamId = createTeam(orgId);
 
     mockMvc
         .perform(
@@ -212,6 +213,111 @@ class SportsOrganizationIT {
   }
 
   @Test
+  @DisplayName("Catalogo global e somente do administrador geral e a leitura respeita a competicao")
+  void listsOnlyReachableOrganizationsAndRejectsGlobalWritesForCompetitionAdmin() throws Exception {
+    UUID competitionB = createCompetition("Competicao B", "competicao-b");
+    grantRole(identityId("competition-b-admin-sub"), "ADMINISTRADOR_COMPETICAO", competitionB);
+    UUID editionB = createEdition(competitionB, "Edicao B", "edicao-b");
+    UUID sportB = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_sport (sport_id, name, slug) VALUES (?, ?, ?)",
+        sportB,
+        "Volei",
+        "volei");
+    jdbcTemplate.update(
+        "UPDATE public.sports_competition SET sport_id = ? WHERE competition_id = ?",
+        sportB,
+        competitionB);
+    UUID categoryB = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_category (category_id, edition_id, name, slug) VALUES (?, ?, ?, ?)",
+        categoryB,
+        editionB,
+        "Livre B",
+        "livre-b");
+
+    UUID organizationA = createOrganization("Org A", "org-a");
+    UUID organizationB = createOrganization("Org B", "org-b");
+    createTeam(organizationA);
+    createTeam(
+        editionB,
+        sportB,
+        categoryB,
+        organizationB,
+        "competition-b-admin-sub",
+        "Equipe B",
+        "equipe-b");
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/organizations")
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].organizationId").value(organizationA.toString()))
+        .andExpect(jsonPath("$[1]").doesNotExist());
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/organizations")
+                .with(oidcPrincipal("competition-b-admin-sub"))
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].organizationId").value(organizationB.toString()))
+        .andExpect(jsonPath("$[1]").doesNotExist());
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/organizations")
+                .with(oidcPrincipal("global-admin-sub"))
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].organizationId").value(organizationA.toString()))
+        .andExpect(jsonPath("$[1].organizationId").value(organizationB.toString()));
+
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/organizations")
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Nao permitido\",\"slug\":\"nao-permitido\"}"))
+        .andExpect(status().isForbidden());
+
+    mockMvc
+        .perform(
+            put("/api/v1/operations/sports/organizations/" + organizationA)
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(csrf())
+                .param("expectedLockVersion", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Nao permitido\",\"slug\":\"nao-permitido\"}"))
+        .andExpect(status().isForbidden());
+
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/organizations/" + organizationA + "/publish")
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(csrf())
+                .param("expectedLockVersion", "0"))
+        .andExpect(status().isForbidden());
+
+    Map<String, Object> organizationRow =
+        jdbcTemplate.queryForMap(
+            "SELECT name, status, lock_version FROM public.sports_organization WHERE organization_id = ?",
+            organizationA);
+    assertEquals("Org A", organizationRow.get("name"));
+    assertEquals("RASCUNHO", organizationRow.get("status"));
+    assertEquals(0L, organizationRow.get("lock_version"));
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM public.sports_organization WHERE slug = ?",
+            Integer.class,
+            "nao-permitido"));
+  }
+
+  @Test
   @DisplayName(
       "Favorito por organização usa FK publicada, permite remoção e não expõe favoriteTeamId")
   void savesOrganizationFavoriteOnlyWhenPublished() throws Exception {
@@ -249,55 +355,72 @@ class SportsOrganizationIT {
   }
 
   private UUID createOrganization() throws Exception {
+    return createOrganization("Atletica Engenharia", "atletica-engenharia");
+  }
+
+  private UUID createOrganization(String name, String slug) throws Exception {
     MvcResult result =
         mockMvc
             .perform(
                 post("/api/v1/operations/sports/organizations")
-                    .with(oidcPrincipal("competition-a-admin-sub"))
+                    .with(oidcPrincipal("global-admin-sub"))
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
-                    .content("{\"name\":\"Atlética Engenharia\",\"slug\":\"atletica-engenharia\"}"))
+                    .content("{\"name\":\"" + name + "\",\"slug\":\"" + slug + "\"}"))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.status").value("RASCUNHO"))
             .andReturn();
     return uuid(result, "organizationId");
   }
 
-  private UUID createTeam() throws Exception {
+  private UUID createTeam(UUID organizationId) throws Exception {
+    return createTeam(
+        editionA,
+        sportA,
+        categoryA,
+        organizationId,
+        "competition-a-admin-sub",
+        "Engenharia Futsal",
+        "engenharia-futsal");
+  }
+
+  private UUID createTeam(
+      UUID editionId,
+      UUID sportId,
+      UUID categoryId,
+      UUID organizationId,
+      String subject,
+      String name,
+      String slug)
+      throws Exception {
     MvcResult result =
         mockMvc
             .perform(
                 post("/api/v1/operations/sports/editions/"
-                        + editionA
+                        + editionId
                         + "/sports/"
-                        + sportA
+                        + sportId
                         + "/categories/"
-                        + categoryA
+                        + categoryId
                         + "/organizations/"
-                        + latestOrganizationId()
+                        + organizationId
                         + "/teams")
-                    .with(oidcPrincipal("competition-a-admin-sub"))
+                    .with(oidcPrincipal(subject))
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
-                    .content("{\"name\":\"Engenharia Futsal\",\"slug\":\"engenharia-futsal\"}"))
+                    .content("{\"name\":\"" + name + "\",\"slug\":\"" + slug + "\"}"))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.competitionId").value(competitionA.toString()))
             .andReturn();
     return uuid(result, "teamId");
-  }
-
-  private UUID latestOrganizationId() {
-    return jdbcTemplate.queryForObject(
-        "SELECT organization_id FROM public.sports_organization LIMIT 1", UUID.class);
   }
 
   private void publishOrganization(UUID organizationId) throws Exception {
     mockMvc
         .perform(
             post("/api/v1/operations/sports/organizations/" + organizationId + "/publish")
-                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(oidcPrincipal("global-admin-sub"))
                 .with(csrf())
                 .param("expectedLockVersion", "0"))
         .andExpect(status().isOk());

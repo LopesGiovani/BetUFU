@@ -1,6 +1,7 @@
 package br.com.betufu.sports.internal.athlete;
 
 import br.com.betufu.sports.internal.athlete.SportsAthleteModels.SportsAthleteSummary;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,6 +24,26 @@ class SportsAthleteRepository {
         "SELECT athlete_id, name, slug, status, lock_version "
             + "FROM public.sports_athlete ORDER BY lower(name), athlete_id",
         this::mapAthlete);
+  }
+
+  List<SportsAthleteSummary> findAthletesForCompetitions(List<UUID> competitionIds) {
+    if (competitionIds == null || competitionIds.isEmpty()) {
+      return List.of();
+    }
+    String inSql = String.join(",", Collections.nCopies(competitionIds.size(), "?"));
+    return jdbc.query(
+        "SELECT a.athlete_id, a.name, a.slug, a.status, a.lock_version "
+            + "FROM public.sports_athlete a "
+            + "WHERE EXISTS ("
+            + "SELECT 1 FROM public.sports_roster_member m "
+            + "JOIN public.sports_roster r ON r.roster_id = m.roster_id "
+            + "JOIN public.sports_team t ON t.team_id = r.team_id "
+            + "JOIN public.sports_edition e ON e.edition_id = t.edition_id "
+            + "WHERE m.athlete_id = a.athlete_id AND e.competition_id IN ("
+            + inSql
+            + ")) ORDER BY lower(a.name), a.athlete_id",
+        this::mapAthlete,
+        competitionIds.toArray());
   }
 
   Optional<SportsAthleteSummary> findAthlete(UUID athleteId) {

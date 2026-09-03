@@ -2,6 +2,10 @@ package br.com.betufu.sports.internal.organization;
 
 import br.com.betufu.sports.internal.organization.SportsOrganizationModels.SportsOrganizationSummary;
 import br.com.betufu.sports.internal.organization.SportsOrganizationModels.SportsTeamSummary;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,13 +27,26 @@ class SportsOrganizationRepository {
     return jdbc.query(
         "SELECT organization_id, name, slug, status, lock_version "
             + "FROM public.sports_organization ORDER BY lower(name), organization_id",
-        (rs, rowNum) ->
-            new SportsOrganizationSummary(
-                rs.getObject("organization_id", UUID.class),
-                rs.getString("name"),
-                rs.getString("slug"),
-                rs.getString("status"),
-                rs.getLong("lock_version")));
+        this::mapOrganization);
+  }
+
+  List<SportsOrganizationSummary> findOrganizations(Collection<UUID> competitionIds) {
+    if (competitionIds == null || competitionIds.isEmpty()) {
+      return List.of();
+    }
+    String placeholders = String.join(", ", Collections.nCopies(competitionIds.size(), "?"));
+    return jdbc.query(
+        "SELECT o.organization_id, o.name, o.slug, o.status, o.lock_version "
+            + "FROM public.sports_organization o "
+            + "WHERE EXISTS ("
+            + "SELECT 1 FROM public.sports_team t "
+            + "JOIN public.sports_edition e ON e.edition_id = t.edition_id "
+            + "WHERE t.organization_id = o.organization_id "
+            + "AND e.competition_id IN ("
+            + placeholders
+            + ")) ORDER BY lower(o.name), o.organization_id",
+        this::mapOrganization,
+        competitionIds.toArray());
   }
 
   Optional<SportsOrganizationSummary> findOrganization(UUID organizationId) {
@@ -194,6 +211,16 @@ class SportsOrganizationRepository {
         rs.getString("sport_name"),
         rs.getObject("category_id", UUID.class),
         rs.getString("category_name"),
+        rs.getString("name"),
+        rs.getString("slug"),
+        rs.getString("status"),
+        rs.getLong("lock_version"));
+  }
+
+  private SportsOrganizationSummary mapOrganization(ResultSet rs, int rowNum)
+      throws SQLException {
+    return new SportsOrganizationSummary(
+        rs.getObject("organization_id", UUID.class),
         rs.getString("name"),
         rs.getString("slug"),
         rs.getString("status"),

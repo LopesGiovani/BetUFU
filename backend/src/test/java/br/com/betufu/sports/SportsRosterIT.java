@@ -457,6 +457,9 @@ class SportsRosterIT {
   @Test
   @DisplayName("Operações de elenco rejeitam acesso fora do escopo da competição (IDOR)")
   void rejectsUnauthorizedOrCrossCompetitionAccess() throws Exception {
+    Integer rosterCountBefore =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster", Integer.class);
+
     // Administrador da competição B tenta atualizar elenco da equipe da competição A
     mockMvc
         .perform(
@@ -485,6 +488,16 @@ class SportsRosterIT {
                 .with(csrf())
                 .param("expectedLockVersion", "0"))
         .andExpect(status().isForbidden());
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/teams/" + teamA + "/roster/publication")
+                .with(oidcPrincipal("competition-b-admin-sub")))
+        .andExpect(status().isForbidden());
+
+    assertThat(
+            jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster", Integer.class))
+        .isEqualTo(rosterCountBefore);
   }
 
   @Test

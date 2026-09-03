@@ -245,7 +245,7 @@ class SportsRosterService {
     OperationalIdentity actor = resolve(issuer, subject);
     TeamContext context =
         repository.findTeamContext(teamId).orElseThrow(SportsRosterService::notFound);
-    requireCatalogAccess(actor);
+    requireWritableCompetition(actor, context.competitionId());
 
     PublicationHeader header =
         repository.findLatestPublicationHeader(teamId).orElseThrow(SportsRosterService::notFound);

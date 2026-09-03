@@ -210,6 +210,27 @@ class SportsAthleteIT {
 
     UUID athleteId = uuid(result, "athleteId");
 
+    // A ficha global nao pode ser alterada por administrador de competicao.
+    mockMvc
+        .perform(
+            put("/api/v1/operations/sports/athletes/" + athleteId)
+                .with(oidcPrincipal("competition-b-admin-sub"))
+                .with(csrf())
+                .param("expectedLockVersion", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Nao autorizado\",\"slug\":\"nao-autorizado\"}"))
+        .andExpect(status().isForbidden());
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT name FROM public.sports_athlete WHERE athlete_id = ?", String.class, athleteId))
+        .isEqualTo("Carlos Silva");
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT lock_version FROM public.sports_athlete WHERE athlete_id = ?",
+                Long.class,
+                athleteId))
+        .isZero();
+
     // 2. Prova direta de persistência do HMAC de 32 bytes e versão 1 no PostgreSQL
     byte[] hmacBytes =
         jdbcTemplate.queryForObject(
@@ -294,11 +315,31 @@ class SportsAthleteIT {
 
     UUID athleteId = uuid(result, "athleteId");
 
-    // Atualização bem-sucedida
     mockMvc
         .perform(
             put("/api/v1/operations/sports/athletes/" + athleteId)
                 .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(csrf())
+                .param("expectedLockVersion", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Nao autorizado\",\"slug\":\"nao-autorizado\"}"))
+        .andExpect(status().isForbidden());
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT name FROM public.sports_athlete WHERE athlete_id = ?", String.class, athleteId))
+        .isEqualTo("Nome Original");
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT lock_version FROM public.sports_athlete WHERE athlete_id = ?",
+                Long.class,
+                athleteId))
+        .isZero();
+
+    // Atualização bem-sucedida
+    mockMvc
+        .perform(
+            put("/api/v1/operations/sports/athletes/" + athleteId)
+                .with(oidcPrincipal("global-admin-sub"))
                 .with(csrf())
                 .param("expectedLockVersion", "0")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -311,7 +352,7 @@ class SportsAthleteIT {
     mockMvc
         .perform(
             put("/api/v1/operations/sports/athletes/" + athleteId)
-                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(oidcPrincipal("global-admin-sub"))
                 .with(csrf())
                 .param("expectedLockVersion", "0")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -322,7 +363,7 @@ class SportsAthleteIT {
     mockMvc
         .perform(
             post("/api/v1/operations/sports/athletes/" + athleteId + "/publish")
-                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(oidcPrincipal("global-admin-sub"))
                 .with(csrf())
                 .param("expectedLockVersion", "1"))
         .andExpect(status().isOk())
@@ -333,25 +374,50 @@ class SportsAthleteIT {
   @Test
   @DisplayName("Listagem de atletas retorna ordenado por nome e sem expor dados sensíveis")
   void listsAthletesWithoutSensitiveData() throws Exception {
-    mockMvc
-        .perform(
-            post("/api/v1/operations/sports/teams/" + teamA + "/athletes")
-                .with(oidcPrincipal("competition-a-admin-sub"))
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"name\":\"Zulmira Atleta\",\"slug\":\"zulmira-atleta\",\"matricula\":\"11111ABC\"}"))
-        .andExpect(status().isCreated());
+    UUID firstAthleteId =
+        uuid(
+            mockMvc
+                .perform(
+                    post("/api/v1/operations/sports/teams/" + teamA + "/athletes")
+                        .with(oidcPrincipal("competition-a-admin-sub"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            "{\"name\":\"Zulmira Atleta\",\"slug\":\"zulmira-atleta\",\"matricula\":\"11111ABC\"}"))
+                .andExpect(status().isCreated())
+                .andReturn(),
+            "athleteId");
 
-    mockMvc
-        .perform(
-            post("/api/v1/operations/sports/teams/" + teamA + "/athletes")
-                .with(oidcPrincipal("competition-a-admin-sub"))
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    "{\"name\":\"Ana Atleta\",\"slug\":\"ana-atleta\",\"matricula\":\"22222ABC\"}"))
-        .andExpect(status().isCreated());
+    UUID secondAthleteId =
+        uuid(
+            mockMvc
+                .perform(
+                    post("/api/v1/operations/sports/teams/" + teamA + "/athletes")
+                        .with(oidcPrincipal("competition-a-admin-sub"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(
+                            "{\"name\":\"Ana Atleta\",\"slug\":\"ana-atleta\",\"matricula\":\"22222ABC\"}"))
+                .andExpect(status().isCreated())
+                .andReturn(),
+            "athleteId");
+
+    UUID rosterId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_roster (roster_id, team_id, status) VALUES (?, ?, 'RASCUNHO')",
+        rosterId,
+        teamA);
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_roster_member (roster_id, athlete_id) VALUES (?, ?), (?, ?)",
+        rosterId,
+        firstAthleteId,
+        rosterId,
+        secondAthleteId);
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_athlete (athlete_id, name, slug, status) VALUES (?, ?, ?, 'PUBLICADO')",
+        UUID.randomUUID(),
+        "Atleta Somente Global",
+        "atleta-somente-global");
 
     mockMvc
         .perform(
@@ -359,12 +425,23 @@ class SportsAthleteIT {
                 .with(oidcPrincipal("competition-a-admin-sub"))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
         .andExpect(jsonPath("$[0].name").value("Ana Atleta"))
         .andExpect(jsonPath("$[1].name").value("Zulmira Atleta"))
         .andExpect(jsonPath("$[0].matricula").doesNotExist())
         .andExpect(jsonPath("$[0].matriculaHmac").doesNotExist())
         .andExpect(jsonPath("$[1].matricula").doesNotExist())
         .andExpect(jsonPath("$[1].matriculaHmac").doesNotExist());
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/athletes")
+                .with(oidcPrincipal("global-admin-sub"))
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(3))
+        .andExpect(jsonPath("$[1].name").value("Atleta Somente Global"))
+        .andExpect(jsonPath("$[2].name").value("Zulmira Atleta"));
   }
 
   private UUID createCompetition(String name, String slug) {

@@ -43,8 +43,20 @@ class SportsOrganizationService {
   }
 
   List<SportsOrganizationSummary> listOrganizations(String issuer, String subject) {
-    requireCatalogAccess(resolve(issuer, subject));
-    return repository.findOrganizations();
+    OperationalIdentity actor = resolve(issuer, subject);
+    requireCatalogAccess(actor);
+    if (isGlobal(actor)) {
+      return repository.findOrganizations();
+    }
+    List<UUID> competitionIds =
+        actor.roles().stream()
+            .filter(
+                role ->
+                    COMPETITION_ADMIN.equals(role.roleName()) && role.scopeRef() != null)
+            .map(role -> role.scopeRef())
+            .distinct()
+            .toList();
+    return repository.findOrganizations(competitionIds);
   }
 
   List<SportsTeamSummary> listTeams(String issuer, String subject, UUID competitionId) {
@@ -54,7 +66,7 @@ class SportsOrganizationService {
 
   SportsOrganizationSummary createOrganization(
       String issuer, String subject, NameSlugRequest request) {
-    requireCatalogAccess(resolve(issuer, subject));
+    requireGlobalCatalogAccess(resolve(issuer, subject));
     validateNameSlug(request);
     return transactions.execute(
         status ->
@@ -69,7 +81,7 @@ class SportsOrganizationService {
       NameSlugRequest request,
       Long expectedLockVersion) {
     requireExpected(expectedLockVersion);
-    requireCatalogAccess(resolve(issuer, subject));
+    requireGlobalCatalogAccess(resolve(issuer, subject));
     validateNameSlug(request);
     repository.findOrganization(organizationId).orElseThrow(SportsOrganizationService::notFound);
     updateOrConflict(
@@ -85,7 +97,7 @@ class SportsOrganizationService {
   SportsOrganizationSummary publishOrganization(
       String issuer, String subject, UUID organizationId, Long expectedLockVersion) {
     requireExpected(expectedLockVersion);
-    requireCatalogAccess(resolve(issuer, subject));
+    requireGlobalCatalogAccess(resolve(issuer, subject));
     repository.findOrganization(organizationId).orElseThrow(SportsOrganizationService::notFound);
     updateOrConflict(() -> repository.publishOrganization(organizationId, expectedLockVersion) > 0);
     return repository
@@ -182,6 +194,12 @@ class SportsOrganizationService {
                     (GENERAL_ADMIN.equals(role.roleName()) && role.scopeRef() == null)
                         || (COMPETITION_ADMIN.equals(role.roleName()) && role.scopeRef() != null));
     if (!allowed) {
+      throw new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
+    }
+  }
+
+  private static void requireGlobalCatalogAccess(OperationalIdentity actor) {
+    if (!isGlobal(actor)) {
       throw new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
     }
   }

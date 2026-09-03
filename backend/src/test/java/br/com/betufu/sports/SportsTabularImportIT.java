@@ -384,6 +384,48 @@ class SportsTabularImportIT {
                 .with(csrf())
                 .with(oidcLoginUser("comp-b-admin-sub", "comp_b_admin")))
         .andExpect(status().isForbidden());
+
+    MvcResult validateResult =
+        mockMvc
+            .perform(
+                multipart("/api/v1/operations/sports/editions/" + editionA + "/tabular-import/validate")
+                    .file(file)
+                    .with(csrf())
+                    .with(oidcLoginUser("comp-a-admin-sub", "comp_a_admin")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.readyToImport").value(true))
+            .andReturn();
+
+    String importId =
+        objectMapper
+            .readTree(validateResult.getResponse().getContentAsString())
+            .get("importId")
+            .asText();
+    Integer athleteCountBefore =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_athlete", Integer.class);
+    Integer rosterCountBefore =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster", Integer.class);
+    Integer memberCountBefore =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster_member", Integer.class);
+
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/editions/" + editionA + "/tabular-import/commit")
+                .param("importId", importId)
+                .with(csrf())
+                .with(oidcLoginUser("comp-b-admin-sub", "comp_b_admin")))
+        .andExpect(status().isForbidden());
+
+    assertThat(
+            jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_athlete", Integer.class))
+        .isEqualTo(athleteCountBefore);
+    assertThat(
+            jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster", Integer.class))
+        .isEqualTo(rosterCountBefore);
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.sports_roster_member", Integer.class))
+        .isEqualTo(memberCountBefore);
   }
 
   @Test

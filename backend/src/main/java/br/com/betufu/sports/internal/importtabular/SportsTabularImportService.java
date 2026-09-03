@@ -357,7 +357,8 @@ public class SportsTabularImportService {
     ValidatedBatch batch = validatedBatches.get(importId);
     if (batch == null
         || Instant.now().isAfter(batch.expiresAt())
-        || !batch.editionId().equals(editionId)) {
+        || !batch.editionId().equals(editionId)
+        || !batch.competitionId().equals(competitionId)) {
       throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
     }
 
