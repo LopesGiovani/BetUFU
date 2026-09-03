@@ -94,7 +94,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
    */
   private DiagnosticComponent probeApi() {
     return new DiagnosticComponent(
-        DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API respondendo normalmente");
+        DiagnosticComponent.API, DiagnosticStatus.UP, "API respondendo normalmente");
   }
 
   private DiagnosticComponent probeBffSession() {
@@ -109,7 +109,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
         }
       }
       return new DiagnosticComponent(
-          DiagnosticComponent.BFF_SESSION, DiagnosticStatus.AVAILABLE, "Sessão BFF operacional");
+          DiagnosticComponent.BFF_SESSION, DiagnosticStatus.UP, "Sessão BFF operacional");
     } catch (Exception e) {
       log.warn("BFF session probe failure: {}", LogSanitizer.sanitize(e.getMessage()));
       return new DiagnosticComponent(
@@ -129,7 +129,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
       if (reg != null) {
         return new DiagnosticComponent(
             DiagnosticComponent.KEYCLOAK,
-            DiagnosticStatus.AVAILABLE,
+            DiagnosticStatus.UP,
             "Provedor de autenticação disponível");
       }
       return new DiagnosticComponent(
@@ -139,9 +139,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
     } catch (Exception e) {
       log.warn("Keycloak probe failure: {}", LogSanitizer.sanitize(e.getMessage()));
       return new DiagnosticComponent(
-          DiagnosticComponent.KEYCLOAK,
-          DiagnosticStatus.UNAVAILABLE,
-          "Falha na comunicação com provedor");
+          DiagnosticComponent.KEYCLOAK, DiagnosticStatus.DOWN, "Falha na comunicação com provedor");
     }
   }
 
@@ -156,9 +154,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
       var status = postgresAuthorityProbe.checkAuthority();
       if (status.authoritative()) {
         return new DiagnosticComponent(
-            DiagnosticComponent.POSTGRESQL,
-            DiagnosticStatus.AVAILABLE,
-            "PostgreSQL 18 operacional");
+            DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UP, "PostgreSQL 18 operacional");
       }
       return new DiagnosticComponent(
           DiagnosticComponent.POSTGRESQL,
@@ -168,7 +164,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
       log.warn("Postgres probe failure: {}", LogSanitizer.sanitize(e.getMessage()));
       return new DiagnosticComponent(
           DiagnosticComponent.POSTGRESQL,
-          DiagnosticStatus.UNAVAILABLE,
+          DiagnosticStatus.DOWN,
           "Falha na conexão com banco de dados");
     }
   }
@@ -182,7 +178,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
       var status = redisAuxiliaryProbe.checkAuxiliaryStatus();
       if (status.auxiliaryHealthy()) {
         return new DiagnosticComponent(
-            DiagnosticComponent.REDIS, DiagnosticStatus.AVAILABLE, "Cache e sessões operacionais");
+            DiagnosticComponent.REDIS, DiagnosticStatus.UP, "Cache e sessões operacionais");
       }
       return new DiagnosticComponent(
           DiagnosticComponent.REDIS,
@@ -191,7 +187,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
     } catch (Exception e) {
       log.warn("Redis probe failure: {}", LogSanitizer.sanitize(e.getMessage()));
       return new DiagnosticComponent(
-          DiagnosticComponent.REDIS, DiagnosticStatus.UNAVAILABLE, "Falha na conexão com cache");
+          DiagnosticComponent.REDIS, DiagnosticStatus.DOWN, "Falha na conexão com cache");
     }
   }
 
@@ -207,7 +203,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
       if (status.configured()) {
         return new DiagnosticComponent(
             DiagnosticComponent.OBJECT_STORAGE,
-            DiagnosticStatus.AVAILABLE,
+            DiagnosticStatus.UP,
             "Armazenamento de objetos operacional");
       }
       return new DiagnosticComponent(
@@ -218,7 +214,7 @@ public class PlatformDependencyProbes implements AutoCloseable {
       log.warn("Object storage probe failure: {}", LogSanitizer.sanitize(e.getMessage()));
       return new DiagnosticComponent(
           DiagnosticComponent.OBJECT_STORAGE,
-          DiagnosticStatus.UNAVAILABLE,
+          DiagnosticStatus.DOWN,
           "Falha no armazenamento de objetos");
     }
   }

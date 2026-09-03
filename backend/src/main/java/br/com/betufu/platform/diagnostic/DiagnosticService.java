@@ -30,7 +30,7 @@ public class DiagnosticService {
 
   /**
    * Aggregates exactly six components into a safe, ordered DiagnosticResponse. Computes the overall
-   * status: AVAILABLE only if all 6 are AVAILABLE; DEGRADED otherwise.
+   * status: UP only if all 6 are UP; DEGRADED otherwise.
    */
   public DiagnosticResponse aggregate(List<DiagnosticComponent> rawComponents) {
     if (rawComponents == null || rawComponents.size() != 6) {
@@ -84,35 +84,35 @@ public class DiagnosticService {
   }
 
   private DiagnosticStatus computeOverallStatus(List<DiagnosticComponent> components) {
-    boolean allAvailable = true;
-    boolean postgresUnavailable = false;
-    boolean keycloakUnavailable = false;
-    long unavailableCount = 0;
+    boolean allUp = true;
+    boolean postgresDown = false;
+    boolean keycloakDown = false;
+    long downCount = 0;
 
     for (DiagnosticComponent c : components) {
-      if (c.status() != DiagnosticStatus.AVAILABLE) {
-        allAvailable = false;
+      if (c.status() != DiagnosticStatus.UP) {
+        allUp = false;
       }
-      if (c.status() == DiagnosticStatus.UNAVAILABLE) {
-        unavailableCount++;
+      if (c.status() == DiagnosticStatus.DOWN) {
+        downCount++;
         if (DiagnosticComponent.POSTGRESQL.equals(c.name())) {
-          postgresUnavailable = true;
+          postgresDown = true;
         }
         if (DiagnosticComponent.KEYCLOAK.equals(c.name())) {
-          keycloakUnavailable = true;
+          keycloakDown = true;
         }
       }
     }
 
-    if (allAvailable) {
-      return DiagnosticStatus.AVAILABLE;
+    if (allUp) {
+      return DiagnosticStatus.UP;
     }
 
     // Regra semântica da BETUFU: PostgreSQL é a fonte autoritativa de dados (01-10) e Keycloak
     // é a autoridade de identidade. Sem banco, sem login, ou com 2+ dependências indisponíveis,
-    // a plataforma fica globalmente UNAVAILABLE.
-    if (postgresUnavailable || keycloakUnavailable || unavailableCount >= 2) {
-      return DiagnosticStatus.UNAVAILABLE;
+    // a plataforma fica globalmente DOWN.
+    if (postgresDown || keycloakDown || downCount >= 2) {
+      return DiagnosticStatus.DOWN;
     }
 
     return DiagnosticStatus.DEGRADED;
@@ -120,19 +120,15 @@ public class DiagnosticService {
 
   private String computeSummary(
       DiagnosticStatus overallStatus, List<DiagnosticComponent> components) {
-    if (overallStatus == DiagnosticStatus.AVAILABLE) {
+    if (overallStatus == DiagnosticStatus.UP) {
       return "Todos os sistemas operacionais";
     }
-    if (overallStatus == DiagnosticStatus.UNAVAILABLE) {
-      long unavailableCount =
-          components.stream().filter(c -> c.status() == DiagnosticStatus.UNAVAILABLE).count();
-      return "Plataforma indisponível ("
-          + unavailableCount
-          + " dependência(s) crítica(s) fora do ar)";
+    if (overallStatus == DiagnosticStatus.DOWN) {
+      long downCount = components.stream().filter(c -> c.status() == DiagnosticStatus.DOWN).count();
+      return "Plataforma indisponível (" + downCount + " dependência(s) crítica(s) fora do ar)";
     }
-    long nonAvailableCount =
-        components.stream().filter(c -> c.status() != DiagnosticStatus.AVAILABLE).count();
-    return nonAvailableCount + " serviço(s) operando em modo degradado";
+    long nonUpCount = components.stream().filter(c -> c.status() != DiagnosticStatus.UP).count();
+    return nonUpCount + " serviço(s) operando em modo degradado";
   }
 
   private String resolveCorrelationId() {

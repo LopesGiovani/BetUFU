@@ -30,29 +30,25 @@ class DiagnosticServiceTest {
     diagnosticService = new DiagnosticService(fixedClock, mockEnvironment);
   }
 
-  private List<DiagnosticComponent> createAllAvailableComponents() {
+  private List<DiagnosticComponent> createAllUpComponents() {
     return List.of(
+        new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.UP, "API respondendo"),
         new DiagnosticComponent(
-            DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API respondendo"),
+            DiagnosticComponent.BFF_SESSION, DiagnosticStatus.UP, "Sessão ativa"),
+        new DiagnosticComponent(DiagnosticComponent.KEYCLOAK, DiagnosticStatus.UP, "Discovery OK"),
         new DiagnosticComponent(
-            DiagnosticComponent.BFF_SESSION, DiagnosticStatus.AVAILABLE, "Sessão ativa"),
+            DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UP, "PostgreSQL 18 OK"),
+        new DiagnosticComponent(DiagnosticComponent.REDIS, DiagnosticStatus.UP, "Redis PONG"),
         new DiagnosticComponent(
-            DiagnosticComponent.KEYCLOAK, DiagnosticStatus.AVAILABLE, "Discovery OK"),
-        new DiagnosticComponent(
-            DiagnosticComponent.POSTGRESQL, DiagnosticStatus.AVAILABLE, "PostgreSQL 18 OK"),
-        new DiagnosticComponent(
-            DiagnosticComponent.REDIS, DiagnosticStatus.AVAILABLE, "Redis PONG"),
-        new DiagnosticComponent(
-            DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.AVAILABLE, "Bucket OK"));
+            DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.UP, "Bucket OK"));
   }
 
   @Test
-  @DisplayName(
-      "C1: Resposta saudável possui exatamente seis componentes ordenados e status AVAILABLE")
-  void allAvailableReturnsHealthyResponse() {
-    DiagnosticResponse response = diagnosticService.aggregate(createAllAvailableComponents());
+  @DisplayName("C1: Resposta saudável possui exatamente seis componentes ordenados e status UP")
+  void allUpReturnsHealthyResponse() {
+    DiagnosticResponse response = diagnosticService.aggregate(createAllUpComponents());
 
-    assertThat(response.status()).isEqualTo(DiagnosticStatus.AVAILABLE);
+    assertThat(response.status()).isEqualTo(DiagnosticStatus.UP);
     assertThat(response.summary()).isEqualTo("Todos os sistemas operacionais");
     assertThat(response.timestamp()).isEqualTo(FIXED_INSTANT);
     assertThat(response.environment()).isEqualTo("dev,runtime");
@@ -72,17 +68,17 @@ class DiagnosticServiceTest {
   void partialAuxiliaryFailureReturnsDegradedOverallStatus() {
     List<DiagnosticComponent> components =
         List.of(
-            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API OK"),
+            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.UP, "API OK"),
             new DiagnosticComponent(
                 DiagnosticComponent.BFF_SESSION, DiagnosticStatus.DEGRADED, "Sessão degradada"),
             new DiagnosticComponent(
-                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.AVAILABLE, "Keycloak OK"),
+                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.UP, "Keycloak OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.AVAILABLE, "PostgreSQL OK"),
+                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UP, "PostgreSQL OK"),
             new DiagnosticComponent(
                 DiagnosticComponent.REDIS, DiagnosticStatus.DEGRADED, "Redis degradado"),
             new DiagnosticComponent(
-                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.AVAILABLE, "S3 OK"));
+                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.UP, "S3 OK"));
 
     DiagnosticResponse response = diagnosticService.aggregate(components);
 
@@ -92,73 +88,70 @@ class DiagnosticServiceTest {
   }
 
   @Test
-  @DisplayName("C3 & P2: Falha em PostgreSQL (autoridade primária) torna a plataforma UNAVAILABLE")
-  void postgresUnavailableMakesPlatformUnavailable() {
+  @DisplayName("C3 & P2: Falha em PostgreSQL (autoridade primária) torna a plataforma DOWN")
+  void postgresDownMakesPlatformDown() {
     List<DiagnosticComponent> components =
         List.of(
-            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API OK"),
+            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.UP, "API OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.BFF_SESSION, DiagnosticStatus.AVAILABLE, "Sessão OK"),
+                DiagnosticComponent.BFF_SESSION, DiagnosticStatus.UP, "Sessão OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.AVAILABLE, "Keycloak OK"),
+                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.UP, "Keycloak OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UNAVAILABLE, "PostgreSQL offline"),
+                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.DOWN, "PostgreSQL offline"),
+            new DiagnosticComponent(DiagnosticComponent.REDIS, DiagnosticStatus.UP, "Redis OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.REDIS, DiagnosticStatus.AVAILABLE, "Redis OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.AVAILABLE, "S3 OK"));
+                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.UP, "S3 OK"));
 
     DiagnosticResponse response = diagnosticService.aggregate(components);
 
-    assertThat(response.status()).isEqualTo(DiagnosticStatus.UNAVAILABLE);
+    assertThat(response.status()).isEqualTo(DiagnosticStatus.DOWN);
+    assertThat(response.summary()).contains("Plataforma indisponível");
+  }
+
+  @Test
+  @DisplayName("C3 & P2: Falha em Keycloak (autoridade de identidade) torna a plataforma DOWN")
+  void keycloakDownMakesPlatformDown() {
+    List<DiagnosticComponent> components =
+        List.of(
+            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.UP, "API OK"),
+            new DiagnosticComponent(
+                DiagnosticComponent.BFF_SESSION, DiagnosticStatus.UP, "Sessão OK"),
+            new DiagnosticComponent(
+                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.DOWN, "Keycloak offline"),
+            new DiagnosticComponent(
+                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UP, "PostgreSQL OK"),
+            new DiagnosticComponent(DiagnosticComponent.REDIS, DiagnosticStatus.UP, "Redis OK"),
+            new DiagnosticComponent(
+                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.UP, "S3 OK"));
+
+    DiagnosticResponse response = diagnosticService.aggregate(components);
+
+    assertThat(response.status()).isEqualTo(DiagnosticStatus.DOWN);
     assertThat(response.summary()).contains("Plataforma indisponível");
   }
 
   @Test
   @DisplayName(
-      "C3 & P2: Falha em Keycloak (autoridade de identidade) torna a plataforma UNAVAILABLE")
-  void keycloakUnavailableMakesPlatformUnavailable() {
+      "C3: Falha em múltiplas dependências externas (>= 2 indisponíveis) resulta em status geral DOWN")
+  void multipleFailuresReturnDownOverallStatus() {
     List<DiagnosticComponent> components =
         List.of(
-            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.BFF_SESSION, DiagnosticStatus.AVAILABLE, "Sessão OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.UNAVAILABLE, "Keycloak offline"),
-            new DiagnosticComponent(
-                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.AVAILABLE, "PostgreSQL OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.REDIS, DiagnosticStatus.AVAILABLE, "Redis OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.AVAILABLE, "S3 OK"));
-
-    DiagnosticResponse response = diagnosticService.aggregate(components);
-
-    assertThat(response.status()).isEqualTo(DiagnosticStatus.UNAVAILABLE);
-    assertThat(response.summary()).contains("Plataforma indisponível");
-  }
-
-  @Test
-  @DisplayName(
-      "C3: Falha em múltiplas dependências externas (>= 2 indisponíveis) resulta em status geral UNAVAILABLE")
-  void multipleFailuresReturnUnavailableOverallStatus() {
-    List<DiagnosticComponent> components =
-        List.of(
-            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API OK"),
+            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.UP, "API OK"),
             new DiagnosticComponent(
                 DiagnosticComponent.BFF_SESSION, DiagnosticStatus.DEGRADED, "Sessão degradada"),
             new DiagnosticComponent(
-                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.AVAILABLE, "Keycloak OK"),
+                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.UP, "Keycloak OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.AVAILABLE, "PostgreSQL OK"),
+                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UP, "PostgreSQL OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.REDIS, DiagnosticStatus.UNAVAILABLE, "Redis offline"),
+                DiagnosticComponent.REDIS, DiagnosticStatus.DOWN, "Redis offline"),
             new DiagnosticComponent(
-                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.UNAVAILABLE, "S3 offline"));
+                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.DOWN, "S3 offline"));
 
     DiagnosticResponse response = diagnosticService.aggregate(components);
 
-    assertThat(response.status()).isEqualTo(DiagnosticStatus.UNAVAILABLE);
+    assertThat(response.status()).isEqualTo(DiagnosticStatus.DOWN);
     assertThat(response.summary())
         .contains("Plataforma indisponível (2 dependência(s) crítica(s) fora do ar)");
     assertThat(response.components()).hasSize(6);
@@ -170,16 +163,13 @@ class DiagnosticServiceTest {
     List<DiagnosticComponent> reverseComponents =
         List.of(
             new DiagnosticComponent(
-                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.AVAILABLE, "S3 OK"),
+                DiagnosticComponent.OBJECT_STORAGE, DiagnosticStatus.UP, "S3 OK"),
+            new DiagnosticComponent(DiagnosticComponent.REDIS, DiagnosticStatus.UP, "Redis OK"),
+            new DiagnosticComponent(DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UP, "PG OK"),
+            new DiagnosticComponent(DiagnosticComponent.KEYCLOAK, DiagnosticStatus.UP, "KC OK"),
             new DiagnosticComponent(
-                DiagnosticComponent.REDIS, DiagnosticStatus.AVAILABLE, "Redis OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.AVAILABLE, "PG OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.KEYCLOAK, DiagnosticStatus.AVAILABLE, "KC OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.BFF_SESSION, DiagnosticStatus.AVAILABLE, "Session OK"),
-            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API OK"));
+                DiagnosticComponent.BFF_SESSION, DiagnosticStatus.UP, "Session OK"),
+            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.UP, "API OK"));
 
     DiagnosticResponse response = diagnosticService.aggregate(reverseComponents);
 
@@ -194,15 +184,14 @@ class DiagnosticServiceTest {
   void incompleteOrInvalidComponentsListThrowsException() {
     List<DiagnosticComponent> incomplete =
         List.of(
-            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.AVAILABLE, "API OK"),
-            new DiagnosticComponent(
-                DiagnosticComponent.POSTGRESQL, DiagnosticStatus.AVAILABLE, "PG OK"));
+            new DiagnosticComponent(DiagnosticComponent.API, DiagnosticStatus.UP, "API OK"),
+            new DiagnosticComponent(DiagnosticComponent.POSTGRESQL, DiagnosticStatus.UP, "PG OK"));
 
     assertThatThrownBy(() -> diagnosticService.aggregate(incomplete))
         .isInstanceOf(IllegalArgumentException.class);
 
     assertThatThrownBy(
-            () -> new DiagnosticComponent("ComponenteInvalido", DiagnosticStatus.AVAILABLE, "Desc"))
+            () -> new DiagnosticComponent("ComponenteInvalido", DiagnosticStatus.UP, "Desc"))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -212,7 +201,7 @@ class DiagnosticServiceTest {
     String testCorrId = "corr-test-123456";
     MDC.put("correlationId", testCorrId);
 
-    DiagnosticResponse response = diagnosticService.aggregate(createAllAvailableComponents());
+    DiagnosticResponse response = diagnosticService.aggregate(createAllUpComponents());
     assertThat(response.correlationId()).isEqualTo(testCorrId);
   }
 

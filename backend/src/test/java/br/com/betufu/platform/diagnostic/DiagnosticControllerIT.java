@@ -42,6 +42,8 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Prova os tres eixos que se cruzam no endpoint de diagnostico: profile, autenticacao e paridade
@@ -59,6 +61,7 @@ class DiagnosticControllerIT {
 
   private static final String DIAGNOSTIC_PATH = "/api/v1/diagnostic";
   private static final String ROLES_CLAIM = "betufu_roles";
+  private static final ObjectMapper JSON = new ObjectMapper();
 
   /** O mapper real da Task 1, para que o IT prove o handoff e nao apenas a regra. */
   private static final OidcTechnicalAuthorityMapper MAPPER = new OidcTechnicalAuthorityMapper();
@@ -213,8 +216,14 @@ class DiagnosticControllerIT {
           mockMvc().perform(apiGet().with(principalWithRoles(List.of("TECHNICAL")))).andReturn();
 
       assertThat(result.getResponse().getStatus()).isEqualTo(200);
-      assertThat(result.getResponse().getContentAsString())
-          .contains("\"status\"", "\"components\"", "\"correlationId\"");
+      JsonNode body = JSON.readTree(result.getResponse().getContentAsString());
+      assertThat(body.path("status").asText()).isIn("UP", "DEGRADED", "DOWN");
+      assertThat(body.path("components").isArray()).isTrue();
+      assertThat(body.path("components").size()).isEqualTo(6);
+      for (JsonNode component : body.path("components")) {
+        assertThat(component.path("status").asText()).isIn("UP", "DEGRADED", "DOWN");
+      }
+      assertThat(body.has("correlationId")).isTrue();
     }
 
     @Test

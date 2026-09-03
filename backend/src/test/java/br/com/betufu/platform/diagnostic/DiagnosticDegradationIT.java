@@ -68,8 +68,8 @@ class DiagnosticDegradationIT {
 
   @Test
   @DisplayName(
-      "D-04 & P2: Falha em PostgreSQL torna plataforma UNAVAILABLE mas preserva os outros cinco componentes")
-  void postgresFailureProducesUnavailableResponsePreservingOtherComponents() {
+      "D-04 & P2: Falha em PostgreSQL torna plataforma DOWN mas preserva os outros cinco componentes")
+  void postgresFailureProducesDownResponsePreservingOtherComponents() {
     PostgresAuthorityProbe failingPostgres = mock(PostgresAuthorityProbe.class);
     when(failingPostgres.checkAuthority())
         .thenThrow(
@@ -95,29 +95,27 @@ class DiagnosticDegradationIT {
       List<DiagnosticComponent> components = probes.probeAll();
       DiagnosticResponse response = diagnosticService.aggregate(components);
 
-      // Overall status is UNAVAILABLE because PostgreSQL is the authoritative data source (01-10)
-      assertThat(response.status()).isEqualTo(DiagnosticStatus.UNAVAILABLE);
+      // Overall status is DOWN because PostgreSQL is the authoritative data source (01-10)
+      assertThat(response.status()).isEqualTo(DiagnosticStatus.DOWN);
       assertThat(response.components()).hasSize(6);
 
-      // PostgreSQL is UNAVAILABLE and contains NO leaked topology or secrets
+      // PostgreSQL is DOWN and contains NO leaked topology or secrets
       DiagnosticComponent pgComponent =
           response.components().stream()
               .filter(c -> DiagnosticComponent.POSTGRESQL.equals(c.name()))
               .findFirst()
               .orElseThrow();
-      assertThat(pgComponent.status()).isEqualTo(DiagnosticStatus.UNAVAILABLE);
+      assertThat(pgComponent.status()).isEqualTo(DiagnosticStatus.DOWN);
       assertThat(pgComponent.description())
           .doesNotContain("10.0.0.12")
           .doesNotContain("5432")
           .doesNotContain("super_secret_db_pass")
           .doesNotContain("RuntimeException");
 
-      // The remaining 5 components are healthy (AVAILABLE)
-      long availableCount =
-          response.components().stream()
-              .filter(c -> c.status() == DiagnosticStatus.AVAILABLE)
-              .count();
-      assertThat(availableCount).isEqualTo(5);
+      // The remaining 5 components are healthy (UP)
+      long upCount =
+          response.components().stream().filter(c -> c.status() == DiagnosticStatus.UP).count();
+      assertThat(upCount).isEqualTo(5);
     }
   }
 
@@ -158,7 +156,7 @@ class DiagnosticDegradationIT {
               .filter(c -> DiagnosticComponent.REDIS.equals(c.name()))
               .findFirst()
               .orElseThrow();
-      assertThat(redisComp.status()).isEqualTo(DiagnosticStatus.UNAVAILABLE);
+      assertThat(redisComp.status()).isEqualTo(DiagnosticStatus.DOWN);
       assertThat(redisComp.description())
           .doesNotContain("127.0.0.1")
           .doesNotContain("6379")
@@ -176,8 +174,8 @@ class DiagnosticDegradationIT {
   }
 
   @Test
-  @DisplayName("D-04 & P1: Falha em Keycloak e Storage produz status geral UNAVAILABLE")
-  void keycloakAndStorageFailuresProduceUnavailableOverallStatus() {
+  @DisplayName("D-04 & P1: Falha em Keycloak e Storage produz status geral DOWN")
+  void keycloakAndStorageFailuresProduceDownOverallStatus() {
     PostgresAuthorityProbe healthyPostgres = mock(PostgresAuthorityProbe.class);
     when(healthyPostgres.checkAuthority())
         .thenReturn(new PostgresAuthorityProbe.PostgresAuthorityStatus(true, 18, 1));
@@ -203,15 +201,13 @@ class DiagnosticDegradationIT {
       List<DiagnosticComponent> components = probes.probeAll();
       DiagnosticResponse response = diagnosticService.aggregate(components);
 
-      // With Keycloak (identity) UNAVAILABLE and Storage UNAVAILABLE, overall status is UNAVAILABLE
-      assertThat(response.status()).isEqualTo(DiagnosticStatus.UNAVAILABLE);
+      // With Keycloak (identity) DOWN and Storage DOWN, overall status is DOWN
+      assertThat(response.status()).isEqualTo(DiagnosticStatus.DOWN);
       assertThat(response.summary()).contains("Plataforma indisponível");
 
-      long unavailableCount =
-          response.components().stream()
-              .filter(c -> c.status() == DiagnosticStatus.UNAVAILABLE)
-              .count();
-      assertThat(unavailableCount).isEqualTo(2);
+      long downCount =
+          response.components().stream().filter(c -> c.status() == DiagnosticStatus.DOWN).count();
+      assertThat(downCount).isEqualTo(2);
     }
   }
 }
