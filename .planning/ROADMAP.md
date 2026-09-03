@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 21/27 plans executed; 6 gap-closure plans pending
+**Plans**: 22/27 plans executed; 5 gap-closure plans pending
 
 Plans:
 **Wave 1**
@@ -338,9 +338,9 @@ Plans:
 
 - [x] 03-21-PLAN.md — substituir relação singular por associação N:N de competições e modalidades; implementação e provas locais concluídas
 
-**Wave 22** *(gap closure; depends on 03-21; implementation pending)*
+**Wave 22** *(gap closure; depends on 03-21; implemented locally, integration pending)*
 
-- [ ] 03-22-PLAN.md — aceitar formato GENERIC sem simular regras esportivas ausentes
+- [x] 03-22-PLAN.md — aceitar formato GENERIC sem simular regras esportivas ausentes; implementacao, verificacoes e candidato aprovados concluidos
 
 **Wave 23** *(gap closure; depends on 03-22; implementation pending)*
 
