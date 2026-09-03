@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+echo "[pre-commit] Verificando lint do frontend..."
+npm --prefix frontend run lint
+
+echo "[pre-commit] Verificando formatacao do backend..."
+node scripts/maven.mjs -f backend/pom.xml spotless:check
