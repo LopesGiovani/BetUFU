@@ -178,6 +178,18 @@ class SportsPublicViewIT {
         sportId,
         "Futsal",
         "futsal");
+    UUID secondSportId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_sport (sport_id, name, slug, status) VALUES (?, ?, ?, 'ATIVA')",
+        secondSportId,
+        "Basquete",
+        "basquete");
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) VALUES (?, ?), (?, ?)",
+        competitionId,
+        sportId,
+        competitionId,
+        secondSportId);
 
     categoryId = UUID.randomUUID();
     jdbcTemplate.update(
@@ -408,6 +420,9 @@ class SportsPublicViewIT {
         .andExpect(jsonPath("$.competitionId").value(competitionId.toString()))
         .andExpect(jsonPath("$.name").value("Olimpíada UFU 2026"))
         .andExpect(jsonPath("$.slug").value("olimpiada-ufu-2026"))
+        .andExpect(jsonPath("$.sports.length()").value(2))
+        .andExpect(jsonPath("$.sports[0].name").value("Basquete"))
+        .andExpect(jsonPath("$.sports[1].name").value("Futsal"))
         .andExpect(jsonPath("$.editions.length()").value(1))
         .andExpect(jsonPath("$.editions[0].name").value("Edição 2026"))
         .andExpect(jsonPath("$.categories.length()").value(1))

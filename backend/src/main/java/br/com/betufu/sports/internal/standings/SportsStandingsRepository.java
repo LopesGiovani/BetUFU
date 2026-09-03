@@ -525,12 +525,15 @@ class SportsStandingsRepository {
     return publicationId;
   }
 
-  boolean catalogEntitiesExist(UUID editionId, UUID sportId, UUID categoryId, UUID phaseId) {
+  boolean catalogEntitiesExist(
+      UUID competitionId, UUID editionId, UUID sportId, UUID categoryId, UUID phaseId) {
     if (sportId != null) {
       Integer count =
           jdbc.queryForObject(
-              "SELECT count(*) FROM public.sports_sport WHERE sport_id = ?",
+              "SELECT count(*) FROM public.sports_competition_sport "
+                  + "WHERE competition_id = ? AND sport_id = ?",
               Integer.class,
+              competitionId,
               sportId);
       if (count == null || count == 0) {
         return false;

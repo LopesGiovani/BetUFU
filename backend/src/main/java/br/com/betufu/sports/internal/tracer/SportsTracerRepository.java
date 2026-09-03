@@ -105,13 +105,15 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
     return jdbcTemplate
         .query(
             "SELECT e.edition_id, e.competition_id, e.name AS edition_name, "
-                + "c.name AS competition_name, c.sport_id AS competition_sport_id, "
+                + "c.name AS competition_name, "
                 + "s.sport_id, s.name AS sport_name, cat.category_id, cat.name AS category_name, "
                 + "ph.phase_id, ph.name AS phase_name, v.venue_id, v.name AS venue_name, "
                 + "vs.venue_space_id, vs.name AS venue_space_name "
                 + "FROM public.sports_edition e "
                 + "JOIN public.sports_competition c ON c.competition_id = e.competition_id "
-                + "LEFT JOIN public.sports_sport s ON s.sport_id = c.sport_id AND s.sport_id = ? "
+                + "LEFT JOIN public.sports_competition_sport cs "
+                + "ON cs.competition_id = c.competition_id AND cs.sport_id = ? "
+                + "LEFT JOIN public.sports_sport s ON s.sport_id = cs.sport_id "
                 + "LEFT JOIN public.sports_category cat ON cat.category_id = ? AND cat.edition_id = e.edition_id "
                 + "LEFT JOIN public.sports_phase ph ON ph.phase_id = ? AND ph.edition_id = e.edition_id "
                 + "AND ph.category_id = cat.category_id "
@@ -125,7 +127,6 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
                         rs.getObject("competition_id", UUID.class),
                         rs.getString("competition_name"),
                         rs.getString("edition_name")),
-                    rs.getObject("competition_sport_id", UUID.class),
                     rs.getObject("sport_id", UUID.class),
                     rs.getString("sport_name"),
                     rs.getObject("category_id", UUID.class),
@@ -596,7 +597,6 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
 
   record EventCatalogScope(
       EditionScope edition,
-      UUID competitionSportId,
       UUID sportId,
       String sportName,
       UUID categoryId,

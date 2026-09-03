@@ -401,7 +401,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // o perfil publico esportivo e os dois modelos de leitura/atualizacao.
 // 1BE6... foi aprovado literalmente pelo responsavel na Wave 16 (03-15); acrescenta
 // o cliente owner/public de foto processada e seu modelo de metadados.
-export const APPROVED_GENERATED_DIGEST = '1BE6BAB88EA2F208A38BE115E3CB4D9B0DA2EBB8E04FBF038FD122E5A2B43F27';
+// D53E... foi aprovado literalmente pelo responsavel no 03-21; troca os campos
+// singulares de modalidade pela colecao N:N sem alterar a allowlist de caminhos.
+export const APPROVED_GENERATED_DIGEST = 'D53E38AE2F7CE539B0610694480E158535697ED5E83FB52C4A4C2309B72228DC';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

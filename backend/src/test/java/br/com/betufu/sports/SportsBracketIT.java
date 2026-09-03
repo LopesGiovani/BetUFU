@@ -179,6 +179,10 @@ class SportsBracketIT {
         "UPDATE public.sports_competition SET sport_id = ? WHERE competition_id = ?",
         sportA,
         competitionA);
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) VALUES (?, ?)",
+        competitionA,
+        sportA);
 
     categoryA = UUID.randomUUID();
     jdbcTemplate.update(
@@ -488,6 +492,33 @@ class SportsBracketIT {
   @Test
   @DisplayName("Validação de grafo rejeita ciclos e dependências impossíveis")
   void rejectsCyclesAndInvalidDependencies() throws Exception {
+    UUID sportFromOtherCompetition = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_sport (sport_id, name, slug) VALUES (?, ?, ?)",
+        sportFromOtherCompetition,
+        "Basquete",
+        "basquete-outro");
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) VALUES (?, ?)",
+        competitionB,
+        sportFromOtherCompetition);
+
+    SportsBracketCreateRequest foreignSportRequest =
+        new SportsBracketCreateRequest(
+            "Modalidade alheia",
+            "modalidade-alheia",
+            sportFromOtherCompetition,
+            categoryA,
+            phaseA);
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/editions/{editionId}/brackets", editionA)
+                .with(user("competition-a-admin-sub"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(foreignSportRequest)))
+        .andExpect(status().isNotFound());
+
     SportsBracketCreateRequest createReq =
         new SportsBracketCreateRequest("Chave com Ciclo", "chave-ciclo", sportA, categoryA, phaseA);
 

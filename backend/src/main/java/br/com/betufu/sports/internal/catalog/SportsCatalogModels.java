@@ -20,8 +20,12 @@ public final class SportsCatalogModels {
       String slug,
       String status,
       long lockVersion,
-      UUID sportId,
-      String sportName) {}
+      List<SportsSportSummary> sports) {
+
+    public SportsCompetitionSummary {
+      sports = sports == null ? List.of() : List.copyOf(sports);
+    }
+  }
 
   public record SportsEditionSummary(
       UUID editionId,

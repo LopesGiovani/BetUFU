@@ -36,10 +36,8 @@ class SportsCatalogRepository {
       return List.of();
     }
     String sql =
-        "SELECT c.competition_id, c.name, c.slug, c.status, c.lock_version, "
-            + "c.sport_id, s.name AS sport_name "
-            + "FROM public.sports_competition c "
-            + "LEFT JOIN public.sports_sport s ON s.sport_id = c.sport_id ";
+        "SELECT c.competition_id, c.name, c.slug, c.status, c.lock_version "
+            + "FROM public.sports_competition c ";
     List<Object> args = new ArrayList<>();
     if (global) {
       sql += "ORDER BY lower(c.name), c.competition_id";
@@ -52,21 +50,22 @@ class SportsCatalogRepository {
               + "ORDER BY lower(c.name), c.competition_id";
       args.addAll(authorizedIds);
     }
-    return jdbc.query(sql, this::mapCompetition, args.toArray());
+    return jdbc.query(sql, this::mapCompetition, args.toArray()).stream()
+        .map(this::withSports)
+        .toList();
   }
 
   Optional<SportsCompetitionSummary> findCompetition(UUID competitionId) {
     return jdbc
         .query(
-            "SELECT c.competition_id, c.name, c.slug, c.status, c.lock_version, "
-                + "c.sport_id, s.name AS sport_name "
+            "SELECT c.competition_id, c.name, c.slug, c.status, c.lock_version "
                 + "FROM public.sports_competition c "
-                + "LEFT JOIN public.sports_sport s ON s.sport_id = c.sport_id "
                 + "WHERE c.competition_id = ?",
             (rs, rowNum) -> mapCompetition(rs, rowNum),
             competitionId)
         .stream()
-        .findFirst();
+        .findFirst()
+        .map(this::withSports);
   }
 
   SportsSportSummary createSport(UUID sportId, String name, String slug) {
@@ -80,31 +79,29 @@ class SportsCatalogRepository {
 
   void assignCompetitionSport(UUID competitionId, UUID sportId) {
     jdbc.update(
-        "UPDATE public.sports_competition SET sport_id = ?, updated_at = CURRENT_TIMESTAMP(6) "
-            + "WHERE competition_id = ?",
-        sportId,
-        competitionId);
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) "
+            + "VALUES (?, ?) ON CONFLICT (competition_id, sport_id) DO NOTHING",
+        competitionId,
+        sportId);
   }
 
   Optional<UUID> findCompetitionForSport(UUID sportId) {
     return jdbc
         .query(
-            "SELECT competition_id FROM public.sports_competition WHERE sport_id = ?",
+            "SELECT competition_id FROM public.sports_competition_sport WHERE sport_id = ? "
+                + "ORDER BY competition_id",
             (rs, rowNum) -> rs.getObject("competition_id", UUID.class),
             sportId)
         .stream()
         .findFirst();
   }
 
-  SportsCompetitionSummary createCompetition(
-      UUID competitionId, String name, String slug, UUID sportId) {
+  SportsCompetitionSummary createCompetition(UUID competitionId, String name, String slug) {
     jdbc.update(
-        "INSERT INTO public.sports_competition (competition_id, name, slug, sport_id) "
-            + "VALUES (?, ?, ?, ?)",
+        "INSERT INTO public.sports_competition (competition_id, name, slug) VALUES (?, ?, ?)",
         competitionId,
         name,
-        slug,
-        sportId);
+        slug);
     return findCompetition(competitionId).orElseThrow();
   }
 
@@ -445,19 +442,7 @@ class SportsCatalogRepository {
 
   SportsCatalogModels.SportsCatalogTree tree(UUID competitionId) {
     SportsCompetitionSummary competition = findCompetition(competitionId).orElseThrow();
-    List<SportsSportSummary> sports =
-        jdbc.query(
-            "SELECT s.sport_id, s.name, s.slug, s.status, s.lock_version "
-                + "FROM public.sports_sport s JOIN public.sports_competition c ON c.sport_id = s.sport_id "
-                + "WHERE c.competition_id = ? ORDER BY lower(s.name), s.sport_id",
-            (rs, rowNum) ->
-                new SportsSportSummary(
-                    rs.getObject("sport_id", UUID.class),
-                    rs.getString("name"),
-                    rs.getString("slug"),
-                    rs.getString("status"),
-                    rs.getLong("lock_version")),
-            competitionId);
+    List<SportsSportSummary> sports = competition.sports();
     List<SportsEditionSummary> editions =
         jdbc.query(
             "SELECT edition_id, competition_id, name, slug, start_date, end_date, status, lock_version "
@@ -548,8 +533,31 @@ class SportsCatalogRepository {
         rs.getString("slug"),
         rs.getString("status"),
         rs.getLong("lock_version"),
-        rs.getObject("sport_id", UUID.class),
-        rs.getString("sport_name"));
+        List.of());
+  }
+
+  private SportsCompetitionSummary withSports(SportsCompetitionSummary competition) {
+    List<SportsSportSummary> sports =
+        jdbc.query(
+            "SELECT s.sport_id, s.name, s.slug, s.status, s.lock_version "
+                + "FROM public.sports_competition_sport cs "
+                + "JOIN public.sports_sport s ON s.sport_id = cs.sport_id "
+                + "WHERE cs.competition_id = ? ORDER BY lower(s.name), s.sport_id",
+            (rs, rowNum) ->
+                new SportsSportSummary(
+                    rs.getObject("sport_id", UUID.class),
+                    rs.getString("name"),
+                    rs.getString("slug"),
+                    rs.getString("status"),
+                    rs.getLong("lock_version")),
+            competition.competitionId());
+    return new SportsCompetitionSummary(
+        competition.competitionId(),
+        competition.name(),
+        competition.slug(),
+        competition.status(),
+        competition.lockVersion(),
+        sports);
   }
 
   private SportsVenueSummary mapVenue(java.sql.ResultSet rs, int rowNum)

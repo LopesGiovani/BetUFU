@@ -109,7 +109,11 @@ public class SportsStandingsService {
     requireWritableCompetition(actor, edition.competitionId());
 
     if (!repository.catalogEntitiesExist(
-        editionId, request.sportId(), request.categoryId(), request.phaseId())) {
+        edition.competitionId(),
+        editionId,
+        request.sportId(),
+        request.categoryId(),
+        request.phaseId())) {
       throw notFound();
     }
 
@@ -137,7 +141,11 @@ public class SportsStandingsService {
     }
 
     if (!repository.catalogEntitiesExist(
-        standings.editionId(), request.sportId(), request.categoryId(), request.phaseId())) {
+        standings.competitionId(),
+        standings.editionId(),
+        request.sportId(),
+        request.categoryId(),
+        request.phaseId())) {
       throw notFound();
     }
 

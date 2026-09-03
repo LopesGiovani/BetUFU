@@ -20,8 +20,7 @@ const COMPETITION: SportsCompetitionSummary = {
   slug: 'olimpiada-ufu',
   status: 'ATIVA',
   lockVersion: 0,
-  sportId: null,
-  sportName: null,
+  sports: [],
 };
 
 const TREE: SportsCatalogTree = {

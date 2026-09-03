@@ -1,5 +1,6 @@
 package br.com.betufu.sports.internal.publicview;
 
+import br.com.betufu.sports.internal.catalog.SportsCatalogModels.SportsSportSummary;
 import br.com.betufu.sports.internal.publicview.SportsPublicViewModels.EventFormat;
 import br.com.betufu.sports.internal.publicview.SportsPublicViewModels.PublicAthleteDetail;
 import br.com.betufu.sports.internal.publicview.SportsPublicViewModels.PublicAthleteStats;
@@ -74,6 +75,22 @@ class SportsPublicViewRepository {
     }
 
     CompetitionHeader header = headers.get(0);
+
+    List<SportsSportSummary> sports =
+        jdbcTemplate.query(
+            "SELECT s.sport_id, s.name, s.slug, s.status, s.lock_version "
+                + "FROM public.sports_competition_sport cs "
+                + "JOIN public.sports_sport s ON s.sport_id = cs.sport_id "
+                + "WHERE cs.competition_id = ? AND s.status = 'ATIVA' "
+                + "ORDER BY lower(s.name), s.sport_id",
+            (rs, rowNum) ->
+                new SportsSportSummary(
+                    rs.getObject("sport_id", UUID.class),
+                    rs.getString("name"),
+                    rs.getString("slug"),
+                    rs.getString("status"),
+                    rs.getLong("lock_version")),
+            competitionId);
 
     List<PublicEditionSummary> editions =
         jdbcTemplate.query(
@@ -157,8 +174,7 @@ class SportsPublicViewRepository {
             header.competitionId(),
             header.name(),
             header.slug(),
-            null,
-            null,
+            sports,
             editions,
             categories,
             phases,

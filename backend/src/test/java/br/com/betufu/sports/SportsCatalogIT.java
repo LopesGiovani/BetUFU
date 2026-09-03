@@ -1,5 +1,6 @@
 package br.com.betufu.sports;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -151,6 +152,82 @@ class SportsCatalogIT {
     mockMvc
         .perform(get(ROOT + "/competitions/" + competitionB).with(user("competition-admin-sub")))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("Uma competicao pode associar varias modalidades e ignora a coluna legada")
+  void supportsMultipleSportsPerCompetitionWithIdempotentAssociation() throws Exception {
+    UUID competition = createCompetition("Olimpiada UFU", "olimpiada-ufu");
+    grant(competitionAdmin, "ADMINISTRADOR_COMPETICAO", competition);
+
+    UUID futsal =
+        uuid(
+            mockMvc
+                .perform(
+                    post(ROOT + "/competitions/" + competition + "/sports")
+                        .with(user("competition-admin-sub"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Futsal\",\"slug\":\"futsal\"}"))
+                .andExpect(status().isCreated())
+                .andReturn(),
+            "sportId");
+    UUID basquete =
+        uuid(
+            mockMvc
+                .perform(
+                    post(ROOT + "/competitions/" + competition + "/sports")
+                        .with(user("competition-admin-sub"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Basquete\",\"slug\":\"basquete\"}"))
+                .andExpect(status().isCreated())
+                .andReturn(),
+            "sportId");
+    UUID legacySport = UUID.randomUUID();
+    jdbc.update(
+        "INSERT INTO public.sports_sport (sport_id, name, slug) VALUES (?, ?, ?)",
+        legacySport,
+        "Legado",
+        "legado");
+    jdbc.update(
+        "UPDATE public.sports_competition SET sport_id = ? WHERE competition_id = ?",
+        legacySport,
+        competition);
+
+    jdbc.update(
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) VALUES (?, ?) "
+            + "ON CONFLICT (competition_id, sport_id) DO NOTHING",
+        competition,
+        futsal);
+
+    mockMvc
+        .perform(get(ROOT + "/competitions/" + competition).with(user("competition-admin-sub")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.sports.length()").value(2))
+        .andExpect(jsonPath("$.sports[0].name").value("Basquete"))
+        .andExpect(jsonPath("$.sports[1].name").value("Futsal"))
+        .andExpect(jsonPath("$.competition.sportId").doesNotExist())
+        .andExpect(jsonPath("$.competition.sports.length()").value(2))
+        .andExpect(jsonPath("$.competition.sports[0].name").value("Basquete"))
+        .andExpect(jsonPath("$.competition.sports[1].name").value("Futsal"));
+
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT count(*) FROM public.sports_competition_sport "
+                    + "WHERE competition_id = ? AND sport_id = ?",
+                Integer.class,
+                competition,
+                futsal))
+        .isEqualTo(1);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT count(*) FROM public.sports_competition_sport "
+                    + "WHERE competition_id = ? AND sport_id = ?",
+                Integer.class,
+                competition,
+                basquete))
+        .isEqualTo(1);
   }
 
   @Test

@@ -4418,8 +4418,7 @@ components:
         - slug
         - status
         - lockVersion
-        - sportId
-        - sportName
+        - sports
       properties:
         competitionId:
           type: string
@@ -4436,11 +4435,10 @@ components:
           type: integer
           format: int64
           minimum: 0
-        sportId:
-          type: [string, "null"]
-          format: uuid
-        sportName:
-          type: [string, "null"]
+        sports:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsSportSummary"
 
     SportsEditionSummary:
       type: object
@@ -5292,6 +5290,7 @@ components:
         - competitionId
         - name
         - slug
+        - sports
         - editions
         - categories
         - phases
@@ -5306,11 +5305,10 @@ components:
           type: string
         slug:
           type: string
-        sportId:
-          type: [string, "null"]
-          format: uuid
-        sportName:
-          type: [string, "null"]
+        sports:
+          type: array
+          items:
+            $ref: "#/components/schemas/SportsSportSummary"
         editions:
           type: array
           items:

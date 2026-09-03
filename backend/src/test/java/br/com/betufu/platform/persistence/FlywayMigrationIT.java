@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(21);
+    assertThat(result.migrationsExecuted).isEqualTo(22);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(21);
+    assertThat(applied).hasSize(22);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -161,6 +161,10 @@ class FlywayMigrationIT {
 
     assertThat(applied[19].getVersion().getVersion()).isEqualTo("19");
     assertThat(applied[19].getState()).isEqualTo(MigrationState.SUCCESS);
+    assertThat(applied[20].getVersion().getVersion()).isEqualTo("20");
+    assertThat(applied[20].getState()).isEqualTo(MigrationState.SUCCESS);
+    assertThat(applied[21].getVersion().getVersion()).isEqualTo("21");
+    assertThat(applied[21].getState()).isEqualTo(MigrationState.SUCCESS);
 
     Integer guardCount =
         jdbcTemplate.queryForObject(
@@ -176,7 +180,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(21);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(22);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -185,7 +189,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(21);
+    assertThat(applied).hasSize(22);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -226,13 +230,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(21);
+      assertThat(totalExecuted).isEqualTo(22);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(21);
+      assertThat(applied).hasSize(22);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1335,5 +1339,75 @@ class FlywayMigrationIT {
                     "INSERT INTO public.sports_athlete_profile_media (athlete_id) VALUES (?)",
                     UUID.randomUUID()))
         .hasMessageContaining("fk_sports_athlete_profile_media_athlete");
+  }
+
+  @Test
+  @DisplayName("V21 cria associacao N:N, preserva a coluna legada e faz backfill idempotente")
+  void v21BackfillsCompetitionSportAssociationsAndConstrainsDuplicates() {
+    Flyway beforeV21 =
+        Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .target("20")
+            .load();
+    beforeV21.migrate();
+
+    UUID competitionId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_competition (name, slug) VALUES (?, ?) RETURNING competition_id",
+            UUID.class,
+            "Comp V21",
+            "comp-v21");
+    UUID sportId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_sport (name, slug) VALUES (?, ?) RETURNING sport_id",
+            UUID.class,
+            "Sport V21",
+            "sport-v21");
+    jdbcTemplate.update(
+        "UPDATE public.sports_competition SET sport_id = ? WHERE competition_id = ?",
+        sportId,
+        competitionId);
+
+    Flyway afterV21 =
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+    assertThat(afterV21.migrate().migrationsExecuted).isEqualTo(1);
+
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.sports_competition_sport "
+                    + "WHERE competition_id = ? AND sport_id = ?",
+                Integer.class,
+                competitionId,
+                sportId))
+        .isEqualTo(1);
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) VALUES (?, ?) "
+            + "ON CONFLICT (competition_id, sport_id) DO NOTHING",
+        competitionId,
+        sportId);
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.sports_competition_sport "
+                    + "WHERE competition_id = ? AND sport_id = ?",
+                Integer.class,
+                competitionId,
+                sportId))
+        .isEqualTo(1);
+
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM pg_indexes "
+                    + "WHERE schemaname = 'public' AND indexname = 'idx_sports_competition_sport_sport'",
+                Integer.class))
+        .isEqualTo(1);
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "INSERT INTO public.sports_competition_sport (competition_id, sport_id) "
+                        + "VALUES (?, ?)",
+                    UUID.randomUUID(),
+                    sportId))
+        .hasMessageContaining("fk_sports_competition_sport_competition");
   }
 }

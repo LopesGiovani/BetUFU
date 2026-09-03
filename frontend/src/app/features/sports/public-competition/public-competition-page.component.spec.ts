@@ -16,6 +16,10 @@ describe('PublicCompetitionPageComponent', () => {
         competitionId: 'c1',
         name: 'Jogos UFU',
         slug: 'jogos-ufu',
+        sports: [
+          { sportId: 's1', name: 'Futsal', slug: 'futsal', status: 'ATIVA', lockVersion: 0 },
+          { sportId: 's2', name: 'Voleibol', slug: 'voleibol', status: 'ATIVA', lockVersion: 0 },
+        ],
         editions: [],
         categories: [],
         phases: [],
@@ -37,5 +41,9 @@ describe('PublicCompetitionPageComponent', () => {
     fixture.detectChanges();
     expect(store.load).toHaveBeenCalledWith('competition', 'c1');
     expect(fixture.nativeElement.textContent).toContain('Jogos UFU');
+    expect(fixture.nativeElement.textContent).toContain('Futsal');
+    expect(fixture.nativeElement.textContent).toContain('Voleibol');
+    expect(fixture.nativeElement.querySelector('[aria-label="Modalidades da competição"]'))
+      .not.toBeNull();
   });
 });

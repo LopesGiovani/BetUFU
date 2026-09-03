@@ -176,6 +176,10 @@ class SportsStandingsIT {
         "UPDATE public.sports_competition SET sport_id = ? WHERE competition_id = ?",
         sportA,
         competitionA);
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) VALUES (?, ?)",
+        competitionA,
+        sportA);
 
     categoryA = UUID.randomUUID();
     jdbcTemplate.update(
@@ -414,6 +418,34 @@ class SportsStandingsIT {
   @DisplayName(
       "Validações de classificação rejeitam colunas vazias, células desalinhadas e equipes de outra edição")
   void rejectsInvalidStandingsConfiguration() throws Exception {
+    UUID sportFromOtherCompetition = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_sport (sport_id, name, slug) VALUES (?, ?, ?)",
+        sportFromOtherCompetition,
+        "Basquete",
+        "basquete-outro");
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_competition_sport (competition_id, sport_id) VALUES (?, ?)",
+        competitionB,
+        sportFromOtherCompetition);
+
+    SportsStandingsCreateRequest foreignSportRequest =
+        new SportsStandingsCreateRequest(
+            "Modalidade alheia",
+            "modalidade-alheia",
+            sportFromOtherCompetition,
+            categoryA,
+            phaseA,
+            List.of("PTS"));
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/editions/{editionId}/standings", editionA)
+                .with(user("competition-a-admin-sub"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(foreignSportRequest)))
+        .andExpect(status().isNotFound());
+
     SportsStandingsCreateRequest createReq =
         new SportsStandingsCreateRequest(
             "Grupo B", "grupo-b", sportA, categoryA, phaseA, List.of("PTS", "J"));

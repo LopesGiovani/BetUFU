@@ -11,6 +11,7 @@ import {
   CurrentIdentityResponse,
   IdentityService,
   ProfileService,
+  PublicCompetitionDetail,
   PublicSportsEventPage,
   SportsAthleteCreateRequest,
   SportsAthleteService,
@@ -155,6 +156,49 @@ describe('Generated BETUFU API client contract', () => {
     expect(request.request.headers.has('X-XSRF-TOKEN')).toBe(false);
     expect(request.request.withCredentials).toBe(false);
 
+    request.flush(response);
+
+    await expect(resultPromise).resolves.toEqual(response);
+  });
+
+  it('preserves the N:N sports collection in the public competition client', async () => {
+    configureClient(true);
+    const response: PublicCompetitionDetail = {
+      competitionId: '5a9bd592-1df4-4620-a33d-23ec59beb5fe',
+      name: 'Jogos UFU',
+      slug: 'jogos-ufu',
+      sports: [
+        {
+          sportId: '0d2c2f7c-65a7-4c5b-bb7d-70d0bbf4c0c9',
+          name: 'Futsal',
+          slug: 'futsal',
+          status: 'ATIVA',
+          lockVersion: 0,
+        },
+        {
+          sportId: '1d2c2f7c-65a7-4c5b-bb7d-70d0bbf4c0c9',
+          name: 'Voleibol',
+          slug: 'voleibol',
+          status: 'ATIVA',
+          lockVersion: 0,
+        },
+      ],
+      editions: [],
+      categories: [],
+      phases: [],
+      venues: [],
+      teams: [],
+      recentEvents: [],
+    };
+    const resultPromise = firstValueFrom(
+      sportsPublicService.getPublicCompetitionDetail({ competitionId: response.competitionId }),
+    );
+    const request = httpTesting.expectOne(
+      `/api/v1/public/sports/competitions/${response.competitionId}`,
+    );
+
+    expect(request.request.method).toBe('GET');
+    expect(request.request.headers.has('X-XSRF-TOKEN')).toBe(false);
     request.flush(response);
 
     await expect(resultPromise).resolves.toEqual(response);

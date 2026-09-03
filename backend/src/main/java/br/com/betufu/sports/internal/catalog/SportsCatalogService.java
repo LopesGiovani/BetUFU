@@ -76,7 +76,7 @@ class SportsCatalogService {
     validateNameSlug(request);
     UUID id = UUID.randomUUID();
     return transactions.execute(
-        status -> repository.createCompetition(id, clean(request.name()), request.slug(), null));
+        status -> repository.createCompetition(id, clean(request.name()), request.slug()));
   }
 
   SportsSportSummary createSport(
@@ -89,7 +89,6 @@ class SportsCatalogService {
         status -> {
           SportsSportSummary sport =
               repository.createSport(id, clean(request.name()), request.slug());
-          // V10 keeps the tracer-compatible one-sport relationship explicit.
           throwIfNoUpdate(repository, competitionId, id);
           return sport;
         });

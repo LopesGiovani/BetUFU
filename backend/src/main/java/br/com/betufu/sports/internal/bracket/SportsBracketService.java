@@ -109,7 +109,11 @@ public class SportsBracketService {
     requireWritableCompetition(actor, edition.competitionId());
 
     if (!repository.catalogEntitiesExist(
-        editionId, request.sportId(), request.categoryId(), request.phaseId())) {
+        edition.competitionId(),
+        editionId,
+        request.sportId(),
+        request.categoryId(),
+        request.phaseId())) {
       throw notFound();
     }
 
@@ -137,7 +141,11 @@ public class SportsBracketService {
     }
 
     if (!repository.catalogEntitiesExist(
-        bracket.editionId(), request.sportId(), request.categoryId(), request.phaseId())) {
+        bracket.competitionId(),
+        bracket.editionId(),
+        request.sportId(),
+        request.categoryId(),
+        request.phaseId())) {
       throw notFound();
     }
 

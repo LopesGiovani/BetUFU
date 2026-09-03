@@ -13,14 +13,14 @@ import { PublicSportsEventSummary } from './public-sports-event-summary';
 import { PublicCategorySummary } from './public-category-summary';
 import { PublicVenueSummary } from './public-venue-summary';
 import { PublicPhaseSummary } from './public-phase-summary';
+import { SportsSportSummary } from './sports-sport-summary';
 
 
 export interface PublicCompetitionDetail { 
     competitionId: string;
     name: string;
     slug: string;
-    sportId?: string | null;
-    sportName?: string | null;
+    sports: Array<SportsSportSummary>;
     editions: Array<PublicEditionSummary>;
     categories: Array<PublicCategorySummary>;
     phases: Array<PublicPhaseSummary>;

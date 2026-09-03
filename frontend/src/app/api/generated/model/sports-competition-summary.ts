@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { SportsSportSummary } from './sports-sport-summary';
 
 
 export interface SportsCompetitionSummary { 
@@ -15,8 +16,7 @@ export interface SportsCompetitionSummary {
     slug: string;
     status: SportsCompetitionSummary.StatusEnum;
     lockVersion: number;
-    sportId: string | null;
-    sportName: string | null;
+    sports: Array<SportsSportSummary>;
 }
 export namespace SportsCompetitionSummary {
     export const StatusEnum = {

@@ -1,5 +1,6 @@
 package br.com.betufu.sports.internal.publicview;
 
+import br.com.betufu.sports.internal.catalog.SportsCatalogModels.SportsSportSummary;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -114,8 +115,7 @@ public final class SportsPublicViewModels {
       UUID competitionId,
       String name,
       String slug,
-      UUID sportId,
-      String sportName,
+      List<SportsSportSummary> sports,
       List<PublicEditionSummary> editions,
       List<PublicCategorySummary> categories,
       List<PublicPhaseSummary> phases,
@@ -124,6 +124,7 @@ public final class SportsPublicViewModels {
       List<PublicSportsEventSummary> recentEvents) {
 
     public PublicCompetitionDetail {
+      sports = sports == null ? List.of() : List.copyOf(sports);
       editions = editions == null ? List.of() : List.copyOf(editions);
       categories = categories == null ? List.of() : List.copyOf(categories);
       phases = phases == null ? List.of() : List.copyOf(phases);

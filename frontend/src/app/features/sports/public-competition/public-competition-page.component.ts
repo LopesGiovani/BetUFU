@@ -33,8 +33,12 @@ import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
           <p class="eyebrow">Competição pública</p>
           <h1>{{ competition.name }}</h1>
           <p class="slug">/{{ competition.slug }}</p>
-          @if (competition.sportName) {
-            <p class="context">{{ competition.sportName }}</p>
+          @if (competition.sports.length > 0) {
+            <div class="sports-list" aria-label="Modalidades da competição">
+              @for (sport of competition.sports; track sport.sportId) {
+                <span class="context">{{ sport.name }}</span>
+              }
+            </div>
           }
         </header>
         <section class="summary-grid" aria-label="Resumo da competição">
@@ -161,6 +165,12 @@ import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
     }
     .eyebrow,
     .slug,
+    .sports-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--bt-space-2);
+      margin-top: var(--bt-space-4);
+    }
     .context {
       margin: 0;
       color: var(--bt-signal-soft);
