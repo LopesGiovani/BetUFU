@@ -342,9 +342,9 @@ Plans:
 
 - [x] 03-22-PLAN.md — aceitar formato GENERIC sem simular regras esportivas ausentes; implementacao, verificacoes e candidato aprovados concluidos
 
-**Wave 23** *(gap closure; depends on 03-22; implementation pending)*
+**Wave 23** *(gap closure; depends on 03-22; implemented locally, integration pending)*
 
-- [ ] 03-23-PLAN.md — derivar autorização por competição para organizações, atletas e elencos
+- [x] 03-23-PLAN.md — derivar autorização por competição para organizações, atletas e elencos; decisão A1, implementação e provas locais concluídas
 
 **Wave 24** *(gap closure; depends on 03-23; implementation pending)*
 

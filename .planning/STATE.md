@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: planning
-stopped_at: Phase 3 plan 03-22 complete-pending-git; awaiting next plan checkpoint
-last_updated: "2026-09-03T16:55:07-03:00"
+stopped_at: Phase 3 plan 03-23 complete-pending-git; awaiting next plan checkpoint
+last_updated: "2026-09-03T17:54:26-03:00"
 last_activity: 2026-09-03
-last_activity_desc: Plan 03-22 implemented, verified and locally committed; 03-23 is the next blocking decision.
-state_head: 4bea05a96c92d8730f83f7a75ed67250306a9421
+last_activity_desc: Plan 03-23 implemented, verified and locally committed; 03-24 is the next blocking decision.
+state_head: 7cc769d6108d0c7f5e5b2c8ecb3b7d1f9c0153d9
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 91
-  completed_plans: 86
+  completed_plans: 87
 milestone_name: milestone
 ---
 
@@ -23,7 +23,9 @@ Git - Fase 3 / Wave 19 (integrada, enviada e limpa, 2026-09-02): o 03-20 foi exe
 
 Git - Fase 3 / Wave 20 (concluida, integrada e limpa, 2026-09-02): o 03-17 certificou arquitetura/privacidade, matriz Chromium/Firefox, acessibilidade medida e mutacoes negativas restauraveis. Os commits tecnico e documental foram integrados por fast-forward; a worktree e a branch exatas foram removidas. A divida de manutenibilidade da prova permanece registrada como follow-up.
 
-Git - Fase 3 / gap closure (03-22, worktree local, 2026-09-03): o 03-22 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `5cfaa4c`. O commit tecnico `4bea05a` entrega o formato GENERIC, a V22, os guards contra derivacao indevida, o contrato e as provas focais; o candidato OpenAPI `D8DDE8402F6D66D279B46E66DAF5000619A010ED28C5CA2B4000A6287B527E3D` foi aprovado. O commit documental deste registro ainda aguarda seu proprio SHA; integracao, cleanup e push nao foram executados.
+Git - Fase 3 / gap closure (03-23, worktree local, 2026-09-03): o 03-23 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `8388bb3`. O commit tecnico `7cc769d` entrega a decisao A1 e a autorizacao derivada por competicao para organizacoes, atletas, rosters e importacao; a matriz focal passou com `22/22`. A certificacao ampla das capacidades preservadas continua prevista para 03-27; integracao, cleanup e push nao foram executados.
+
+Git - Fase 3 / gap closure (03-22, worktree local, 2026-09-03): o 03-22 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `5cfaa4c`. Os commits tecnico `4bea05a` e documental `8388bb3` entregam o formato GENERIC, a V22, os guards contra derivacao indevida, o contrato e as provas focais; o candidato OpenAPI `D8DDE8402F6D66D279B46E66DAF5000619A010ED28C5CA2B4000A6287B527E3D` foi aprovado. Integracao, cleanup e push nao foram executados.
 
 Git - Fase 3 / gap closure (03-21, worktree local, 2026-09-03): o 03-21 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `fba0337`. Os commits tecnico `7b6c8de` e documental `5cfaa4c` entregam a associacao N:N, o backfill V21, o contrato e as provas focais; o candidato OpenAPI `D53E38AE2F7CE539B0610694480E158535697ED5E83FB52C4A4C2309B72228DC` foi aprovado. Integracao, cleanup e push nao foram executados.
 
@@ -41,9 +43,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 ## Current Position
 
 Phase: 3 of 8 — Experiência Esportiva do Piloto (gap closure)
-Plan: 03-22 concluido localmente; 03-23 e o proximo checkpoint.
+Plan: 03-23 concluido localmente; 03-24 e o proximo checkpoint.
 Status: Complete-pending-git - codigo e provas locais estao prontos; integracao, cleanup e push continuam separados.
-Last activity: 2026-09-03 - commit tecnico `4bea05a` criado apos a aprovacao do candidato 03-22.
+Last activity: 2026-09-03 - commit tecnico `7cc769d` criado apos a aprovacao da decisao A1.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
