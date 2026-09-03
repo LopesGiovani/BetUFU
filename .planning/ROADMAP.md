@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 20/27 plans executed; 7 gap-closure plans pending
+**Plans**: 21/27 plans executed; 6 gap-closure plans pending
 
 Plans:
 **Wave 1**
@@ -334,9 +334,9 @@ Plans:
 
 - [x] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação; implementação, verificações e checkpoint humano concluídos
 
-**Wave 21** *(gap closure; depends on 03-17; implementation pending)*
+**Wave 21** *(gap closure; depends on 03-17; implemented locally, integration pending)*
 
-- [ ] 03-21-PLAN.md — substituir relação singular por associação N:N de competições e modalidades
+- [x] 03-21-PLAN.md — substituir relação singular por associação N:N de competições e modalidades; implementação e provas locais concluídas
 
 **Wave 22** *(gap closure; depends on 03-21; implementation pending)*
 
@@ -455,7 +455,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 20/27 | Gap closure pending | - |
+| 3. Experiência Esportiva do Piloto | 21/27 | Gap closure pending | - |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
