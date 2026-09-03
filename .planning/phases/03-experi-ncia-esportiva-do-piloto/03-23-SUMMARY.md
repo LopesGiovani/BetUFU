@@ -2,7 +2,7 @@
 phase: 03-experi-ncia-esportiva-do-piloto
 plan: 23
 wave: 23
-status: complete-pending-git
+status: complete
 completed: 2026-09-03
 subsystem: sports-competition-scoped-authorization
 tags: [sports, authorization, competition-scope, roster]
@@ -73,9 +73,9 @@ status: complete-pending-git
 base_sha: 8388bb365662c008279fc1a20e14a1cffdab1158
 branch: worktree-agent-03-gap-exec
 worktree: C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-03-gap-exec
-implementation_commit: 7cc769d6108d0c7f5e5b2c8ecb3b7d1f9c0153d9
-documentation_commit: current documentation commit (hash intentionally omitted)
-integration: not performed
+implementation_commit: 69c887bb5921e944e7d8df6715ebb3a00158f271
+documentation_commit: 66fb0d676cd81eacbd9bf5c74eb8ee5de7bc7c50
+integration: fast-forward complete in local master
 cleanup: not performed
 push: not performed
 ```

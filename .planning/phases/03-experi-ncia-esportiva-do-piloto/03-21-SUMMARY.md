@@ -2,7 +2,7 @@
 phase: 03-experi-ncia-esportiva-do-piloto
 plan: 21
 wave: 21
-status: complete-pending-git
+status: complete
 completed: 2026-09-03
 subsystem: sports-catalog-association
 tags: [sports, catalog, flyway, openapi, angular]
@@ -83,9 +83,9 @@ status: complete-pending-git
 base_sha: fba033754a7fee17d9f6da0a826c6cd15871c876
 branch: worktree-agent-03-gap-exec
 worktree: C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-03-gap-exec
-implementation_commit: 7b6c8de9bf673db27764738b98a226d038535102
-documentation_commit: pending (this formalization commit)
-integration: not performed
+implementation_commit: ea1149f1c1ac9e5ecd06b603f564eb535351e830
+documentation_commit: 963f01b156fd0698197af3f047a4d55feaa4bf57
+integration: fast-forward complete in local master
 cleanup: not performed
 push: not performed
 ```

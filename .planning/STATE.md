@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: planning
-stopped_at: Phase 3 plan 03-23 complete-pending-git; awaiting next plan checkpoint
-last_updated: "2026-09-03T17:54:26-03:00"
+stopped_at: Phase 3 plan 03-23 complete; awaiting next plan checkpoint
+last_updated: "2026-09-03T18:02:00-03:00"
 last_activity: 2026-09-03
-last_activity_desc: Plan 03-23 implemented, verified and locally committed; 03-24 is the next blocking decision.
-state_head: 7cc769d6108d0c7f5e5b2c8ecb3b7d1f9c0153d9
+last_activity_desc: Plans 03-21 through 03-23 rebased onto master and integrated locally; 03-24 is the next blocking decision.
+state_head: 69c887bb5921e944e7d8df6715ebb3a00158f271
 progress:
   total_phases: 8
   completed_phases: 3
@@ -23,11 +23,11 @@ Git - Fase 3 / Wave 19 (integrada, enviada e limpa, 2026-09-02): o 03-20 foi exe
 
 Git - Fase 3 / Wave 20 (concluida, integrada e limpa, 2026-09-02): o 03-17 certificou arquitetura/privacidade, matriz Chromium/Firefox, acessibilidade medida e mutacoes negativas restauraveis. Os commits tecnico e documental foram integrados por fast-forward; a worktree e a branch exatas foram removidas. A divida de manutenibilidade da prova permanece registrada como follow-up.
 
-Git - Fase 3 / gap closure (03-23, worktree local, 2026-09-03): o 03-23 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `8388bb3`. O commit tecnico `7cc769d` entrega a decisao A1 e a autorizacao derivada por competicao para organizacoes, atletas, rosters e importacao; a matriz focal passou com `22/22`. A certificacao ampla das capacidades preservadas continua prevista para 03-27; integracao, cleanup e push nao foram executados.
+Git - Fase 3 / gap closure (03-23, integrado localmente, 2026-09-03): o 03-23 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `8388bb3` e rebased sobre `2ecb388`. O commit tecnico rebased `69c887b` entrega a decisao A1 e a autorizacao derivada por competicao para organizacoes, atletas, rosters e importacao; a matriz focal passou com `22/22`. A certificacao ampla das capacidades preservadas continua prevista para 03-27; cleanup e push nao foram executados.
 
-Git - Fase 3 / gap closure (03-22, worktree local, 2026-09-03): o 03-22 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `5cfaa4c`. Os commits tecnico `4bea05a` e documental `8388bb3` entregam o formato GENERIC, a V22, os guards contra derivacao indevida, o contrato e as provas focais; o candidato OpenAPI `D8DDE8402F6D66D279B46E66DAF5000619A010ED28C5CA2B4000A6287B527E3D` foi aprovado. Integracao, cleanup e push nao foram executados.
+Git - Fase 3 / gap closure (03-22, integrado localmente, 2026-09-03): o 03-22 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `5cfaa4c` e rebased sobre `2ecb388`. Os commits rebased `f8a2023` e `2200d6e` entregam o formato GENERIC, a V22, os guards contra derivacao indevida, o contrato e as provas focais; o candidato OpenAPI `D8DDE8402F6D66D279B46E66DAF5000619A010ED28C5CA2B4000A6287B527E3D` foi aprovado. Cleanup e push nao foram executados.
 
-Git - Fase 3 / gap closure (03-21, worktree local, 2026-09-03): o 03-21 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `fba0337`. Os commits tecnico `7b6c8de` e documental `5cfaa4c` entregam a associacao N:N, o backfill V21, o contrato e as provas focais; o candidato OpenAPI `D53E38AE2F7CE539B0610694480E158535697ED5E83FB52C4A4C2309B72228DC` foi aprovado. Integracao, cleanup e push nao foram executados.
+Git - Fase 3 / gap closure (03-21, integrado localmente, 2026-09-03): o 03-21 foi implementado na worktree `worktree-agent-03-gap-exec` sobre `fba0337` e rebased sobre `2ecb388`. Os commits rebased `ea1149f` e `963f01b` entregam a associacao N:N, o backfill V21, o contrato e as provas focais; o candidato OpenAPI `D53E38AE2F7CE539B0610694480E158535697ED5E83FB52C4A4C2309B72228DC` foi aprovado. Cleanup e push nao foram executados.
 
 Git - Fase 3 / Wave 18 (integrada, enviada e limpa, 2026-09-02): o 03-19 foi executado na worktree dedicada sobre `d63d3bd` e normalizado no padrao de dois commits: tecnico `975f9f6` e documental corrente, que nao cita o proprio hash. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `356/356`, build production, lint, validador de rotas e Playwright pessoal `2/2` passaram; a variante pessoal do ConsoleShell e as tres rotas de conta ficaram verdes. A worktree e a branch exatas foram removidas; `master` e `origin/master` estao sincronizadas.
 
@@ -38,14 +38,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** fechar os seis gaps restantes da Fase 3 nos planos 03-22 a 03-27; a Fase 4 continua aguardando essa certificacao.
+**Current focus:** fechar os quatro gaps restantes da Fase 3 nos planos 03-24 a 03-27; a Fase 4 continua aguardando essa certificacao.
 
 ## Current Position
 
 Phase: 3 of 8 — Experiência Esportiva do Piloto (gap closure)
-Plan: 03-23 concluido localmente; 03-24 e o proximo checkpoint.
-Status: Complete-pending-git - codigo e provas locais estao prontos; integracao, cleanup e push continuam separados.
-Last activity: 2026-09-03 - commit tecnico `7cc769d` criado apos a aprovacao da decisao A1.
+Plan: 03-23 concluido e integrado localmente; 03-24 e o proximo checkpoint.
+Status: Complete - commits integrados localmente na master; cleanup e push continuam separados.
+Last activity: 2026-09-03 - planos 03-21 a 03-23 rebased sobre a master e integrados por fast-forward local.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -115,7 +115,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [████████░░░] 21/27 planos da Fase 3 (78%; 6 gap-closure pendentes)
+Progress: [#########----] 23/27 planos da Fase 3 (85%; 4 gap-closure pendentes)
 
 ## Métricas de desempenho
 
@@ -281,9 +281,9 @@ Progress: [████████░░░] 21/27 planos da Fase 3 (78%; 6 gap
 
 ## Session Continuity
 
-Last session: 2026-09-03T15:45:00-03:00
-Stopped at: Phase 3 plan 03-21 complete-pending-git; awaiting 03-22 decision checkpoint
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-22-PLAN.md
+Last session: 2026-09-03T18:02:00-03:00
+Stopped at: Phase 3 plan 03-23 complete; awaiting 03-24 decision checkpoint
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-24-PLAN.md
 
 ## Accumulated Context
 

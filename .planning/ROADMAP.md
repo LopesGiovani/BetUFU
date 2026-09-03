@@ -334,17 +334,17 @@ Plans:
 
 - [x] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação; implementação, verificações e checkpoint humano concluídos
 
-**Wave 21** *(gap closure; depends on 03-17; implemented locally, integration pending)*
+**Wave 21** *(gap closure; depends on 03-17; integrated locally, cleanup/push pending)*
 
-- [x] 03-21-PLAN.md — substituir relação singular por associação N:N de competições e modalidades; implementação e provas locais concluídas
+- [x] 03-21-PLAN.md — substituir relação singular por associação N:N de competições e modalidades; implementação, provas e integração local concluídas
 
-**Wave 22** *(gap closure; depends on 03-21; implemented locally, integration pending)*
+**Wave 22** *(gap closure; depends on 03-21; integrated locally, cleanup/push pending)*
 
-- [x] 03-22-PLAN.md — aceitar formato GENERIC sem simular regras esportivas ausentes; implementacao, verificacoes e candidato aprovados concluidos
+- [x] 03-22-PLAN.md — aceitar formato GENERIC sem simular regras esportivas ausentes; implementação, verificações, candidato e integração local concluídos
 
-**Wave 23** *(gap closure; depends on 03-22; implemented locally, integration pending)*
+**Wave 23** *(gap closure; depends on 03-22; integrated locally, cleanup/push pending)*
 
-- [x] 03-23-PLAN.md — derivar autorização por competição para organizações, atletas e elencos; decisão A1, implementação e provas locais concluídas
+- [x] 03-23-PLAN.md — derivar autorização por competição para organizações, atletas e elencos; decisão A1, implementação, provas e integração local concluídas
 
 **Wave 24** *(gap closure; depends on 03-23; implementation pending)*
 
