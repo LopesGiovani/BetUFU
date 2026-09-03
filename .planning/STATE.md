@@ -1,19 +1,19 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: 03.1
-current_phase_name: Convergência do Contrato de Diagnóstico
-status: complete
-stopped_at: Phase 03.1 plan 01 complete; awaiting Git integration approvals
-last_updated: "2026-09-02T21:14:40.349Z"
-last_activity: 2026-09-02
-last_activity_desc: Fase 03.1 inserida após a Fase 3 para convergir o contrato de diagnóstico.
-state_head: be47d20c461ecbb9fa12358ac351891f643b25ae
+current_phase: 3
+current_phase_name: Experiência Esportiva do Piloto
+status: planning
+stopped_at: Phase 3 gap-closure plans 03-21 through 03-27 prepared; awaiting implementation approval
+last_updated: "2026-09-03T14:41:03-03:00"
+last_activity: 2026-09-03
+last_activity_desc: Phase 3 verification gaps were converted into seven bounded closure plans after Phase 03.1 completion.
+state_head: fffed5fc0b16fafc945d9522a7e8ef14dcacccab
 progress:
   total_phases: 8
-  completed_phases: 2
-  total_plans: 84
-  completed_plans: 83
+  completed_phases: 3
+  total_plans: 91
+  completed_plans: 84
 milestone_name: milestone
 ---
 
@@ -22,6 +22,8 @@ milestone_name: milestone
 Git - Fase 3 / Wave 19 (integrada, enviada e limpa, 2026-09-02): o 03-20 foi executado na worktree dedicada `worktree-agent-03-20` sobre `8e1b893`; o commit tecnico `fa2985d` converge as seis rotas de produto para o ConsoleShell, remove o AuthenticatedLayoutComponent e consolida a prova operacional. Angular focal `22/22` e `35/35`, Angular completo `342/342`, Node `625/625`, validador de rotas `173/173`, validador vivo `OK`, build production e Playwright legado `4/4` passaram. O checkpoint humano `aprovar Console convergido 03-20` foi recebido. O commit documental `88eb964` foi integrado por fast-forward; a worktree e a branch exatas foram removidas e `master`/`origin/master` foram sincronizadas. O follow-up de manutenibilidade permanece registrado na formalizacao corrente.
 
 Git - Fase 3 / Wave 20 (concluida, integrada e limpa, 2026-09-02): o 03-17 certificou arquitetura/privacidade, matriz Chromium/Firefox, acessibilidade medida e mutacoes negativas restauraveis. Os commits tecnico e documental foram integrados por fast-forward; a worktree e a branch exatas foram removidas. A divida de manutenibilidade da prova permanece registrada como follow-up.
+
+Git - Fase 3 / gap closure (planejado, 2026-09-03): os planos 03-21 a 03-27 e a verificacao foram formalizados no commit `fffed5f` e integrados/publicados na `master`. Nenhuma implementacao dos gaps foi iniciada; a proxima frente tecnica e o 03-21.
 
 Git - Fase 3 / Wave 18 (integrada, enviada e limpa, 2026-09-02): o 03-19 foi executado na worktree dedicada sobre `d63d3bd` e normalizado no padrao de dois commits: tecnico `975f9f6` e documental corrente, que nao cita o proprio hash. Surefire `266/266`, Failsafe `441/441`, Node `625/625`, Angular `356/356`, build production, lint, validador de rotas e Playwright pessoal `2/2` passaram; a variante pessoal do ConsoleShell e as tres rotas de conta ficaram verdes. A worktree e a branch exatas foram removidas; `master` e `origin/master` estao sincronizadas.
 
@@ -32,14 +34,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Fase 3 concluida em 20/20; a proxima frente e discutir e planejar a Fase 4, que depende de decisoes explicitas sobre Elo, empate e confrontos de referencia.
+**Current focus:** fechar os sete gaps funcionais da Fase 3 nos planos 03-21 a 03-27; a Fase 4 continua aguardando essa certificacao.
 
 ## Current Position
 
-Phase: 03.1 (Convergência do Contrato de Diagnóstico) — COMPLETE
-Plan: 03.1-01-PLAN.md - implementado, verificado e documentado; commit tecnico 269c955.
-Status: Complete - checkpoint runtime humano aprovado; aguardando somente stage/commit documental e integracao Git.
-Last activity: 2026-09-03 - clean verify, verify full e checkpoint do endpoint aprovados.
+Phase: 3 of 8 — Experiência Esportiva do Piloto (gap closure)
+Plan: 03-21 a 03-27 preparados; nenhuma implementação dos gaps foi iniciada.
+Status: Planning - a verificação fresca identificou sete gaps bloqueantes; execução aguarda aprovação específica do bloco de implementação.
+Last activity: 2026-09-03 - base `fffed5f` confirmada e planos de fechamento publicados.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -109,7 +111,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [██████████] 20/20 planos da Fase 3 (100%)
+Progress: [███████░░░] 20/27 planos da Fase 3 (74%; 7 gap-closure pendentes)
 
 ## Métricas de desempenho
 
@@ -254,7 +256,7 @@ Progress: [██████████] 20/20 planos da Fase 3 (100%)
 
 ### Bloqueios e pontos de atenção
 
- - **Wave 20 resolvida em 2026-09-02:** o 03-17 foi implementado, certificado, integrado, limpo e publicado. A Fase 3 está completa; o próximo passo é planejar a Fase 4.
+ - **Wave 20 resolvida em 2026-09-02:** o 03-17 foi implementado, certificado, integrado, limpo e publicado. A base da Fase 3 está certificada; os gaps 03-21 a 03-27 permanecem pendentes antes da Fase 4.
 
 - Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
 - ~~Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.~~ **Resolvido em 2026-08-26:** a Fase 3 adotou catálogo esportivo genérico, registrou as modalidades conhecidas apenas como dados iniciais e definiu página oficial, regulamento e boletins oficiais como fontes autoritativas; detalhes de 2026 serão dados operacionais, não bloqueio arquitetural.
@@ -275,9 +277,9 @@ Progress: [██████████] 20/20 planos da Fase 3 (100%)
 
 ## Session Continuity
 
-Last session: 2026-09-03T01:32:01-03:00
-Stopped at: Phase 03.1 plan 01 complete; awaiting Git integration approvals
-Resume file: C:\Users\giova\Desktop\BetUFU-worktrees\worktree-agent-03-1\.planning\phases\03.1-converg-ncia-do-contrato-de-diagn-stico\03.1-01-SUMMARY.md
+Last session: 2026-09-03T14:41:03-03:00
+Stopped at: Phase 3 gap-closure planning complete; awaiting implementation approval
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-21-PLAN.md
 
 ## Accumulated Context
 
@@ -286,6 +288,7 @@ Resume file: C:\Users\giova\Desktop\BetUFU-worktrees\worktree-agent-03-1\.planni
 - Phase 3 edited: Fase 3 reconciliada após discussão: domínio esportivo genérico, vínculo por HMAC sem comprovante, política de atleta permissiva no MVP e confirmação de resultado pela mesma pessoa.
 - Phase 3 edited: A reatribuição histórica de PRIV-02 à Fase 3 foi superada: comprovantes documentais permanecem na v2; a Fase 3 usa matrícula transitória e HMAC sem arquivo.
 - Phase 03.1 inserted after Phase 3: Convergência do Contrato de Diagnóstico (URGENT)
+- Phase 3 gap closure added: seven bounded plans (03-21 through 03-27) must be implemented and certified before Phase 4.
 
 ## Performance Metrics
 

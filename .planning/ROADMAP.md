@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 19/20 plans executed
+**Plans**: 20/27 plans executed; 7 gap-closure plans pending
 
 Plans:
 **Wave 1**
@@ -333,6 +333,34 @@ Plans:
 **Wave 20** *(concluida, integrada, enviada e limpa em 2026-09-02)*
 
 - [x] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação; implementação, verificações e checkpoint humano concluídos
+
+**Wave 21** *(gap closure; depends on 03-17; implementation pending)*
+
+- [ ] 03-21-PLAN.md — substituir relação singular por associação N:N de competições e modalidades
+
+**Wave 22** *(gap closure; depends on 03-21; implementation pending)*
+
+- [ ] 03-22-PLAN.md — aceitar formato GENERIC sem simular regras esportivas ausentes
+
+**Wave 23** *(gap closure; depends on 03-22; implementation pending)*
+
+- [ ] 03-23-PLAN.md — derivar autorização por competição para organizações, atletas e elencos
+
+**Wave 24** *(gap closure; depends on 03-23; implementation pending)*
+
+- [ ] 03-24-PLAN.md — endurecer CSV/XLSX e bloquear alteração direta de roster publicado
+
+**Wave 25** *(gap closure; depends on 03-24; implementation pending)*
+
+- [ ] 03-25-PLAN.md — persistir histórico append-only de lifecycle e consulta escopada
+
+**Wave 26** *(gap closure; depends on 03-25; implementation pending)*
+
+- [ ] 03-26-PLAN.md — tornar proposta owner navegável e corrigir deep links da agenda
+
+**Wave 27** *(gap closure; depends on 03-26; implementation pending)*
+
+- [ ] 03-27-PLAN.md — recertificar a Fase 3 após o fechamento dos gaps
 
 **UI hint**: yes
 
@@ -421,13 +449,14 @@ Plans:
 
 ## Progress
 
-**Ordem de execução:** Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7
+**Ordem de execução:** Phase 1 → Phase 2 → Phase 3 → Phase 03.1 → Phase 4 → Phase 5 → Phase 6 → Phase 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 20/20 | Complete | 2026-09-02 |
+| 3. Experiência Esportiva do Piloto | 20/27 | Gap closure pending | - |
+| 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
