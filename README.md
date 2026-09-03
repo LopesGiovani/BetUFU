@@ -174,6 +174,16 @@ node --test scripts/*.test.mjs
 
 Os comandos acima verificam, respectivamente, o cliente derivado do OpenAPI e os contratos estáticos governados do repositório.
 
+### Verificações no commit
+
+O repositório fornece um hook versionado para verificar o frontend e o backend antes de cada commit. Ative-o uma vez por clone:
+
+```powershell
+git config core.hooksPath .githooks
+```
+
+O hook executa `npm --prefix frontend run lint` e `node scripts/maven.mjs -f backend/pom.xml spotless:check`. A mesma validação é repetida pela CI em toda pull request e em todo push direto para `master`; o hook local pode ser ignorado, mas os checks da CI devem permanecer verdes.
+
 ## Documentação de referência
 
 - [Visão e decisões do produto](.planning/PROJECT.md)
