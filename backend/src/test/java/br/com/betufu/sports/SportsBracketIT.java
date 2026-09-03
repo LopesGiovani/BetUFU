@@ -630,6 +630,143 @@ class SportsBracketIT {
         .andExpect(status().isForbidden());
   }
 
+  @Test
+  @DisplayName("Bracket recusa derivacao de predecessor a partir de evento GENERIC")
+  void rejectsGenericEventAsAutomaticPredecessor() throws Exception {
+    jdbcTemplate.update(
+        "UPDATE public.sports_event SET event_format = 'GENERIC' WHERE event_id = ?", event1);
+
+    SportsBracketCreateRequest createReq =
+        new SportsBracketCreateRequest(
+            "Chave generica", "chave-generica", sportA, categoryA, phaseA);
+    String createJson =
+        mockMvc
+            .perform(
+                post("/api/v1/operations/sports/editions/{editionId}/brackets", editionA)
+                    .with(user("competition-a-admin-sub"))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createReq)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    UUID bracketId = UUID.fromString(objectMapper.readTree(createJson).get("bracketId").asText());
+
+    UUID genericMatchId = UUID.randomUUID();
+    SportsBracketMatchConfigureRequest genericMatch =
+        new SportsBracketMatchConfigureRequest(
+            genericMatchId,
+            1,
+            1,
+            "Rodada generica",
+            event1,
+            false,
+            List.of(
+                new SportsBracketSlotConfigureRequest(
+                    1, SportsBracketSourceType.DIRECT, null, null),
+                new SportsBracketSlotConfigureRequest(
+                    2, SportsBracketSourceType.DIRECT, null, null)));
+    SportsBracketMatchConfigureRequest dependentMatch =
+        new SportsBracketMatchConfigureRequest(
+            UUID.randomUUID(),
+            2,
+            1,
+            "Rodada seguinte",
+            null,
+            false,
+            List.of(
+                new SportsBracketSlotConfigureRequest(
+                    1, SportsBracketSourceType.PREDECESSOR_WINNER, genericMatchId, null),
+                new SportsBracketSlotConfigureRequest(
+                    2, SportsBracketSourceType.BYE, null, null)));
+    SportsBracketUpdateRequest updateReq =
+        new SportsBracketUpdateRequest(
+            "Chave generica",
+            "chave-generica",
+            sportA,
+            categoryA,
+            phaseA,
+            List.of(genericMatch, dependentMatch));
+
+    mockMvc
+        .perform(
+            put("/api/v1/operations/sports/brackets/{bracketId}", bracketId)
+                .param("expectedLockVersion", "0")
+                .with(user("competition-a-admin-sub"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateReq)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("Bracket nao deriva placar ou vencedor de evento GENERIC legado")
+  void doesNotDeriveWinnerFromGenericEventWithPersistedScores() throws Exception {
+    SportsBracketCreateRequest createReq =
+        new SportsBracketCreateRequest(
+            "Chave sem derivacao", "chave-sem-derivacao", sportA, categoryA, phaseA);
+    String createJson =
+        mockMvc
+            .perform(
+                post("/api/v1/operations/sports/editions/{editionId}/brackets", editionA)
+                    .with(user("competition-a-admin-sub"))
+                    .with(csrf())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createReq)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    UUID bracketId = UUID.fromString(objectMapper.readTree(createJson).get("bracketId").asText());
+
+    SportsBracketMatchConfigureRequest match =
+        new SportsBracketMatchConfigureRequest(
+            UUID.randomUUID(),
+            1,
+            1,
+            "Rodada unica",
+            event1,
+            false,
+            List.of(
+                new SportsBracketSlotConfigureRequest(
+                    1, SportsBracketSourceType.DIRECT, null, null),
+                new SportsBracketSlotConfigureRequest(
+                    2, SportsBracketSourceType.DIRECT, null, null)));
+    SportsBracketUpdateRequest updateReq =
+        new SportsBracketUpdateRequest(
+            "Chave sem derivacao",
+            "chave-sem-derivacao",
+            sportA,
+            categoryA,
+            phaseA,
+            List.of(match));
+
+    mockMvc
+        .perform(
+            put("/api/v1/operations/sports/brackets/{bracketId}", bracketId)
+                .param("expectedLockVersion", "0")
+                .with(user("competition-a-admin-sub"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateReq)))
+        .andExpect(status().isOk());
+
+    jdbcTemplate.update(
+        "UPDATE public.sports_event SET event_format = 'GENERIC' WHERE event_id = ?", event1);
+    confirmResult(event1, 3, 1);
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/brackets/{bracketId}", bracketId)
+                .with(user("competition-a-admin-sub")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.rounds[0].matches[0].status").value("PUBLICADO"))
+        .andExpect(jsonPath("$.rounds[0].matches[0].winnerSlotNo").doesNotExist())
+        .andExpect(jsonPath("$.rounds[0].matches[0].slots[0].score").doesNotExist())
+        .andExpect(jsonPath("$.rounds[0].matches[0].slots[0].isWinner").doesNotExist());
+  }
+
   private void confirmResult(UUID eventId, int score1, int score2) {
     UUID identityId =
         jdbcTemplate.queryForObject(

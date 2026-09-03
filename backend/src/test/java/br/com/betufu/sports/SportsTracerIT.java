@@ -203,6 +203,52 @@ class SportsTracerIT {
   }
 
   @Test
+  @DisplayName("Tracer cria e publica evento GENERIC sem expor dados detalhados")
+  void publishesGenericEventAsBasicAgendaItem() throws Exception {
+    UUID competitionId = createCompetition("Competicao Generica", "competicao-generica");
+    UUID editionId = createEdition(competitionId, "Edicao Generica", "edicao-generica");
+
+    mockMvc
+        .perform(
+            post(ROLE_GRANTS)
+                .with(oidcPrincipal("global-admin-sub"))
+                .with(csrf())
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"targetIdentityId\":\""
+                        + competitionAdminId
+                        + "\",\"role\":\"ADMINISTRADOR_COMPETICAO\",\"scopeRef\":\""
+                        + competitionId
+                        + "\"}"))
+        .andExpect(status().isOk());
+
+    UUID eventId =
+        createEvent(
+            editionId,
+            "competition-admin-sub",
+            "Modalidade generica",
+            "GENERIC",
+            "2026-08-22T16:00:00Z");
+
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/events/" + eventId + "/publications")
+                .with(oidcPrincipal("competition-admin-sub"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"expectedLockVersion\":0}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.format").value("GENERIC"));
+
+    mockMvc
+        .perform(get("/api/v1/public/sports/events/" + eventId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.format").value("GENERIC"))
+        .andExpect(jsonPath("$.slots.length()").value(2));
+  }
+
+  @Test
   @DisplayName("Agenda publica lista somente publicados com filtros e paginação estáveis")
   void listsPublishedEventsWithStableFiltersAndPagination() throws Exception {
     UUID competitionA = createCompetition("Competicao Agenda A", "competicao-agenda-a");
@@ -539,15 +585,21 @@ class SportsTracerIT {
 
   private UUID createEvent(UUID editionId, String subject, String title, String scheduledAt)
       throws Exception {
+    return createEvent(editionId, subject, title, "HEAD_TO_HEAD", scheduledAt);
+  }
+
+  private UUID createEvent(
+      UUID editionId, String subject, String title, String format, String scheduledAt)
+      throws Exception {
     MvcResult result =
         mockMvc
             .perform(
-                post("/api/v1/operations/sports/editions/" + editionId + "/events")
+            post("/api/v1/operations/sports/editions/" + editionId + "/events")
                     .with(oidcPrincipal(subject))
                     .with(csrf())
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(eventBody(title, scheduledAt)))
+                    .content(eventBody(title, format, scheduledAt)))
             .andExpect(status().isCreated())
             .andReturn();
     return uuid(result, "eventId");
@@ -558,15 +610,19 @@ class SportsTracerIT {
   }
 
   private static String eventBody(String title, String scheduledAt) {
+    return eventBody(title, "HEAD_TO_HEAD", scheduledAt);
+  }
+
+  private static String eventBody(String title, String format, String scheduledAt) {
     return String.format(
-        "{\"title\":\"%s\",\"format\":\"HEAD_TO_HEAD\","
+        "{\"title\":\"%s\",\"format\":\"%s\","
             + "\"scheduledAt\":\"%s\",\"zoneId\":\"America/Sao_Paulo\","
             + "\"venueState\":\"LOCAL_A_DEFINIR\","
             + "\"sourceReference\":\"https://example.invalid/boletim-1\","
             + "\"slots\":["
             + "{\"slotNo\":1,\"displayLabel\":\"Direito\"},"
             + "{\"slotNo\":2,\"displayLabel\":\"Computacao\"}]}",
-        title, scheduledAt);
+        title, format, scheduledAt);
   }
 
   private void publishEvent(UUID eventId) throws Exception {

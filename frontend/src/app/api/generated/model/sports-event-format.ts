@@ -10,6 +10,7 @@
 
 
 export const SportsEventFormat = {
-    HeadToHead: 'HEAD_TO_HEAD'
+    HeadToHead: 'HEAD_TO_HEAD',
+    Generic: 'GENERIC'
 } as const;
 export type SportsEventFormat = typeof SportsEventFormat[keyof typeof SportsEventFormat];

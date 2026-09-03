@@ -4,6 +4,7 @@ import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
 import br.com.betufu.platform.identity.OperationalIdentityLookup;
 import br.com.betufu.platform.identity.OperationalIdentityLookup.OperationalIdentity;
+import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.result.SportsResultModels.SportsResultConfirmRequest;
 import br.com.betufu.sports.internal.result.SportsResultModels.SportsResultCorrectRequest;
 import br.com.betufu.sports.internal.result.SportsResultModels.SportsResultInformRequest;
@@ -58,6 +59,7 @@ public class SportsResultService {
     EventScope event =
         repository.findEventScope(eventId).orElseThrow(SportsResultService::notFound);
     requireScopeAccess(actor, event.competitionId());
+    requireDetailedEvent(event.format());
 
     return repository.findResultVersions(eventId);
   }
@@ -81,6 +83,7 @@ public class SportsResultService {
         repository.findEventScope(eventId).orElseThrow(SportsResultService::notFound);
     OperationalIdentity actor = resolveIdentity(issuer, subject);
     requireWritableCompetition(actor, event.competitionId());
+    requireDetailedEvent(event.format());
 
     if ("RASCUNHO".equals(event.status()) || "CANCELADO".equals(event.status())) {
       throw validation();
@@ -151,6 +154,7 @@ public class SportsResultService {
         repository.findEventScope(eventId).orElseThrow(SportsResultService::notFound);
     OperationalIdentity actor = resolveIdentity(issuer, subject);
     requireWritableCompetition(actor, event.competitionId());
+    requireDetailedEvent(event.format());
 
     if ("RASCUNHO".equals(event.status()) || "CANCELADO".equals(event.status())) {
       throw validation();
@@ -221,6 +225,7 @@ public class SportsResultService {
         repository.findEventScope(eventId).orElseThrow(SportsResultService::notFound);
     OperationalIdentity actor = resolveIdentity(issuer, subject);
     requireWritableCompetition(actor, event.competitionId());
+    requireDetailedEvent(event.format());
 
     if ("RASCUNHO".equals(event.status()) || "CANCELADO".equals(event.status())) {
       throw validation();
@@ -296,6 +301,7 @@ public class SportsResultService {
         repository.findEventScope(eventId).orElseThrow(SportsResultService::notFound);
     OperationalIdentity actor = resolveIdentity(issuer, subject);
     requireWritableCompetition(actor, event.competitionId());
+    requireDetailedEvent(event.format());
 
     if ("RASCUNHO".equals(event.status()) || "CANCELADO".equals(event.status())) {
       throw validation();
@@ -368,6 +374,12 @@ public class SportsResultService {
       if (!slotNos.add(score.slotNo())) {
         throw validation();
       }
+    }
+  }
+
+  private static void requireDetailedEvent(EventFormat format) {
+    if (format != EventFormat.HEAD_TO_HEAD) {
+      throw validation();
     }
   }
 

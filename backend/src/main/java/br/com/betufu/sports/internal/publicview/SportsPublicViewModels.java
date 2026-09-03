@@ -12,7 +12,8 @@ public final class SportsPublicViewModels {
   private SportsPublicViewModels() {}
 
   public enum EventFormat {
-    HEAD_TO_HEAD
+    HEAD_TO_HEAD,
+    GENERIC
   }
 
   public enum VenueState {

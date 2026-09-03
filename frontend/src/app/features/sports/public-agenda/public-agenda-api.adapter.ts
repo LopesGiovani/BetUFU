@@ -141,6 +141,8 @@ export class PublicAgendaApiAdapter {
     ];
     if (required.some((value) => typeof value !== 'string' || value.trim() === ''))
       throw new Error('CONTRATO_AGENDA_PUBLICA_INVALIDO: evento incompleto.');
+    if (event.format !== 'HEAD_TO_HEAD' && event.format !== 'GENERIC')
+      throw new Error('CONTRATO_AGENDA_PUBLICA_INVALIDO: formato invalido.');
     const date = new Date(event.scheduledAt);
     if (Number.isNaN(date.getTime()) || !Array.isArray(event.slots))
       throw new Error('CONTRATO_AGENDA_PUBLICA_INVALIDO: horário ou participantes inválidos.');
@@ -151,7 +153,9 @@ export class PublicAgendaApiAdapter {
       .map((slot) => slot.displayLabel?.trim())
       .filter((label): label is string => Boolean(label));
     const eventName =
-      participants.length === 2 ? `${participants[0]} × ${participants[1]}` : event.title.trim();
+      event.format === 'HEAD_TO_HEAD' && participants.length === 2
+        ? `${participants[0]} × ${participants[1]}`
+        : event.title.trim();
     const formatLabel = event.format === 'HEAD_TO_HEAD' ? 'Confronto' : 'Agenda básica';
     const contextParts = [
       formatLabel,

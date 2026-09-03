@@ -1,5 +1,6 @@
 package br.com.betufu.sports.internal.bracket;
 
+import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketCreateRequest;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketMatchConfigureRequest;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSlotConfigureRequest;
@@ -81,6 +82,7 @@ class SportsBracketRepository {
       Instant scheduledAt,
       String zoneId,
       String status,
+      EventFormat format,
       String venueName,
       String venueSpaceName,
       UUID confirmedVersionId,
@@ -443,7 +445,8 @@ class SportsBracketRepository {
     List<EventProjectionInfo> events =
         namedJdbc.query(
             ("""
-                SELECT e.event_id, e.title, e.scheduled_at, e.zone_id, e.status, e.confirmed_version_id,
+                SELECT e.event_id, e.title, e.scheduled_at, e.zone_id, e.status, e.event_format,
+                       e.confirmed_version_id,
                        v.name AS venue_name, vs.name AS venue_space_name
                 FROM public.sports_event e
                 LEFT JOIN public.sports_venue v ON v.venue_id = e.venue_id
@@ -459,6 +462,7 @@ class SportsBracketRepository {
                     toInstant(rs.getTimestamp("scheduled_at")),
                     rs.getString("zone_id"),
                     rs.getString("status"),
+                    EventFormat.valueOf(rs.getString("event_format")),
                     rs.getString("venue_name"),
                     rs.getString("venue_space_name"),
                     rs.getObject("confirmed_version_id", UUID.class),
@@ -518,6 +522,7 @@ class SportsBracketRepository {
               ev.scheduledAt(),
               ev.zoneId(),
               ev.status(),
+              ev.format(),
               ev.venueName(),
               ev.venueSpaceName(),
               ev.confirmedVersionId(),
@@ -525,6 +530,29 @@ class SportsBracketRepository {
               sc));
     }
     return resultMap;
+  }
+
+  Map<UUID, EventFormat> findEventFormats(List<UUID> eventIds) {
+    List<UUID> nonNullIds =
+        eventIds.stream().filter(java.util.Objects::nonNull).distinct().toList();
+    if (nonNullIds.isEmpty()) {
+      return Map.of();
+    }
+
+    MapSqlParameterSource params = new MapSqlParameterSource().addValue("eventIds", nonNullIds);
+    return namedJdbc.query(
+        "SELECT event_id, event_format FROM public.sports_event "
+            + "WHERE event_id IN (:eventIds)",
+        params,
+        rs -> {
+          Map<UUID, EventFormat> formats = new HashMap<>();
+          while (rs.next()) {
+            formats.put(
+                rs.getObject("event_id", UUID.class),
+                EventFormat.valueOf(rs.getString("event_format")));
+          }
+          return formats;
+        });
   }
 
   UUID createPublication(

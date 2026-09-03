@@ -4759,6 +4759,7 @@ components:
       type: string
       enum:
         - HEAD_TO_HEAD
+        - GENERIC
 
     SportsVenueState:
       type: string

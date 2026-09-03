@@ -19,7 +19,8 @@ public final class SportsTracerModels {
   private SportsTracerModels() {}
 
   public enum EventFormat {
-    HEAD_TO_HEAD
+    HEAD_TO_HEAD,
+    GENERIC
   }
 
   public enum VenueState {

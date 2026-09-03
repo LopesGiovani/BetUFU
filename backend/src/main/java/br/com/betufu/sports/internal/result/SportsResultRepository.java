@@ -1,5 +1,6 @@
 package br.com.betufu.sports.internal.result;
 
+import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.result.SportsResultModels.SportsResultScoreItem;
 import br.com.betufu.sports.internal.result.SportsResultModels.SportsResultVersion;
 import java.sql.ResultSet;
@@ -30,6 +31,7 @@ class SportsResultRepository {
       UUID eventId,
       UUID competitionId,
       UUID editionId,
+      EventFormat format,
       String status,
       long lockVersion,
       UUID confirmedVersionId) {}
@@ -42,7 +44,7 @@ class SportsResultRepository {
     }
     return jdbcTemplate.query(
         """
-                SELECT event_id, competition_id, edition_id, status, lock_version, confirmed_version_id
+                SELECT event_id, competition_id, edition_id, event_format, status, lock_version, confirmed_version_id
                 FROM public.sports_event
                 WHERE event_id = ?
                 """,
@@ -53,6 +55,7 @@ class SportsResultRepository {
                         rs.getObject("event_id", UUID.class),
                         rs.getObject("competition_id", UUID.class),
                         rs.getObject("edition_id", UUID.class),
+                        EventFormat.valueOf(rs.getString("event_format")),
                         rs.getString("status"),
                         rs.getLong("lock_version"),
                         rs.getObject("confirmed_version_id", UUID.class)))
@@ -66,7 +69,7 @@ class SportsResultRepository {
     }
     return jdbcTemplate.query(
         """
-                SELECT event_id, competition_id, edition_id, status, lock_version, confirmed_version_id
+                SELECT event_id, competition_id, edition_id, event_format, status, lock_version, confirmed_version_id
                 FROM public.sports_event
                 WHERE event_id = ?
                 FOR UPDATE
@@ -78,6 +81,7 @@ class SportsResultRepository {
                         rs.getObject("event_id", UUID.class),
                         rs.getObject("competition_id", UUID.class),
                         rs.getObject("edition_id", UUID.class),
+                        EventFormat.valueOf(rs.getString("event_format")),
                         rs.getString("status"),
                         rs.getLong("lock_version"),
                         rs.getObject("confirmed_version_id", UUID.class)))

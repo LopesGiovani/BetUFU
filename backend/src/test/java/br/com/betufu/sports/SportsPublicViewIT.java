@@ -716,6 +716,48 @@ class SportsPublicViewIT {
             ex -> assertThat(((ApiProblemException) ex).status()).isEqualTo(HttpStatus.NOT_FOUND));
   }
 
+  @Test
+  @DisplayName("P3: evento GENERIC publica somente dados basicos, sem resultado inventado")
+  void getEventDetail_genericEventDoesNotExposeDetailedResult() {
+    UUID genericEventId = UUID.randomUUID();
+    UUID genericPublicationId = UUID.randomUUID();
+    transactionTemplate.executeWithoutResult(
+        status -> {
+          jdbcTemplate.update(
+              "INSERT INTO public.sports_event (event_id, competition_id, edition_id, title, event_format, status, scheduled_at, zone_id, venue_state, source_reference) VALUES (?, ?, ?, ?, 'GENERIC', 'PUBLICADO', ?, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', ?)",
+              genericEventId,
+              competitionId,
+              editionId,
+              "Cerimonia de abertura",
+              Timestamp.from(Instant.parse("2026-09-16T18:00:00Z")),
+              "https://oficial.ufu.br/programacao-01");
+          jdbcTemplate.update(
+              "INSERT INTO public.sports_event_publication (publication_id, event_id, competition_id, edition_id, version_no, competition_name, edition_name, title, event_format, scheduled_at, zone_id, venue_state, source_reference, published_by_identity_id, base_lock_version, published_at) VALUES (?, ?, ?, ?, 1, ?, ?, ?, 'GENERIC', ?, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', ?, ?, 0, ?)",
+              genericPublicationId,
+              genericEventId,
+              competitionId,
+              editionId,
+              "Olimpiada UFU 2026",
+              "Edicao 2026",
+              "Cerimonia de abertura",
+              Timestamp.from(Instant.parse("2026-09-16T18:00:00Z")),
+              "https://oficial.ufu.br/programacao-01",
+              publicViewIdentityId,
+              Timestamp.from(Instant.now()));
+          jdbcTemplate.update(
+              "INSERT INTO public.sports_event_publication_slot (publication_id, slot_no, display_label, team_id, team_name) VALUES (?, 1, 'Programacao', NULL, NULL), (?, 2, 'A definir', NULL, NULL)",
+              genericPublicationId,
+              genericPublicationId);
+        });
+
+    PublicEventDetail detail = publicViewService.getEventDetail(genericEventId);
+
+    assertThat(detail.format().name()).isEqualTo("GENERIC");
+    assertThat(detail.sourceReference()).isEqualTo("https://oficial.ufu.br/programacao-01");
+    assertThat(detail.result()).isNull();
+    assertThat(detail.slots()).hasSize(2);
+  }
+
   // ==========================================
   // Anonymous Access Verification
   // ==========================================

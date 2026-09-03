@@ -403,7 +403,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // o cliente owner/public de foto processada e seu modelo de metadados.
 // D53E... foi aprovado literalmente pelo responsavel no 03-21; troca os campos
 // singulares de modalidade pela colecao N:N sem alterar a allowlist de caminhos.
-export const APPROVED_GENERATED_DIGEST = 'D53E38AE2F7CE539B0610694480E158535697ED5E83FB52C4A4C2309B72228DC';
+// D8DD... foi aprovado literalmente pelo responsavel no 03-22; acrescenta GENERIC
+// ao contrato de eventos sem alterar a allowlist de caminhos.
+export const APPROVED_GENERATED_DIGEST = 'D8DDE8402F6D66D279B46E66DAF5000619A010ED28C5CA2B4000A6287B527E3D';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

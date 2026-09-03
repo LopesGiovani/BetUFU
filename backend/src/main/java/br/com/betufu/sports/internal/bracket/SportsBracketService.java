@@ -16,6 +16,7 @@ import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSo
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSummary;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketUpdateRequest;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketView;
+import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.BracketRecord;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.EditionContext;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.EventProjectionInfo;
@@ -407,6 +408,22 @@ public class SportsBracketService {
       if (!repository.eventsBelongToEdition(competitionId, editionId, eventIds)) {
         throw validation();
       }
+
+      Map<UUID, EventFormat> eventFormats = repository.findEventFormats(eventIds);
+      for (SportsBracketMatchConfigureRequest match : matches) {
+        for (SportsBracketSlotConfigureRequest slot : match.slots()) {
+          if ((slot.sourceType() == SportsBracketSourceType.PREDECESSOR_WINNER
+                  || slot.sourceType() == SportsBracketSourceType.PREDECESSOR_LOSER)
+              && slot.sourceMatchId() != null) {
+            SportsBracketMatchConfigureRequest predecessor = matchById.get(slot.sourceMatchId());
+            if (predecessor != null
+                && predecessor.eventId() != null
+                && eventFormats.get(predecessor.eventId()) == EventFormat.GENERIC) {
+              throw validation();
+            }
+          }
+        }
+      }
     }
   }
 
@@ -436,7 +453,8 @@ public class SportsBracketService {
 
       Integer winnerSlotNo = null;
       Integer loserSlotNo = null;
-      if (eventInfo != null && eventInfo.scores().size() == 2) {
+      boolean detailedEvent = eventInfo != null && eventInfo.format() == EventFormat.HEAD_TO_HEAD;
+      if (detailedEvent && eventInfo.scores().size() == 2) {
         int s1 = eventInfo.scores().getOrDefault(1, 0);
         int s2 = eventInfo.scores().getOrDefault(2, 0);
         if (s1 > s2) {
@@ -461,7 +479,7 @@ public class SportsBracketService {
         String displayLabel = "A definir";
         UUID teamId = null;
         String teamName = null;
-        Integer score = eventInfo != null ? eventInfo.scores().get(slotNo) : null;
+        Integer score = detailedEvent ? eventInfo.scores().get(slotNo) : null;
         Boolean isWinner = winnerSlotNo != null ? (winnerSlotNo == slotNo) : null;
 
         if (sourceType == SportsBracketSourceType.BYE) {
@@ -566,7 +584,9 @@ public class SportsBracketService {
       String status =
           eventInfo == null
               ? "AGENDADO"
-              : (eventInfo.confirmedVersionId() != null && "PUBLICADO".equals(eventInfo.status())
+              : (detailedEvent
+                      && eventInfo.confirmedVersionId() != null
+                      && "PUBLICADO".equals(eventInfo.status())
                   ? "CONFIRMADO"
                   : eventInfo.status());
 

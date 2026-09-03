@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(22);
+    assertThat(result.migrationsExecuted).isEqualTo(23);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(22);
+    assertThat(applied).hasSize(23);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -165,6 +165,8 @@ class FlywayMigrationIT {
     assertThat(applied[20].getState()).isEqualTo(MigrationState.SUCCESS);
     assertThat(applied[21].getVersion().getVersion()).isEqualTo("21");
     assertThat(applied[21].getState()).isEqualTo(MigrationState.SUCCESS);
+    assertThat(applied[22].getVersion().getVersion()).isEqualTo("22");
+    assertThat(applied[22].getState()).isEqualTo(MigrationState.SUCCESS);
 
     Integer guardCount =
         jdbcTemplate.queryForObject(
@@ -180,7 +182,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(22);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(23);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -189,7 +191,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(22);
+    assertThat(applied).hasSize(23);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -230,13 +232,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(22);
+      assertThat(totalExecuted).isEqualTo(23);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(22);
+      assertThat(applied).hasSize(23);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1370,7 +1372,11 @@ class FlywayMigrationIT {
         competitionId);
 
     Flyway afterV21 =
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+        Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .target("21")
+            .load();
     assertThat(afterV21.migrate().migrationsExecuted).isEqualTo(1);
 
     assertThat(
@@ -1409,5 +1415,114 @@ class FlywayMigrationIT {
                     UUID.randomUUID(),
                     sportId))
         .hasMessageContaining("fk_sports_competition_sport_competition");
+  }
+
+  @Test
+  @DisplayName("V22 preserva HEAD_TO_HEAD, aceita GENERIC e rejeita formatos desconhecidos")
+  void v22AllowsOnlyKnownEventFormatsWithoutRewritingLegacyRows() {
+    Flyway beforeV22 =
+        Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .target("21")
+            .load();
+    beforeV22.migrate();
+
+    UUID identityId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.local_identity (issuer, subject) VALUES (?, ?) RETURNING identity_id",
+            UUID.class,
+            "https://example.invalid/realms/betufu-v22",
+            "publisher-v22");
+    UUID competitionId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_competition (name, slug) VALUES (?, ?) RETURNING competition_id",
+            UUID.class,
+            "Comp V22",
+            "comp-v22");
+    UUID editionId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_edition (competition_id, name, slug) VALUES (?, ?, ?) RETURNING edition_id",
+            UUID.class,
+            competitionId,
+            "Edicao V22",
+            "edicao-v22");
+    UUID legacyEventId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_event (competition_id, edition_id, title, event_format, scheduled_at, zone_id, venue_state, source_reference) VALUES (?, ?, ?, 'HEAD_TO_HEAD', CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', ?) RETURNING event_id",
+            UUID.class,
+            competitionId,
+            editionId,
+            "Evento legado V22",
+            "https://example.invalid/v22-legado");
+
+    Flyway afterV22 =
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+    assertThat(afterV22.migrate().migrationsExecuted).isEqualTo(1);
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT event_format FROM public.sports_event WHERE event_id = ?",
+                String.class,
+                legacyEventId))
+        .isEqualTo("HEAD_TO_HEAD");
+
+    UUID genericEventId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_event (competition_id, edition_id, title, event_format, scheduled_at, zone_id, venue_state, source_reference) VALUES (?, ?, ?, 'GENERIC', CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', ?) RETURNING event_id",
+            UUID.class,
+            competitionId,
+            editionId,
+            "Evento generico V22",
+            "https://example.invalid/v22-generico");
+    assertThat(genericEventId).isNotNull();
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "INSERT INTO public.sports_event (competition_id, edition_id, title, event_format, scheduled_at, zone_id, venue_state, source_reference) VALUES (?, ?, ?, 'UNKNOWN', CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', ?)",
+                    competitionId,
+                    editionId,
+                    "Evento invalido V22",
+                    "https://example.invalid/v22-invalido"))
+        .hasMessageContaining("ck_sports_event_format");
+
+    TransactionTemplate transaction =
+        new TransactionTemplate(new DataSourceTransactionManager(dataSource));
+    UUID publicationId =
+        transaction.execute(
+            status -> {
+              UUID createdPublicationId =
+                  jdbcTemplate.queryForObject(
+                      "INSERT INTO public.sports_event_publication (event_id, competition_id, edition_id, version_no, competition_name, edition_name, title, event_format, scheduled_at, zone_id, venue_state, source_reference, published_by_identity_id, base_lock_version) VALUES (?, ?, ?, 1, ?, ?, ?, 'GENERIC', CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', ?, ?, 0) RETURNING publication_id",
+                      UUID.class,
+                      genericEventId,
+                      competitionId,
+                      editionId,
+                      "Comp V22",
+                      "Edicao V22",
+                      "Evento generico V22",
+                      "https://example.invalid/v22-generico",
+                      identityId);
+              jdbcTemplate.update(
+                  "INSERT INTO public.sports_event_publication_slot (publication_id, slot_no, display_label) VALUES (?, 1, 'Programacao'), (?, 2, 'A definir')",
+                  createdPublicationId,
+                  createdPublicationId);
+              return createdPublicationId;
+            });
+    assertThat(publicationId).isNotNull();
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "INSERT INTO public.sports_event_publication (event_id, competition_id, edition_id, version_no, competition_name, edition_name, title, event_format, scheduled_at, zone_id, venue_state, source_reference, published_by_identity_id, base_lock_version) VALUES (?, ?, ?, 2, ?, ?, ?, 'UNKNOWN', CURRENT_TIMESTAMP, 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', ?, ?, 0)",
+                    genericEventId,
+                    competitionId,
+                    editionId,
+                    "Comp V22",
+                    "Edicao V22",
+                    "Evento invalido V22",
+                    "https://example.invalid/v22-invalido",
+                    identityId))
+        .hasMessageContaining("ck_sports_event_publication_format");
   }
 }

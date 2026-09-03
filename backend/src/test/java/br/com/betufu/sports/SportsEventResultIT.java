@@ -387,6 +387,37 @@ class SportsEventResultIT {
   }
 
   @Test
+  @DisplayName("Evento GENERIC pode ser publicado, mas nao aceita ciclo de placar")
+  void genericEventRejectsDetailedResultWorkflow() throws Exception {
+    UUID eventId = createAndPublishEvent("GENERIC");
+
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/events/" + eventId + "/results/inform")
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(csrf())
+                .param("expectedLockVersion", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                                {
+                                  "sourceReference": "https://boletim.ufu.br/generico",
+                                  "scores": [
+                                    { "slotNo": 1, "score": 1 },
+                                    { "slotNo": 2, "score": 0 }
+                                  ]
+                                }
+                                """))
+        .andExpect(status().isBadRequest());
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/events/" + eventId + "/results")
+                .with(oidcPrincipal("competition-a-admin-sub")))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   @DisplayName(
       "Ciclo completo de resultados: INFORMADO -> AGUARDANDO_REVISAO -> CONFIRMADO -> CORRIGIDO e auditoria")
   void fullResultLifecycleAndAuditability() throws Exception {
@@ -626,12 +657,16 @@ class SportsEventResultIT {
   }
 
   private UUID createAndPublishEvent() throws Exception {
+    return createAndPublishEvent("HEAD_TO_HEAD");
+  }
+
+  private UUID createAndPublishEvent(String format) throws Exception {
     String createJson =
         String.format(
             """
                 {
                   "title": "Jogo Teste",
-                  "format": "HEAD_TO_HEAD",
+                  "format": "%s",
                   "scheduledAt": "2026-09-15T18:00:00Z",
                   "zoneId": "America/Sao_Paulo",
                   "venueState": "LOCAL_A_DEFINIR",
@@ -644,7 +679,7 @@ class SportsEventResultIT {
                   ]
                 }
                 """,
-            sportA, categoryA, team1, team2);
+            format, sportA, categoryA, team1, team2);
 
     String createResponse =
         mockMvc

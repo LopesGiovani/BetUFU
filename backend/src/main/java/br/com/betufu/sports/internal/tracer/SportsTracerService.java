@@ -111,8 +111,7 @@ class SportsTracerService {
 
               List<EventSlotRequest> slots = repository.findEventSlots(eventId);
               if (slots.size() != 2) {
-                throw new IllegalStateException(
-                    "HEAD_TO_HEAD event must have exactly two persisted slots");
+                throw new IllegalStateException("event must have exactly two persisted slots");
               }
 
               long versionNo = repository.nextPublicationVersion(eventId);
