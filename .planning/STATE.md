@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: 3
-current_phase_name: Experiência Esportiva do Piloto
-status: In progress
-stopped_at: "03-17/W20 complete; Phase 4 planning pending"
-last_updated: "2026-09-02T13:27:12-03:00"
+current_phase: 03.1
+current_phase_name: Convergência do Contrato de Diagnóstico
+status: complete
+stopped_at: Phase 03.1 plan 01 complete; awaiting Git integration approvals
+last_updated: "2026-09-02T21:14:40.349Z"
 last_activity: 2026-09-02
-last_activity_desc: 03-17/W20 foi certificado, integrado e limpo; os registros de continuidade da Fase 3 foram reconciliados.
-state_head: 41abcdb11024d21647f64d1b6f3c3445d44e6f48
+last_activity_desc: Fase 03.1 inserida após a Fase 3 para convergir o contrato de diagnóstico.
+state_head: be47d20c461ecbb9fa12358ac351891f643b25ae
 progress:
-  total_phases: 7
-  completed_phases: 3
-  total_plans: 83
+  total_phases: 8
+  completed_phases: 2
+  total_plans: 84
   completed_plans: 83
 milestone_name: milestone
 ---
@@ -36,10 +36,10 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 ## Current Position
 
-Phase: 3 of 7 — Experiência Esportiva do Piloto
-Plan: 03-17/W20 concluido; nao ha plano tecnico pendente na Fase 3. A proxima acao e discutir e planejar a Fase 4.
-Status: In progress - Fase 3 concluida com contratos, autorizacao, stores, adapters e capabilities preservados; o milestone v1.0 continua nas fases seguintes.
-Last activity: 2026-09-02 - 03-17/W20 passou o checkpoint humano, foi formalizado, integrado, limpo e publicado; os registros documentais foram reconciliados.
+Phase: 03.1 (Convergência do Contrato de Diagnóstico) — COMPLETE
+Plan: 03.1-01-PLAN.md - implementado, verificado e documentado; commit tecnico 269c955.
+Status: Complete - checkpoint runtime humano aprovado; aguardando somente stage/commit documental e integracao Git.
+Last activity: 2026-09-03 - clean verify, verify full e checkpoint do endpoint aprovados.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -275,9 +275,9 @@ Progress: [██████████] 20/20 planos da Fase 3 (100%)
 
 ## Session Continuity
 
-Last session: 2026-09-02T13:27:12-03:00
-Stopped at: 03-17/W20 complete; planning the next Phase 4 decision block
-Resume file: .planning/ROADMAP.md
+Last session: 2026-09-03T01:32:01-03:00
+Stopped at: Phase 03.1 plan 01 complete; awaiting Git integration approvals
+Resume file: C:\Users\giova\Desktop\BetUFU-worktrees\worktree-agent-03-1\.planning\phases\03.1-converg-ncia-do-contrato-de-diagn-stico\03.1-01-SUMMARY.md
 
 ## Accumulated Context
 
@@ -285,6 +285,7 @@ Resume file: .planning/ROADMAP.md
 
 - Phase 3 edited: Fase 3 reconciliada após discussão: domínio esportivo genérico, vínculo por HMAC sem comprovante, política de atleta permissiva no MVP e confirmação de resultado pela mesma pessoa.
 - Phase 3 edited: A reatribuição histórica de PRIV-02 à Fase 3 foi superada: comprovantes documentais permanecem na v2; a Fase 3 usa matrícula transitória e HMAC sem arquivo.
+- Phase 03.1 inserted after Phase 3: Convergência do Contrato de Diagnóstico (URGENT)
 
 ## Performance Metrics
 

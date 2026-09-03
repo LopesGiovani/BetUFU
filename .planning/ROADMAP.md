@@ -336,6 +336,17 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 03.1: Convergência do Contrato de Diagnóstico (INSERTED)
+
+**Goal:** O backend de diagnostico emite exatamente `UP`, `DEGRADED` e `DOWN`, em paridade com o contrato publico, sem alterar agregacao, probes, autorizacao, profiles, rotas ou consumidores.
+**Requirements**: DIAG-01
+**Depends on:** Phase 3
+**Plans:** 1 plan
+
+Plans:
+
+- [x] 03.1-01-PLAN.md — convergir o enum, consumidores Java e provas JSON/HTTP com rebuild limpo; implementacao, verificacoes e checkpoint humano concluidos
+
 ### Phase 4: Mercados Pré-jogo e Odds Transparentes
 
 **Goal**: Pessoas conseguem consultar odds pré-jogo explicáveis para o piloto, e administradores governam os mercados sem manipulação manual rotineira de preços.
