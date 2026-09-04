@@ -6038,6 +6038,12 @@ components:
         positionName:
           type: [string, "null"]
           maxLength: 64
+        affiliationStartDate:
+          type: [string, "null"]
+          format: date
+        affiliationEndDate:
+          type: [string, "null"]
+          format: date
 
     SportsRosterMemberRequest:
       type: object
@@ -6055,6 +6061,12 @@ components:
         positionName:
           type: [string, "null"]
           maxLength: 64
+        affiliationStartDate:
+          type: [string, "null"]
+          format: date
+        affiliationEndDate:
+          type: [string, "null"]
+          format: date
 
     SportsRosterDraft:
       type: object

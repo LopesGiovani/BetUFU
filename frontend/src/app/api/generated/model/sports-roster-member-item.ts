@@ -15,4 +15,6 @@ export interface SportsRosterMemberItem {
     athleteSlug: string;
     jerseyNumber?: number | null;
     positionName?: string | null;
+    affiliationStartDate?: string | null;
+    affiliationEndDate?: string | null;
 }

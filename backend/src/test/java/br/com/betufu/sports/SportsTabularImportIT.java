@@ -15,7 +15,9 @@ import br.com.betufu.platform.session.RedisContainerSupport;
 import br.com.betufu.sports.internal.importtabular.SportsXlsxParser;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -230,6 +232,26 @@ class SportsTabularImportIT {
     assertThat(athleteCount).isEqualTo(3);
     assertThat(rosterCount).isEqualTo(2);
     assertThat(memberCount).isEqualTo(3);
+
+    Map<String, Object> temporalMember =
+        jdbcTemplate.queryForMap(
+            "SELECT m.affiliation_start_date, m.affiliation_end_date "
+                + "FROM sports_roster_member m JOIN sports_roster r ON r.roster_id = m.roster_id "
+                + "WHERE r.team_id = ? ORDER BY m.athlete_id LIMIT 1",
+            teamEngenharia);
+    assertThat(temporalMember.get("affiliation_start_date"))
+        .isEqualTo(java.sql.Date.valueOf(LocalDate.of(2026, 8, 1)));
+    assertThat(temporalMember.get("affiliation_end_date"))
+        .isEqualTo(java.sql.Date.valueOf(LocalDate.of(2026, 9, 30)));
+
+    Map<String, Object> legacyMember =
+        jdbcTemplate.queryForMap(
+            "SELECT m.affiliation_start_date, m.affiliation_end_date "
+                + "FROM sports_roster_member m JOIN sports_roster r ON r.roster_id = m.roster_id "
+                + "WHERE r.team_id = ? LIMIT 1",
+            teamMedicina);
+    assertThat(legacyMember.get("affiliation_start_date")).isNull();
+    assertThat(legacyMember.get("affiliation_end_date")).isNull();
   }
 
   @Test
@@ -305,10 +327,87 @@ class SportsTabularImportIT {
     Integer athleteCount =
         jdbcTemplate.queryForObject("SELECT COUNT(*) FROM sports_athlete", Integer.class);
     assertThat(athleteCount).isEqualTo(2);
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT m.affiliation_start_date FROM sports_roster_member m "
+                    + "JOIN sports_roster r ON r.roster_id = m.roster_id "
+                    + "WHERE r.team_id = ? LIMIT 1",
+                LocalDate.class,
+                teamEngenharia))
+        .isEqualTo(LocalDate.of(2026, 8, 1));
   }
 
   @Test
-  @DisplayName("Atomicidade XLSX: erro na última linha não salva nenhum registro")
+  @DisplayName("Importacao rejeita roster PUBLICADO sem gravar novos registros")
+  void rejectsCommitForPublishedRosterWithoutWrites() throws Exception {
+    UUID publishedRosterId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO sports_roster (roster_id, team_id, status, lock_version) VALUES (?, ?, 'PUBLICADO', 3)",
+        publishedRosterId,
+        teamEngenharia);
+
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "valid-roster.csv", "text/csv", readResource("/sports/csv/valid-roster.csv"));
+    MvcResult validateResult =
+        mockMvc
+            .perform(
+                multipart("/api/v1/operations/sports/editions/" + editionA + "/tabular-import/validate")
+                    .file(file)
+                    .with(csrf())
+                    .with(oidcLoginUser("comp-a-admin-sub", "comp_a_admin")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.readyToImport").value(true))
+            .andReturn();
+
+    String importId =
+        objectMapper.readTree(validateResult.getResponse().getContentAsString()).get("importId").asText();
+    int athletesBefore =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM sports_athlete", Integer.class);
+    int rostersBefore = jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster", Integer.class);
+    int membersBefore =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster_member", Integer.class);
+
+    mockMvc
+        .perform(
+            post("/api/v1/operations/sports/editions/" + editionA + "/tabular-import/commit")
+                .param("importId", importId)
+                .with(csrf())
+                .with(oidcLoginUser("comp-a-admin-sub", "comp_a_admin")))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("BETUFU-409-STALE_VERSION"));
+
+    assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM sports_athlete", Integer.class))
+        .isEqualTo(athletesBefore);
+    assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster", Integer.class))
+        .isEqualTo(rostersBefore);
+    assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster_member", Integer.class))
+        .isEqualTo(membersBefore);
+  }
+
+  @Test
+  @DisplayName("Validacao rejeita periodo de vinculo fora dos limites da edicao")
+  void rejectsAffiliationPeriodOutsideEditionBounds() throws Exception {
+    String csv =
+        "organizacao_slug,modalidade_slug,categoria_slug,nome_atleta,matricula,numero_camisa,posicao,inicio_vinculo,fim_vinculo\n"
+            + "atletica-engenharia,futsal,masculino,Atleta Fora,11821BCC003,9,Ala,2026-07-31,2026-09-30\n";
+    MockMultipartFile file =
+        new MockMultipartFile(
+            "file", "outside-period.csv", "text/csv", csv.getBytes(StandardCharsets.UTF_8));
+
+    mockMvc
+        .perform(
+            multipart("/api/v1/operations/sports/editions/" + editionA + "/tabular-import/validate")
+                .file(file)
+                .with(csrf())
+                .with(oidcLoginUser("comp-a-admin-sub", "comp_a_admin")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.readyToImport").value(false))
+        .andExpect(jsonPath("$.errors[0].field").value("inicio_vinculo"));
+  }
+
+  @Test
+  @DisplayName("Atomicidade XLSX: erro na ultima linha nao salva nenhum registro")
   void provesLateErrorAtomicityZeroSavedXlsx() throws Exception {
     byte[] xlsxBytes = createLateErrorWorkbookBytes();
     MockMultipartFile file =
@@ -484,7 +583,7 @@ class SportsTabularImportIT {
   private byte[] createValidWorkbookBytes() throws Exception {
     try (Workbook wb = new XSSFWorkbook();
         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      Sheet sheet = wb.createSheet("Elenco");
+      Sheet sheet = wb.createSheet("Template");
       Row header = sheet.createRow(0);
       for (int i = 0; i < SportsXlsxParser.EXPECTED_HEADERS.size(); i++) {
         header.createCell(i).setCellValue(SportsXlsxParser.EXPECTED_HEADERS.get(i));
@@ -497,6 +596,8 @@ class SportsTabularImportIT {
       row1.createCell(4).setCellValue("11821BCC001");
       row1.createCell(5).setCellValue(10);
       row1.createCell(6).setCellValue("Ala");
+      row1.createCell(7).setCellValue("2026-08-01");
+      row1.createCell(8).setCellValue("2026-09-30");
 
       Row row2 = sheet.createRow(2);
       row2.createCell(0).setCellValue("atletica-medicina");
@@ -506,6 +607,8 @@ class SportsTabularImportIT {
       row2.createCell(4).setCellValue("11821MED001");
       row2.createCell(5).setCellValue(1);
       row2.createCell(6).setCellValue("Goleiro");
+      row2.createCell(7).setCellValue("2026-08-01");
+      row2.createCell(8).setCellValue("2026-09-30");
 
       wb.write(out);
       return out.toByteArray();
@@ -515,7 +618,7 @@ class SportsTabularImportIT {
   private byte[] createLateErrorWorkbookBytes() throws Exception {
     try (Workbook wb = new XSSFWorkbook();
         ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      Sheet sheet = wb.createSheet("Elenco");
+      Sheet sheet = wb.createSheet("Template");
       Row header = sheet.createRow(0);
       for (int i = 0; i < SportsXlsxParser.EXPECTED_HEADERS.size(); i++) {
         header.createCell(i).setCellValue(SportsXlsxParser.EXPECTED_HEADERS.get(i));
@@ -528,6 +631,8 @@ class SportsTabularImportIT {
       row1.createCell(4).setCellValue("11821BCC001");
       row1.createCell(5).setCellValue(10);
       row1.createCell(6).setCellValue("Ala");
+      row1.createCell(7).setCellValue("2026-08-01");
+      row1.createCell(8).setCellValue("2026-09-30");
 
       Row row2 = sheet.createRow(2);
       row2.createCell(0).setCellValue("atletica-inexistente");
@@ -536,6 +641,8 @@ class SportsTabularImportIT {
       row2.createCell(3).setCellValue("Atleta Invalido");
       row2.createCell(4).setCellValue("11821BCC999");
       row2.createCell(5).setCellValue(99);
+      row2.createCell(7).setCellValue("2026-08-01");
+      row2.createCell(8).setCellValue("2026-09-30");
       row2.createCell(6).setCellValue("Pivô");
 
       wb.write(out);
@@ -595,12 +702,14 @@ class SportsTabularImportIT {
   private UUID createEdition(UUID compId, String name, String slug) {
     UUID id = UUID.randomUUID();
     jdbcTemplate.update(
-        "INSERT INTO sports_edition (edition_id, competition_id, name, slug, status, lock_version, created_at, updated_at) "
-            + "VALUES (?, ?, ?, ?, 'ATIVA', 0, NOW(), NOW())",
-        id,
-        compId,
-        name,
-        slug);
+         "INSERT INTO sports_edition (edition_id, competition_id, name, slug, start_date, end_date, status, lock_version, created_at, updated_at) "
+             + "VALUES (?, ?, ?, ?, ?, ?, 'ATIVA', 0, NOW(), NOW())",
+         id,
+         compId,
+         name,
+         slug,
+         LocalDate.of(2026, 8, 1),
+         LocalDate.of(2026, 9, 30));
     return id;
   }
 

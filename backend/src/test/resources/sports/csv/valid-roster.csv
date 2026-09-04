@@ -1,4 +1,4 @@
-organizacao_slug,modalidade_slug,categoria_slug,nome_atleta,matricula,numero_camisa,posicao
-atletica-engenharia,futsal,masculino,Carlos Silva,11821BCC001,10,Ala
-atletica-engenharia,futsal,masculino,Lucas Souza,11821BCC002,7,Pivo
-atletica-medicina,futsal,masculino,Marcos Oliveira,11821MED001,1,Goleiro
+organizacao_slug,modalidade_slug,categoria_slug,nome_atleta,matricula,numero_camisa,posicao,inicio_vinculo,fim_vinculo
+atletica-engenharia,futsal,masculino,Carlos Silva,11821BCC001,10,Ala,2026-08-01,2026-09-30
+atletica-engenharia,futsal,masculino,Lucas Souza,11821BCC002,7,Pivo,2026-08-01,2026-09-30
+atletica-medicina,futsal,masculino,Marcos Oliveira,11821MED001,1,Goleiro,,

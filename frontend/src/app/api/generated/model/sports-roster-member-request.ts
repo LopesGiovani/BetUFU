@@ -13,4 +13,6 @@ export interface SportsRosterMemberRequest {
     athleteId: string;
     jerseyNumber?: number | null;
     positionName?: string | null;
+    affiliationStartDate?: string | null;
+    affiliationEndDate?: string | null;
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,12 +20,16 @@ public final class SportsRosterModels {
       String athleteName,
       String athleteSlug,
       Integer jerseyNumber,
-      String positionName) {}
+      String positionName,
+      LocalDate affiliationStartDate,
+      LocalDate affiliationEndDate) {}
 
   public record SportsRosterMemberRequest(
       @NotNull UUID athleteId,
       @Min(1) @Max(99) Integer jerseyNumber,
-      @Size(max = 64) String positionName) {}
+      @Size(max = 64) String positionName,
+      LocalDate affiliationStartDate,
+      LocalDate affiliationEndDate) {}
 
   public record SportsRosterDraft(
       UUID rosterId,

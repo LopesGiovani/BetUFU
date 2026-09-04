@@ -1,2 +1,2 @@
-organizacao_slug,modalidade_slug,categoria_slug,nome_atleta,matricula,numero_camisa,posicao
-atletica-inexistente,futsal,masculino,Carlos Silva,11821BCC001,10,Ala
+organizacao_slug,modalidade_slug,categoria_slug,nome_atleta,matricula,numero_camisa,posicao,inicio_vinculo,fim_vinculo
+atletica-inexistente,futsal,masculino,Carlos Silva,11821BCC001,10,Ala,2026-08-01,2026-09-30

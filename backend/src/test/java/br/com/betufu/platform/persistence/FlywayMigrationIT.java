@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(23);
+    assertThat(result.migrationsExecuted).isEqualTo(24);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(23);
+    assertThat(applied).hasSize(24);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -167,6 +167,8 @@ class FlywayMigrationIT {
     assertThat(applied[21].getState()).isEqualTo(MigrationState.SUCCESS);
     assertThat(applied[22].getVersion().getVersion()).isEqualTo("22");
     assertThat(applied[22].getState()).isEqualTo(MigrationState.SUCCESS);
+    assertThat(applied[23].getVersion().getVersion()).isEqualTo("23");
+    assertThat(applied[23].getState()).isEqualTo(MigrationState.SUCCESS);
 
     Integer guardCount =
         jdbcTemplate.queryForObject(
@@ -182,7 +184,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(23);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(24);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -191,7 +193,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(23);
+    assertThat(applied).hasSize(24);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -232,13 +234,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(23);
+      assertThat(totalExecuted).isEqualTo(24);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(23);
+      assertThat(applied).hasSize(24);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -692,7 +694,7 @@ class FlywayMigrationIT {
 
     assertThat(
             jdbcTemplate.update(
-                "INSERT INTO public.sports_roster_member (roster_id, athlete_id, jersey_number, position_name) VALUES (?, ?, 10, 'Ala')",
+                "INSERT INTO public.sports_roster_member (roster_id, athlete_id, jersey_number, position_name, affiliation_start_date, affiliation_end_date) VALUES (?, ?, 10, 'Ala', DATE '2026-08-01', DATE '2026-09-30')",
                 rosterId,
                 athleteId))
         .isEqualTo(1);
@@ -720,8 +722,8 @@ class FlywayMigrationIT {
 
     assertThat(
             jdbcTemplate.update(
-                "INSERT INTO public.sports_roster_publication_member (publication_id, athlete_id, athlete_name, athlete_slug, jersey_number, position_name) "
-                    + "VALUES (?, ?, 'Atleta V15', 'atleta-v15', 10, 'Ala')",
+                "INSERT INTO public.sports_roster_publication_member (publication_id, athlete_id, athlete_name, athlete_slug, jersey_number, position_name, affiliation_start_date, affiliation_end_date) "
+                    + "VALUES (?, ?, 'Atleta V15', 'atleta-v15', 10, 'Ala', DATE '2026-08-01', DATE '2026-09-30')",
                 publicationId,
                 athleteId))
         .isEqualTo(1);
@@ -753,6 +755,14 @@ class FlywayMigrationIT {
                     "DELETE FROM public.sports_roster_publication_member WHERE publication_id = ?",
                     publicationId))
         .hasMessageContaining("snapshots are immutable");
+
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "UPDATE public.sports_roster_member SET affiliation_start_date = DATE '2026-09-30', affiliation_end_date = DATE '2026-08-01' WHERE roster_id = ? AND athlete_id = ?",
+                    rosterId,
+                    athleteId))
+        .hasMessageContaining("ck_sports_roster_member_affiliation_period");
   }
 
   @Test
@@ -1457,7 +1467,11 @@ class FlywayMigrationIT {
             "https://example.invalid/v22-legado");
 
     Flyway afterV22 =
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+        Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .target("22")
+            .load();
     assertThat(afterV22.migrate().migrationsExecuted).isEqualTo(1);
     assertThat(
             jdbcTemplate.queryForObject(

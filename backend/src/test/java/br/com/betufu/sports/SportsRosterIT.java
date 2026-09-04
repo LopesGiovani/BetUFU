@@ -13,6 +13,7 @@ import br.com.betufu.platform.observability.CorrelationIdFilter;
 import br.com.betufu.platform.security.BetufuRoleAuthorityContributor;
 import br.com.betufu.platform.session.RedisContainerSupport;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -228,8 +229,8 @@ class SportsRosterIT {
             """
                 {
                   "members": [
-                    { "athleteId": "%s", "jerseyNumber": 10, "positionName": "Ala" },
-                    { "athleteId": "%s", "jerseyNumber": 1, "positionName": "Goleira" }
+                    { "athleteId": "%s", "jerseyNumber": 10, "positionName": "Ala", "affiliationStartDate": "2026-08-01", "affiliationEndDate": "2026-09-30" },
+                    { "athleteId": "%s", "jerseyNumber": 1, "positionName": "Goleira", "affiliationStartDate": "2026-08-01", "affiliationEndDate": "2026-09-30" }
                   ]
                 }
                 """,
@@ -247,6 +248,8 @@ class SportsRosterIT {
         .andExpect(jsonPath("$.lockVersion").value(1))
         .andExpect(jsonPath("$.members[0].athleteName").value("Alice Atleta"))
         .andExpect(jsonPath("$.members[0].jerseyNumber").value(1))
+        .andExpect(jsonPath("$.members[0].affiliationStartDate").value("2026-08-01"))
+        .andExpect(jsonPath("$.members[0].affiliationEndDate").value("2026-09-30"))
         .andExpect(jsonPath("$.members[1].athleteName").value("Bruno Atleta"))
         .andExpect(jsonPath("$.members[1].jerseyNumber").value(10));
 
@@ -571,6 +574,31 @@ class SportsRosterIT {
         .andExpect(status().isBadRequest());
   }
 
+  @Test
+  @DisplayName("ValidaÃ§Ã£o rejeita perÃ­odo de vÃ­nculo fora da ediÃ§Ã£o")
+  void rejectsAffiliationPeriodOutsideEditionBounds() throws Exception {
+    String payload =
+        String.format(
+            """
+                    {
+                      "members": [
+                        { "athleteId": "%s", "affiliationStartDate": "2026-07-31", "affiliationEndDate": "2026-09-30" }
+                      ]
+                    }
+                    """,
+            athlete1);
+
+    mockMvc
+        .perform(
+            put("/api/v1/operations/sports/teams/" + teamA + "/roster")
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .with(csrf())
+                .param("expectedLockVersion", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(payload))
+        .andExpect(status().isBadRequest());
+  }
+
   private UUID createCompetition(String name, String slug) {
     UUID id = UUID.randomUUID();
     jdbcTemplate.update(
@@ -584,11 +612,13 @@ class SportsRosterIT {
   private UUID createEdition(UUID competitionId, String name, String slug) {
     UUID id = UUID.randomUUID();
     jdbcTemplate.update(
-        "INSERT INTO public.sports_edition (edition_id, competition_id, name, slug) VALUES (?, ?, ?, ?)",
+        "INSERT INTO public.sports_edition (edition_id, competition_id, name, slug, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?)",
         id,
         competitionId,
         name,
-        slug);
+        slug,
+        LocalDate.of(2026, 8, 1),
+        LocalDate.of(2026, 9, 30));
     return id;
   }
 

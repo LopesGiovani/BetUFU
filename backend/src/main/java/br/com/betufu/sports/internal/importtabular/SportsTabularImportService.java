@@ -9,6 +9,7 @@ import br.com.betufu.sports.EnrollmentFingerprintPort.Fingerprint;
 import br.com.betufu.sports.internal.athlete.SportsAthleteCreated;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,6 +64,8 @@ public class SportsTabularImportService {
       int totalImportedRosters,
       String message) {}
 
+  private record EditionContext(UUID competitionId, LocalDate startDate, LocalDate endDate) {}
+
   record ValidatedBatch(
       UUID importId,
       UUID editionId,
@@ -109,7 +112,8 @@ public class SportsTabularImportService {
   public SportsTabularImportPreview validateImport(
       String issuer, String subject, UUID editionId, byte[] fileBytes, String filename) {
     OperationalIdentity actor = resolveActor(issuer, subject);
-    UUID competitionId = findCompetitionForEdition(editionId);
+    EditionContext edition = findEditionContext(editionId);
+    UUID competitionId = edition.competitionId();
     requireWritableCompetition(actor, competitionId);
 
     String format = detectFormat(filename, fileBytes);
@@ -286,6 +290,31 @@ public class SportsTabularImportService {
         }
       }
 
+      if (row.affiliationStartDate() != null
+          && row.affiliationEndDate() != null
+          && row.affiliationEndDate().isBefore(row.affiliationStartDate())) {
+        errors.add(
+            new SportsTabularImportErrorItem(
+                line, "fim_vinculo", "Fim do vÃ­nculo nÃ£o pode ser anterior ao inÃ­cio."));
+        rowValid = false;
+      }
+      if (row.affiliationStartDate() != null
+          && edition.startDate() != null
+          && row.affiliationStartDate().isBefore(edition.startDate())) {
+        errors.add(
+            new SportsTabularImportErrorItem(
+                line, "inicio_vinculo", "InÃ­cio do vÃ­nculo estÃ¡ fora do perÃ­odo da ediÃ§Ã£o."));
+        rowValid = false;
+      }
+      if (row.affiliationEndDate() != null
+          && edition.endDate() != null
+          && row.affiliationEndDate().isAfter(edition.endDate())) {
+        errors.add(
+            new SportsTabularImportErrorItem(
+                line, "fim_vinculo", "Fim do vÃ­nculo estÃ¡ fora do perÃ­odo da ediÃ§Ã£o."));
+        rowValid = false;
+      }
+
       if (row.matriculaCode() != null
           && !row.matriculaCode().isBlank()
           && row.athleteName() != null
@@ -351,7 +380,8 @@ public class SportsTabularImportService {
   public SportsTabularImportResult commitImport(
       String issuer, String subject, UUID editionId, UUID importId) {
     OperationalIdentity actor = resolveActor(issuer, subject);
-    UUID competitionId = findCompetitionForEdition(editionId);
+    EditionContext edition = findEditionContext(editionId);
+    UUID competitionId = edition.competitionId();
     requireWritableCompetition(actor, competitionId);
 
     ValidatedBatch batch = validatedBatches.get(importId);
@@ -360,6 +390,9 @@ public class SportsTabularImportService {
         || !batch.editionId().equals(editionId)
         || !batch.competitionId().equals(competitionId)) {
       throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
+    for (ImportedRosterRow row : batch.rows()) {
+      validateAffiliationPeriod(row, edition);
     }
 
     List<UUID> newlyCreatedAthleteIds = new ArrayList<>();
@@ -372,6 +405,7 @@ public class SportsTabularImportService {
           Map<String, UUID> catMap = loadCategories(editionId);
           Map<String, TeamInfo> teamMap = loadTeams(editionId);
 
+          Map<UUID, TeamInfo> resolvedTeams = new HashMap<>();
           for (ImportedRosterRow row : batch.rows()) {
             UUID orgId = orgMap.get(row.organizationSlug().toLowerCase(Locale.ROOT));
             UUID sportId = sportMap.get(row.sportSlug().toLowerCase(Locale.ROOT));
@@ -380,6 +414,21 @@ public class SportsTabularImportService {
             if (team == null) {
               throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
             }
+            resolvedTeams.put(team.teamId(), team);
+          }
+          ensureRostersAreDraft(resolvedTeams.keySet());
+
+          for (ImportedRosterRow row : batch.rows()) {
+            UUID orgId = orgMap.get(row.organizationSlug().toLowerCase(Locale.ROOT));
+            UUID sportId = sportMap.get(row.sportSlug().toLowerCase(Locale.ROOT));
+            UUID catId = catMap.get(row.categorySlug().toLowerCase(Locale.ROOT));
+            TeamInfo team = resolvedTeams.values().stream()
+                .filter(candidate -> candidate.orgId().equals(orgId)
+                    && candidate.sportId().equals(sportId)
+                    && candidate.catId().equals(catId))
+                .findFirst()
+                .orElseThrow(
+                    () -> new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED));
 
             Fingerprint fp =
                 fingerprintPort
@@ -441,16 +490,22 @@ public class SportsTabularImportService {
 
             jdbcTemplate.update(
                 """
-                        INSERT INTO sports_roster_member (roster_id, athlete_id, jersey_number, position_name, created_at)
-                        VALUES (?, ?, ?, ?, NOW())
+                        INSERT INTO sports_roster_member (
+                            roster_id, athlete_id, jersey_number, position_name,
+                            affiliation_start_date, affiliation_end_date, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, NOW())
                         ON CONFLICT (roster_id, athlete_id) DO UPDATE SET
                             jersey_number = EXCLUDED.jersey_number,
-                            position_name = EXCLUDED.position_name
+                            position_name = EXCLUDED.position_name,
+                            affiliation_start_date = EXCLUDED.affiliation_start_date,
+                            affiliation_end_date = EXCLUDED.affiliation_end_date
                         """,
                 rosterId,
                 athleteId,
                 row.jerseyNumber(),
-                row.positionName());
+                row.positionName(),
+                row.affiliationStartDate(),
+                row.affiliationEndDate());
           }
           return null;
         });
@@ -507,6 +562,19 @@ public class SportsTabularImportService {
       String teamName,
       String sportName,
       String categoryName) {}
+
+  private void ensureRostersAreDraft(Set<UUID> teamIds) {
+    for (UUID teamId : teamIds) {
+      List<String> statuses =
+          jdbcTemplate.query(
+              "SELECT status FROM sports_roster WHERE team_id = ? FOR UPDATE",
+              (rs, rowNum) -> rs.getString("status"),
+              teamId);
+      if (statuses.stream().anyMatch("PUBLICADO"::equals)) {
+        throw new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.STALE_VERSION);
+      }
+    }
+  }
 
   private Map<String, UUID> loadOrganizations() {
     Map<String, UUID> map = new HashMap<>();
@@ -586,16 +654,38 @@ public class SportsTabularImportService {
     return "CSV";
   }
 
-  private UUID findCompetitionForEdition(UUID editionId) {
-    List<UUID> compIds =
+  private EditionContext findEditionContext(UUID editionId) {
+    List<EditionContext> contexts =
         jdbcTemplate.query(
-            "SELECT competition_id FROM sports_edition WHERE edition_id = ?",
-            (rs, rowNum) -> (UUID) rs.getObject("competition_id"),
+            "SELECT competition_id, start_date, end_date FROM sports_edition WHERE edition_id = ?",
+            (rs, rowNum) ->
+                new EditionContext(
+                    rs.getObject("competition_id", UUID.class),
+                    rs.getObject("start_date", LocalDate.class),
+                    rs.getObject("end_date", LocalDate.class)),
             editionId);
-    if (compIds.isEmpty()) {
+    if (contexts.isEmpty()) {
       throw new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
     }
-    return compIds.get(0);
+    return contexts.get(0);
+  }
+
+  private UUID findCompetitionForEdition(UUID editionId) {
+    return findEditionContext(editionId).competitionId();
+  }
+
+  private static void validateAffiliationPeriod(ImportedRosterRow row, EditionContext edition) {
+    LocalDate start = row.affiliationStartDate();
+    LocalDate end = row.affiliationEndDate();
+    if (start != null && end != null && end.isBefore(start)) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
+    if (start != null && edition.startDate() != null && start.isBefore(edition.startDate())) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
+    if (end != null && edition.endDate() != null && end.isAfter(edition.endDate())) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
   }
 
   private OperationalIdentity resolveActor(String issuer, String subject) {

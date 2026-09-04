@@ -405,7 +405,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // singulares de modalidade pela colecao N:N sem alterar a allowlist de caminhos.
 // D8DD... foi aprovado literalmente pelo responsavel no 03-22; acrescenta GENERIC
 // ao contrato de eventos sem alterar a allowlist de caminhos.
-export const APPROVED_GENERATED_DIGEST = 'D8DDE8402F6D66D279B46E66DAF5000619A010ED28C5CA2B4000A6287B527E3D';
+export const APPROVED_GENERATED_DIGEST = 'D093B4368DA5F438B199C24A64CE7DC70AEED9D2638D7A5925C95FCD3ADEADC1';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

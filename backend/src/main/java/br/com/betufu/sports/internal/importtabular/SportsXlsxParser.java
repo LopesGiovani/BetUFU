@@ -3,6 +3,9 @@ package br.com.betufu.sports.internal.importtabular;
 import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
 import java.io.ByteArrayInputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +32,11 @@ public class SportsXlsxParser {
           "nome_atleta",
           "matricula",
           "numero_camisa",
-          "posicao");
+          "posicao",
+          "inicio_vinculo",
+          "fim_vinculo");
+
+  private static final DateTimeFormatter ISO_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
 
   public List<ImportedRosterRow> parse(byte[] fileBytes) {
     if (fileBytes == null || fileBytes.length == 0) {
@@ -41,11 +48,17 @@ public class SportsXlsxParser {
 
     List<ImportedRosterRow> rows = new ArrayList<>();
     try (Workbook workbook = new XSSFWorkbook(new ByteArrayInputStream(fileBytes))) {
-      if (workbook.getNumberOfSheets() == 0) {
+      if (workbook instanceof XSSFWorkbook xssfWorkbook && xssfWorkbook.isMacroEnabled()) {
+        throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+      }
+      if (workbook.getNumberOfSheets() != 1) {
         throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
       }
 
       Sheet sheet = workbook.getSheetAt(0);
+      if (!"Template".equals(sheet.getSheetName())) {
+        throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+      }
       if (sheet.getNumMergedRegions() > 0) {
         throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
       }
@@ -69,6 +82,10 @@ public class SportsXlsxParser {
           throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
         }
 
+        if (row.getLastCellNum() != EXPECTED_HEADERS.size()) {
+          throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+        }
+
         assertNoFormulas(row);
 
         String orgSlug = readStringCell(row.getCell(0));
@@ -78,6 +95,8 @@ public class SportsXlsxParser {
         String matriculaCode = readMatriculaCell(row.getCell(4));
         Integer jerseyNumber = readJerseyCell(row.getCell(5));
         String position = readStringCell(row.getCell(6));
+        LocalDate affiliationStartDate = readDateCell(row.getCell(7));
+        LocalDate affiliationEndDate = readDateCell(row.getCell(8));
         String positionName = position.isBlank() ? null : position;
         int lineNumber = row.getRowNum() + 1;
 
@@ -90,7 +109,9 @@ public class SportsXlsxParser {
                 athleteName,
                 matriculaCode,
                 jerseyNumber,
-                positionName));
+                positionName,
+                affiliationStartDate,
+                affiliationEndDate));
       }
     } catch (ApiProblemException e) {
       throw e;
@@ -102,6 +123,9 @@ public class SportsXlsxParser {
   }
 
   private void validateHeader(Row headerRow) {
+    if (headerRow.getLastCellNum() != EXPECTED_HEADERS.size()) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
     for (int i = 0; i < EXPECTED_HEADERS.size(); i++) {
       Cell cell = headerRow.getCell(i);
       if (cell == null) {
@@ -116,7 +140,7 @@ public class SportsXlsxParser {
   }
 
   private void assertNoFormulas(Row row) {
-    for (int c = 0; c < EXPECTED_HEADERS.size(); c++) {
+    for (int c = 0; c < row.getLastCellNum(); c++) {
       Cell cell = row.getCell(c);
       if (cell != null && cell.getCellType() == CellType.FORMULA) {
         throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
@@ -127,11 +151,14 @@ public class SportsXlsxParser {
   private boolean isRowEmpty(Row row) {
     for (int c = 0; c < EXPECTED_HEADERS.size(); c++) {
       Cell cell = row.getCell(c);
-      if (cell != null && cell.getCellType() != CellType.BLANK) {
-        String val = readStringCell(cell);
-        if (!val.isBlank()) {
-          return false;
-        }
+      if (cell == null || cell.getCellType() == CellType.BLANK) {
+        continue;
+      }
+      if (cell.getCellType() == CellType.STRING && !cell.getStringCellValue().isBlank()) {
+        return false;
+      }
+      if (cell.getCellType() != CellType.STRING) {
+        return false;
       }
     }
     return true;
@@ -141,29 +168,16 @@ public class SportsXlsxParser {
     if (cell == null) {
       return "";
     }
+    if (cell.getCellType() == CellType.BLANK) {
+      return "";
+    }
     if (cell.getCellType() == CellType.STRING) {
       return cell.getStringCellValue().trim();
     }
-    if (cell.getCellType() == CellType.NUMERIC) {
-      double val = cell.getNumericCellValue();
-      if (val == Math.floor(val)) {
-        return String.valueOf((long) val);
-      }
-      return String.valueOf(val);
-    }
-    if (cell.getCellType() == CellType.BOOLEAN) {
-      return String.valueOf(cell.getBooleanCellValue());
-    }
-    return "";
+    throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
   }
 
   private String readMatriculaCell(Cell cell) {
-    if (cell == null) {
-      return "";
-    }
-    if (cell.getCellType() == CellType.NUMERIC) {
-      return String.valueOf((long) cell.getNumericCellValue());
-    }
     return readStringCell(cell);
   }
 
@@ -171,17 +185,32 @@ public class SportsXlsxParser {
     if (cell == null) {
       return null;
     }
-    if (cell.getCellType() == CellType.NUMERIC) {
-      return (int) cell.getNumericCellValue();
-    }
-    String text = readStringCell(cell);
-    if (text.isBlank()) {
+    if (cell.getCellType() == CellType.BLANK) {
       return null;
     }
+    if (cell.getCellType() == CellType.NUMERIC) {
+      double value = cell.getNumericCellValue();
+      if (!Double.isFinite(value) || value != Math.rint(value) || value < Integer.MIN_VALUE
+          || value > Integer.MAX_VALUE) {
+        throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+      }
+      return (int) value;
+    }
+    throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+  }
+
+  private LocalDate readDateCell(Cell cell) {
+    String value = readStringCell(cell);
+    if (value.isBlank()) {
+      return null;
+    }
+    if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
     try {
-      return Integer.parseInt(text);
-    } catch (NumberFormatException e) {
-      return -1;
+      return LocalDate.parse(value, ISO_DATE);
+    } catch (DateTimeParseException e) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
     }
   }
 }

@@ -1,0 +1,758 @@
+{
+  "version": 1,
+  "generatedTarget": "src/app/api/generated",
+  "files": [
+    "api.base.service.ts",
+    "api.module.ts",
+    "api/api.ts",
+    "api/athlete-link.service.ts",
+    "api/athlete-media.service.ts",
+    "api/athlete-public-profile.service.ts",
+    "api/diagnostic.service.ts",
+    "api/enrollment.service.ts",
+    "api/identity.service.ts",
+    "api/operational-capabilities.service.ts",
+    "api/operational-panel.service.ts",
+    "api/password-reset-recovery.service.ts",
+    "api/profile.service.ts",
+    "api/role.service.ts",
+    "api/session.service.ts",
+    "api/sports-athlete.service.ts",
+    "api/sports-bracket.service.ts",
+    "api/sports-catalog.service.ts",
+    "api/sports-event-result.service.ts",
+    "api/sports-organization.service.ts",
+    "api/sports-public.service.ts",
+    "api/sports-roster.service.ts",
+    "api/sports-standings.service.ts",
+    "api/sports-tabular-import.service.ts",
+    "configuration.ts",
+    "encoder.ts",
+    "index.ts",
+    "model/administrative-correction-event-dto.ts",
+    "model/administrative-corrections-block.ts",
+    "model/athlete-link-decision-request.ts",
+    "model/athlete-link-proposal.ts",
+    "model/athlete-link-review-page.ts",
+    "model/athlete-link-review-summary.ts",
+    "model/athlete-media-response.ts",
+    "model/athlete-public-profile-update-request.ts",
+    "model/athlete-public-profile.ts",
+    "model/betufu-field-violation.ts",
+    "model/betufu-problem-details.ts",
+    "model/current-device-logout-response.ts",
+    "model/current-identity-response.ts",
+    "model/current-profile-response.ts",
+    "model/diagnostic-component.ts",
+    "model/diagnostic-response.ts",
+    "model/diagnostic-status.ts",
+    "model/enrollment-correction-request.ts",
+    "model/enrollment-correction-response.ts",
+    "model/enrollment-registration-request.ts",
+    "model/enrollment-status-response.ts",
+    "model/favorite-organization-request.ts",
+    "model/models.ts",
+    "model/operational-capabilities-response.ts",
+    "model/operational-capability.ts",
+    "model/operational-panel-response.ts",
+    "model/operational-role.ts",
+    "model/password-reset-event-recovery-page-response.ts",
+    "model/password-reset-event-recovery-response.ts",
+    "model/profile-update-request.ts",
+    "model/public-athlete-detail.ts",
+    "model/public-athlete-stats.ts",
+    "model/public-athlete-team-participation.ts",
+    "model/public-category-summary.ts",
+    "model/public-competition-detail.ts",
+    "model/public-edition-summary.ts",
+    "model/public-event-detail.ts",
+    "model/public-event-result-detail.ts",
+    "model/public-event-slot-item.ts",
+    "model/public-organization-detail.ts",
+    "model/public-organization-roster-member-item.ts",
+    "model/public-organization-team-item.ts",
+    "model/public-phase-summary.ts",
+    "model/public-result-score-item.ts",
+    "model/public-source-history-item.ts",
+    "model/public-sports-event-page.ts",
+    "model/public-sports-event-response.ts",
+    "model/public-sports-event-slot-response.ts",
+    "model/public-sports-event-summary.ts",
+    "model/public-team-detail.ts",
+    "model/public-team-roster-detail.ts",
+    "model/public-team-roster-member-item.ts",
+    "model/public-team-summary.ts",
+    "model/public-venue-space-summary.ts",
+    "model/public-venue-summary.ts",
+    "model/rejected-enrollments-block.ts",
+    "model/role-change-event-dto.ts",
+    "model/role-changes-block.ts",
+    "model/role-grant-request.ts",
+    "model/role-grant-response.ts",
+    "model/role-status-dto.ts",
+    "model/session-state-response.ts",
+    "model/sports-athlete-create-request.ts",
+    "model/sports-athlete-summary.ts",
+    "model/sports-bracket-correct-request.ts",
+    "model/sports-bracket-create-request.ts",
+    "model/sports-bracket-match-configure-request.ts",
+    "model/sports-bracket-match-view.ts",
+    "model/sports-bracket-publish-request.ts",
+    "model/sports-bracket-round.ts",
+    "model/sports-bracket-slot-configure-request.ts",
+    "model/sports-bracket-slot-view.ts",
+    "model/sports-bracket-source-type.ts",
+    "model/sports-bracket-summary.ts",
+    "model/sports-bracket-update-request.ts",
+    "model/sports-bracket-view.ts",
+    "model/sports-catalog-edition-request.ts",
+    "model/sports-catalog-scope.ts",
+    "model/sports-catalog-tree.ts",
+    "model/sports-catalog-venue-request.ts",
+    "model/sports-catalog-venue-space-request.ts",
+    "model/sports-category-summary.ts",
+    "model/sports-competition-summary.ts",
+    "model/sports-edition-summary.ts",
+    "model/sports-event-detail.ts",
+    "model/sports-event-format.ts",
+    "model/sports-event-slot-item.ts",
+    "model/sports-name-slug-request.ts",
+    "model/sports-organization-summary.ts",
+    "model/sports-phase-summary.ts",
+    "model/sports-result-score-item.ts",
+    "model/sports-result-version.ts",
+    "model/sports-roster-correct-request.ts",
+    "model/sports-roster-draft.ts",
+    "model/sports-roster-member-item.ts",
+    "model/sports-roster-member-request.ts",
+    "model/sports-roster-publication.ts",
+    "model/sports-roster-update-request.ts",
+    "model/sports-sport-summary.ts",
+    "model/sports-standings-row.ts",
+    "model/sports-standings-snapshot.ts",
+    "model/sports-tabular-import-preview-error.ts",
+    "model/sports-tabular-import-preview-summary.ts",
+    "model/sports-tabular-import-preview.ts",
+    "model/sports-tabular-import-result.ts",
+    "model/sports-team-summary.ts",
+    "model/sports-venue-space-summary.ts",
+    "model/sports-venue-state.ts",
+    "model/sports-venue-summary.ts",
+    "model/time-window.ts",
+    "model/unregistered-enrollments-block.ts",
+    "param.ts",
+    "provide-api.ts",
+    "query.params.ts",
+    "variables.ts"
+  ],
+  "digest": "D093B4368DA5F438B199C24A64CE7DC70AEED9D2638D7A5925C95FCD3ADEADC1",
+  "endpoints": [
+    {
+      "path": "/api/v1/tracer/identity/current",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/session",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/session/logout",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/profile/me",
+      "methods": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/profile/me/favorite-organization",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/enrollment/me",
+      "methods": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/me/sports/athlete-links/proposal",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/me/sports/athlete-links/{proposalId}/decision",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/me/sports/athlete-profile",
+      "methods": [
+        "DELETE",
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/me/sports/athlete-profile/photo",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/athletes/{athleteId}/profile/photo",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/roles/{targetIdentityId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/roles/grants",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/roles/revocations",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/password-reset-events/failed",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/password-reset-events/{sourceEventId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/password-reset-events/{sourceEventId}/reprocess",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/enrollments/correction",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/panel",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/capabilities",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/scope",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/competitions/{competitionId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/competitions",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/competitions/{competitionId}/sports",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/competitions/{competitionId}/editions",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/editions/{editionId}/categories",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/categories/{categoryId}/phases",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/competitions/{competitionId}/venues",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/venues/{venueId}/spaces",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/sports/{sportId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/editions/{editionId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/categories/{categoryId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/phases/{phaseId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/venues/{venueId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/catalog/venue-spaces/{spaceId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/organizations",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/organizations/{organizationId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/organizations/{organizationId}/publish",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/competitions/{competitionId}/teams",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/editions/{editionId}/sports/{sportId}/categories/{categoryId}/organizations/{organizationId}/teams",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/teams/{teamId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/teams/{teamId}/publish",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/athletes",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/teams/{teamId}/athletes",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/athletes/{athleteId}",
+      "methods": [
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/athletes/{athleteId}/publish",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/teams/{teamId}/roster",
+      "methods": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/teams/{teamId}/roster/publish",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/teams/{teamId}/roster/correct",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/teams/{teamId}/roster/publication",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/athlete-link-reviews",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/editions/{editionId}/events",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}",
+      "methods": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/publish",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/suspend",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/postpone",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/cancel",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/results",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/results/inform",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/results/review",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/results/confirm",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/events/{eventId}/results/correct",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/events/{eventId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/events",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/competitions/{competitionId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/organizations/{organizationId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/teams/{teamId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/athletes/{athleteId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/athletes/{athleteId}/profile",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/diagnostic",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/brackets/{bracketId}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/editions/{editionId}/brackets",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/brackets/{bracketId}",
+      "methods": [
+        "GET",
+        "PUT"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/brackets/{bracketId}/publish",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/operations/sports/brackets/{bracketId}/correct",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/v1/public/sports/standings/{standingsId}",
+      "methods": [
+        "GET"
+      ]
+    }
+  ],
+  "schemas": [
+    "AdministrativeCorrectionEventDto",
+    "AdministrativeCorrectionsBlock",
+    "AthleteLinkDecisionRequest",
+    "AthleteLinkProposal",
+    "AthleteLinkReviewPage",
+    "AthleteLinkReviewSummary",
+    "AthleteMediaResponse",
+    "AthletePublicProfile",
+    "AthletePublicProfileUpdateRequest",
+    "BetufuFieldViolation",
+    "BetufuProblemDetails",
+    "CurrentDeviceLogoutResponse",
+    "CurrentIdentityResponse",
+    "CurrentProfileResponse",
+    "DiagnosticComponent",
+    "DiagnosticResponse",
+    "DiagnosticStatus",
+    "EnrollmentCorrectionRequest",
+    "EnrollmentCorrectionResponse",
+    "EnrollmentRegistrationRequest",
+    "EnrollmentStatusResponse",
+    "FavoriteOrganizationRequest",
+    "OperationalCapabilitiesResponse",
+    "OperationalCapability",
+    "OperationalPanelResponse",
+    "OperationalRole",
+    "PasswordResetEventRecoveryPageResponse",
+    "PasswordResetEventRecoveryResponse",
+    "ProfileUpdateRequest",
+    "PublicAthleteDetail",
+    "PublicAthleteStats",
+    "PublicAthleteTeamParticipation",
+    "PublicCategorySummary",
+    "PublicCompetitionDetail",
+    "PublicEditionSummary",
+    "PublicEventDetail",
+    "PublicEventResultDetail",
+    "PublicEventSlotItem",
+    "PublicOrganizationDetail",
+    "PublicOrganizationRosterMemberItem",
+    "PublicOrganizationTeamItem",
+    "PublicPhaseSummary",
+    "PublicResultScoreItem",
+    "PublicSourceHistoryItem",
+    "PublicSportsEventPage",
+    "PublicSportsEventResponse",
+    "PublicSportsEventSlotResponse",
+    "PublicSportsEventSummary",
+    "PublicTeamDetail",
+    "PublicTeamRosterDetail",
+    "PublicTeamRosterMemberItem",
+    "PublicTeamSummary",
+    "PublicVenueSpaceSummary",
+    "PublicVenueSummary",
+    "RejectedEnrollmentsBlock",
+    "RoleChangeEventDto",
+    "RoleChangesBlock",
+    "RoleGrantRequest",
+    "RoleGrantResponse",
+    "RoleStatusDto",
+    "SessionStateResponse",
+    "SportsAthleteCreateRequest",
+    "SportsAthleteSummary",
+    "SportsBracketCorrectRequest",
+    "SportsBracketCreateRequest",
+    "SportsBracketMatchConfigureRequest",
+    "SportsBracketMatchView",
+    "SportsBracketPublishRequest",
+    "SportsBracketRound",
+    "SportsBracketSlotConfigureRequest",
+    "SportsBracketSlotView",
+    "SportsBracketSourceType",
+    "SportsBracketSummary",
+    "SportsBracketUpdateRequest",
+    "SportsBracketView",
+    "SportsCatalogEditionRequest",
+    "SportsCatalogScope",
+    "SportsCatalogTree",
+    "SportsCatalogVenueRequest",
+    "SportsCatalogVenueSpaceRequest",
+    "SportsCategorySummary",
+    "SportsCompetitionSummary",
+    "SportsEditionSummary",
+    "SportsEventDetail",
+    "SportsEventFormat",
+    "SportsEventSlotItem",
+    "SportsNameSlugRequest",
+    "SportsOrganizationSummary",
+    "SportsPhaseSummary",
+    "SportsResultScoreItem",
+    "SportsResultVersion",
+    "SportsRosterCorrectRequest",
+    "SportsRosterDraft",
+    "SportsRosterMemberItem",
+    "SportsRosterMemberRequest",
+    "SportsRosterPublication",
+    "SportsRosterUpdateRequest",
+    "SportsSportSummary",
+    "SportsStandingsRow",
+    "SportsStandingsSnapshot",
+    "SportsTabularImportPreview",
+    "SportsTabularImportPreviewError",
+    "SportsTabularImportPreviewSummary",
+    "SportsTabularImportResult",
+    "SportsTeamSummary",
+    "SportsVenueSpaceSummary",
+    "SportsVenueState",
+    "SportsVenueSummary",
+    "TimeWindow",
+    "UnregisteredEnrollmentsBlock"
+  ],
+  "publicSchemas": [
+    "PublicAthleteDetail",
+    "PublicAthleteStats",
+    "PublicAthleteTeamParticipation",
+    "PublicCategorySummary",
+    "PublicCompetitionDetail",
+    "PublicEditionSummary",
+    "PublicEventDetail",
+    "PublicEventResultDetail",
+    "PublicEventSlotItem",
+    "PublicOrganizationDetail",
+    "PublicOrganizationRosterMemberItem",
+    "PublicOrganizationTeamItem",
+    "PublicPhaseSummary",
+    "PublicResultScoreItem",
+    "PublicSourceHistoryItem",
+    "PublicSportsEventPage",
+    "PublicSportsEventResponse",
+    "PublicSportsEventSlotResponse",
+    "PublicSportsEventSummary",
+    "PublicTeamDetail",
+    "PublicTeamRosterDetail",
+    "PublicTeamRosterMemberItem",
+    "PublicTeamSummary",
+    "PublicVenueSpaceSummary",
+    "PublicVenueSummary"
+  ]
+}

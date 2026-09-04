@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,8 @@ class SportsRosterRepository {
       String competitionName,
       UUID editionId,
       String editionName,
+      LocalDate editionStartDate,
+      LocalDate editionEndDate,
       UUID sportId,
       String sportName,
       UUID categoryId,
@@ -71,6 +74,7 @@ class SportsRosterRepository {
                        t.organization_id, o.name AS organization_name,
                        e.competition_id, c.name AS competition_name,
                        t.edition_id, e.name AS edition_name,
+                       e.start_date AS edition_start_date, e.end_date AS edition_end_date,
                        t.sport_id, s.name AS sport_name,
                        t.category_id, cat.name AS category_name
                 FROM public.sports_team t
@@ -91,6 +95,8 @@ class SportsRosterRepository {
                     rs.getString("competition_name"),
                     rs.getObject("edition_id", UUID.class),
                     rs.getString("edition_name"),
+                    rs.getObject("edition_start_date", LocalDate.class),
+                    rs.getObject("edition_end_date", LocalDate.class),
                     rs.getObject("sport_id", UUID.class),
                     rs.getString("sport_name"),
                     rs.getObject("category_id", UUID.class),
@@ -165,7 +171,8 @@ class SportsRosterRepository {
     return jdbc.query(
         """
                 SELECT m.athlete_id, a.name AS athlete_name, a.slug AS athlete_slug,
-                       m.jersey_number, m.position_name
+                       m.jersey_number, m.position_name,
+                       m.affiliation_start_date, m.affiliation_end_date
                 FROM public.sports_roster_member m
                 JOIN public.sports_athlete a ON a.athlete_id = m.athlete_id
                 WHERE m.roster_id = ?
@@ -202,13 +209,17 @@ class SportsRosterRepository {
     for (SportsRosterMemberRequest member : members) {
       jdbc.update(
           """
-                    INSERT INTO public.sports_roster_member (roster_id, athlete_id, jersey_number, position_name)
-                    VALUES (?, ?, ?, ?)
+                    INSERT INTO public.sports_roster_member (
+                        roster_id, athlete_id, jersey_number, position_name,
+                        affiliation_start_date, affiliation_end_date)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     """,
           rosterId,
           member.athleteId(),
           member.jerseyNumber(),
-          member.positionName());
+          member.positionName(),
+          member.affiliationStartDate(),
+          member.affiliationEndDate());
     }
   }
 
@@ -280,7 +291,8 @@ class SportsRosterRepository {
   List<SportsRosterMemberItem> findPublicationMembers(UUID publicationId) {
     return jdbc.query(
         """
-                SELECT athlete_id, athlete_name, athlete_slug, jersey_number, position_name
+                SELECT athlete_id, athlete_name, athlete_slug, jersey_number, position_name,
+                       affiliation_start_date, affiliation_end_date
                 FROM public.sports_roster_publication_member
                 WHERE publication_id = ?
                 ORDER BY lower(athlete_name), athlete_id
@@ -327,15 +339,18 @@ class SportsRosterRepository {
       jdbc.update(
           """
                     INSERT INTO public.sports_roster_publication_member (
-                        publication_id, athlete_id, athlete_name, athlete_slug, jersey_number, position_name
-                    ) VALUES (?, ?, ?, ?, ?, ?)
+                        publication_id, athlete_id, athlete_name, athlete_slug, jersey_number, position_name,
+                        affiliation_start_date, affiliation_end_date
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
           header.publicationId(),
           member.athleteId(),
           member.athleteName(),
           member.athleteSlug(),
           member.jerseyNumber(),
-          member.positionName());
+          member.positionName(),
+          member.affiliationStartDate(),
+          member.affiliationEndDate());
     }
 
     Timestamp publishedAtTimestamp =
@@ -382,7 +397,9 @@ class SportsRosterRepository {
         rs.getString("athlete_name"),
         rs.getString("athlete_slug"),
         rs.getObject("jersey_number") != null ? rs.getInt("jersey_number") : null,
-        rs.getString("position_name"));
+        rs.getString("position_name"),
+        rs.getObject("affiliation_start_date", LocalDate.class),
+        rs.getObject("affiliation_end_date", LocalDate.class));
   }
 
   private PublicationHeader mapPublicationHeader(ResultSet rs, int rowNum) throws SQLException {

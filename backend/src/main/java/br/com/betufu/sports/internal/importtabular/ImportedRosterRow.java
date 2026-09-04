@@ -1,5 +1,7 @@
 package br.com.betufu.sports.internal.importtabular;
 
+import java.time.LocalDate;
+
 public record ImportedRosterRow(
     int lineNumber,
     String organizationSlug,
@@ -8,4 +10,6 @@ public record ImportedRosterRow(
     String athleteName,
     String matriculaCode,
     Integer jerseyNumber,
-    String positionName) {}
+    String positionName,
+    LocalDate affiliationStartDate,
+    LocalDate affiliationEndDate) {}

@@ -15,6 +15,7 @@ import br.com.betufu.sports.internal.roster.SportsRosterRepository.PublicationHe
 import br.com.betufu.sports.internal.roster.SportsRosterRepository.RosterRecord;
 import br.com.betufu.sports.internal.roster.SportsRosterRepository.TeamContext;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -75,6 +76,7 @@ class SportsRosterService {
     TeamContext context =
         repository.findTeamContext(teamId).orElseThrow(SportsRosterService::notFound);
     requireWritableCompetition(actor, context.competitionId());
+    validateAffiliationPeriods(request.members(), context);
 
     List<UUID> athleteIds =
         request.members().stream().map(SportsRosterMemberRequest::athleteId).toList();
@@ -167,6 +169,7 @@ class SportsRosterService {
     TeamContext context =
         repository.findTeamContext(teamId).orElseThrow(SportsRosterService::notFound);
     requireWritableCompetition(actor, context.competitionId());
+    validateAffiliationPeriods(request.members(), context);
 
     List<UUID> athleteIds =
         request.members().stream().map(SportsRosterMemberRequest::athleteId).toList();
@@ -203,7 +206,9 @@ class SportsRosterService {
                     athleteInfo.name(),
                     athleteInfo.slug(),
                     memberReq.jerseyNumber(),
-                    memberReq.positionName()));
+                    memberReq.positionName(),
+                    memberReq.affiliationStartDate(),
+                    memberReq.affiliationEndDate()));
           }
 
           long versionNo = latest.versionNo() + 1;
@@ -349,6 +354,27 @@ class SportsRosterService {
       }
       if (member.positionName() != null) {
         requireLength(member.positionName().trim(), 64);
+      }
+    }
+  }
+
+  private static void validateAffiliationPeriods(
+      List<SportsRosterMemberRequest> members, TeamContext context) {
+    for (SportsRosterMemberRequest member : members) {
+      LocalDate start = member.affiliationStartDate();
+      LocalDate end = member.affiliationEndDate();
+      if (start != null && end != null && end.isBefore(start)) {
+        throw validation();
+      }
+      if (start != null
+          && context.editionStartDate() != null
+          && start.isBefore(context.editionStartDate())) {
+        throw validation();
+      }
+      if (end != null
+          && context.editionEndDate() != null
+          && end.isAfter(context.editionEndDate())) {
+        throw validation();
       }
     }
   }

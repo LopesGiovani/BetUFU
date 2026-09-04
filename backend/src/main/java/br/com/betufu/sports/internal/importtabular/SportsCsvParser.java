@@ -9,6 +9,9 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +35,11 @@ public class SportsCsvParser {
           "nome_atleta",
           "matricula",
           "numero_camisa",
-          "posicao");
+          "posicao",
+          "inicio_vinculo",
+          "fim_vinculo");
+
+  private static final DateTimeFormatter ISO_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
 
   public List<ImportedRosterRow> parse(byte[] fileBytes) {
     if (fileBytes == null || fileBytes.length == 0) {
@@ -82,14 +89,15 @@ public class SportsCsvParser {
         String matriculaCode = record.get(4).trim();
         String jerseyStr = record.get(5).trim();
         String position = sanitizeFormula(record.get(6).trim());
+        LocalDate affiliationStartDate = parseDate(record.get(7).trim());
+        LocalDate affiliationEndDate = parseDate(record.get(8).trim());
 
         Integer jerseyNumber = null;
         if (!jerseyStr.isBlank()) {
           try {
             jerseyNumber = Integer.parseInt(jerseyStr);
           } catch (NumberFormatException e) {
-            // Keep non-numeric jersey as invalid in row or throw
-            jerseyNumber = -1;
+            throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
           }
         }
 
@@ -105,7 +113,9 @@ public class SportsCsvParser {
                 athleteName,
                 matriculaCode,
                 jerseyNumber,
-                positionName));
+                positionName,
+                affiliationStartDate,
+                affiliationEndDate));
       }
     } catch (ApiProblemException e) {
       throw e;
@@ -161,5 +171,19 @@ public class SportsCsvParser {
       return "'" + value;
     }
     return value;
+  }
+
+  private LocalDate parseDate(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
+    }
+    if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
+    try {
+      return LocalDate.parse(value, ISO_DATE);
+    } catch (DateTimeParseException e) {
+      throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+    }
   }
 }
