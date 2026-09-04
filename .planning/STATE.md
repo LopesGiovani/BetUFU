@@ -4,21 +4,22 @@ milestone: v1.0
 current_phase: 3
 current_phase_name: Experiência Esportiva do Piloto
 status: planning
-stopped_at: Phase 3 plan 03-23 complete; awaiting next plan checkpoint
-last_updated: "2026-09-03T18:02:00-03:00"
+stopped_at: Phase 3 plan 03-24 complete; awaiting next plan checkpoint
+last_updated: "2026-09-03T21:07:04-03:00"
 last_activity: 2026-09-03
-last_activity_desc: Plans 03-21 through 03-23 rebased onto master and integrated locally; 03-24 is the next blocking decision.
-state_head: 69c887bb5921e944e7d8df6715ebb3a00158f271
+last_activity_desc: Plan 03-24 certified and documented locally; 03-25 is the next blocking checkpoint.
+state_head: a477296223ccd8071418b72d33289ee31af008d9
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 91
-  completed_plans: 87
+  completed_plans: 88
 milestone_name: milestone
 ---
 
 # Estado do Projeto
 
+Git - Fase 3 / gap closure (03-24, concluido localmente, 2026-09-03): o 03-24 foi certificado na worktree `worktree-agent-03-gap-exec` sobre `8a85cec`. O commit tecnico `a477296` entrega o contrato CSV/XLSX fixo, a V23 de periodo de vinculo, a atomicidade da importacao, o bloqueio de PUBLICADO e o cliente temporal governado; testes focais Node `72/72`, Maven `57/57` e Angular `12/12` passaram. O candidato OpenAPI `D093B4368DA5F438B199C24A64CE7DC70AEED9D2638D7A5925C95FCD3ADEADC1` foi aprovado. Integracao, cleanup e push continuam separados.
 Git - Fase 3 / Wave 19 (integrada, enviada e limpa, 2026-09-02): o 03-20 foi executado na worktree dedicada `worktree-agent-03-20` sobre `8e1b893`; o commit tecnico `fa2985d` converge as seis rotas de produto para o ConsoleShell, remove o AuthenticatedLayoutComponent e consolida a prova operacional. Angular focal `22/22` e `35/35`, Angular completo `342/342`, Node `625/625`, validador de rotas `173/173`, validador vivo `OK`, build production e Playwright legado `4/4` passaram. O checkpoint humano `aprovar Console convergido 03-20` foi recebido. O commit documental `88eb964` foi integrado por fast-forward; a worktree e a branch exatas foram removidas e `master`/`origin/master` foram sincronizadas. O follow-up de manutenibilidade permanece registrado na formalizacao corrente.
 
 Git - Fase 3 / Wave 20 (concluida, integrada e limpa, 2026-09-02): o 03-17 certificou arquitetura/privacidade, matriz Chromium/Firefox, acessibilidade medida e mutacoes negativas restauraveis. Os commits tecnico e documental foram integrados por fast-forward; a worktree e a branch exatas foram removidas. A divida de manutenibilidade da prova permanece registrada como follow-up.
@@ -43,9 +44,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 ## Current Position
 
 Phase: 3 of 8 — Experiência Esportiva do Piloto (gap closure)
-Plan: 03-23 concluido e integrado localmente; 03-24 e o proximo checkpoint.
-Status: Complete - commits integrados localmente na master; cleanup e push continuam separados.
-Last activity: 2026-09-03 - planos 03-21 a 03-23 rebased sobre a master e integrados por fast-forward local.
+Plan: 03-24 concluido localmente; 03-25 e o proximo checkpoint.
+Status: Complete - implementacao e documentacao locais; integracao, cleanup e push continuam separados.
+Last activity: 2026-09-03 - plano 03-24 certificado e documentado na worktree de gap closure.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -281,9 +282,9 @@ Progress: [#########----] 23/27 planos da Fase 3 (85%; 4 gap-closure pendentes)
 
 ## Session Continuity
 
-Last session: 2026-09-03T18:02:00-03:00
-Stopped at: Phase 3 plan 03-23 complete; awaiting 03-24 decision checkpoint
-Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-24-PLAN.md
+Last session: 2026-09-03T21:07:04-03:00
+Stopped at: Phase 3 plan 03-24 complete; awaiting 03-25 checkpoint
+Resume file: .planning/phases/03-experi-ncia-esportiva-do-piloto/03-25-PLAN.md
 
 ## Accumulated Context
 

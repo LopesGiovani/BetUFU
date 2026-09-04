@@ -346,9 +346,9 @@ Plans:
 
 - [x] 03-23-PLAN.md — derivar autorização por competição para organizações, atletas e elencos; decisão A1, implementação, provas e integração local concluídas
 
-**Wave 24** *(gap closure; depends on 03-23; implementation pending)*
+**Wave 24** *(gap closure; depends on 03-23; concluida localmente, cleanup/push pending)*
 
-- [ ] 03-24-PLAN.md — endurecer CSV/XLSX e bloquear alteração direta de roster publicado
+- [x] 03-24-PLAN.md — endurecer CSV/XLSX e bloquear alteração direta de roster publicado; implementação, verificações e integração local concluídas
 
 **Wave 25** *(gap closure; depends on 03-24; implementation pending)*
 
@@ -455,7 +455,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 21/27 | Gap closure pending | - |
+| 3. Experiência Esportiva do Piloto | 24/27 | Gap closure pending | - |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
