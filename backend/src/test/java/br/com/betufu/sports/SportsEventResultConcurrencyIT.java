@@ -303,6 +303,13 @@ class SportsEventResultConcurrencyIT {
         jdbcTemplate.queryForObject(
             "SELECT lock_version FROM public.sports_event WHERE event_id = ?", Long.class, eventId);
     assertThat(lockVersion).isEqualTo(1L);
+
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.sports_event_lifecycle_history WHERE event_id = ?",
+                Integer.class,
+                eventId))
+        .isEqualTo(0);
   }
 
   @Test
@@ -367,6 +374,20 @@ class SportsEventResultConcurrencyIT {
         jdbcTemplate.queryForObject(
             "SELECT status FROM public.sports_event WHERE event_id = ?", String.class, eventId);
     assertThat(status).isEqualTo("PUBLICADO");
+
+    Map<String, Object> lifecycleRow =
+        jdbcTemplate.queryForMap(
+            """
+                    SELECT previous_status, new_status, sequence_no, base_lock_version, lock_version
+                    FROM public.sports_event_lifecycle_history
+                    WHERE event_id = ?
+                    """,
+            eventId);
+    assertThat(lifecycleRow.get("previous_status")).isEqualTo("RASCUNHO");
+    assertThat(lifecycleRow.get("new_status")).isEqualTo("PUBLICADO");
+    assertThat(((Number) lifecycleRow.get("sequence_no")).longValue()).isEqualTo(1L);
+    assertThat(((Number) lifecycleRow.get("base_lock_version")).longValue()).isZero();
+    assertThat(((Number) lifecycleRow.get("lock_version")).longValue()).isEqualTo(1L);
   }
 
   @Test

@@ -2556,6 +2556,50 @@ paths:
         "409":
           description: Versão stale.
 
+  /api/v1/operations/sports/events/{eventId}/lifecycle:
+    get:
+      tags:
+        - SportsEventResult
+      operationId: listSportsEventLifecycle
+      summary: Listar o histórico imutável de lifecycle do evento
+      description: >-
+        Consulta o histórico append-only do evento no escopo operacional derivado
+        do próprio evento. A resposta não expõe identificadores de autenticação,
+        e-mail ou outros dados pessoais; `limit` usa 100 por padrão e aceita 1 a 500.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 100
+            minimum: 1
+            maximum: 500
+      responses:
+        "200":
+          description: Entradas do histórico ordenadas por sequência e timestamp.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SportsEventLifecycleEntry"
+        "400":
+          description: Limite ausente ou fora do intervalo permitido (Problem Details).
+        "401":
+          description: Requisição não autenticada.
+        "403":
+          description: Evento fora do escopo autorizado.
+        "404":
+          description: Evento não encontrado.
+
   /api/v1/operations/sports/events/{eventId}/results:
     get:
       tags:
@@ -6533,6 +6577,61 @@ components:
           type: string
           format: date-time
         updatedAt:
+          type: string
+          format: date-time
+
+    SportsEventLifecycleEntry:
+      type: object
+      additionalProperties: false
+      required:
+        - lifecycleId
+        - eventId
+        - newStatus
+        - actorIdentityId
+        - sourceReference
+        - baseLockVersion
+        - lockVersion
+        - sequenceNo
+        - occurredAt
+      properties:
+        lifecycleId:
+          type: string
+          format: uuid
+        eventId:
+          type: string
+          format: uuid
+        previousStatus:
+          type: [string, "null"]
+        newStatus:
+          type: string
+          enum:
+            - RASCUNHO
+            - PUBLICADO
+            - SUSPENSO
+            - ADIADO
+            - CANCELADO
+        actorIdentityId:
+          type: string
+          format: uuid
+        sourceReference:
+          type: string
+          maxLength: 2048
+        reason:
+          type: [string, "null"]
+          maxLength: 1024
+        baseLockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+        lockVersion:
+          type: integer
+          format: int64
+          minimum: 0
+        sequenceNo:
+          type: integer
+          format: int64
+          minimum: 1
+        occurredAt:
           type: string
           format: date-time
 

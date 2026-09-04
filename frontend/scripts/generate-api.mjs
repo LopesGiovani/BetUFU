@@ -179,6 +179,7 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'SportsEditionSummary',
   'SportsEventDetail',
   'SportsEventFormat',
+  'SportsEventLifecycleEntry',
   'SportsEventSlotItem',
   'SportsNameSlugRequest',
   'SportsOrganizationSummary',
@@ -336,6 +337,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/sports-edition-summary.ts',
   'model/sports-event-detail.ts',
   'model/sports-event-format.ts',
+  'model/sports-event-lifecycle-entry.ts',
   'model/sports-event-slot-item.ts',
   'model/sports-name-slug-request.ts',
   'model/sports-organization-summary.ts',
@@ -405,7 +407,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // singulares de modalidade pela colecao N:N sem alterar a allowlist de caminhos.
 // D8DD... foi aprovado literalmente pelo responsavel no 03-22; acrescenta GENERIC
 // ao contrato de eventos sem alterar a allowlist de caminhos.
-export const APPROVED_GENERATED_DIGEST = 'D093B4368DA5F438B199C24A64CE7DC70AEED9D2638D7A5925C95FCD3ADEADC1';
+export const APPROVED_GENERATED_DIGEST = '5D6400EF390D0D459B05A0D3CB4C94774271928E16D7DB618968100D59809D9B';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -951,6 +953,7 @@ export function inspectGeneratedOpenApiContract(source) {
           '/api/v1/operations/sports/editions/{editionId}/sports/{sportId}/categories/{categoryId}/organizations/{organizationId}/teams',
           '/api/v1/operations/sports/events/{eventId}',
           '/api/v1/operations/sports/events/{eventId}/cancel',
+          '/api/v1/operations/sports/events/{eventId}/lifecycle',
           '/api/v1/operations/sports/events/{eventId}/postpone',
           '/api/v1/operations/sports/events/{eventId}/publish',
           '/api/v1/operations/sports/events/{eventId}/results',

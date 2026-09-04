@@ -101,6 +101,32 @@ class SportsTracerRepository implements CompetitionScopeCatalog {
         .findFirst();
   }
 
+  Optional<UUID> findEventCompetitionId(UUID eventId) {
+    if (eventId == null) {
+      return Optional.empty();
+    }
+    return jdbcTemplate
+        .query(
+            "SELECT competition_id FROM public.sports_event WHERE event_id = ?",
+            (rs, rowNum) -> rs.getObject("competition_id", UUID.class),
+            eventId)
+        .stream()
+        .findFirst();
+  }
+
+  Optional<String> findEventStatus(UUID eventId) {
+    if (eventId == null) {
+      return Optional.empty();
+    }
+    return jdbcTemplate
+        .query(
+            "SELECT status FROM public.sports_event WHERE event_id = ?",
+            (rs, rowNum) -> rs.getString("status"),
+            eventId)
+        .stream()
+        .findFirst();
+  }
+
   Optional<EventCatalogScope> findEventCatalogScope(UUID editionId, EventCreateRequest request) {
     return jdbcTemplate
         .query(

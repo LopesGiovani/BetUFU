@@ -80,6 +80,20 @@ public final class SportsEventModels {
   public record SportsEventCancelRequest(@NotBlank @Size(max = 1024) String reason) {}
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
+  public record SportsEventLifecycleEntry(
+      UUID lifecycleId,
+      UUID eventId,
+      String previousStatus,
+      String newStatus,
+      UUID actorIdentityId,
+      String sourceReference,
+      String reason,
+      long baseLockVersion,
+      long lockVersion,
+      long sequenceNo,
+      Instant occurredAt) {}
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   public record SportsEventDetail(
       UUID eventId,
       UUID competitionId,

@@ -298,6 +298,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicSportsEventPage'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventDetail'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventFormat'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventLifecycleEntry'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsEventSlotItem'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsResultScoreItem'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsResultVersion'), true);
@@ -439,10 +440,13 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
     '      operationId: listSportsOrganizations',
     '    post:',
     '      operationId: createSportsOrganization',
-    '  /api/v1/operations/sports/teams/{teamId}/publish:',
-    '    post:',
-    '      operationId: publishSportsTeam',
-    '  /api/v1/operations/sports/athletes:',
+  '  /api/v1/operations/sports/teams/{teamId}/publish:',
+  '    post:',
+  '      operationId: publishSportsTeam',
+  '  /api/v1/operations/sports/events/{eventId}/lifecycle:',
+  '    get:',
+  '      operationId: listSportsEventLifecycle',
+  '  /api/v1/operations/sports/athletes:',
     '    get:',
     '      operationId: listSportsAthletes',
     '  /api/v1/operations/sports/teams/{teamId}/athletes:',
@@ -476,6 +480,8 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
     '      type: object',
     '    SportsAthleteSummary:',
     '      type: object',
+    '    SportsEventLifecycleEntry:',
+    '      type: object',
     '    SportsRosterCorrectRequest:',
     '      type: object',
     '    SportsRosterDraft:',
@@ -501,6 +507,7 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
       { path: '/api/v1/public/sports/events', methods: ['GET'] },
       { path: '/api/v1/operations/sports/organizations', methods: ['GET', 'POST'] },
       { path: '/api/v1/operations/sports/teams/{teamId}/publish', methods: ['POST'] },
+      { path: '/api/v1/operations/sports/events/{eventId}/lifecycle', methods: ['GET'] },
       { path: '/api/v1/operations/sports/athletes', methods: ['GET'] },
       { path: '/api/v1/operations/sports/teams/{teamId}/athletes', methods: ['POST'] },
       { path: '/api/v1/operations/sports/teams/{teamId}/roster', methods: ['GET', 'PUT'] },
@@ -513,6 +520,7 @@ test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado
       'PublicSportsEventPage',
       'SportsAthleteCreateRequest',
       'SportsAthleteSummary',
+      'SportsEventLifecycleEntry',
       'SportsOrganizationSummary',
       'SportsRosterCorrectRequest',
       'SportsRosterDraft',

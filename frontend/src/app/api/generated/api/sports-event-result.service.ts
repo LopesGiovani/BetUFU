@@ -23,6 +23,8 @@ import { SportsEventCreateRequest } from '../model/sports-event-create-request';
 // @ts-ignore
 import { SportsEventDetail } from '../model/sports-event-detail';
 // @ts-ignore
+import { SportsEventLifecycleEntry } from '../model/sports-event-lifecycle-entry';
+// @ts-ignore
 import { SportsEventPostponeRequest } from '../model/sports-event-postpone-request';
 // @ts-ignore
 import { SportsEventSuspendRequest } from '../model/sports-event-suspend-request';
@@ -76,6 +78,11 @@ export interface InformSportsResultRequestParams {
     eventId: string;
     expectedLockVersion: number;
     sportsResultInformRequest: SportsResultInformRequest;
+}
+
+export interface ListSportsEventLifecycleRequestParams {
+    eventId: string;
+    limit?: number;
 }
 
 export interface ListSportsEventsRequestParams {
@@ -591,6 +598,77 @@ export class SportsEventResultService extends BaseService {
             {
                 context: localVarHttpContext,
                 body: sportsResultInformRequest,
+                params: localVarQueryParameters.toHttpParams(),
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Listar o histórico imutável de lifecycle do evento
+     * Consulta o histórico append-only do evento no escopo operacional derivado do próprio evento. A resposta não expõe identificadores de autenticação, e-mail ou outros dados pessoais; &#x60;limit&#x60; usa 100 por padrão e aceita 1 a 500.
+     * @endpoint get /api/v1/operations/sports/events/{eventId}/lifecycle
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public listSportsEventLifecycle(requestParameters: ListSportsEventLifecycleRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<SportsEventLifecycleEntry>>;
+    public listSportsEventLifecycle(requestParameters: ListSportsEventLifecycleRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<SportsEventLifecycleEntry>>>;
+    public listSportsEventLifecycle(requestParameters: ListSportsEventLifecycleRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<SportsEventLifecycleEntry>>>;
+    public listSportsEventLifecycle(requestParameters: ListSportsEventLifecycleRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const eventId = requestParameters?.eventId;
+        if (eventId === null || eventId === undefined) {
+            throw new Error('Required parameter eventId was null or undefined when calling listSportsEventLifecycle.');
+        }
+        const limit = requestParameters?.limit;
+
+        let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'limit',
+            <any>limit,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/operations/sports/events/${this.configuration.encodeParam({name: "eventId", value: eventId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/lifecycle`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<SportsEventLifecycleEntry>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
                 params: localVarQueryParameters.toHttpParams(),
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),

@@ -83,6 +83,7 @@ export * from './sports-competition-summary';
 export * from './sports-edition-summary';
 export * from './sports-event-detail';
 export * from './sports-event-format';
+export * from './sports-event-lifecycle-entry';
 export * from './sports-event-slot-item';
 export * from './sports-name-slug-request';
 export * from './sports-organization-summary';

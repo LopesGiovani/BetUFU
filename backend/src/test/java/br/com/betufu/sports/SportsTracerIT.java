@@ -200,6 +200,18 @@ class SportsTracerIT {
     assertThat(publicBody.size())
         .as("the anonymous DTO must contain only the approved public fields")
         .isEqualTo(16);
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/events/" + eventId + "/lifecycle")
+                .with(oidcPrincipal("competition-admin-sub"))
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].previousStatus").doesNotExist())
+        .andExpect(jsonPath("$[0].newStatus").value("RASCUNHO"))
+        .andExpect(jsonPath("$[1].previousStatus").value("RASCUNHO"))
+        .andExpect(jsonPath("$[1].newStatus").value("PUBLICADO"));
   }
 
   @Test

@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(24);
+    assertThat(result.migrationsExecuted).isEqualTo(25);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(24);
+    assertThat(applied).hasSize(25);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -184,7 +184,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(24);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(25);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -193,7 +193,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(24);
+    assertThat(applied).hasSize(25);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -234,13 +234,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(24);
+      assertThat(totalExecuted).isEqualTo(25);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(24);
+      assertThat(applied).hasSize(25);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();

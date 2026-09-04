@@ -8,6 +8,7 @@ import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventCancelRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventCreateRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventDetail;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventLifecycleEntry;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventPostponeRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotItem;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotRequest;
@@ -78,7 +79,9 @@ public class SportsEventService {
 
     SportsEventDetail created =
         transactions.execute(
-            status -> repository.createEvent(edition.competitionId(), editionId, request, catalog));
+            status ->
+                repository.createEvent(
+                    edition.competitionId(), editionId, request, catalog, actor.identityId()));
     return Objects.requireNonNull(created, "created event must not be null");
   }
 
@@ -88,6 +91,19 @@ public class SportsEventService {
     requireScopeAccess(actor, scope.competitionId());
 
     return repository.findEventDetail(eventId).orElseThrow(SportsEventService::notFound);
+  }
+
+  public List<SportsEventLifecycleEntry> getLifecycle(
+      String issuer, String subject, UUID eventId, Integer requestedLimit) {
+    int limit = requestedLimit == null ? 100 : requestedLimit;
+    if (limit < 1 || limit > 500) {
+      throw validation();
+    }
+
+    OperationalIdentity actor = resolveIdentity(issuer, subject);
+    EventScope scope = repository.findEventScope(eventId).orElseThrow(SportsEventService::notFound);
+    requireScopeAccess(actor, scope.competitionId());
+    return repository.findLifecycle(eventId, limit);
   }
 
   public List<SportsEventDetail> listEventsByEdition(
@@ -194,6 +210,17 @@ public class SportsEventService {
           if (updated == 0) {
             throw staleVersion();
           }
+          repository.insertLifecycle(
+              eventId,
+              locked.competitionId(),
+              locked.editionId(),
+              locked.status(),
+              "PUBLICADO",
+              actor.identityId(),
+              locked.sourceReference(),
+              null,
+              expectedLockVersion,
+              expectedLockVersion + 1);
           return repository.findEventDetail(eventId).orElseThrow();
         });
   }
@@ -234,6 +261,17 @@ public class SportsEventService {
           if (updated == 0) {
             throw staleVersion();
           }
+          repository.insertLifecycle(
+              eventId,
+              locked.competitionId(),
+              locked.editionId(),
+              locked.status(),
+              "SUSPENSO",
+              actor.identityId(),
+              locked.sourceReference(),
+              reason,
+              expectedLockVersion,
+              expectedLockVersion + 1);
           return repository.findEventDetail(eventId).orElseThrow();
         });
   }
@@ -287,6 +325,17 @@ public class SportsEventService {
           if (updated == 0) {
             throw staleVersion();
           }
+          repository.insertLifecycle(
+              eventId,
+              locked.competitionId(),
+              locked.editionId(),
+              locked.status(),
+              "ADIADO",
+              actor.identityId(),
+              locked.sourceReference(),
+              reason,
+              expectedLockVersion,
+              expectedLockVersion + 1);
           return repository.findEventDetail(eventId).orElseThrow();
         });
   }
@@ -328,6 +377,17 @@ public class SportsEventService {
           if (updated == 0) {
             throw staleVersion();
           }
+          repository.insertLifecycle(
+              eventId,
+              locked.competitionId(),
+              locked.editionId(),
+              locked.status(),
+              "CANCELADO",
+              actor.identityId(),
+              locked.sourceReference(),
+              request.reason().trim(),
+              expectedLockVersion,
+              expectedLockVersion + 1);
           return repository.findEventDetail(eventId).orElseThrow();
         });
   }

@@ -245,6 +245,24 @@ class SportsEventResultIT {
 
     UUID eventId = UUID.fromString(com.jayway.jsonpath.JsonPath.read(createResponse, "$.eventId"));
 
+    Map<String, Object> initialLifecycle =
+        jdbcTemplate.queryForMap(
+            """
+                    SELECT previous_status, new_status, actor_identity_id, source_reference,
+                           base_lock_version, lock_version, sequence_no
+                    FROM public.sports_event_lifecycle_history
+                    WHERE event_id = ? AND sequence_no = 1
+                    """,
+            eventId);
+    assertThat(initialLifecycle.get("previous_status")).isNull();
+    assertThat(initialLifecycle.get("new_status")).isEqualTo("RASCUNHO");
+    assertThat(initialLifecycle.get("actor_identity_id")).isNotNull();
+    assertThat(initialLifecycle.get("source_reference"))
+        .isEqualTo("https://boletim.ufu.br/edital/1");
+    assertThat(((Number) initialLifecycle.get("base_lock_version")).longValue()).isZero();
+    assertThat(((Number) initialLifecycle.get("lock_version")).longValue()).isZero();
+    assertThat(((Number) initialLifecycle.get("sequence_no")).longValue()).isEqualTo(1L);
+
     // 2. Atualizar rascunho com optimistic locking
     String updateJson =
         String.format(
@@ -288,6 +306,13 @@ class SportsEventResultIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateJson))
         .andExpect(status().isConflict());
+
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.sports_event_lifecycle_history WHERE event_id = ?",
+                Integer.class,
+                eventId))
+        .isEqualTo(1);
 
     // 3. Publicar evento (RASCUNHO -> PUBLICADO)
     mockMvc
@@ -384,6 +409,119 @@ class SportsEventResultIT {
                 .with(csrf())
                 .param("expectedLockVersion", "6"))
         .andExpect(status().isBadRequest());
+
+    List<Map<String, Object>> lifecycleRows =
+        jdbcTemplate.queryForList(
+            """
+                    SELECT previous_status, new_status, base_lock_version, lock_version, sequence_no
+                    FROM public.sports_event_lifecycle_history
+                    WHERE event_id = ?
+                    ORDER BY sequence_no ASC, occurred_at ASC, lifecycle_id ASC
+                    """,
+            eventId);
+    assertThat(lifecycleRows).hasSize(6);
+    assertThat(lifecycleRows.stream().map(row -> row.get("previous_status")).toList())
+        .containsExactly(null, "RASCUNHO", "PUBLICADO", "SUSPENSO", "ADIADO", "PUBLICADO");
+    assertThat(lifecycleRows.stream().map(row -> row.get("new_status")).toList())
+        .containsExactly("RASCUNHO", "PUBLICADO", "SUSPENSO", "ADIADO", "PUBLICADO", "CANCELADO");
+    assertThat(
+            lifecycleRows.stream()
+                .map(row -> ((Number) row.get("base_lock_version")).longValue())
+                .toList())
+        .containsExactly(0L, 1L, 2L, 3L, 4L, 5L);
+    assertThat(
+            lifecycleRows.stream()
+                .map(row -> ((Number) row.get("lock_version")).longValue())
+                .toList())
+        .containsExactly(0L, 2L, 3L, 4L, 5L, 6L);
+
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/events/" + eventId + "/lifecycle")
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(6))
+        .andExpect(jsonPath("$[0].previousStatus").doesNotExist())
+        .andExpect(jsonPath("$[0].newStatus").value("RASCUNHO"))
+        .andExpect(jsonPath("$[1].previousStatus").value("RASCUNHO"))
+        .andExpect(jsonPath("$[5].newStatus").value("CANCELADO"))
+        .andExpect(jsonPath("$[0].actorIdentityId").exists())
+        .andExpect(jsonPath("$[0].issuer").doesNotExist())
+        .andExpect(jsonPath("$[0].subject").doesNotExist())
+        .andExpect(jsonPath("$[0].nickname").doesNotExist());
+
+    UUID lifecycleId =
+        jdbcTemplate.queryForObject(
+            "SELECT lifecycle_id FROM public.sports_event_lifecycle_history WHERE event_id = ? LIMIT 1",
+            UUID.class,
+            eventId);
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "UPDATE public.sports_event_lifecycle_history SET reason = 'hacked' WHERE lifecycle_id = ?",
+                    lifecycleId))
+        .hasMessageContaining("sports event lifecycle history is immutable");
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "DELETE FROM public.sports_event_lifecycle_history WHERE lifecycle_id = ?",
+                    lifecycleId))
+        .hasMessageContaining("sports event lifecycle history is immutable");
+  }
+
+  @Test
+  @DisplayName("Consulta de lifecycle valida limite, autenticação, escopo e evento")
+  void lifecycleEndpointValidatesLimitAndScope() throws Exception {
+    UUID eventId = createAndPublishEvent();
+    String lifecyclePath = "/api/v1/operations/sports/events/" + eventId + "/lifecycle";
+
+    mockMvc
+        .perform(
+            get(lifecyclePath)
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .param("limit", "1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1));
+
+    mockMvc
+        .perform(
+            get(lifecyclePath)
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .param("limit", "500"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2));
+
+    mockMvc
+        .perform(
+            get(lifecyclePath)
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .param("limit", "0"))
+        .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(
+            get(lifecyclePath)
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .param("limit", "501"))
+        .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(
+            get(lifecyclePath)
+                .with(oidcPrincipal("competition-a-admin-sub"))
+                .param("limit", "not-a-number"))
+        .andExpect(status().isBadRequest());
+
+    mockMvc
+        .perform(get(lifecyclePath).with(oidcPrincipal("competition-b-admin-sub")))
+        .andExpect(status().isForbidden());
+    mockMvc
+        .perform(get(lifecyclePath).accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(
+            get("/api/v1/operations/sports/events/" + UUID.randomUUID() + "/lifecycle")
+                .with(oidcPrincipal("competition-a-admin-sub")))
+        .andExpect(status().isNotFound());
   }
 
   @Test

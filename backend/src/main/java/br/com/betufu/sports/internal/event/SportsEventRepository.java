@@ -3,6 +3,7 @@ package br.com.betufu.sports.internal.event;
 import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventCreateRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventDetail;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventLifecycleEntry;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotItem;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSlotRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventUpdateRequest;
@@ -40,6 +41,7 @@ class SportsEventRepository {
       UUID competitionId,
       UUID editionId,
       String status,
+      String sourceReference,
       long lockVersion,
       UUID confirmedVersionId) {}
 
@@ -150,7 +152,7 @@ class SportsEventRepository {
     }
     return jdbcTemplate.query(
         """
-                SELECT event_id, competition_id, edition_id, status, lock_version, confirmed_version_id
+                SELECT event_id, competition_id, edition_id, status, source_reference, lock_version, confirmed_version_id
                 FROM public.sports_event
                 WHERE event_id = ?
                 """,
@@ -162,6 +164,7 @@ class SportsEventRepository {
                         rs.getObject("competition_id", UUID.class),
                         rs.getObject("edition_id", UUID.class),
                         rs.getString("status"),
+                        rs.getString("source_reference"),
                         rs.getLong("lock_version"),
                         rs.getObject("confirmed_version_id", UUID.class)))
                 : Optional.empty(),
@@ -174,7 +177,7 @@ class SportsEventRepository {
     }
     return jdbcTemplate.query(
         """
-                SELECT event_id, competition_id, edition_id, status, lock_version, confirmed_version_id
+                SELECT event_id, competition_id, edition_id, status, source_reference, lock_version, confirmed_version_id
                 FROM public.sports_event
                 WHERE event_id = ?
                 FOR UPDATE
@@ -187,6 +190,7 @@ class SportsEventRepository {
                         rs.getObject("competition_id", UUID.class),
                         rs.getObject("edition_id", UUID.class),
                         rs.getString("status"),
+                        rs.getString("source_reference"),
                         rs.getLong("lock_version"),
                         rs.getObject("confirmed_version_id", UUID.class)))
                 : Optional.empty(),
@@ -240,6 +244,37 @@ class SportsEventRepository {
                 """,
         rs -> rs.next() ? Optional.of(mapEventDetail(rs, slots)) : Optional.empty(),
         eventId);
+  }
+
+  List<SportsEventLifecycleEntry> findLifecycle(UUID eventId, int limit) {
+    if (eventId == null || limit < 1) {
+      return List.of();
+    }
+    return jdbcTemplate.query(
+        """
+                SELECT lifecycle_id, event_id, previous_status, new_status, actor_identity_id,
+                       source_reference, reason, base_lock_version, lock_version, sequence_no,
+                       occurred_at
+                FROM public.sports_event_lifecycle_history
+                WHERE event_id = ?
+                ORDER BY sequence_no ASC, occurred_at ASC, lifecycle_id ASC
+                LIMIT ?
+                """,
+        (rs, rowNum) ->
+            new SportsEventLifecycleEntry(
+                rs.getObject("lifecycle_id", UUID.class),
+                rs.getObject("event_id", UUID.class),
+                rs.getString("previous_status"),
+                rs.getString("new_status"),
+                rs.getObject("actor_identity_id", UUID.class),
+                rs.getString("source_reference"),
+                rs.getString("reason"),
+                rs.getLong("base_lock_version"),
+                rs.getLong("lock_version"),
+                rs.getLong("sequence_no"),
+                rs.getTimestamp("occurred_at").toInstant()),
+        eventId,
+        limit);
   }
 
   List<SportsEventDetail> listEventsByEdition(UUID editionId) {
@@ -342,7 +377,11 @@ class SportsEventRepository {
   }
 
   SportsEventDetail createEvent(
-      UUID competitionId, UUID editionId, SportsEventCreateRequest request, CatalogScope catalog) {
+      UUID competitionId,
+      UUID editionId,
+      SportsEventCreateRequest request,
+      CatalogScope catalog,
+      UUID actorIdentityId) {
     UUID eventId = UUID.randomUUID();
     jdbcTemplate.update(
         """
@@ -379,7 +418,58 @@ class SportsEventRepository {
           slot.teamId());
     }
 
+    insertLifecycle(
+        eventId,
+        competitionId,
+        editionId,
+        null,
+        "RASCUNHO",
+        actorIdentityId,
+        request.sourceReference().trim(),
+        null,
+        0,
+        0);
+
     return findEventDetail(eventId).orElseThrow();
+  }
+
+  void insertLifecycle(
+      UUID eventId,
+      UUID competitionId,
+      UUID editionId,
+      String previousStatus,
+      String newStatus,
+      UUID actorIdentityId,
+      String sourceReference,
+      String reason,
+      long baseLockVersion,
+      long lockVersion) {
+    Long maxSequence =
+        jdbcTemplate.queryForObject(
+            "SELECT max(sequence_no) FROM public.sports_event_lifecycle_history WHERE event_id = ?",
+            Long.class,
+            eventId);
+    long sequenceNo = maxSequence == null ? 1L : maxSequence + 1L;
+    jdbcTemplate.update(
+        """
+                INSERT INTO public.sports_event_lifecycle_history (
+                    lifecycle_id, event_id, competition_id, edition_id, sequence_no,
+                    previous_status, new_status, actor_identity_id, source_reference, reason,
+                    base_lock_version, lock_version
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+        UUID.randomUUID(),
+        eventId,
+        competitionId,
+        editionId,
+        sequenceNo,
+        previousStatus,
+        newStatus,
+        actorIdentityId,
+        sourceReference.trim(),
+        reason == null ? null : reason.trim(),
+        baseLockVersion,
+        lockVersion);
   }
 
   int updateEventDraft(UUID eventId, SportsEventUpdateRequest request, long expectedLockVersion) {

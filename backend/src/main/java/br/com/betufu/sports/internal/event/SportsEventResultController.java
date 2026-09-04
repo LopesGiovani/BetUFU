@@ -5,6 +5,7 @@ import br.com.betufu.platform.api.ApiProblemException;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventCancelRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventCreateRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventDetail;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventLifecycleEntry;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventPostponeRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventSuspendRequest;
 import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventUpdateRequest;
@@ -41,6 +42,7 @@ public class SportsEventResultController {
 
   static final String EDITION_EVENTS_PATH = "/api/v1/operations/sports/editions/{editionId}/events";
   static final String EVENT_PATH = "/api/v1/operations/sports/events/{eventId}";
+  static final String EVENT_LIFECYCLE_PATH = "/api/v1/operations/sports/events/{eventId}/lifecycle";
   static final String EVENT_PUBLISH_PATH = "/api/v1/operations/sports/events/{eventId}/publish";
   static final String EVENT_SUSPEND_PATH = "/api/v1/operations/sports/events/{eventId}/suspend";
   static final String EVENT_POSTPONE_PATH = "/api/v1/operations/sports/events/{eventId}/postpone";
@@ -94,6 +96,16 @@ public class SportsEventResultController {
       @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser oidcUser) {
     ActorClaims actor = requireActor(oidcUser);
     return ResponseEntity.ok(eventService.getEventDetail(actor.issuer(), actor.subject(), eventId));
+  }
+
+  @GetMapping(path = EVENT_LIFECYCLE_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<SportsEventLifecycleEntry>> listLifecycle(
+      @PathVariable UUID eventId,
+      @RequestParam(required = false) Integer limit,
+      @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser oidcUser) {
+    ActorClaims actor = requireActor(oidcUser);
+    return ResponseEntity.ok(
+        eventService.getLifecycle(actor.issuer(), actor.subject(), eventId, limit));
   }
 
   @PutMapping(

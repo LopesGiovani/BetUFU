@@ -5,10 +5,14 @@ import br.com.betufu.platform.api.ApiProblemException;
 import br.com.betufu.platform.identity.OperationalIdentityLookup;
 import br.com.betufu.platform.identity.OperationalIdentityLookup.GrantedRole;
 import br.com.betufu.platform.identity.OperationalIdentityLookup.OperationalIdentity;
+import br.com.betufu.sports.internal.event.SportsEventModels;
+import br.com.betufu.sports.internal.event.SportsEventModels.SportsEventDetail;
+import br.com.betufu.sports.internal.event.SportsEventService;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.CompetitionCreateRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.CompetitionResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EditionCreateRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EditionResponse;
+import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventFormat;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventCreateRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventSlotRequest;
@@ -40,14 +44,17 @@ class SportsTracerService {
   static final int MAX_PUBLIC_PAGE_SIZE = 50;
 
   private final SportsTracerRepository repository;
+  private final SportsEventService eventService;
   private final OperationalIdentityLookup identityLookup;
   private final TransactionOperations transactions;
 
   SportsTracerService(
       SportsTracerRepository repository,
+      SportsEventService eventService,
       OperationalIdentityLookup identityLookup,
       PlatformTransactionManager transactionManager) {
     this.repository = Objects.requireNonNull(repository, "repository must not be null");
+    this.eventService = Objects.requireNonNull(eventService, "eventService must not be null");
     this.identityLookup = Objects.requireNonNull(identityLookup, "identityLookup must not be null");
     this.transactions =
         new TransactionTemplate(
@@ -86,47 +93,70 @@ class SportsTracerService {
             .orElseThrow(SportsTracerService::notFound);
     validateCatalogReferences(request, catalog);
 
-    EventResponse response =
-        transactions.execute(status -> repository.createEvent(catalog, request));
-    return Objects.requireNonNull(response, "event transaction returned null");
+    SportsEventDetail detail =
+        eventService.createEvent(
+            issuer,
+            subject,
+            editionId,
+            new SportsEventModels.SportsEventCreateRequest(
+                request.title(),
+                SportsEventModels.EventFormat.valueOf(request.format().name()),
+                request.scheduledAt(),
+                request.zoneId(),
+                SportsEventModels.VenueState.valueOf(request.venueState().name()),
+                request.sourceReference(),
+                request.slots().stream()
+                    .map(
+                        slot ->
+                            new SportsEventModels.SportsEventSlotRequest(
+                                slot.slotNo(), slot.displayLabel(), null))
+                    .toList(),
+                request.sportId(),
+                request.categoryId(),
+                request.phaseId(),
+                request.venueId(),
+                request.venueSpaceId()));
+    return toLegacyEventResponse(detail);
   }
 
   PublicEventResponse publishEvent(
       String issuer, String subject, UUID eventId, Long expectedLockVersion) {
     Objects.requireNonNull(eventId, "eventId must not be null");
     Objects.requireNonNull(expectedLockVersion, "expectedLockVersion must not be null");
+    UUID competitionId =
+        repository.findEventCompetitionId(eventId).orElseThrow(SportsTracerService::notFound);
+    OperationalIdentity actor = resolveIdentity(issuer, subject);
+    requireCompetitionAdministrator(actor, competitionId);
+    if (!"RASCUNHO".equals(repository.findEventStatus(eventId).orElseThrow(SportsTracerService::notFound))) {
+      throw validation();
+    }
 
-    PublicEventResponse response =
-        transactions.execute(
-            status -> {
-              SportsTracerRepository.EventWork event =
-                  repository.findEventForUpdate(eventId).orElseThrow(SportsTracerService::notFound);
-              OperationalIdentity actor = resolveIdentity(issuer, subject);
-              requireCompetitionAdministrator(actor, event.competitionId());
+    eventService.publishEvent(issuer, subject, eventId, expectedLockVersion);
+    return repository.findLatestPublication(eventId).orElseThrow(SportsTracerService::notFound);
+  }
 
-              if (!"RASCUNHO".equals(event.status())
-                  || event.lockVersion() != expectedLockVersion) {
-                throw staleVersion();
-              }
-
-              List<EventSlotRequest> slots = repository.findEventSlots(eventId);
-              if (slots.size() != 2) {
-                throw new IllegalStateException("event must have exactly two persisted slots");
-              }
-
-              long versionNo = repository.nextPublicationVersion(eventId);
-              UUID supersedesPublicationId = repository.latestPublicationId(eventId).orElse(null);
-              PublicEventResponse publication =
-                  repository.insertPublication(
-                      event, slots, actor.identityId(), versionNo, supersedesPublicationId);
-
-              if (repository.markEventPublished(eventId, expectedLockVersion) != 1) {
-                throw staleVersion();
-              }
-              return publication;
-            });
-
-    return Objects.requireNonNull(response, "publication transaction returned null");
+  private static EventResponse toLegacyEventResponse(SportsEventDetail detail) {
+    return new EventResponse(
+        detail.eventId(),
+        detail.competitionId(),
+        detail.editionId(),
+        detail.title(),
+        EventFormat.valueOf(detail.format().name()),
+        detail.status(),
+        detail.scheduledAt(),
+        detail.zoneId(),
+        VenueState.valueOf(detail.venueState().name()),
+        detail.lockVersion(),
+        detail.sportId(),
+        detail.sportName(),
+        detail.categoryId(),
+        detail.categoryName(),
+        detail.phaseId(),
+        detail.phaseName(),
+        detail.venueId(),
+        detail.venueName(),
+        detail.venueSpaceId(),
+        detail.venueSpaceName());
   }
 
   PublicEventResponse getPublishedEvent(UUID eventId) {
