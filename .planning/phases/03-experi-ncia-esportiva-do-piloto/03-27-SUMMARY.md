@@ -2,7 +2,7 @@
 phase: 03-experi-ncia-esportiva-do-piloto
 plan: 27
 wave: 27
-status: complete-pending-git
+status: complete
 completed: 2026-09-04
 subsystem: phase-3-recertification
 tags: [sports, certification, validation, verification, playwright]
@@ -46,7 +46,7 @@ key-decisions:
   - The final verdict covers AUTH-01 and SPRT-01 through SPRT-16 with fresh evidence after 03-26.
   - The two test-only corrections are kept separate from the documentation formalization commit.
   - No production code, dependency, OpenAPI contract or generated client was changed by 03-27.
-  - The RepoWise index is behind this worktree; live Git and files are authoritative for the snapshot.
+  - The RepoWise index was fresh at the integrated HEAD; live Git and files remain authoritative for the snapshot.
 
 requirements-addressed: [AUTH-01, SPRT-01, SPRT-02, SPRT-03, SPRT-04, SPRT-05, SPRT-06, SPRT-07, SPRT-08, SPRT-09, SPRT-10, SPRT-11, SPRT-12, SPRT-13, SPRT-14, SPRT-15, SPRT-16]
 
@@ -68,18 +68,18 @@ decisions-and-deviations:
 
 next-phase-readiness:
   - Phase 3 has fresh post-gap evidence and the human snapshot approval.
-  - The documentation and test commits remain local and require separate Git operations.
-  - Integration into master, cleanup and push were not performed.
+  - The implementation and documentation commits are integrated into `master`.
+  - The exact execution worktree and branch were removed after fast-forward integration; no push was performed.
 
 git:
-  status: complete-pending-git
+status: complete
   base_sha: b6a662a063b754bb7c934e149c5492a47727db2a
-  branch: worktree-agent-03-gap-exec
-  worktree: C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-03-gap-exec
+  branch: worktree-agent-03-gap-exec (historical execution branch, removed)
+  worktree: C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-03-gap-exec (removed)
   implementation_commit: 9ce90364c7189a6b371e3f9aec05a90396d7663d
-  documentation_commit: current documentation commit (hash intentionally omitted)
-  integration: not performed
-  cleanup: not performed
+  documentation_commit: fc1efda5b4c81aaae43b4ca6996971e647d7a00a (pre-closeout documentation commit)
+  integration: fast-forward into `master` at fc1efda5b4c81aaae43b4ca6996971e647d7a00a
+  cleanup: exact execution worktree and branch removed
   push: not performed
 
 ---

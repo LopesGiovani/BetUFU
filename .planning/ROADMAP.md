@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 27/27 plans executed; Phase 3 gap closure certified locally; integration pending
+**Plans**: 27/27 plans executed; Phase 3 gap closure certified, integrated and cleaned locally; push not performed
 
 Plans:
 **Wave 1**
@@ -334,31 +334,31 @@ Plans:
 
 - [x] 03-17-PLAN.md — certificar arquitetura, E2E, privacidade e validação; implementação, verificações e checkpoint humano concluídos
 
-**Wave 21** *(gap closure; depends on 03-17; integrated locally, cleanup/push pending)*
+**Wave 21** *(gap closure; depends on 03-17; integrated and cleaned locally; push not performed)*
 
 - [x] 03-21-PLAN.md — substituir relação singular por associação N:N de competições e modalidades; implementação, provas e integração local concluídas
 
-**Wave 22** *(gap closure; depends on 03-21; integrated locally, cleanup/push pending)*
+**Wave 22** *(gap closure; depends on 03-21; integrated and cleaned locally; push not performed)*
 
 - [x] 03-22-PLAN.md — aceitar formato GENERIC sem simular regras esportivas ausentes; implementação, verificações, candidato e integração local concluídos
 
-**Wave 23** *(gap closure; depends on 03-22; integrated locally, cleanup/push pending)*
+**Wave 23** *(gap closure; depends on 03-22; integrated and cleaned locally; push not performed)*
 
 - [x] 03-23-PLAN.md — derivar autorização por competição para organizações, atletas e elencos; decisão A1, implementação, provas e integração local concluídas
 
-**Wave 24** *(gap closure; depends on 03-23; concluida localmente, cleanup/push pending)*
+**Wave 24** *(gap closure; depends on 03-23; integrated and cleaned locally; push not performed)*
 
 - [x] 03-24-PLAN.md — endurecer CSV/XLSX e bloquear alteração direta de roster publicado; implementação, verificações e integração local concluídas
 
-**Wave 25** *(gap closure; depends on 03-24; concluida localmente, cleanup/push pending)*
+**Wave 25** *(gap closure; depends on 03-24; integrated and cleaned locally; push not performed)*
 
 - [x] 03-25-PLAN.md — persistir histórico append-only de lifecycle e consulta escopada; implementação, verificações e documentação concluídas localmente
 
-**Wave 26** *(gap closure; depends on 03-25; concluida localmente, cleanup/push pending)*
+**Wave 26** *(gap closure; depends on 03-25; integrated and cleaned locally; push not performed)*
 
 - [x] 03-26-PLAN.md — tornar proposta owner navegável e corrigir deep links da agenda; implementação, focais e Playwright `4/4` concluídos localmente
 
-**Wave 27** *(gap closure; depends on 03-26; concluida localmente, integration/cleanup/push pending)*
+**Wave 27** *(gap closure; depends on 03-26; integrated and cleaned locally; push not performed)*
 
 - [x] 03-27-PLAN.md — recertificar a Fase 3 após o fechamento dos gaps; suites, contratos, dois browsers e snapshot humano aprovados localmente
 
@@ -455,7 +455,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 27/27 | Complete locally; integration pending | 2026-09-04 |
+| 3. Experiência Esportiva do Piloto | 27/27 | Complete; integrated and cleaned locally; push not performed | 2026-09-04 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
