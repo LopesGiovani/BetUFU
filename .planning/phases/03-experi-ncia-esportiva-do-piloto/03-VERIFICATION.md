@@ -203,3 +203,57 @@ No code, dependency, database, infrastructure, Git stage, commit, push, cleanup 
 
 _Verified: 2026-09-02T21:55:03Z_
 _Verifier: gsd-verifier (read-only codebase inspection)_
+
+## Fresh recertification - Plan 03-27 Task 1
+
+O parecer historico acima descreve o estado anterior aos gaps e permanece apenas como baseline historica. A recertificacao pos-03-26 usa o HEAD atual ratificado pelo responsavel: `b6a662a063b754bb7c934e149c5492a47727db2a`, na branch/worktree `worktree-agent-03-gap-exec`.
+
+### Current gate status
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Task 1 - snapshot, allowlists and contracts | PASS | OpenAPI check `OK`, route boundary `OK`, Node validator `173/173` |
+| Task 2 - material certification | PENDING | Maven, Node, Angular, browsers, architecture/privacy and gap focals still to run |
+| Task 3 - human snapshot approval | PENDING | Must follow the complete Task 2 evidence and frozen hashes |
+
+### Task 1 evidence
+
+- The six gap plans 03-21 through 03-26 were reconciled against their declared allowlists and hashes; no new runtime or generated path is introduced by this report update.
+- `node frontend/scripts/generate-api.mjs --check` exited `0` with `[generate-api] OK: modo check concluido.`
+- `node scripts/validate-angular-route-boundary.mjs` exited `0` with `[validate-angular-route-boundary] OK: fronteira Angular segue o contrato aprovado.`
+- `node --test scripts/validate-angular-route-boundary.test.mjs` exited `0`: `173` tests, `173` pass, `0` fail, `0` cancelled, `0` skipped, `0` todo.
+- `git status --short --untracked-files=all` was empty before this documentation edit; the only intended paths for this plan remain this report and `03-VALIDATION.md`.
+
+### Recertification boundary
+
+The final verdict must cover `AUTH-01` and `SPRT-01` through `SPRT-16`, including the seven bounded gaps: N:N catalog and generic modalities, derived authorization, published-roster correction, owner route and identity authority, append-only event lifecycle, encoded event deep links, and the complete CSV/XLSX/import contract. Historical results from 03-17 cannot satisfy this gate without the fresh material evidence required by Task 2.
+
+**Task 1 verdict:** PASS. **Phase 3 final verdict:** not yet issued; Task 2 and the blocking human checkpoint remain.
+
+## Fresh recertification - Plan 03-27 Task 2
+
+### Material evidence
+
+| Dimension | Verdict | Exact evidence |
+|---|---|---|
+| Backend aggregate | PASS | Maven `verify`: `1472` tests, `0` failures, `0` errors, `0` skipped; `BUILD SUCCESS` |
+| Node aggregate | PASS | `638/638`, `0` failures, `0` skipped |
+| Angular aggregate | PASS | `58/58` files, `349/349` tests |
+| Browser matrix | PASS | Chromium + Firefox: `28/28` |
+| Architecture/privacy | PASS | `46/46` tests |
+| Gap backend focals | PASS | `268/268` tests across 16 required classes |
+| Gap Angular focals | PASS | `10/10` files, `41/41` tests |
+| Generator and route guards | PASS | generator `OK`, route validator `OK`, route suite `173/173`, generator suite `72/72` |
+| Negative mutations | PASS | harness `6/6`; M1-M3 red signatures and SHA restoration confirmed |
+
+### Requirements reconciliation
+
+`AUTH-01` and `SPRT-01` through `SPRT-16` now have fresh post-03-26 evidence. The seven gaps are covered by the N:N/GENERIC catalog and public reads, derived authorization focals, fixed tabular import and publication guard, owner route and server-side identity flow, append-only lifecycle and concurrency tests, encoded event destinations, and the complete two-browser/public-surface matrix. No requirement is promoted from the historical 03-17 verdict alone.
+
+### Discriminating corrections
+
+- The Grainient Angular test now destroys its fixture before global mocks are unstubbed; the focused spec is `4/4` and the aggregate Angular gate is `349/349`.
+- The public competition Playwright fixture now supplies required `sports` data. The desktop hero test freezes the initial composition with reduced motion, then explicitly resumes automatic rotation; the final Chromium/Firefox matrix is `28/28`.
+- Intermediate failures were diagnostic only: missing required `sports` caused the original `2/28` failures, and a Firefox timing race caused a subsequent `1/28` failure. Both are resolved in the final snapshot.
+
+**Task 2 verdict:** PASS. **Phase 3 final verdict:** pending only the blocking human review and frozen snapshot.

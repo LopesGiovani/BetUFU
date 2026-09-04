@@ -7,6 +7,85 @@ wave_0_complete: false
 created: 2026-08-26
 ---
 
+## Plan 03-27 - Task 1 - Snapshot pos-03-26
+
+Registrado em `2026-09-04` na worktree autorizada `C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-03-gap-exec`, branch `worktree-agent-03-gap-exec`, usando o HEAD atual ratificado pelo responsavel: `b6a662a063b754bb7c934e149c5492a47727db2a`.
+
+O HEAD inclui os commits de tooling Maven ja incorporados por outro agente (`d3b9c32`, `6d29a00` e `b6a662a`). Eles sao base herdada do snapshot e nao pertencem a allowlist do 03-27. O plano continua restrito a este arquivo e a `03-VERIFICATION.md`; nenhum path de codigo, contrato, cliente gerado ou tooling foi alterado nesta task.
+
+### Reconciliacao de escopo e contratos
+
+| Controle | Resultado |
+|---|---|
+| Base pos-03-26 | `b6a662a063b754bb7c934e149c5492a47727db2a` |
+| Branch/worktree | `worktree-agent-03-gap-exec` / `worktree-agent-03-gap-exec` |
+| Status inicial | limpo; nenhum staged, unstaged ou untracked |
+| Allowlists 03-21 a 03-26 | reconciliadas; somente paths declarados por cada plano |
+| OpenAPI/clientes governados | sem drift no preflight; `generate-api --check` aprovado |
+| Migrations V21-V24 | sequencia documental preservada; nenhuma migration executada nesta task |
+| Resultado historico 03-17 | tratado somente como evidencia historica; nao substitui a nova certificacao |
+
+### Comandos executados
+
+| Comando | Exit code | Evidencia literal |
+|---|---:|---|
+| `node frontend/scripts/generate-api.mjs --check` | 0 | `[generate-api] OK: modo check concluido.` |
+| `node scripts/validate-angular-route-boundary.mjs` | 0 | `[validate-angular-route-boundary] OK: fronteira Angular segue o contrato aprovado.` |
+| `node --test scripts/validate-angular-route-boundary.test.mjs` | 0 | `tests 173`, `pass 173`, `fail 0`, `cancelled 0`, `skipped 0`, `todo 0` |
+| `git rev-parse HEAD` | 0 | `b6a662a063b754bb7c934e149c5492a47727db2a` |
+| `git status --short --untracked-files=all` | 0 | saida vazia; worktree limpa |
+
+### Hashes dos planos de gap
+
+| Plano | SHA-256 |
+|---|---|
+| 03-21 | `3B42211E7CB853EE4D14E0AB8AB03CDDFAF4CEBCD11690C17E2A44AB5E5E8477` |
+| 03-22 | `4BC6D3974C2A945BA58B64FDE1B1C44E6B2544587A2758FC5CF2E50DD6B7A648` |
+| 03-23 | `DD7D86C4E867ED7E2260123DE6677309A43AF743624EFA978650C67228F7D3C3` |
+| 03-24 | `AE2542B2393B0C177609601E6271C3638090C7DD04F80CB5747E22D0AF950486` |
+| 03-25 | `D3D13B968AFAEFEDD45C1FBC2C2BEA8A7A3C314D319AF041D3FD7DD8A13B4CBF` |
+| 03-26 | `8D39E8D0710307FDE0BFC1C6718501D3741477811CD794584A5A099F6D469910` |
+
+**Resultado da Task 1:** PASS. A base, as allowlists, os contratos governados e a fronteira de rotas estao reconciliados. A certificacao material da Task 2 continua pendente e sera registrada abaixo sem reutilizar qualquer PASS historico.
+
+## Plan 03-27 - Task 2 - Certificacao material pos-gaps
+
+Executada no mesmo HEAD `b6a662a063b754bb7c934e149c5492a47727db2a`, com logs completos preservados somente em `%TEMP%` e resultados transcritos abaixo.
+
+### Suítes e focais
+
+| Gate | Comando/escopo | Exit code | Resultado exato |
+|---|---|---:|---|
+| Maven agregado | `node scripts/maven.mjs -f backend/pom.xml verify` | 0 | `BUILD SUCCESS`; `Tests run: 1472`, `Failures: 0`, `Errors: 0`, `Skipped: 0` |
+| Node agregado | `node --test scripts/*.test.mjs` | 0 | `tests 638`, `pass 638`, `fail 0`, `cancelled 0`, `skipped 0`, `todo 0` |
+| Angular agregado | `npm --prefix frontend run test -- --watch=false` | 0 | `Test Files 58 passed (58)`; `Tests 349 passed (349)` |
+| Playwright material | Chromium + Firefox, `playwright.sports.config.ts` | 0 | `28 passed`; ambos browsers verdes |
+| Mutações negativas | teste + runner M1-M3 | 0 | harness `6/6`; M1/M2/M3 vermelhos esperados e bytes restaurados |
+| Fronteira Angular | `node scripts/validate-angular-route-boundary.mjs` | 0 | `OK` |
+| Fronteira Angular - suite | `node --test scripts/validate-angular-route-boundary.test.mjs` | 0 | `tests 173`, `pass 173`, `fail 0`, `skipped 0` |
+| Cliente governado | `node frontend/scripts/generate-api.mjs --check` | 0 | `OK: modo check concluido` |
+| Arquitetura/privacidade | `-Dtest=PrivacyArchitectureTest,ModulithArchitectureTests,ModuleDependencyRulesTest` | 0 | `BUILD SUCCESS`; `Tests run: 46`, `Failures: 0`, `Errors: 0`, `Skipped: 0` |
+| Foco backend dos gaps | 16 classes da `gap_focal_matrix` | 0 | `BUILD SUCCESS`; `Tests run: 268`, `Failures: 0`, `Errors: 0`, `Skipped: 0` |
+| Foco Angular dos gaps | 10 specs de rotas, Console, proposta, agenda, competição, hero, ticker e Grainient | 0 | `Test Files 10 passed (10)`; `Tests 41 passed (41)` |
+| Foco gerador | `node --test frontend/scripts/generate-api.test.mjs` | 0 | `tests 72`, `pass 72`, `fail 0`, `skipped 0` |
+
+### Correções mecânicas durante a certificação
+
+- `frontend/src/app/shared/visual/grainient-background.component.spec.ts`: o caso de restauração WebGL passou a chamar `fixture.destroy()` antes do `afterEach`; isso mantém o mock de `cancelAnimationFrame` disponível no `ngOnDestroy`. Foco passou `4/4` e Angular completo passou `349/349`.
+- `frontend/e2e/sports-pilot.spec.ts`: o mock da competição pública passou a incluir o campo obrigatório `sports`; o teste desktop controla `prefers-reduced-motion` durante o estado inicial para evitar corrida temporal no Firefox e depois retoma o ciclo automático. Foco público passou `2/2`; matriz final passou `28/28`.
+- Uma tentativa Playwright intermediária falhou `2/28` porque o mock não tinha `sports`; após a primeira correção, uma tentativa falhou `1/28` por timeout de carrossel no Firefox e o foco isolado passou `2/2`. A execução final estabilizada passou `28/28`.
+- O primeiro comando do gate de arquitetura falhou no parser do PowerShell porque `-Dtest` continha vírgulas sem aspas; a repetição com o mesmo argumento entre aspas passou `46/46`. Nenhum código foi alterado por esse desvio.
+
+### Evidência de mutações
+
+| Mutação | Resultado | SHA-256 após restauração |
+|---|---|---|
+| M1 | vermelho discriminante; restauração aprovada | `4c9698c576f329d7dfdf9521c10850b13e7c559851f0be76463f27f464384cf5` |
+| M2 | vermelho discriminante; restauração aprovada | `5e06793ba9e251cdbc9a1c2d082906796831135c3025ca379e5937c3d4088f6c` |
+| M3 | vermelho discriminante; restauração aprovada | `186f2e64d20f0e119771bfa7fc995609c2c1282e1a58e9ea5732aa0457063794` |
+
+**Resultado da Task 2:** PASS. As suítes, focais, contratos, arquitetura, privacidade, dois browsers e mutações negativas estão verdes no snapshot atual. O checkpoint humano da Task 3 continua bloqueante.
+
 # Phase 3 — Validation Strategy
 
 > Contrato de validacao da experiencia esportiva, reconciliado com 20 PLANs: os planos tecnicos 03-02 a 03-06 foram executados, o preplano documental 03-18 foi fechado na Wave 3 e os planos seguintes permanecem pendentes nas Waves 8-20.
