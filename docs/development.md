@@ -13,6 +13,10 @@ nada de `bash -c`, encadeamento de shell ou wrapper específico de plataforma.
 | Node | conforme `package.json` do workspace | instalação local |
 | Docker Compose | v2 (verificado em 5.3.1) | Docker Desktop / engine local |
 
+O comando `node scripts/maven.mjs ...` mostra um resumo curto quando o build
+termina com sucesso. Em caso de falha, ele exibe ate dez linhas relevantes e
+informa o caminho do log completo temporario para diagnostico local.
+
 As imagens de serviço são fixadas por digest SHA-256 em `infra/compose.yaml`.
 Nenhum comando deste guia baixa imagem por tag móvel.
 
