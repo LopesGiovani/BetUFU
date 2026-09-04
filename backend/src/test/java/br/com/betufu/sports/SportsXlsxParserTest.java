@@ -174,7 +174,8 @@ class SportsXlsxParserTest {
         createWorkbookBytes(
             sheet -> {
               createHeader(sheet);
-              ((XSSFWorkbook) sheet.getWorkbook()).setWorkbookType(org.apache.poi.xssf.usermodel.XSSFWorkbookType.XLSM);
+              ((XSSFWorkbook) sheet.getWorkbook())
+                  .setWorkbookType(org.apache.poi.xssf.usermodel.XSSFWorkbookType.XLSM);
             });
 
     assertThatThrownBy(() -> parser.parse(bytes))
@@ -189,7 +190,10 @@ class SportsXlsxParserTest {
         createWorkbookBytes(
             sheet -> {
               createHeader(sheet);
-              sheet.getRow(0).createCell(SportsXlsxParser.EXPECTED_HEADERS.size()).setCellValue("extra");
+              sheet
+                  .getRow(0)
+                  .createCell(SportsXlsxParser.EXPECTED_HEADERS.size())
+                  .setCellValue("extra");
             });
 
     assertThatThrownBy(() -> parser.parse(bytes))

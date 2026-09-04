@@ -606,7 +606,7 @@ class SportsTracerIT {
     MvcResult result =
         mockMvc
             .perform(
-            post("/api/v1/operations/sports/editions/" + editionId + "/events")
+                post("/api/v1/operations/sports/editions/" + editionId + "/events")
                     .with(oidcPrincipal(subject))
                     .with(csrf())
                     .accept(MediaType.APPLICATION_JSON)

@@ -478,31 +478,23 @@ class SportsEventResultIT {
 
     mockMvc
         .perform(
-            get(lifecyclePath)
-                .with(oidcPrincipal("competition-a-admin-sub"))
-                .param("limit", "1"))
+            get(lifecyclePath).with(oidcPrincipal("competition-a-admin-sub")).param("limit", "1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(1));
 
     mockMvc
         .perform(
-            get(lifecyclePath)
-                .with(oidcPrincipal("competition-a-admin-sub"))
-                .param("limit", "500"))
+            get(lifecyclePath).with(oidcPrincipal("competition-a-admin-sub")).param("limit", "500"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2));
 
     mockMvc
         .perform(
-            get(lifecyclePath)
-                .with(oidcPrincipal("competition-a-admin-sub"))
-                .param("limit", "0"))
+            get(lifecyclePath).with(oidcPrincipal("competition-a-admin-sub")).param("limit", "0"))
         .andExpect(status().isBadRequest());
     mockMvc
         .perform(
-            get(lifecyclePath)
-                .with(oidcPrincipal("competition-a-admin-sub"))
-                .param("limit", "501"))
+            get(lifecyclePath).with(oidcPrincipal("competition-a-admin-sub")).param("limit", "501"))
         .andExpect(status().isBadRequest());
     mockMvc
         .perform(

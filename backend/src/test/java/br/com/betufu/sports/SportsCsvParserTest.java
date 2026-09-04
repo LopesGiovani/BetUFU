@@ -93,7 +93,17 @@ class SportsCsvParserTest {
   @DisplayName("Rejects headers outside the fixed template")
   void rejectsWrongHeaders() {
     String csv =
-        String.join(",", "coluna_errada", "modalidade", "categoria", "nome", "mat", "num", "pos", "inicio", "fim")
+        String.join(
+                ",",
+                "coluna_errada",
+                "modalidade",
+                "categoria",
+                "nome",
+                "mat",
+                "num",
+                "pos",
+                "inicio",
+                "fim")
             + "\n1,2,3,4,5,6,7,2026-08-01,2026-09-30";
     assertThatThrownBy(() -> parser.parse(csv.getBytes(StandardCharsets.UTF_8)))
         .isInstanceOf(ApiProblemException.class)

@@ -16,7 +16,6 @@ import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSo
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSummary;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketUpdateRequest;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketView;
-import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.BracketRecord;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.EditionContext;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.EventProjectionInfo;
@@ -24,6 +23,7 @@ import br.com.betufu.sports.internal.bracket.SportsBracketRepository.EventSlotPr
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.MatchEntity;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.PublicationRecord;
 import br.com.betufu.sports.internal.bracket.SportsBracketRepository.SlotEntity;
+import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;

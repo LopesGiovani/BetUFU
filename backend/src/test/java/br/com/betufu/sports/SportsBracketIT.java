@@ -505,11 +505,7 @@ class SportsBracketIT {
 
     SportsBracketCreateRequest foreignSportRequest =
         new SportsBracketCreateRequest(
-            "Modalidade alheia",
-            "modalidade-alheia",
-            sportFromOtherCompetition,
-            categoryA,
-            phaseA);
+            "Modalidade alheia", "modalidade-alheia", sportFromOtherCompetition, categoryA, phaseA);
     mockMvc
         .perform(
             post("/api/v1/operations/sports/editions/{editionId}/brackets", editionA)
@@ -678,8 +674,7 @@ class SportsBracketIT {
             List.of(
                 new SportsBracketSlotConfigureRequest(
                     1, SportsBracketSourceType.PREDECESSOR_WINNER, genericMatchId, null),
-                new SportsBracketSlotConfigureRequest(
-                    2, SportsBracketSourceType.BYE, null, null)));
+                new SportsBracketSlotConfigureRequest(2, SportsBracketSourceType.BYE, null, null)));
     SportsBracketUpdateRequest updateReq =
         new SportsBracketUpdateRequest(
             "Chave generica",

@@ -352,7 +352,10 @@ class SportsTabularImportIT {
     MvcResult validateResult =
         mockMvc
             .perform(
-                multipart("/api/v1/operations/sports/editions/" + editionA + "/tabular-import/validate")
+                multipart(
+                        "/api/v1/operations/sports/editions/"
+                            + editionA
+                            + "/tabular-import/validate")
                     .file(file)
                     .with(csrf())
                     .with(oidcLoginUser("comp-a-admin-sub", "comp_a_admin")))
@@ -361,10 +364,14 @@ class SportsTabularImportIT {
             .andReturn();
 
     String importId =
-        objectMapper.readTree(validateResult.getResponse().getContentAsString()).get("importId").asText();
+        objectMapper
+            .readTree(validateResult.getResponse().getContentAsString())
+            .get("importId")
+            .asText();
     int athletesBefore =
         jdbcTemplate.queryForObject("SELECT count(*) FROM sports_athlete", Integer.class);
-    int rostersBefore = jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster", Integer.class);
+    int rostersBefore =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster", Integer.class);
     int membersBefore =
         jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster_member", Integer.class);
 
@@ -381,7 +388,8 @@ class SportsTabularImportIT {
         .isEqualTo(athletesBefore);
     assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster", Integer.class))
         .isEqualTo(rostersBefore);
-    assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster_member", Integer.class))
+    assertThat(
+            jdbcTemplate.queryForObject("SELECT count(*) FROM sports_roster_member", Integer.class))
         .isEqualTo(membersBefore);
   }
 
@@ -487,7 +495,10 @@ class SportsTabularImportIT {
     MvcResult validateResult =
         mockMvc
             .perform(
-                multipart("/api/v1/operations/sports/editions/" + editionA + "/tabular-import/validate")
+                multipart(
+                        "/api/v1/operations/sports/editions/"
+                            + editionA
+                            + "/tabular-import/validate")
                     .file(file)
                     .with(csrf())
                     .with(oidcLoginUser("comp-a-admin-sub", "comp_a_admin")))
@@ -505,7 +516,8 @@ class SportsTabularImportIT {
     Integer rosterCountBefore =
         jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster", Integer.class);
     Integer memberCountBefore =
-        jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster_member", Integer.class);
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM public.sports_roster_member", Integer.class);
 
     mockMvc
         .perform(
@@ -516,7 +528,8 @@ class SportsTabularImportIT {
         .andExpect(status().isForbidden());
 
     assertThat(
-            jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_athlete", Integer.class))
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.sports_athlete", Integer.class))
         .isEqualTo(athleteCountBefore);
     assertThat(
             jdbcTemplate.queryForObject("SELECT count(*) FROM public.sports_roster", Integer.class))
@@ -702,14 +715,14 @@ class SportsTabularImportIT {
   private UUID createEdition(UUID compId, String name, String slug) {
     UUID id = UUID.randomUUID();
     jdbcTemplate.update(
-         "INSERT INTO sports_edition (edition_id, competition_id, name, slug, start_date, end_date, status, lock_version, created_at, updated_at) "
-             + "VALUES (?, ?, ?, ?, ?, ?, 'ATIVA', 0, NOW(), NOW())",
-         id,
-         compId,
-         name,
-         slug,
-         LocalDate.of(2026, 8, 1),
-         LocalDate.of(2026, 9, 30));
+        "INSERT INTO sports_edition (edition_id, competition_id, name, slug, start_date, end_date, status, lock_version, created_at, updated_at) "
+            + "VALUES (?, ?, ?, ?, ?, ?, 'ATIVA', 0, NOW(), NOW())",
+        id,
+        compId,
+        name,
+        slug,
+        LocalDate.of(2026, 8, 1),
+        LocalDate.of(2026, 9, 30));
     return id;
   }
 

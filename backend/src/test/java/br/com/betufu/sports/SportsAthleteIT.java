@@ -222,7 +222,9 @@ class SportsAthleteIT {
         .andExpect(status().isForbidden());
     assertThat(
             jdbcTemplate.queryForObject(
-                "SELECT name FROM public.sports_athlete WHERE athlete_id = ?", String.class, athleteId))
+                "SELECT name FROM public.sports_athlete WHERE athlete_id = ?",
+                String.class,
+                athleteId))
         .isEqualTo("Carlos Silva");
     assertThat(
             jdbcTemplate.queryForObject(
@@ -326,7 +328,9 @@ class SportsAthleteIT {
         .andExpect(status().isForbidden());
     assertThat(
             jdbcTemplate.queryForObject(
-                "SELECT name FROM public.sports_athlete WHERE athlete_id = ?", String.class, athleteId))
+                "SELECT name FROM public.sports_athlete WHERE athlete_id = ?",
+                String.class,
+                athleteId))
         .isEqualTo("Nome Original");
     assertThat(
             jdbcTemplate.queryForObject(

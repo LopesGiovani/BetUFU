@@ -397,8 +397,7 @@ public class SportsEventService {
       throw validation();
     }
     requireUtf8Length(request.title().trim(), 200);
-    if (request.format() != EventFormat.HEAD_TO_HEAD
-        && request.format() != EventFormat.GENERIC) {
+    if (request.format() != EventFormat.HEAD_TO_HEAD && request.format() != EventFormat.GENERIC) {
       throw validation();
     }
     if (request.scheduledAt() == null) {
@@ -430,8 +429,7 @@ public class SportsEventService {
       throw validation();
     }
     requireUtf8Length(request.title().trim(), 200);
-    if (request.format() != EventFormat.HEAD_TO_HEAD
-        && request.format() != EventFormat.GENERIC) {
+    if (request.format() != EventFormat.HEAD_TO_HEAD && request.format() != EventFormat.GENERIC) {
       throw validation();
     }
     if (request.scheduledAt() == null) {

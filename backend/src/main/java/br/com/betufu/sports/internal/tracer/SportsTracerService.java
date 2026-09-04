@@ -12,8 +12,8 @@ import br.com.betufu.sports.internal.tracer.SportsTracerModels.CompetitionCreate
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.CompetitionResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EditionCreateRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EditionResponse;
-import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventFormat;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventCreateRequest;
+import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventFormat;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventResponse;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.EventSlotRequest;
 import br.com.betufu.sports.internal.tracer.SportsTracerModels.PublicEventResponse;
@@ -24,7 +24,6 @@ import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -127,7 +126,8 @@ class SportsTracerService {
         repository.findEventCompetitionId(eventId).orElseThrow(SportsTracerService::notFound);
     OperationalIdentity actor = resolveIdentity(issuer, subject);
     requireCompetitionAdministrator(actor, competitionId);
-    if (!"RASCUNHO".equals(repository.findEventStatus(eventId).orElseThrow(SportsTracerService::notFound))) {
+    if (!"RASCUNHO"
+        .equals(repository.findEventStatus(eventId).orElseThrow(SportsTracerService::notFound))) {
       throw validation();
     }
 

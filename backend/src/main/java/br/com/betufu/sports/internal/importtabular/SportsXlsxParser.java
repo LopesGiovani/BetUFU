@@ -190,7 +190,9 @@ public class SportsXlsxParser {
     }
     if (cell.getCellType() == CellType.NUMERIC) {
       double value = cell.getNumericCellValue();
-      if (!Double.isFinite(value) || value != Math.rint(value) || value < Integer.MIN_VALUE
+      if (!Double.isFinite(value)
+          || value != Math.rint(value)
+          || value < Integer.MIN_VALUE
           || value > Integer.MAX_VALUE) {
         throw new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
       }

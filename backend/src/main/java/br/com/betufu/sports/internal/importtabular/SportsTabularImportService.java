@@ -422,13 +422,18 @@ public class SportsTabularImportService {
             UUID orgId = orgMap.get(row.organizationSlug().toLowerCase(Locale.ROOT));
             UUID sportId = sportMap.get(row.sportSlug().toLowerCase(Locale.ROOT));
             UUID catId = catMap.get(row.categorySlug().toLowerCase(Locale.ROOT));
-            TeamInfo team = resolvedTeams.values().stream()
-                .filter(candidate -> candidate.orgId().equals(orgId)
-                    && candidate.sportId().equals(sportId)
-                    && candidate.catId().equals(catId))
-                .findFirst()
-                .orElseThrow(
-                    () -> new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED));
+            TeamInfo team =
+                resolvedTeams.values().stream()
+                    .filter(
+                        candidate ->
+                            candidate.orgId().equals(orgId)
+                                && candidate.sportId().equals(sportId)
+                                && candidate.catId().equals(catId))
+                    .findFirst()
+                    .orElseThrow(
+                        () ->
+                            new ApiProblemException(
+                                HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED));
 
             Fingerprint fp =
                 fingerprintPort

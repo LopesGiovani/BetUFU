@@ -217,8 +217,7 @@ class SportsOrganizationRepository {
         rs.getLong("lock_version"));
   }
 
-  private SportsOrganizationSummary mapOrganization(ResultSet rs, int rowNum)
-      throws SQLException {
+  private SportsOrganizationSummary mapOrganization(ResultSet rs, int rowNum) throws SQLException {
     return new SportsOrganizationSummary(
         rs.getObject("organization_id", UUID.class),
         rs.getString("name"),

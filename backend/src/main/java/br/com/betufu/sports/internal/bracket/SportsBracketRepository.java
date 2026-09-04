@@ -1,12 +1,12 @@
 package br.com.betufu.sports.internal.bracket;
 
-import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketCreateRequest;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketMatchConfigureRequest;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSlotConfigureRequest;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSourceType;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketSummary;
 import br.com.betufu.sports.internal.bracket.SportsBracketModels.SportsBracketUpdateRequest;
+import br.com.betufu.sports.internal.event.SportsEventModels.EventFormat;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -541,8 +541,7 @@ class SportsBracketRepository {
 
     MapSqlParameterSource params = new MapSqlParameterSource().addValue("eventIds", nonNullIds);
     return namedJdbc.query(
-        "SELECT event_id, event_format FROM public.sports_event "
-            + "WHERE event_id IN (:eventIds)",
+        "SELECT event_id, event_format FROM public.sports_event " + "WHERE event_id IN (:eventIds)",
         params,
         rs -> {
           Map<UUID, EventFormat> formats = new HashMap<>();

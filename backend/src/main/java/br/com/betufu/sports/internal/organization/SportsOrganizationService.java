@@ -50,9 +50,7 @@ class SportsOrganizationService {
     }
     List<UUID> competitionIds =
         actor.roles().stream()
-            .filter(
-                role ->
-                    COMPETITION_ADMIN.equals(role.roleName()) && role.scopeRef() != null)
+            .filter(role -> COMPETITION_ADMIN.equals(role.roleName()) && role.scopeRef() != null)
             .map(role -> role.scopeRef())
             .distinct()
             .toList();
