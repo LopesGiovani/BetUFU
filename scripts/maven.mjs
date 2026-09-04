@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { createWriteStream, existsSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { createMavenOutputCollector, formatMavenOutcome } from './lib/maven-output.mjs';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const wrapperPath = join(projectRoot, process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw');
@@ -58,7 +62,31 @@ function windowsInvocation() {
   };
 }
 
-try {
+function closeLogStream(logStream) {
+  if (logStream.writableEnded) return Promise.resolve();
+
+  return new Promise((resolvePromise, rejectPromise) => {
+    const onFinish = () => {
+      logStream.removeListener('error', onError);
+      resolvePromise();
+    };
+    const onError = (error) => {
+      logStream.removeListener('finish', onFinish);
+      rejectPromise(error);
+    };
+
+    logStream.once('finish', onFinish);
+    logStream.once('error', onError);
+    logStream.end();
+  });
+}
+
+function attachOutput(stream, collector) {
+  stream.setEncoding('utf8');
+  stream.on('data', (chunk) => collector.consume(chunk));
+}
+
+async function runMaven() {
   validateArguments(mavenArguments);
 
   if (!existsSync(wrapperPath)) {
@@ -69,33 +97,67 @@ try {
     ? windowsInvocation()
     : { command: wrapperPath, arguments: mavenArguments };
 
-  const child = spawn(invocation.command, invocation.arguments, {
-    cwd: projectRoot,
-    shell: false,
-    stdio: 'inherit',
-    windowsHide: true,
-  });
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), 'betufu-maven-'));
+  const logPath = join(temporaryDirectory, 'maven.log');
+  const logStream = createWriteStream(logPath, { encoding: 'utf8' });
+  const collector = createMavenOutputCollector({ writeLog: (chunk) => logStream.write(chunk) });
+  let keepLog = false;
 
-  for (const signal of ['SIGINT', 'SIGTERM']) {
-    process.once(signal, () => {
-      if (!child.killed) {
-        child.kill(signal);
-      }
+  try {
+    const child = spawn(invocation.command, invocation.arguments, {
+      cwd: projectRoot,
+      shell: false,
+      stdio: ['inherit', 'pipe', 'pipe'],
+      windowsHide: true,
     });
-  }
 
-  child.once('error', (error) => {
-    fail(`não foi possível iniciar o Maven Wrapper: ${error.message}`);
-  });
+    attachOutput(child.stdout, collector);
+    attachOutput(child.stderr, collector);
 
-  child.once('exit', (code, signal) => {
-    if (code !== null) {
-      process.exitCode = code;
-      return;
+    const signalHandlers = new Map();
+    for (const signal of ['SIGINT', 'SIGTERM']) {
+      const forwardSignal = () => {
+        if (!child.killed) child.kill(signal);
+      };
+      signalHandlers.set(signal, forwardSignal);
+      process.once(signal, forwardSignal);
     }
 
-    process.exitCode = signal === 'SIGINT' ? 130 : 143;
-  });
-} catch (error) {
-  fail(error instanceof Error ? error.message : String(error));
+    const termination = await new Promise((resolvePromise) => {
+      let settled = false;
+      const resolveOnce = (result) => {
+        if (settled) return;
+        settled = true;
+        resolvePromise(result);
+      };
+
+      child.once('error', (error) => resolveOnce({ error }));
+      child.once('close', (code, signal) => resolveOnce({ code, signal }));
+    });
+
+    for (const [signal, handler] of signalHandlers) process.removeListener(signal, handler);
+    await closeLogStream(logStream);
+
+    if (termination.error) {
+      throw new Error(`não foi possível iniciar o Maven Wrapper: ${termination.error.message}`);
+    }
+
+    const outcome = formatMavenOutcome({
+      code: termination.code,
+      signal: termination.signal,
+      ...collector.finish(),
+      logPath,
+    });
+    keepLog = outcome.keepLog;
+    const writeLine = outcome.exitCode === 0 ? console.log : console.error;
+    for (const line of outcome.lines) writeLine(line);
+    process.exitCode = outcome.exitCode;
+  } finally {
+    if (!logStream.writableEnded) await closeLogStream(logStream);
+    if (!keepLog) await rm(temporaryDirectory, { recursive: true, force: true });
+  }
 }
+
+runMaven().catch((error) => {
+  fail(error instanceof Error ? error.message : String(error));
+});
