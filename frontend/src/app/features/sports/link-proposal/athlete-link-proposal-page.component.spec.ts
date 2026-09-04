@@ -44,6 +44,11 @@ describe('AthleteLinkProposalPageComponent', () => {
     fixture.detectChanges();
   });
 
+  it('loads the current identity proposal without a URL identifier', () => {
+    expect(store['load']).toHaveBeenCalledTimes(1);
+    expect(store['load']).toHaveBeenCalledWith();
+  });
+
   it('exibe apenas o nome esportivo, aviso de não oficialidade e ações owner-only', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('Atleta Um');

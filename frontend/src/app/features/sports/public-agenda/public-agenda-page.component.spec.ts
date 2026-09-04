@@ -123,6 +123,9 @@ describe('PublicAgendaPageComponent', () => {
     expect(service.listPublishedSportsEvents).toHaveBeenCalledTimes(1);
     expect(root.querySelector('h1')?.textContent).toContain('Hoje em quadra');
     expect(root.querySelectorAll('app-event-row')).toHaveLength(2);
+    expect(root.querySelector('app-event-row a')?.getAttribute('href')).toBe(
+      '/eventos/11111111-1111-4111-8111-111111111111',
+    );
     expect(root.textContent).toContain('Engenharia × Direito');
     expect(root.textContent).toContain('Jogos Universitários');
     expect(root.textContent).toContain('Local a definir');

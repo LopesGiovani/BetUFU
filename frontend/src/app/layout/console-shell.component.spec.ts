@@ -66,6 +66,9 @@ describe('ConsoleShellComponent', () => {
     expect(fixture.componentInstance.isPersonal).toBe(true);
     expect(operationsApiAdapter.fetchOperationalCapabilities).not.toHaveBeenCalled();
     expect(fixture.nativeElement.querySelector('.console-header--personal')).not.toBeNull();
+    expect(fixture.componentInstance.personalDestinations.map((item) => item.path)).toContain(
+      '/conta/vinculo-atleta',
+    );
     expect(fixture.nativeElement.textContent).toContain('Área pessoal');
     expect(fixture.nativeElement.textContent).toContain('Meu perfil');
     expect(fixture.nativeElement.textContent).toContain('Matrícula UFU');

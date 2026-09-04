@@ -4,6 +4,7 @@ import { PublicBracketPageComponent } from './features/sports/public-bracket/pub
 import { SportsBracketPageComponent } from './features/sports/operations/bracket/sports-bracket-page.component';
 import { PublicStandingsPageComponent } from './features/sports/public-standings/public-standings-page.component';
 import { SportsStandingsPageComponent } from './features/sports/operations/standings/sports-standings-page.component';
+import { AthleteLinkProposalPageComponent } from './features/sports/link-proposal/athlete-link-proposal-page.component';
 
 function childrenOf(route: (typeof APP_ROUTES)[number]): readonly (typeof APP_ROUTES)[number][] {
   return route.children ?? [];
@@ -60,5 +61,15 @@ describe('rotas de chaveamento e classificação', () => {
     expect(guarded?.canActivateChild).toBeDefined();
     const page = childrenOf(route!).find((candidate) => candidate.path === '');
     await expect(page?.loadComponent?.()).resolves.toBe(SportsStandingsPageComponent);
+  });
+
+  it('resolve a rota pessoal da proposta dentro do guard de perfil e sem id na URL', async () => {
+    const guarded = APP_ROUTES.find((route) => route.canActivateChild);
+    const account = childrenOf(guarded!).find((candidate) => candidate.path === 'conta');
+    const route = childrenOf(account!).find((candidate) => candidate.path === 'vinculo-atleta');
+
+    expect(route).toBeDefined();
+    expect(guarded?.canActivateChild).toBeDefined();
+    await expect(route?.loadComponent?.()).resolves.toBe(AthleteLinkProposalPageComponent);
   });
 });

@@ -74,6 +74,12 @@ describe('PublicAgendaApiAdapter', () => {
     expect(view.formatLabel).toBe('Confronto');
   });
 
+  it('produz deep link canonico e codifica o identificador do evento', () => {
+    const adapted = adapter.adapt(page(event('GENERIC', { eventId: 'evt/1?draft=true' })));
+
+    expect(adapted.events[0]?.detailHref).toBe('/eventos/evt%2F1%3Fdraft%3Dtrue');
+  });
+
   it('recusa formato que nao pertence ao enum publico', () => {
     expect(() => adapter.adapt(page(event('GENERIC', { format: 'UNKNOWN' as never })))).toThrow(
       /CONTRATO_AGENDA_PUBLICA_INVALIDO: formato invalido/,

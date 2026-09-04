@@ -144,6 +144,11 @@ const APPROVED_PRODUCT_ROUTES = Object.freeze([
     'EnrollmentPageComponent',
   ),
   approvedRoute(
+    'conta/vinculo-atleta',
+    './features/sports/link-proposal/athlete-link-proposal-page.component',
+    'AthleteLinkProposalPageComponent',
+  ),
+  approvedRoute(
     'operacao/painel',
     './features/operations/operations-panel-page.component',
     'OperationsPanelPageComponent',
@@ -190,6 +195,11 @@ const APPROVED_PERSONAL_ROUTES = Object.freeze([
     'matricula',
     './features/enrollment/enrollment-page.component',
     'EnrollmentPageComponent',
+  ),
+  approvedRoute(
+    'vinculo-atleta',
+    './features/sports/link-proposal/athlete-link-proposal-page.component',
+    'AthleteLinkProposalPageComponent',
   ),
 ]);
 

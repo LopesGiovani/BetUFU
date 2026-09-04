@@ -39,6 +39,7 @@ describe('BroadcastTickerComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('.ticker')?.classList.contains('is-paused')).toBe(true);
     expect(root.querySelectorAll('a')).toHaveLength(1);
+    expect(root.querySelector('a')?.getAttribute('href')).toBe('/eventos/evt-1');
     expect(root.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
   });
 });

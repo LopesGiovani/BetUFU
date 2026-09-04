@@ -197,7 +197,7 @@ export class PublicAgendaApiAdapter {
       formatLabel,
       venueLabel: this.venueLabel(event),
       contextLabel: contextParts.join(' · '),
-      detailHref: `#agenda-event-${encodeURIComponent(event.eventId)}`,
+      detailHref: `/eventos/${encodeURIComponent(event.eventId)}`,
     });
   }
   private venueLabel(event: PublicSportsEventSummary): string {

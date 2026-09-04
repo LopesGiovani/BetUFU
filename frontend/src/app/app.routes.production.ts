@@ -64,6 +64,13 @@ export const BUILD_SPECIFIC_ROUTES: Routes = [
             ({ EnrollmentPageComponent }) => EnrollmentPageComponent,
           ),
       },
+      {
+        path: 'vinculo-atleta',
+        loadComponent: () =>
+          import('./features/sports/link-proposal/athlete-link-proposal-page.component').then(
+            ({ AthleteLinkProposalPageComponent }) => AthleteLinkProposalPageComponent,
+          ),
+      },
     ],
   },
   {

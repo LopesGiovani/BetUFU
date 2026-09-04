@@ -87,6 +87,7 @@ const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Obje
 const PERSONAL_DESTINATIONS = Object.freeze([
   Object.freeze({ label: 'Meu perfil', path: '/conta/perfil' }),
   Object.freeze({ label: 'Matrícula UFU', path: '/conta/matricula' }),
+  Object.freeze({ label: 'Vínculo esportivo', path: '/conta/vinculo-atleta' }),
 ]);
 
 export type ConsoleShellVariant = 'operational' | 'personal';

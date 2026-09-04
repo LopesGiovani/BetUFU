@@ -77,7 +77,7 @@ test.describe('@03-03-home-v Arena pública variante V', () => {
     await expect(slides.nth(1)).toHaveAttribute('aria-hidden', 'false');
     await expect(slides.nth(1).getByRole('link', { name: 'Abrir evento' })).toHaveAttribute(
       'href',
-      `#agenda-event-${FIRST_EVENT_ID}`,
+      `/eventos/${FIRST_EVENT_ID}`,
     );
 
     const motionControl = page.getByRole('button', { name: 'Pausar destaques' });
@@ -172,6 +172,150 @@ test('@03-11-public-p1-p6 abre os detalhes públicos por URL direta e navega ent
   await page.goto(`/eventos/${eventId}`);
   await expect(page.getByRole('heading', { level: 1, name: 'Engenharia × Direito' })).toBeVisible();
   await expect(page.getByText('sumula-publica').first()).toBeVisible();
+});
+
+const OWNER_PROPOSAL = {
+  proposalId: 'proposal-03-26',
+  athleteId: 'athlete-03-26',
+  athleteName: 'Atleta Um',
+  athleteSlug: 'atleta-um',
+  status: 'PENDENTE',
+  createdAt: '2026-09-03T10:00:00Z',
+  updatedAt: '2026-09-03T10:00:00Z',
+  expiresAt: '2026-10-03T10:00:00Z',
+  decidedAt: null,
+};
+
+async function mockOwnerLink(
+  page: Page,
+  proposalStatus: 200 | 401 | 403 = 200,
+): Promise<{ proposalRequestUrls: string[] }> {
+  const proposalRequestUrls: string[] = [];
+  await page.route('**/api/v1/session', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        displayName: 'Jogador UFU',
+        idleTimeout: 'PT15M',
+        absoluteTimeout: null,
+        lastValidActivityAt: new Date().toISOString(),
+      }),
+    });
+  });
+  await page.route('**/api/v1/profile/me', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        identityId: 'identity-owner-03-26',
+        nickname: 'jogador_ufu',
+        nicknameUpdatedAt: '2026-09-03T10:00:00.000Z',
+        matriculaStatus: 'REGISTRADA',
+        favoriteOrganizationId: null,
+      }),
+    });
+  });
+  await page.route('**/api/v1/me/sports/athlete-links/proposal', async (route) => {
+    proposalRequestUrls.push(route.request().url());
+    if (proposalStatus !== 200) {
+      await route.fulfill({ status: proposalStatus, contentType: 'application/json', body: '{}' });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(OWNER_PROPOSAL),
+    });
+  });
+  return { proposalRequestUrls };
+}
+
+test.describe('@03-26-owner-event owner e deep link canonico', () => {
+  test('segue CTA da agenda, abre o evento completo e preserva o deep link no refresh', async ({ page }) => {
+    await mockPublicAgenda(page);
+    await page.route(`**/api/v1/public/sports/events/${FIRST_EVENT_ID}`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          publicationId: 'publication-03-26',
+          eventId: FIRST_EVENT_ID,
+          competitionId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          editionId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+          versionNo: 1,
+          competitionName: 'Jogos Universitários',
+          editionName: 'Edição 2026',
+          title: 'Engenharia contra Direito',
+          format: 'HEAD_TO_HEAD',
+          scheduledAt: new Date(Date.now() + 3_600_000).toISOString(),
+          zoneId: 'America/Sao_Paulo',
+          venueState: 'LOCAL_A_DEFINIR',
+          sourceReference: 'sumula-03-26',
+          publishedAt: new Date().toISOString(),
+          slots: [
+            { slotNo: 1, displayLabel: 'Engenharia' },
+            { slotNo: 2, displayLabel: 'Direito' },
+          ],
+          sourceHistory: [],
+        }),
+      });
+    });
+
+    await page.goto('/');
+    const eventLink = page.locator('app-event-row').first().getByRole('link');
+    await expect(eventLink).toHaveAttribute('href', `/eventos/${FIRST_EVENT_ID}`);
+    await eventLink.click();
+    await expect(page).toHaveURL(`/eventos/${FIRST_EVENT_ID}`);
+    await expect(page.getByRole('heading', { level: 1, name: /Engenharia/u })).toBeVisible();
+    await expect(page.getByText('sumula-03-26').first()).toBeVisible();
+
+    await page.reload();
+    await expect(page).toHaveURL(`/eventos/${FIRST_EVENT_ID}`);
+    await expect(page.getByRole('heading', { level: 1, name: /Engenharia/u })).toBeVisible();
+    await expect(page.getByText('sumula-03-26').first()).toBeVisible();
+  });
+
+  test('owner abre a proposta pela identidade atual, sem proposalId, e o refresh preserva a tela', async ({ page }) => {
+    const probe = await mockOwnerLink(page);
+
+    await page.goto('/conta/perfil');
+    const proposalLink = page.locator('.console-nav a[href="/conta/vinculo-atleta"]');
+    await expect(proposalLink).toBeVisible();
+    await proposalLink.click();
+    await expect(page).toHaveURL('/conta/vinculo-atleta');
+    await expect(page).not.toHaveURL(/proposalId/iu);
+    await expect(page.getByRole('heading', { level: 1, name: /Proposta de/u })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Atleta Um' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Aceitar/u })).toBeVisible();
+    expect(probe.proposalRequestUrls).toHaveLength(1);
+    expect(probe.proposalRequestUrls[0]).toMatch(/\/api\/v1\/me\/sports\/athlete-links\/proposal$/u);
+    expect(probe.proposalRequestUrls[0]).not.toContain('proposalId');
+
+    await page.reload();
+    await expect(page).toHaveURL('/conta/vinculo-atleta');
+    await expect(page.getByRole('heading', { level: 2, name: 'Atleta Um' })).toBeVisible();
+    await expect(page.locator('body')).not.toContainText('proposal-03-26');
+    expect(probe.proposalRequestUrls).toHaveLength(2);
+    expect(probe.proposalRequestUrls.every((url) => !url.includes('proposalId'))).toBe(true);
+  });
+
+  for (const status of [401, 403] as const) {
+    test(`falha fechado com ${status} sem renderizar dados da proposta`, async ({ page }) => {
+      const probe = await mockOwnerLink(page, status);
+
+      await page.goto('/conta/vinculo-atleta');
+      await expect(page).toHaveURL('/conta/vinculo-atleta');
+      await expect(page.getByRole('heading', { level: 1, name: /N.o foi poss.vel carregar/u })).toBeVisible();
+      await expect(page.locator('.proposal-card')).toHaveCount(0);
+      await expect(page.locator('body')).not.toContainText('Atleta Um');
+      await expect(page.locator('body')).not.toContainText('proposal-03-26');
+      await expect(page.locator('body')).toContainText(status === 401 ? /sess.o expirou/u : /n.o tem acesso/u);
+      expect(probe.proposalRequestUrls).toHaveLength(1);
+      expect(probe.proposalRequestUrls[0]).not.toContain('proposalId');
+    });
+  }
 });
 
 type PersonalConsoleProbe = {

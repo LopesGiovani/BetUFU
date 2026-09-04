@@ -71,9 +71,11 @@ describe('AutoEventHeroComponent', () => {
     expect(slides[0].getAttribute('aria-hidden')).toBe('false');
     expect(slides[0].hasAttribute('inert')).toBe(false);
     expect(links[0].tabIndex).toBe(0);
+    expect(links[0].getAttribute('href')).toBe('/eventos/evt-hero');
     expect(slides[1].getAttribute('aria-hidden')).toBe('true');
     expect(slides[1].hasAttribute('inert')).toBe(true);
     expect(links[1].tabIndex).toBe(-1);
+    expect(links[1].getAttribute('href')).toBe('/eventos/evt-hero');
     expect(fixture.componentInstance.isCompositionInteractive(0)).toBe(true);
     expect(fixture.componentInstance.isCompositionInteractive(1)).toBe(false);
   });
