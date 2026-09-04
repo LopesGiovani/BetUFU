@@ -127,6 +127,8 @@ describe('GrainientBackgroundComponent', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.fallback()).toBe(false);
     expect(gl.createProgram).toHaveBeenCalledTimes(2);
+
+    fixture.destroy();
   });
 
   it('delega resize ao observer sem medir layout em cada frame', async () => {
