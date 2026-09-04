@@ -307,7 +307,7 @@ test.describe('@03-26-owner-event owner e deep link canonico', () => {
 
       await page.goto('/conta/vinculo-atleta');
       await expect(page).toHaveURL('/conta/vinculo-atleta');
-      await expect(page.getByRole('heading', { level: 1, name: /N.o foi poss.vel carregar/u })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 2, name: /N.o foi poss.vel carregar/u })).toBeVisible();
       await expect(page.locator('.proposal-card')).toHaveCount(0);
       await expect(page.locator('body')).not.toContainText('Atleta Um');
       await expect(page.locator('body')).not.toContainText('proposal-03-26');
