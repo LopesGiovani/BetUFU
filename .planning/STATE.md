@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 3 integrated and cleaned locally; Phase 4 discussion pending
-last_updated: "2026-09-04T14:32:22-03:00"
-last_activity: 2026-09-04
-last_activity_desc: Phase 3 closeout documentation updated after fast-forward integration and exact cleanup; Phase 4 decisions remain pending.
-state_head: bedc623fb1a1e82e10823fd60645bc960c6fff4e
+stopped_at: Phase 4 documentary snapshot approved; execution blocked on 9 human checkpoints
+last_updated: "2026-09-05T17:26:12-03:00"
+last_activity: 2026-09-05
+last_activity_desc: Phase 4 planning snapshot reconciled with 19 plans and 46 tasks; execution remains blocked on explicit human gates.
+state_head: 720df5fc84474fa88356caffa0b422a18c857dc5
 progress:
   total_phases: 8
   completed_phases: 3
@@ -42,14 +42,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** iniciar a discussao da Fase 4; os parametros do Elo, empate e confrontos de referencia ainda precisam de decisao explicita.
+**Current focus:** snapshot documental da Fase 4 aprovado; os parâmetros do Elo, empate e confrontos de referência continuam condicionados à calibração aprovada.
 
 ## Current Position
 
 Phase: 4 of 8 — Mercados Pré-jogo e Odds Transparentes
-Plan: nenhum plano executado; discussão de parâmetros do Elo, empate e confrontos de referência pendente.
-Status: Planning - Fase 3 concluída, integrada e limpa localmente; decisões de produto da Fase 4 pendentes.
-Last activity: 2026-09-04 - fechamento documental da Fase 3 registrado após integração fast-forward e cleanup exato.
+Plan: 19 planos documentados (46 tasks); nenhum plano executado.
+Status: Planning - snapshot documental da Fase 4 aprovado; execução bloqueada por 9 checkpoints humanos.
+Last activity: 2026-09-05 - snapshot da Fase 4 e dependência no roadmap reconciliados; nenhum código ou teste material executado.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -119,7 +119,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [############] 27/27 planos da Fase 3 (100%; gap-closure concluido localmente)
+Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído localmente); Fase 4: 0/19 planos executados (snapshot aprovado)
 
 ## Métricas de desempenho
 
@@ -264,11 +264,11 @@ Progress: [############] 27/27 planos da Fase 3 (100%; gap-closure concluido loc
 
 ### Bloqueios e pontos de atenção
 
- - **Wave 20 resolvida em 2026-09-02:** o 03-17 foi implementado, certificado, integrado, limpo e publicado. A base da Fase 3 está certificada; os gaps 03-21 a 03-27 também foram concluídos, integrados e limpos localmente. A Fase 4 aguarda decisão explícita dos parâmetros de odds.
+ - **Fase 3 encerrada localmente:** o 03-17 foi implementado, certificado, integrado, limpo e publicado. Os gaps 03-21 a 03-27 também foram concluídos, integrados e limpos localmente. A Fase 4 possui snapshot documental aprovado, mas a execução aguarda os 9 checkpoints humanos registrados em `04-VALIDATION.md`.
 
 - Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
 - ~~Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.~~ **Resolvido em 2026-08-26:** a Fase 3 adotou catálogo esportivo genérico, registrou as modalidades conhecidas apenas como dados iniciais e definiu página oficial, regulamento e boletins oficiais como fontes autoritativas; detalhes de 2026 serão dados operacionais, não bloqueio arquitetural.
-- Antes do planejamento das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada precisam de decisão explícita ou configuração.
+- Durante a execução das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada continuam exigindo decisão explícita ou configuração; na Fase 4, os gates estão discriminados em `04-VALIDATION.md`.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
 - Antes da divulgação pública: decidir se o repositório será transferido para uma organização própria da BETUFU; essa mudança não é necessária para executar o MVP e não oferece anonimato absoluto.
 - **Os gates herdados da Wave 7 para o 02-29 foram concluídos na Wave 9.** A cadeia D-40 real foi exercitada de ponta a ponta, e a validação criptográfica do Bearer cobriu assinatura forjada, token expirado, issuer incorreto, audience incorreta, papel global homônimo recusado e `realm-management/manage-realm` aceito. O rollout só ocorreu depois do sinal literal `ativar rollout D-40 02-29`, seguido da reconciliação idempotente do realm e das suítes agregadas.
@@ -285,9 +285,9 @@ Progress: [############] 27/27 planos da Fase 3 (100%; gap-closure concluido loc
 
 ## Session Continuity
 
-Last session: 2026-09-04T14:32:22-03:00
-Stopped at: Phase 3 integrated and cleaned locally; Phase 4 discussion pending
-Resume file: .planning/ROADMAP.md
+Last session: 2026-09-05T17:26:12-03:00
+Stopped at: Phase 4 documentary snapshot approved; execution blocked on 9 human checkpoints
+Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-VALIDATION.md
 
 ## Accumulated Context
 
@@ -298,6 +298,7 @@ Resume file: .planning/ROADMAP.md
 - Phase 03.1 inserted after Phase 3: Convergência do Contrato de Diagnóstico (URGENT)
 - Phase 3 gap closure added: seven bounded plans (03-21 through 03-27) must be implemented and certified before Phase 4.
 - Phase 3 gap closure recertified: 03-27 has fresh evidence for AUTH-01 and SPRT-01 through SPRT-16; integration and exact cleanup completed locally, push not performed.
+- Phase 4 snapshot approved: 19 plans and 46 tasks are documented; roadmap progress is 0/19, with execution gated by calibration, source/outcome, schema, migration, governance, roster, contract inventory and UI checkpoints.
 
 ## Performance Metrics
 

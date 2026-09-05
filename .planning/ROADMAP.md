@@ -379,9 +379,9 @@ Plans:
 
 **Goal**: Pessoas conseguem consultar odds pré-jogo explicáveis para o piloto, e administradores governam os mercados sem manipulação manual rotineira de preços.
 **Mode:** mvp
-**Depends on**: Phase 3
+**Depends on**: Phase 3 and Phase 03.1
 **Requirements**: ODDS-01, ODDS-02, ODDS-03, ODDS-04, ODDS-05, ODDS-06, ODDS-07, ODDS-08, ODDS-09, ODDS-10, ODDS-11, ODDS-12, ODDS-13
-**Decisão pendente**: Os parâmetros numéricos do Elo, o tratamento da probabilidade de empate e os confrontos de referência continuam em aberto e devem ser especificados ou configurados antes da implementação dos preços automáticos.
+**Decisão pendente**: A calibração/dataset, a autoridade de fonte, a estratégia física de envelope/head e FKs, o backfill de legado, a temporalidade/regulamento, o workflow administrativo, a propagação/recuperação, a autorização/auditoria, o binding/freeze/correção de roster, o inventário OpenAPI/cliente e a UI-SPEC exigem gates humanos próprios. Os parâmetros numéricos do Elo, o tratamento da probabilidade de empate e os confrontos de referência continuam em aberto até a calibração aprovada.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
   1. Um administrador autorizado consegue criar somente mercados pré-jogo compatíveis com confrontos diretos, e o sistema gera probabilidades e odds versionadas com base em Elo, separadas por esporte e categoria.
@@ -390,7 +390,29 @@ Plans:
   4. Um administrador precisa suspender o mercado e tentar corrigir a fonte ou recalcular antes de propor uma substituição, apresentando evidências e uma comparação visível com o modelo.
   5. Um segundo administrador, distinto, precisa aprovar a substituição excepcional, produzindo uma nova versão imutável e auditada que não altera odds já aceitas nem mercados definitivamente encerrados.
 
-**Plans**: TBD
+**Plans**: 19 planos / 46 tasks (snapshot documental aprovado; execução bloqueada por 9 checkpoints humanos)
+
+**Planos e ondas**:
+
+- **Wave 0**: 04-01 — calibração, amostra, parâmetros e backtest.
+- **Wave 1**: 04-15 — candidato de autoridade da fonte e políticas temporais/legado.
+- **Wave 2**: 04-02 — fronteira pública `sports` → `odds`, taxonomia e estados.
+- **Wave 3**: 04-03 — candidato de schema; 04-12 — oráculos golden independentes.
+- **Wave 4**: 04-09 — persistência odds e lineage.
+- **Wave 5**: 04-18 — governança, autorização server-side e auditoria.
+- **Wave 6**: 04-16 — autoridade de outcomes, head e compatibilidade V16/V24.
+- **Wave 7**: 04-17 — produtor real e projeção temporal; 04-04 — kernel e cálculo.
+- **Wave 8**: 04-10 — replay, correções e mutações negativas.
+- **Wave 9**: 04-05 — criação, publicação e lifecycle do mercado.
+- **Wave 10**: 04-19 — binding, freeze e correção de roster.
+- **Wave 11**: 04-06 — override maker-checker e critério de correção prévia.
+- **Wave 12**: 04-07 — candidato OpenAPI e digest governado.
+- **Wave 13**: 04-11 — cliente gerado a partir do digest aprovado.
+- **Wave 14**: 04-13 — superfície pública de consulta e explicação.
+- **Wave 15**: 04-14 — superfície operacional e jornadas de browser.
+- **Wave 17**: 04-08 — certificação focal, agregada, mutações, snapshot e UAT.
+
+Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-*-PLAN.md` e a matriz de evidências em `04-VALIDATION.md`. Esta decomposição é planejamento, não autorização de código, migration, dependência, infraestrutura ou Git.
 **UI hint**: yes
 
 ### Phase 5: Créditos Virtuais e Palpites Protegidos
@@ -457,7 +479,7 @@ Plans:
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; integrated and cleaned locally; push not performed | 2026-09-04 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
-| 4. Mercados Pré-jogo e Odds Transparentes | 0/TBD | Pending | - |
+| 4. Mercados Pré-jogo e Odds Transparentes | 0/19 | Planned; snapshot documental aprovado; execução bloqueada | - |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
