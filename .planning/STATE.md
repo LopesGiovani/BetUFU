@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 documentary snapshot approved; execution blocked on 9 human checkpoints
-last_updated: "2026-09-05T17:26:12-03:00"
+stopped_at: Phase 4 documentary snapshot approved; 04-01 preflight reconciled; execution blocked on 9 human checkpoints
+last_updated: "2026-09-05T22:10:49-03:00"
 last_activity: 2026-09-05
-last_activity_desc: Phase 4 planning snapshot reconciled with 19 plans and 46 tasks; execution remains blocked on explicit human gates.
-state_head: 720df5fc84474fa88356caffa0b422a18c857dc5
+last_activity_desc: 04-01 execution worktree and HEAD reconciled; no product code, calibration artifact or material test executed.
+state_head: ee0518541d72c4d78a1fda16c785dfa7df17294d
 progress:
   total_phases: 8
   completed_phases: 3
@@ -285,8 +285,8 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 
 ## Session Continuity
 
-Last session: 2026-09-05T17:26:12-03:00
-Stopped at: Phase 4 documentary snapshot approved; execution blocked on 9 human checkpoints
+Last session: 2026-09-05T22:10:49-03:00
+Stopped at: Phase 4 documentary snapshot approved; 04-01 preflight reconciled; execution blocked on 9 human checkpoints
 Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-VALIDATION.md
 
 ## Accumulated Context

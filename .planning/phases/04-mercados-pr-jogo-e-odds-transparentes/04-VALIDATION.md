@@ -15,17 +15,14 @@ created: 2026-09-04
 
 ## Scope and Authority
 
-- Worktree de planejamento: `C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-04-plan`.
-- HEAD/base confirmado: `720df5fc84474fa88356caffa0b422a18c857dc5`; RepoWise
-  `indexed_commit=720df5fc8447`, `live_head=720df5fc8447`,
-  `index_behind=false`; nao executar `repowise update`.
-- `STATE.md` conserva `state_head: bedc623fb1a1`; ele nao e alterado aqui.
-  Antes de implementar, uma worktree/branch de execucao, HEAD vivo e STATE
-  reconciliado exigem briefing e aprovacao proprios.
+- Worktree de execucao desta retomada: `C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-04-01`, branch `worktree-agent-04-01`.
+- HEAD/base confirmado: `ee0518541d72c4d78a1fda16c785dfa7df17294d` (HEAD vivo) sobre o predecessor documental `0ac965d6a1abbb644e0b19239ef3c5213d2c495e`; `720df5fc84474fa88356caffa0b422a18c857dc5` e a base anterior da fase. RepoWise `indexed_commit=0ac965d6a1ab`, `live_head=ee0518541d72`, `index_behind=true`; nao executar `repowise update`.
+- `STATE.md` foi reconciliado para `state_head: ee0518541d72c4d78a1fda16c785dfa7df17294d` antes do T1. A fase continua sem UI-SPEC aprovado: 04-13 e 04-14 permanecem bloqueados ate esse gate, sem criar o documento nesta allowlist.
 - A fase continua sem UI-SPEC aprovado: 04-13 e 04-14 permanecem bloqueados
   ate esse gate, sem criar o documento nesta allowlist.
-- Nenhum teste de produto, suite agregada, navegador, Maven, npm, Playwright,
-  LAUFU ou Git de escrita foi executado nesta sessao.
+- Nenhum teste de produto, suite agregada, navegador, Maven, npm, Playwright ou
+  LAUFU foi executado nesta retomada; nao houve stage, commit ou push. A unica
+  operacao Git foi a criacao da worktree executora, antes de qualquer artefato.
 
 ## Test Infrastructure
 
@@ -261,9 +258,9 @@ Este resultado e somente do bloco documental; nao certifica comportamento de pro
 - Task files e artifacts coincidem com as allowlists; zero paths excedentes.
 - Git diff --check e inspecao de whitespace dos documentos nao rastreados:
   zero erros. Index/stage e arquivos rastreados sem alteracao.
-- SHA-256 de 10 arquivos protegidos permaneceu identico ao inicio do bloco documental
-  original; a reconciliacao corrente atualiza somente os documentos explicitamente
-  autorizados neste fechamento:
+- No bloco documental original, SHA-256 de 10 arquivos protegidos permaneceu
+  identico ao inicio. A reconciliacao corrente atualiza somente os tres documentos
+  explicitamente autorizados neste fechamento; os artefatos do T1 permanecem ausentes:
   AGENTS, STATE, ROADMAP, config, PROJECT, REQUIREMENTS, CONTEXT, DISCUSSION-LOG,
   RESEARCH e scripts/extract-laufu.mjs.
 - Revisor independente somente leitura confirmou estrutura/ownership e examinou
@@ -279,29 +276,31 @@ aprovado; nenhum proximo plano esta automaticamente autorizado.
 
 ### Frozen PLAN SHA-256
 
-Worktree/branch: master (publicacao documental; execucao futura exige worktree neutra).
-HEAD/base: 0ac965d6a1abbb644e0b19239ef3c5213d2c495e / 720df5fc84474fa88356caffa0b422a18c857dc5.
-Os hashes abaixo cobrem os 19 planos no snapshot corrente; o hash desta validacao e calculado
+Worktree/branch: `worktree-agent-04-01` (execucao isolada; publicacao documental em `master`).
+HEAD/base: `ee0518541d72c4d78a1fda16c785dfa7df17294d` / `0ac965d6a1abbb644e0b19239ef3c5213d2c495e`.
+Os hashes abaixo cobrem os 19 planos no snapshot corrente. Cada SHA-256 e calculado
+sobre os bytes UTF-8 com `CRLF` convertido para `LF` somente em memoria; finais de linha
+do checkout nao alteram a identidade do conteudo. O hash desta validacao e calculado
 externamente para evitar referencia circular. Qualquer edicao invalida o snapshot.
 
 | PLAN | SHA-256 |
 |---|---|
-| 04-01-PLAN.md | `00B43BFC227ACDCCD683C92B0297F3D4DC46C2E5B084FFEA03F212F9ED15B9B2` |
-| 04-02-PLAN.md | `5DB4EDC4A65A24C5246ED5834C840E3591667E7709C894F98F76D893A9322281` |
-| 04-03-PLAN.md | `FBB1F9CF6B2B5C381CF7E515F67332358934A31CDACD3089CFB500B391A5F563` |
-| 04-04-PLAN.md | `C86DAB6FE6BF5D7A87FD95BEDE3B1FA5EDB937FB48CBFC9F0FEA61FF6FCD1E22` |
-| 04-05-PLAN.md | `1B364F1A2F815C4A784F086E27AE044A2657DA49BD42E8139688AC54D353339F` |
-| 04-06-PLAN.md | `A47D9C2E9D3501DA42224D930F957ADEDA4CA8787CD00AF038B9FA780079E4E5` |
-| 04-07-PLAN.md | `64E4799E03DF997FBDC3896DEAF284632BDF25F8C83FE217FB4E4FFFD54B5233` |
-| 04-08-PLAN.md | `90CA200F483AAE0BD0A1B4CA2281F65C63E562BEAF43D2D2C22A8841DB0566CB` |
-| 04-09-PLAN.md | `E8134C1C67A69607F2EBEA66B898B427651FADD181EA2D389D29BFE3F70AD66B` |
-| 04-10-PLAN.md | `E0FB3510D5736E0593222AEF70EB125F41D3C445BBFE770A19B8CC7E86213D38` |
-| 04-11-PLAN.md | `F4B4DF55EA76E3428520BE4C7C08529ECA7038993357B1891C2ED7DFEB393D54` |
-| 04-12-PLAN.md | `4924E3021D3D931B254E47397058929245EB3287CB912C9154FD47FC6A05A77E` |
-| 04-13-PLAN.md | `BE5ADA3A8280D6F38D4A99502CFF99815B2062C0B9906C5DC210761B20D1DF93` |
-| 04-14-PLAN.md | `5FA4BBCA67AB4C939FF99EB78EE955194797EF5D228AD8DB8D2CF6CB620CC7F5` |
-| 04-15-PLAN.md | `96046F5A79F017990E8E2AAD0964FEB059AB99D1523D414F76FC0B9AB681DFB2` |
-| 04-16-PLAN.md | `30AF4FEBB6C13701DB801A77324760CB6EB87E7D95B310795F042645D7BA2817` |
-| 04-17-PLAN.md | `7E806E0FCAFB8A4B8E416BE03AFE1329F8DF8AA39D693DDD0AA616A0520855D5` |
-| 04-18-PLAN.md | `6E434C8764B3127B7071F614E5393323D6F82E92D434E040B1EA159951B7BD74` |
-| 04-19-PLAN.md | `F4897A496D388DD019611E38202AD15344CD3BCA3B4B313B26D4E6EF69A96A65` |
+| 04-01-PLAN.md | `D48A5A44A9D186A5F26E9454562983F1C84F2D3E278397E5EC3E5E1546779070` |
+| 04-02-PLAN.md | `23A86A2E173F2B33F6CFE2BCFC4B81C7256B30435939BDD7D666F03900DD071E` |
+| 04-03-PLAN.md | `6D0BC9A74B8C98A2A4BEAC22FF6474C1F28776907B74326C751E6CA93BCC4268` |
+| 04-04-PLAN.md | `1BFB21B12C075B17B680DAF1E4CDA3E507F1A90947F535098C370FDFD5DCEC47` |
+| 04-05-PLAN.md | `C8A172CADE363923ECA2F07DAFC6A1519F3261EEB3D20ADAA43B843FA92D6945` |
+| 04-06-PLAN.md | `70BA41D0D47C39456B1A7980B1F6A5619866C97BBB4268C9EBAEDA35616DBE01` |
+| 04-07-PLAN.md | `D119AF0BE696798B4AB8AA86509980126A67D7E7768ED2D2A3E5EC8D30631250` |
+| 04-08-PLAN.md | `3F9F065631C5EF26275094273505ED7A15DFFC0B38EC31270AE51C7EA42DB607` |
+| 04-09-PLAN.md | `DF09D983D2C1D23A7001FB96D57FBC839819D75D22A4F41C1D9A590C557D3668` |
+| 04-10-PLAN.md | `6861D18D754923879C7E389F1920B0AE8D26050E1FD90880D4D4D4757DDADD9A` |
+| 04-11-PLAN.md | `D5E8A1F7C0917D85D14646182866465E09BB5F4110C90D8AC378F9602F8A8B6E` |
+| 04-12-PLAN.md | `A433067ECF0B104CDDC108D1AA840A0651D5C3E322897C8626EDD9AF0D1180D5` |
+| 04-13-PLAN.md | `C4DC11A60F7BF12D84D82083B617A0D0ADA6A14C8CD426E68EC415A352BAE929` |
+| 04-14-PLAN.md | `B09A944BEC595B5ABB5E898F838F695F0B859A0ACB4CED93076D3D5D5A479BD5` |
+| 04-15-PLAN.md | `D34B6B9F511B8017469BF4163D89367C57046580521682350B171207F6108C35` |
+| 04-16-PLAN.md | `B9E0AC844FD1797713AC06000B6EE0CFBBB09F0ED8EA98A3A1E1B79C87C68900` |
+| 04-17-PLAN.md | `8734E858B2CC30477EDF759DF7CCF6239755532A47AED419C6A137F921C0EA00` |
+| 04-18-PLAN.md | `4868A58DD49E940286CF809DF9C46BC16BD58DDF3A7DD5A0BBDCF44FA185EBB9` |
+| 04-19-PLAN.md | `8B51FDB7551D423C82D7AB58E28EFA67DAE93722C8F17210A36ECDCBD1AC4E13` |
