@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "04-01.fixture.v1",
+  "fixtureId": "cancelled-event",
+  "classification": "cancelled",
+  "syntheticContractFixture": true,
+  "source": { "type": "synthetic_contract_fixture", "reason": "Parser did not classify CANCELADA in this snapshot" },
+  "event": { "competitionId": "fixture-competition", "edition": "fixture", "sportTime": "2026-01-02T12:00:00-03:00", "homeId": "fixture-home", "awayId": "fixture-away" },
+  "result": { "kind": "CANCELLED", "homeScore": null, "awayScore": null, "confirmedVersionId": null, "knownAt": null },
+  "eligibleForCalibration": false
+}

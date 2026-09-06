@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "04-01.fixture.v1",
+  "fixtureId": "abandonment-no-valid-result",
+  "classification": "abandonment_without_valid_result",
+  "syntheticContractFixture": true,
+  "source": { "type": "synthetic_contract_fixture", "reason": "LAUFU snapshot has no authoritative abandonment label" },
+  "event": { "competitionId": "fixture-competition", "edition": "fixture", "sportTime": "2026-01-01T12:00:00-03:00", "homeId": "fixture-home", "awayId": "fixture-away" },
+  "result": { "kind": "ABANDONED_NO_VALID_RESULT", "homeScore": null, "awayScore": null, "confirmedVersionId": null, "knownAt": null },
+  "eligibleForCalibration": false
+}

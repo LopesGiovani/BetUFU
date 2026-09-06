@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "04-01.calibration-fixtures.v1",
+  "manifest": "scripts/odds-calibration-manifest.json",
+  "sourceSnapshotSha256": "A4593833F5C9E6060DC26956DC6782F077EDD047546DAF1A44911AFEE023AB92",
+  "fixtures": [
+    {
+      "id": "regular-confirmed-result",
+      "fixturePath": "backend/src/test/resources/odds/regular-confirmed-result.json",
+      "classification": "regular_sport_result",
+      "syntheticContractFixture": false,
+      "eligibleForCalibration": false,
+      "exclusionReason": "LAUFU marks CONCLUIDA but does not provide confirmedVersionId or a version lineage.",
+      "sourceRecordId": "445146"
+    },
+    {
+      "id": "administrative-wo",
+      "fixturePath": "backend/src/test/resources/odds/administrative-wo.json",
+      "classification": "administrative_wo_without_sport_score",
+      "syntheticContractFixture": false,
+      "eligibleForCalibration": false,
+      "exclusionReason": "W.O. is administrative and must not become a synthetic score.",
+      "sourceRecordId": "445159"
+    },
+    {
+      "id": "numeric-wo",
+      "fixturePath": "backend/src/test/resources/odds/numeric-wo.json",
+      "classification": "numeric_wo_contaminant",
+      "syntheticContractFixture": false,
+      "eligibleForCalibration": false,
+      "exclusionReason": "Source exposes numeric fields alongside W.O.; retained only for negative proof.",
+      "sourceRecordId": "445159"
+    },
+    {
+      "id": "abandonment-no-valid-result",
+      "fixturePath": "backend/src/test/resources/odds/abandonment-no-valid-result.json",
+      "classification": "abandonment_without_valid_result",
+      "syntheticContractFixture": true,
+      "eligibleForCalibration": false,
+      "exclusionReason": "Synthetic contract fixture; no valid sport result or source label is claimed."
+    },
+    {
+      "id": "cancelled-event",
+      "fixturePath": "backend/src/test/resources/odds/cancelled-event.json",
+      "classification": "cancelled",
+      "syntheticContractFixture": true,
+      "eligibleForCalibration": false,
+      "exclusionReason": "Synthetic contract fixture; current extraction emitted no authoritative CANCELADA label."
+    },
+    {
+      "id": "postponed-rescheduled-event",
+      "fixturePath": "backend/src/test/resources/odds/postponed-rescheduled-event.json",
+      "classification": "postponed_or_rescheduled",
+      "syntheticContractFixture": true,
+      "eligibleForCalibration": false,
+      "exclusionReason": "Synthetic contract fixture; known_at and reschedule lineage are unavailable."
+    },
+    {
+      "id": "corrected-confirmed-result",
+      "fixturePath": "backend/src/test/resources/odds/corrected-confirmed-result.json",
+      "classification": "corrected_result_without_verified_lineage",
+      "syntheticContractFixture": true,
+      "eligibleForCalibration": false,
+      "exclusionReason": "Synthetic contract fixture; no source supersession chain is asserted."
+    }
+  ]
+}

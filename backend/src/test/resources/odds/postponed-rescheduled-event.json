@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "04-01.fixture.v1",
+  "fixtureId": "postponed-rescheduled-event",
+  "classification": "postponed_or_rescheduled",
+  "syntheticContractFixture": true,
+  "source": { "type": "synthetic_contract_fixture", "reason": "No known_at or reschedule lineage is available in LAUFU snapshot" },
+  "event": { "competitionId": "fixture-competition", "edition": "fixture", "sportTime": "2026-01-03T12:00:00-03:00", "homeId": "fixture-home", "awayId": "fixture-away" },
+  "result": { "kind": "POSTPONED", "previousMarketVersion": "market-v1", "rescheduledMarketVersion": "market-v2", "homeScore": null, "awayScore": null, "confirmedVersionId": null, "knownAt": null },
+  "eligibleForCalibration": false
+}

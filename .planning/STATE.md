@@ -8,7 +8,7 @@ stopped_at: Phase 4 documentary snapshot approved; 04-01 T1 passed and T2 remain
 last_updated: "2026-09-06T15:28:40-03:00"
 last_activity: 2026-09-06
 last_activity_desc: 04-01 v2 hardens the T2 gate: source authority, dataset calibration eligibility and production eligibility are separate; T1 passed 20/20, T2 failed closed 3 checks/1 error on the exploratory snapshot; shared bundle invariants, fixture semantics/hashes and temporal lineage checks are separate from T1-specific assertions; no product code, backtest or human calibration approval.
-state_head: 6a0b1116197385439d68d30a9afa94291174b968
+state_head: 78a8cc896a4ec458a0980ffefe3109af917d48e9
 progress:
   total_phases: 8
   completed_phases: 3

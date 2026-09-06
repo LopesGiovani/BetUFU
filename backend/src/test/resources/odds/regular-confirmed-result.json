@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "04-01.fixture.v1",
+  "fixtureId": "regular-confirmed-result",
+  "classification": "regular_sport_result",
+  "syntheticContractFixture": false,
+  "source": { "uri": "https://laufu.jliga.club/jogos/445146-monetaria-x-direito", "recordId": "445146", "capturedAt": "2026-09-06T02:32:52.781Z", "snapshotSha256": "A4593833F5C9E6060DC26956DC6782F077EDD047546DAF1A44911AFEE023AB92" },
+  "event": { "competitionId": "11227", "edition": "2026", "sport": "Peteca", "category": "Feminino", "sportTime": "2026-05-16T12:00:00-03:00", "homeId": "51692", "awayId": "51690", "homeName": "MONETARIA", "awayName": "DIREITO" },
+  "result": { "kind": "CONCLUIDA_UNVERIFIED", "homeScore": 2, "awayScore": 0, "confirmedVersionId": null, "knownAt": null },
+  "eligibleForCalibration": false,
+  "exclusionReason": "The exploratory source has no confirmedVersionId, known_at, or supersession chain."
+}

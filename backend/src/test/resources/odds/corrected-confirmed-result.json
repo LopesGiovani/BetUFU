@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "04-01.fixture.v1",
+  "fixtureId": "corrected-confirmed-result",
+  "classification": "corrected_result_without_verified_lineage",
+  "syntheticContractFixture": true,
+  "source": { "type": "synthetic_contract_fixture", "reason": "No source supersession chain is asserted by the exploratory snapshot" },
+  "event": { "competitionId": "fixture-competition", "edition": "fixture", "sportTime": "2026-01-04T12:00:00-03:00", "homeId": "fixture-home", "awayId": "fixture-away" },
+  "result": { "kind": "CORRECTED_CONFIRMED_RESULT", "supersedesVersionId": "result-v1", "confirmedVersionId": "result-v2", "knownAt": "2026-01-05T12:00:00-03:00", "homeScore": 1, "awayScore": 0 },
+  "eligibleForCalibration": false,
+  "exclusionReason": "Synthetic lineage fixture; it is not evidence that the source supplied this correction."
+}

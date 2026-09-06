@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "04-01.unresolved-quarantine.v1",
+  "manifest": "scripts/odds-calibration-manifest.json",
+  "sourceSnapshotSha256": "A4593833F5C9E6060DC26956DC6782F077EDD047546DAF1A44911AFEE023AB92",
+  "policy": "No slugified fallback identity enters calibration; release requires canonical source identity and human review.",
+  "summary": {
+    "totalRows": 671,
+    "unresolvedIdentityRows": 20,
+    "unresolvedCompletedRows": 4,
+    "unresolvedWoRows": 16,
+    "missingSportTimeRows": 251,
+    "numericWoRows": 46,
+    "explicitCancelledRows": 0,
+    "explicitAbandonmentRows": 0
+  },
+  "reasonCodes": [
+    "FALLBACK_SLUG_ID",
+    "MISSING_SPORT_TIME",
+    "NUMERIC_WO_SCORE",
+    "NO_KNOWN_AT",
+    "NO_CONFIRMED_VERSION_CHAIN",
+    "SOURCE_STATUS_NOT_AUTHORITATIVE"
+  ],
+  "records": [
+    { "sourceRecordId": "445150", "state": "CONCLUIDA", "fallbackFields": ["time_visitante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445155", "state": "CONCLUIDA", "fallbackFields": ["time_visitante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445159", "state": "WO", "fallbackFields": ["time_mandante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445163", "state": "WO", "fallbackFields": ["time_visitante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445167", "state": "WO", "fallbackFields": ["time_mandante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445172", "state": "WO", "fallbackFields": ["time_visitante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445176", "state": "WO", "fallbackFields": ["time_mandante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445182", "state": "WO", "fallbackFields": ["time_mandante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445188", "state": "WO", "fallbackFields": ["time_visitante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "445194", "state": "WO", "fallbackFields": ["time_mandante_id=humanas"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "393978", "state": "CONCLUIDA", "fallbackFields": ["time_visitante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "393982", "state": "CONCLUIDA", "fallbackFields": ["time_mandante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "393986", "state": "WO", "fallbackFields": ["time_visitante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "393990", "state": "WO", "fallbackFields": ["time_mandante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "393996", "state": "WO", "fallbackFields": ["time_mandante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "394001", "state": "WO", "fallbackFields": ["time_visitante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "394007", "state": "WO", "fallbackFields": ["time_mandante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "394013", "state": "WO", "fallbackFields": ["time_visitante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "394019", "state": "WO", "fallbackFields": ["time_mandante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false },
+    { "sourceRecordId": "394024", "state": "WO", "fallbackFields": ["time_mandante_id=direito"], "reasonCodes": ["FALLBACK_SLUG_ID", "NUMERIC_WO_SCORE", "NO_KNOWN_AT", "NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false }
+  ],
+  "sampleRecords": [
+    { "sourceRecordId": "445159", "reasonCodes": ["NUMERIC_WO_SCORE", "FALLBACK_SLUG_ID"], "calibrationEligible": false },
+    { "sourceRecordId": "445146", "reasonCodes": ["NO_CONFIRMED_VERSION_CHAIN"], "calibrationEligible": false }
+  ],
+  "releaseRequirements": ["canonical_identity", "known_at", "confirmed_version_chain", "authoritative_result_kind", "independent_review"]
+}

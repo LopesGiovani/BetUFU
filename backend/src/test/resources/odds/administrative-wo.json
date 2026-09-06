@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "04-01.fixture.v1",
+  "fixtureId": "administrative-wo",
+  "classification": "administrative_wo_without_sport_score",
+  "syntheticContractFixture": false,
+  "source": { "uri": "https://laufu.jliga.club/jogos/445159-humanas-x-aplicada", "recordId": "445159", "capturedAt": "2026-09-06T02:32:52.781Z", "snapshotSha256": "A4593833F5C9E6060DC26956DC6782F077EDD047546DAF1A44911AFEE023AB92" },
+  "event": { "competitionId": "11227", "edition": "2026", "sport": "Peteca", "category": "Feminino", "sportTime": "2026-07-18T18:00:00-03:00", "homeId": null, "awayId": "51699", "homeName": "HUMANAS", "awayName": "APLICADA" },
+  "result": { "kind": "ADMINISTRATIVE_WO", "homeScore": null, "awayScore": null, "confirmedVersionId": null, "knownAt": null },
+  "eligibleForCalibration": false,
+  "exclusionReason": "W.O. has no sport score; source numeric fields are deliberately removed from this semantic fixture."
+}
