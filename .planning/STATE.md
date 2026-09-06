@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 documentary snapshot approved; 04-01 preflight reconciled; execution blocked on 9 human checkpoints
-last_updated: "2026-09-05T22:10:49-03:00"
-last_activity: 2026-09-05
-last_activity_desc: 04-01 execution worktree and HEAD reconciled; no product code, calibration artifact or material test executed.
-state_head: ee0518541d72c4d78a1fda16c785dfa7df17294d
+stopped_at: Phase 4 documentary snapshot approved; 04-01 T1 passed and T2 remains fail-closed because the exploratory LAUFU snapshot is not calibration-eligible
+last_updated: "2026-09-06T15:28:40-03:00"
+last_activity: 2026-09-06
+last_activity_desc: 04-01 v2 hardens the T2 gate: source authority, dataset calibration eligibility and production eligibility are separate; T1 passed 20/20, T2 failed closed 3 checks/1 error on the exploratory snapshot; shared bundle invariants, fixture semantics/hashes and temporal lineage checks are separate from T1-specific assertions; no product code, backtest or human calibration approval.
+state_head: 6a0b1116197385439d68d30a9afa94291174b968
 progress:
   total_phases: 8
   completed_phases: 3
@@ -42,14 +42,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** snapshot documental da Fase 4 aprovado; os parâmetros do Elo, empate e confrontos de referência continuam condicionados à calibração aprovada.
+**Current focus:** snapshot documental da Fase 4 aprovado; o gate 04-01 está endurecido e os parâmetros do Elo, empate e confrontos de referência continuam condicionados à calibração aprovada.
 
 ## Current Position
 
 Phase: 4 of 8 — Mercados Pré-jogo e Odds Transparentes
 Plan: 19 planos documentados (46 tasks); nenhum plano executado.
 Status: Planning - snapshot documental da Fase 4 aprovado; execução bloqueada por 9 checkpoints humanos.
-Last activity: 2026-09-05 - snapshot da Fase 4 e dependência no roadmap reconciliados; nenhum código ou teste material executado.
+Last activity: 2026-09-06 - 04-01 T1 passou 20/20; T2 permaneceu fail-closed após separação entre invariantes compartilhadas e asserções T1, com paths seguros e elegibilidade explícita; nenhum código de produto ou backtest executado.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -265,6 +265,7 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 ### Bloqueios e pontos de atenção
 
  - **Fase 3 encerrada localmente:** o 03-17 foi implementado, certificado, integrado, limpo e publicado. Os gaps 03-21 a 03-27 também foram concluídos, integrados e limpos localmente. A Fase 4 possui snapshot documental aprovado, mas a execução aguarda os 9 checkpoints humanos registrados em `04-VALIDATION.md`.
+  - **Fase 4 / 04-01:** o validador focal passou T1 em `20/20`; o T2 continua fail-closed em `3` verificacoes e `1` erro. O contrato v2 separa autoridade da fonte, elegibilidade do dataset para calibracao e elegibilidade do dataset para producao; a captura LAUFU permanece exploratoria, `calibrationEligible=false` nesta captura e `productionEligible=false` (D-120). O T2 valida invariantes compartilhadas, semantica/SHA-256 das sete fixtures e linhagem temporal derivavel, sem chamar as assercoes especificas do T1; aceita apenas fonte futura versionada em `scripts/data/`. `approval.digest` e um token humano de checkpoint, nao um hash; o digest canonico do bundle continua aberto.
 
 - Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
 - ~~Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.~~ **Resolvido em 2026-08-26:** a Fase 3 adotou catálogo esportivo genérico, registrou as modalidades conhecidas apenas como dados iniciais e definiu página oficial, regulamento e boletins oficiais como fontes autoritativas; detalhes de 2026 serão dados operacionais, não bloqueio arquitetural.
@@ -285,8 +286,8 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 
 ## Session Continuity
 
-Last session: 2026-09-05T22:10:49-03:00
-Stopped at: Phase 4 documentary snapshot approved; 04-01 preflight reconciled; execution blocked on 9 human checkpoints
+Last session: 2026-09-06T15:28:40-03:00
+Stopped at: Phase 4 documentary snapshot approved; 04-01 T1 passed and T2 remains fail-closed because the exploratory LAUFU snapshot is not calibration-eligible
 Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-VALIDATION.md
 
 ## Accumulated Context

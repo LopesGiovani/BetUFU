@@ -10,19 +10,71 @@ created: 2026-09-04
 # Phase 4 - Validation Strategy
 
 > Contrato de validacao para mercados pre-jogo e odds transparentes. Este
-> arquivo foi reconciliado com 19 planos e 46 tasks; os comandos abaixo sao
-> propostas futuras e nenhum foi executado nesta sessao.
+> arquivo foi reconciliado com 19 planos e 46 tasks; os comandos de produto
+> permanecem propostas futuras. As verificacoes focais do validador desta
+> retomada estao registradas na secao de reconciliacao abaixo.
 
 ## Scope and Authority
 
 - Worktree de execucao desta retomada: `C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-04-01`, branch `worktree-agent-04-01`.
-- HEAD/base confirmado: `ee0518541d72c4d78a1fda16c785dfa7df17294d` (HEAD vivo) sobre o predecessor documental `0ac965d6a1abbb644e0b19239ef3c5213d2c495e`; `720df5fc84474fa88356caffa0b422a18c857dc5` e a base anterior da fase. RepoWise `indexed_commit=0ac965d6a1ab`, `live_head=ee0518541d72`, `index_behind=true`; nao executar `repowise update`.
-- `STATE.md` foi reconciliado para `state_head: ee0518541d72c4d78a1fda16c785dfa7df17294d` antes do T1. A fase continua sem UI-SPEC aprovado: 04-13 e 04-14 permanecem bloqueados ate esse gate, sem criar o documento nesta allowlist.
+- Snapshot documental/base: `ee0518541d72c4d78a1fda16c785dfa7df17294d` sobre o predecessor `0ac965d6a1abbb644e0b19239ef3c5213d2c495e`; `720df5fc84474fa88356caffa0b422a18c857dc5` e a base anterior da fase. O HEAD atual da execucao e `6a0b1116197385439d68d30a9afa94291174b968` na worktree `worktree-agent-04-01`. RepoWise esta indexado em `ee0518541d72`; os artefatos untracked da execucao sao conferidos pelos arquivos vivos e pelo Git. Nao executar `repowise update`.
+- `STATE.md` foi reconciliado para `state_head: 6a0b1116197385439d68d30a9afa94291174b968` neste bloco. A fase continua sem UI-SPEC aprovado: 04-13 e 04-14 permanecem bloqueados ate esse gate, sem criar o documento nesta allowlist.
+- `eligibilitySubject=dataset_snapshot` no manifesto e no relatorio significa que
+  `calibrationEligible`/`productionEligible` autorizam o dataset inteiro; os campos
+  `eligibleForCalibration` das fixtures e `calibrationEligible` da quarentena sao
+  classificacoes por registro e nunca promovem o dataset por inferencia.
+- `scripts/data/laufu/laufu_partidas_2026.json` e a entrada bruta imutavel lida pelo
+  validador, produzida em bloco anterior autorizado. Somente esse JSON fixo e
+  evidencia admissivel nesta captura; CSV e Markdown em `scripts/data/laufu/` e
+  HTMLs em `.cache/laufu/` sao residuos de captura fora da allowlist e nao entram
+  no gate.
+- As contagens preliminares anotadas em `04-CONTEXT.md` (`326` concluidas,
+  `299` agendadas, `46` W.O.) diferem da captura viva (`333` concluidas,
+  `291` agendadas, `1` adiada, `46` W.O.; `671` no total). O raw snapshot e o
+  Git vivos sao a autoridade desta validacao; a divergencia nao e corrigida por
+  inferencia.
+- A captura nao registra hash/versao do parser nem argumentos efetivos do
+  extrator. Isso permanece limitacao exploratoria documentada; nenhum dado do
+  extrator e promovido a fonte de producao.
 - A fase continua sem UI-SPEC aprovado: 04-13 e 04-14 permanecem bloqueados
   ate esse gate, sem criar o documento nesta allowlist.
 - Nenhum teste de produto, suite agregada, navegador, Maven, npm, Playwright ou
-  LAUFU foi executado nesta retomada; nao houve stage, commit ou push. A unica
-  operacao Git foi a criacao da worktree executora, antes de qualquer artefato.
+  backtest/LAUFU foi executado nesta retomada. Foram executadas somente as
+  verificacoes focais do validador T1 e T2 registradas abaixo; nao houve stage,
+  commit ou push. A unica operacao Git foi a criacao da worktree executora,
+  antes de qualquer artefato.
+
+### Calibration Gate Boundary
+
+- O T1 valida as assercoes especificas da captura atual: fingerprint LAUFU,
+  contagens observadas, parametros abertos, backtest `not_run`, fixtures e
+  quarentena derivadas dessa captura.
+- O T2 valida primeiro as invariantes compartilhadas do bundle: schemas, links,
+  paths seguros, `realpath` dentro da worktree, tamanho/SHA-256 da fonte e
+  consistencia dos digests entre manifesto, relatorio, inventario e quarentena.
+  Depois valida os criterios de um candidato aprovado, sem chamar o T1 inteiro.
+- A captura LAUFU e rejeitada por path/fingerprint mesmo que seus JSONs sejam
+  editados para parecerem aprovados. Uma evidencia temporal futura exige um novo
+  JSON versionado sob `scripts/data/`, obtido em bloco autorizado; editar os
+  artefatos atuais nao cria known_at, linhagem ou backtest.
+- O manifesto e o relatorio usam schemas `v2`; fixtures e quarentena usam `v1`
+  intencionalmente, pois seus contratos de inventario/quarentena nao mudaram e
+  nao carregam parametros de pricing. Essa diferenca nao implica compatibilidade
+  automatica com um motor de odds.
+- No T2, `reviewedArtifactHashes.fixtureRegistry` cobre o inventario JSON e
+  `reviewedArtifactHashes.fixtureFiles` cobre, individualmente, os sete JSONs
+  de fixture. O manifesto e o validador nao entram nesse mapa por autorreferencia;
+  seus SHA-256 devem ser congelados externamente no snapshot Git antes da revisao.
+- Um candidato aprovado precisa permitir derivar do raw `partidas` as linhas
+  elegiveis, seus IDs de treino/avaliacao e os cutoffs por `known_at`; o T2 nao
+  aceita contagens declaradas para um dataset vazio, sem linhagem confirmada ou
+  com sobreposicao de split. Metricas complexas continuam sujeitas a revisao
+  humana independente referenciada pelo checkpoint.
+- Para cada fixture real, o T2 reconcilia `fixture.source.recordId` com o
+  `sourceRecordId` do inventario e com a linha correspondente em `raw.partidas`,
+  incluindo URI, timestamp, escopo e identidades observadas; objetos futuros de
+  Davidson e confianca devem conter ao menos um valor numerico finito, sem fixar
+  ainda os nomes/chaves do schema estatistico.
 
 ## Test Infrastructure
 
@@ -116,9 +168,10 @@ esses paths de produto nao sao autorizados para escrita nesta sessao.
 | 04-08/T2 | 04-08/17 | ODDS-01, ODDS-02, ODDS-03, ODDS-04, ODDS-05, ODDS-06, ODDS-07, ODDS-08, ODDS-09, ODDS-10, ODDS-11, ODDS-12, ODDS-13 | T-04-CALIBRATION, T-04-MODULE, T-04-TAXONOMY, T-04-SCOPE, T-04-RACE, T-04-REWRITE, T-04-SELF-APPROVAL, T-04-PII, T-04-VOLUME, T-04-LAUFU, T-04-SUPPLY-CHAIN | Provar invariantes por mutacao e congelar snapshot tecnico | `powershell -NoProfile -Command { node --test scripts/validate-odds-negative-mutations.test.mjs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; node scripts/validate-odds-negative-mutations.mjs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git diff --check; exit $LASTEXITCODE }` | No |
 | 04-08/T3 | 04-08/17 | ODDS-01, ODDS-02, ODDS-03, ODDS-04, ODDS-05, ODDS-06, ODDS-07, ODDS-08, ODDS-09, ODDS-10, ODDS-11, ODDS-12, ODDS-13 | T-04-CALIBRATION, T-04-MODULE, T-04-TAXONOMY, T-04-SCOPE, T-04-RACE, T-04-REWRITE, T-04-SELF-APPROVAL, T-04-PII, T-04-VOLUME, T-04-LAUFU, T-04-SUPPLY-CHAIN | UAT humano de transparencia e governanca | `git diff --check` | BLOCKING |
 
-Todos os 46 comandos sao prescricoes futuras, nao resultados executados.
-Os 9 checkpoints exigem resposta humana literal ligada ao digest do candidato;
-parser, leitura JSON, exit code ou lembrete impresso nao concedem aprovacao.
+Os 46 comandos da matriz de tasks sao prescricoes de fase; as duas execucoes
+focais do validador desta retomada estao registradas abaixo.
+Os 9 checkpoints exigem resposta humana literal ligada ao token de checkpoint do candidato
+e aos SHA-256 revisados; parser, leitura JSON, exit code ou lembrete impresso nao concedem aprovacao.
 Comando/ambiente ausente e SKIP bloqueante. Threat refs sao mapeadas por plano;
 as tasks definem suas provas discriminantes.
 
@@ -146,7 +199,7 @@ as tasks definem suas provas discriminantes.
 
 | Gate | Owner decision |
 |---|---|
-| 04-01/T2 | Aprovar calibracao e evidencias antes de qualquer preco |
+| 04-01/T2 | Aprovar calibracao e evidencias antes de qualquer preco; token humano e SHA-256 revisados |
 | 04-15/T2 | Aprovar autoridade e politicas de source |
 | 04-02/T2 | Aprovar fronteira, taxonomia, estados e autoridade |
 | 04-03/T1 | Aprovar schema de linhagem e migration forward-only |
@@ -259,8 +312,8 @@ Este resultado e somente do bloco documental; nao certifica comportamento de pro
 - Git diff --check e inspecao de whitespace dos documentos nao rastreados:
   zero erros. Index/stage e arquivos rastreados sem alteracao.
 - No bloco documental original, SHA-256 de 10 arquivos protegidos permaneceu
-  identico ao inicio. A reconciliacao corrente atualiza somente os tres documentos
-  explicitamente autorizados neste fechamento; os artefatos do T1 permanecem ausentes:
+  identico ao inicio. Naquele momento, a reconciliacao atualizava somente os tres
+  documentos explicitamente autorizados e os artefatos do T1 estavam ausentes:
   AGENTS, STATE, ROADMAP, config, PROJECT, REQUIREMENTS, CONTEXT, DISCUSSION-LOG,
   RESEARCH e scripts/extract-laufu.mjs.
 - Revisor independente somente leitura confirmou estrutura/ownership e examinou
@@ -274,10 +327,76 @@ provas de seguranca, aprovacao arquitetural ou checkpoints humanos.
 nyquist_compliant e wave_0_complete permanecem false. Este snapshot documental foi
 aprovado; nenhum proximo plano esta automaticamente autorizado.
 
+### T1 Artifact Validation - 2026-09-06
+
+Este resultado registra a validacao focal do Plano 04-01; nao certifica comportamento de produto nem aprova calibracao.
+
+- `node scripts/validate-odds-calibration.mjs --check`: segunda execucao exit `0`, `20/20` verificacoes, `0` erros. A primeira execucao exit `1` foi corrigida no proprio validador por uma regra excessiva de motivo por registro; os JSONs e fixtures permaneceram inalterados.
+- Captura verificada: 671 partidas, 329 candidatas, 0 elegiveis, 20 identidades em quarentena, 46 W.O. numericos excluidos e 7 fixtures inelegiveis.
+- Backtest: `not_run`; treino, avaliacao e metricas permanecem nulos. Aprovacao: `pending_human_checkpoint_04-01-T2`.
+- Nenhum teste de produto, backtest, extrator LAUFU, stage, commit ou push foi executado neste bloco.
+- O validador novo permanece untracked ate aprovacao documental e Git separada. `STATE.md` e o snapshot desta validacao agora apontam para o HEAD atual `6a0b1116197385439d68d30a9afa94291174b968`.
+
+### 04-01 Gate Reconciliation - 2026-09-06
+
+Este bloco registra a correcao mecanica e a segunda verificacao focal; nao aprova
+calibracao, parametros ou comportamento de produto.
+
+- O T2 `node scripts/validate-odds-calibration.mjs --check --require-approval`
+  retornou exit `1`, com `3` verificacoes concluidas e `1` erro: a captura
+  exploratoria LAUFU e explicitamente inelegivel para calibracao. A falha fechada
+  ocorre antes de qualquer aprovacao ou precificacao.
+- O contrato v2 separa `scope.sourceAuthority`, `scope.calibrationEligible` e
+  `scope.productionEligible`. Para a captura LAUFU, o T2 exige fonte
+  exploratoria, `productionEligible=false` e
+  `parameters.D-120.laufuIsNotProductionAuthority=true`; uma futura evidencia
+  aprovada precisara de `calibrationEligible=true`. A separacao foi confirmada,
+  mas nenhum parametro estatistico foi aprovado por este bloco.
+- `approval.digest` e mantido por compatibilidade, mas sua semantica foi confirmada:
+  e um token hexadecimal de checkpoint humano (`kind=human_checkpoint_token`),
+  restrito ao control plane, nao uma credencial nem hash canonico. O SHA-256 da
+  captura e o controle criptografico; hashes dos artefatos revisados devem ser
+  registrados no checkpoint humano. O validador nao concede producao e nao
+  desbloqueia a captura LAUFU.
+- O T2 agora valida as invariantes compartilhadas do bundle sem reexecutar as
+  assercoes especificas do T1, fixa os IDs das sete fixtures, rejeita caminhos
+  fora da allowlist/`scripts/data/*.json` versionada, confere a semantica e o
+  SHA-256 individual das fixtures, reconcilia o `recordId` e os metadados da
+  proveniencia real com `raw.partidas` e exige `productionEligible=false` para
+  qualquer gate de calibracao. A captura atual
+  e rejeitada por fingerprint; o vocabulario de autoridade futura permanece
+  aberto ao gate 04-15 e este snapshot so declara `exploratory`.
+- Hashes/bytes revisados no checkpoint documental: manifesto `4531` /
+  `9FBC39F37A873E6EDFED0406A875221F3E8426EAA9C59DC8347C43A7E210C6F1`;
+  relatorio `3415` / `85FB0BCE58DA67773FACE0B7D17B34E0E9DBD833408AD40C334DDB90FF8A883C`;
+  fixtures `2922` / `8D6F92DF2413E89930F644FE4CAA612AC90E9FB82275042E99DEB4C3BECEB298`;
+  quarentena `5779` / `3FA2C9ED28CB558A3DB0D490EC40DA2DDB9998D6C502BC5AE8759487A08E3251`;
+  captura bruta `987642` / `A4593833F5C9E6060DC26956DC6782F077EDD047546DAF1A44911AFEE023AB92`.
+  Esses hashes vinculam a revisao documental; o token humano nao os substitui.
+- `git diff --check` retornou exit `0`; os unicos avisos foram conversoes normais
+  LF/CRLF do checkout. Nenhum teste de produto, backtest, extrator, stage, commit
+  ou push foi executado.
+- Hash SHA-256 normalizado do validador vivo: `CA6BF9F5EC530FD623DFE1A16D9219F5AD2B392A05FE59283F6CD4D54B006058`.
+- T2 e os demais oito checkpoints humanos continuam bloqueantes; nenhum plano
+  posterior ou motor de preco esta liberado.
+
+### 04-01 Correction Follow-up - 2026-09-06
+
+- O validador passou a exigir um numero finito dentro dos objetos ainda abertos
+  de Davidson/confianca e a cruzar `fixture.source.recordId` e os metadados da
+  fixture real com a linha de origem declarada em `raw.partidas`, sem alterar os
+  JSONs de evidencia.
+- `node --check`: exit `0`; parse: `4/4` JSONs validos; T1: exit `0`, `20/20`
+  verificacoes, `0` erros; T2: exit `1`, `3` verificacoes concluidas, `1` erro
+  esperado pelo bloqueio da captura exploratoria LAUFU; `git diff --check`:
+  exit `0` (somente avisos normais de LF/CRLF).
+- SHA-256 normalizado do validador apos a correcao:
+  `CA6BF9F5EC530FD623DFE1A16D9219F5AD2B392A05FE59283F6CD4D54B006058`.
+
 ### Frozen PLAN SHA-256
 
 Worktree/branch: `worktree-agent-04-01` (execucao isolada; publicacao documental em `master`).
-HEAD/base: `ee0518541d72c4d78a1fda16c785dfa7df17294d` / `0ac965d6a1abbb644e0b19239ef3c5213d2c495e`.
+HEAD/base: `6a0b1116197385439d68d30a9afa94291174b968` / `ee0518541d72c4d78a1fda16c785dfa7df17294d`.
 Os hashes abaixo cobrem os 19 planos no snapshot corrente. Cada SHA-256 e calculado
 sobre os bytes UTF-8 com `CRLF` convertido para `LF` somente em memoria; finais de linha
 do checkout nao alteram a identidade do conteudo. O hash desta validacao e calculado
@@ -285,7 +404,7 @@ externamente para evitar referencia circular. Qualquer edicao invalida o snapsho
 
 | PLAN | SHA-256 |
 |---|---|
-| 04-01-PLAN.md | `D48A5A44A9D186A5F26E9454562983F1C84F2D3E278397E5EC3E5E1546779070` |
+| 04-01-PLAN.md | `72CBA1EB1457C55DA10C7BB4C462D5917F64A1DC1CD8DCA6CA00F0A95BDE6940` |
 | 04-02-PLAN.md | `23A86A2E173F2B33F6CFE2BCFC4B81C7256B30435939BDD7D666F03900DD071E` |
 | 04-03-PLAN.md | `6D0BC9A74B8C98A2A4BEAC22FF6474C1F28776907B74326C751E6CA93BCC4268` |
 | 04-04-PLAN.md | `1BFB21B12C075B17B680DAF1E4CDA3E507F1A90947F535098C370FDFD5DCEC47` |

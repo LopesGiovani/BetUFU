@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "04-01.calibration-manifest.v2",
+  "phase": "04-mercados-pr-jogo-e-odds-transparentes",
+  "plan": "04-01",
+  "purpose": "Exploratory data-quality and fixture evidence; not eligible for calibration or production.",
+  "source": {
+    "type": "exploratory_snapshot",
+    "uri": "https://laufu.jliga.club",
+    "edition": "2026",
+    "capturedAt": "2026-09-06T02:32:52.781Z",
+    "rawArtifact": {
+      "path": "scripts/data/laufu/laufu_partidas_2026.json",
+      "bytes": 987642,
+      "sha256": "A4593833F5C9E6060DC26956DC6782F077EDD047546DAF1A44911AFEE023AB92"
+    },
+    "normalization": "UTF-8 JSON bytes are hashed as captured; no inferred labels or scores are added."
+  },
+  "scope": {
+    "eligibilitySubject": "dataset_snapshot",
+    "sourceAuthority": "exploratory",
+    "calibrationEligible": false,
+    "productionEligible": false,
+    "knownAtAvailable": false,
+    "confirmedVersionChainAvailable": false,
+    "backtestStatus": "blocked_pending_verified_temporal_dataset",
+    "candidateRegularRowsObserved": 329,
+    "completedRowsObserved": 333,
+    "validSportResultRowsObserved": 0,
+    "rowsExcludedBeforeCalibration": 671
+  },
+  "temporalProtocol": {
+    "ordering": "canonical sport time ascending; ties require stable source id",
+    "trainEvaluationSplit": "open_pending_dataset_review",
+    "recencyFormula": "open_pending_temporal_backtest",
+    "leakageControl": "known_at and corrected-version lineage are required before approval",
+    "snapshotCaptureIsNotKnownAt": true
+  },
+  "parameters": {
+    "D-101": { "initialRating": 1500, "status": "locked" },
+    "D-102": { "provisionalK": 32, "matureK": 16, "experienceThreshold": null, "status": "provisional_open_threshold" },
+    "D-103": { "chronologicalOrdering": true, "monthlyHalfLife": null, "status": "locked_order_open_recency" },
+    "D-104": { "editionRegressionToInitial": 0.5, "status": "locked" },
+    "D-105": { "requiresConfirmedCurrentVersion": true, "status": "locked" },
+    "D-106": { "drawIsConditional": true, "davidsonParameters": null, "status": "locked_mode_open_parameters" },
+    "D-107": { "sharedConservativeDrawPrior": true, "specializationThreshold": null, "status": "locked_direction_open_threshold" },
+    "D-108": { "lowSampleEstimate": "neutral", "confidenceBands": null, "status": "locked_behavior_open_bands" },
+    "D-109": { "administrativeWalkoverExcluded": true, "status": "locked" },
+    "D-110": { "cancelledOrInvalidResultExcluded": true, "status": "locked" },
+    "D-111": { "postponementSuspendsAndRescheduleVersions": true, "status": "locked" },
+    "D-113": { "initialMargin": 0.05, "configurableAndVersioned": true, "status": "locked" },
+    "D-114": { "publishedDecimalPlaces": 2, "roundingMode": null, "publishedPriceImmutable": true, "status": "locked_open_rounding" },
+    "D-115": { "fairProbabilitySeparateFromPublishedPrice": true, "status": "locked" },
+    "D-120": { "laufuIsNotProductionAuthority": true, "status": "locked" }
+  },
+  "classification": {
+    "includedInCalibration": ["regular_sport_result_with_verified_lineage"],
+    "actualIncludedRows": 0,
+    "includedClassIsAnAllowlistOnly": true,
+    "excluded": ["administrative_wo", "numeric_wo", "abandonment_without_valid_result", "cancelled", "postponed_or_rescheduled_without_lineage", "correction_without_version_chain", "unresolved_identity", "missing_sport_time"],
+    "syntheticFixturesNeverEnterBacktest": true
+  },
+  "dataQuality": {
+    "rowsObserved": 671,
+    "statusCounts": { "CONCLUIDA": 333, "AGENDADA": 291, "ADIADA": 1, "WO": 46 },
+    "rowsWithSportTime": 420,
+    "rowsMissingSportTime": 251,
+    "fallbackIdentityRows": 20,
+    "numericWalkoverRows": 46,
+    "fallbackDetectionRule": "For this captured parser output, a non-numeric team id equal to slugify(team name) marks an unresolved fallback. A numeric id alone does not prove canonical identity.",
+    "candidateRegularRule": "CONCLUIDA with both numeric team ids; candidate only, never confirmed without known_at and confirmedVersionId"
+  },
+  "artifacts": {
+    "fixtures": "scripts/odds-calibration-fixtures.json",
+    "backtestReport": "scripts/odds-backtest-report.json",
+    "quarantine": "scripts/odds-unresolved-quarantine.json",
+    "validator": "scripts/validate-odds-calibration.mjs"
+  },
+  "approval": {
+    "kind": "human_checkpoint_token",
+    "status": "pending_human_checkpoint_04-01-T2",
+    "approvedAt": null,
+    "approvedBy": null,
+    "digest": null,
+    "reviewReference": null,
+    "reviewedArtifactHashes": null
+  }
+}

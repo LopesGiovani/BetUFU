@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "04-01.backtest-report.v2",
+  "manifest": "scripts/odds-calibration-manifest.json",
+  "status": "not_run",
+  "blockingReason": "The single-edition LAUFU snapshot has no known_at timeline or confirmed result-version lineage; running a parameter backtest would overstate evidence.",
+  "evidenceStatus": "insufficient_for_temporal_backtest",
+  "dataset": {
+    "eligibilitySubject": "dataset_snapshot",
+    "sourceAuthority": "exploratory",
+    "calibrationEligible": false,
+    "productionEligible": false,
+    "rowsObserved": 671,
+    "candidateRegularRows": 329,
+    "rowsEligibleAfterLineageChecks": 0,
+    "trainingRows": 0,
+    "evaluationRows": 0,
+    "sourceSha256": "A4593833F5C9E6060DC26956DC6782F077EDD047546DAF1A44911AFEE023AB92"
+  },
+  "sensitivityMatrix": [
+    { "axis": "K experience policy", "scenarios": ["provisional_K_32", "mature_K_16"], "experienceThresholdGames": null, "status": "proposed_not_evaluated" },
+    { "axis": "recency", "scenarios": ["chronological_no_half_life", "formula_to_be_approved"], "status": "proposed_not_evaluated" },
+    { "axis": "Davidson", "scenarios": ["shared_conservative_prior", "specialized_prior"], "status": "proposed_not_evaluated" },
+    { "axis": "confidence", "scenarios": ["neutral_low_sample", "band_definition_open"], "status": "proposed_not_evaluated" },
+    { "axis": "margin", "scenarios": [0.05], "status": "locked_input_not_evaluated" },
+    { "axis": "rounding", "scenarios": ["two_decimal_places_mode_open"], "status": "proposed_not_evaluated" }
+  ],
+  "metrics": {
+    "logLoss": null,
+    "brierScore": null,
+    "calibrationError": null,
+    "overroundInvariant": null,
+    "confidenceIntervals": null
+  },
+  "extractorRisks": [
+    { "id": "ROBOTS_NOT_EXECUTED", "status": "observed", "detail": "Comment promises robots.txt consultation, but the request flow does not fetch or evaluate robots.txt." },
+    { "id": "EDITION_HARDCODED", "status": "observed", "detail": "--ano is parsed, but each match writes edicao='2026'." },
+    { "id": "CANCELADA_UNCLASSIFIED", "status": "observed", "detail": "The report has a CANCELADA bucket, but the parser does not assign that state." },
+    { "id": "SLUG_FALLBACK_SILENT", "status": "observed", "detail": "Unknown team ids fall back silently to slugify(name) without an unresolved marker." },
+    { "id": "NUMERIC_WO_SCORE", "status": "observed", "detail": "Numeric W.O. fields remain present and can affect empate unless excluded." },
+    { "id": "MATCH_HOST_HARDCODED", "status": "observed", "detail": "Match URLs use a hardcoded host instead of the configured base URL." },
+    { "id": "CACHE_WITHOUT_TTL", "status": "observed", "detail": "Disk cache has no TTL or freshness metadata." },
+    { "id": "PAST_DATE_INFERRED_ADIADA", "status": "observed", "detail": "A past date without a score is inferred as ADIADA, conflating missing publication with postponement." },
+    { "id": "NON_DRY_RUN_WRITES_NETWORK", "status": "observed", "detail": "Non-dry-run execution performs network requests and writes cache and output artifacts." }
+  ],
+  "decision": "No K experience threshold, recency formula, Davidson parameter, confidence band, or rounding mode is selected by this report.",
+  "approval": {
+    "kind": "human_checkpoint_token",
+    "status": "pending_human_checkpoint_04-01-T2",
+    "digest": null,
+    "reviewReference": null,
+    "reviewedArtifactHashes": null
+  }
+}
