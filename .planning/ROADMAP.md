@@ -401,15 +401,16 @@ Plans:
 - **Wave 4**: 04-09 — persistência odds e lineage.
 - **Wave 5**: 04-18 — governança, autorização server-side e auditoria.
 - **Wave 6**: 04-16 — autoridade de outcomes, head e compatibilidade V16/V24.
-- **Wave 7**: 04-17 — produtor real e projeção temporal; 04-04 — kernel e cálculo.
-- **Wave 8**: 04-10 — replay, correções e mutações negativas.
-- **Wave 9**: 04-05 — criação, publicação e lifecycle do mercado.
+- **Wave 7**: 04-17 — produtor real e projeção temporal.
+- **Wave 8**: 04-04 — kernel e cálculo.
+- **Wave 9**: 04-10 — replay, correções e mutações negativas.
 - **Wave 10**: 04-19 — binding, freeze e correção de roster.
-- **Wave 11**: 04-06 — override maker-checker e critério de correção prévia.
-- **Wave 12**: 04-07 — candidato OpenAPI e digest governado.
-- **Wave 13**: 04-11 — cliente gerado a partir do digest aprovado.
-- **Wave 14**: 04-13 — superfície pública de consulta e explicação.
-- **Wave 15**: 04-14 — superfície operacional e jornadas de browser.
+- **Wave 11**: 04-05 — criação, publicação e lifecycle do mercado.
+- **Wave 12**: 04-06 — override maker-checker e critério de correção prévia.
+- **Wave 13**: 04-07 — candidato OpenAPI e digest governado.
+- **Wave 14**: 04-11 — cliente gerado a partir do digest aprovado.
+- **Wave 15**: 04-13 — superfície pública de consulta e explicação.
+- **Wave 16**: 04-14 — superfície operacional e jornadas de browser.
 - **Wave 17**: 04-08 — certificação focal, agregada, mutações, snapshot e UAT.
 
 Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-*-PLAN.md` e a matriz de evidências em `04-VALIDATION.md`. Esta decomposição é planejamento, não autorização de código, migration, dependência, infraestrutura ou Git.
