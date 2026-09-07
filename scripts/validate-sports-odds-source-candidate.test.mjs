@@ -92,7 +92,7 @@ test('candidato aprovado passa sem liberar runtime', () => {
 
 test('arquivo e caminho ficam presos a scripts e a uma raiz existente', () => {
   const candidatePath = resolveCandidatePath(defaultProjectRoot);
-  assert.equal(candidatePath.endsWith(CANDIDATE_RELATIVE_PATH.replaceAll('/', '\\')), true);
+  assert.equal(candidatePath, join(defaultProjectRoot, ...CANDIDATE_RELATIVE_PATH.split('/')));
   assert.doesNotThrow(() => validateCandidateFile(defaultProjectRoot));
 });
 
