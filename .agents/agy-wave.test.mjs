@@ -919,6 +919,37 @@ test('sanitizador classifica falha conhecida de permissão sem guardar mensagem'
   assert.doesNotMatch(JSON.stringify(diagnostic), /Get-Location|detalhe privado/u);
 });
 
+test('sanitizador classifica falha conhecida de quota sem guardar mensagem', () => {
+  const diagnostic = sanitizeAgyDiagnostic({
+    ...processResult(JSON.stringify({
+      status: 'ERROR',
+      error: 'RESOURCE_EXHAUSTED (code 429): Individual quota reached. Resets in 166h35m56s.',
+    })),
+  });
+
+  assert.equal(diagnostic.errorCode, 'QUOTA_EXHAUSTED');
+  assert.doesNotMatch(JSON.stringify(diagnostic), /Individual quota|Resets in/u);
+});
+
+test('buildAgyArgs aceita override de modelo preservando default seguro', () => {
+  const defaultArgs = buildAgyArgs('C:\\worktree', 'prompt seguro');
+  assert.equal(defaultArgs[3], 'gemini-3.7-flash-high');
+
+  const customArgs = buildAgyArgs('C:\\worktree', 'prompt seguro', 1200000, 'claude-sonnet-4-6');
+  assert.equal(customArgs[3], 'claude-sonnet-4-6');
+});
+
+test('parseArguments aceita flag --model na execução material', () => {
+  const parsed = parseArguments([
+    '--execute-task', '--phase', '2', '--wave', '1', '--task', '02-01-T1',
+    '--worktree', 'C:\\worktree', '--workspace-root', 'C:\\worktree',
+    '--expected-base', 'a'.repeat(40), '--expected-branch', 'worktree-agent-02-01',
+    '--run-id', 'run-1', '--approval-ref', 'appr-1',
+    '--model', 'claude-sonnet-4-6',
+  ]);
+  assert.equal(parsed.model, 'claude-sonnet-4-6');
+});
+
 test('drift de branch, HEAD ou JSON bloqueia o resultado', async () => {
   const wrongBranch = fakeProcesses({ branch: 'branch-errada' });
   await assert.rejects(

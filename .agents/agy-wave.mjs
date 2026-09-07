@@ -691,10 +691,15 @@ export function findWaveOverlaps(plans) {
   return overlaps;
 }
 
-export function buildAgyArgs(worktreePath, prompt, timeoutMs = DEFAULT_AGY_TIMEOUT_MS) {
+export function buildAgyArgs(
+  worktreePath,
+  prompt,
+  timeoutMs = DEFAULT_AGY_TIMEOUT_MS,
+  model = DEFAULT_MODEL,
+) {
   return [
     '--add-dir', worktreePath,
-    '--model', DEFAULT_MODEL,
+    '--model', model,
     '--mode', 'accept-edits',
     '--sandbox',
     '--output-format', 'json',
@@ -914,6 +919,9 @@ export function sanitizeAgyDiagnostic(result) {
     if (/permission check failed/iu.test(errorText)) {
       knownErrorCode = 'PERMISSION_CHECK_FAILED';
     }
+    if (/quota|resource_exhausted/iu.test(errorText)) {
+      knownErrorCode = 'QUOTA_EXHAUSTED';
+    }
   } catch {
     // A classificação é opcional; nunca persista o conteúdo cru do erro.
   }
@@ -1121,7 +1129,7 @@ export async function executeTask(options, dependencies = {}) {
   );
   const agyResult = await runProcess(
     'agy',
-    buildAgyArgs(worktree, prompt, options.timeoutMs ?? DEFAULT_AGY_TIMEOUT_MS),
+    buildAgyArgs(worktree, prompt, options.timeoutMs ?? DEFAULT_AGY_TIMEOUT_MS, options.model ?? DEFAULT_MODEL),
     { cwd: worktree, timeoutMs: options.timeoutMs ?? DEFAULT_AGY_TIMEOUT_MS, maxOutputBytes: PROCESS_OUTPUT_LIMIT },
   );
   // Auditar o disco vem antes de interpretar o exit code: um worker que falha
@@ -1420,7 +1428,7 @@ const CLI_VALUE_FLAGS = new Set([
   '--expected-branch', '--timeout-seconds', '--satisfied-plan', '--satisfied-task', '--evidence',
   '--worker-test', '--run-id', '--approval-ref',
   '--expected-status-sha256', '--baseline-file', '--correction-file', '--frozen-file', '--feedback',
-  '--accepted-status-sha256', '--accepted-baseline-file',
+  '--accepted-status-sha256', '--accepted-baseline-file', '--model',
 ]);
 const CONTINUATION_FLAGS = [
   '--expected-status-sha256', '--baseline-file', '--correction-file', '--frozen-file', '--feedback',
@@ -1487,6 +1495,7 @@ function parseMaterialOptions(values, phase, wave, one, many) {
     workspaceRoot: one('--workspace-root'),
     expectedBase: one('--expected-base'),
     expectedBranch: one('--expected-branch'),
+    model: one('--model') ?? process.env.AGY_MODEL ?? DEFAULT_MODEL,
     runId: validateRecordReference(one('--run-id'), 'run-id'),
     approvalReference: validateRecordReference(one('--approval-ref'), 'approval-ref'),
     timeoutMs: timeoutSeconds * 1000,
