@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 documentary snapshot approved; 04-01 T1 passed and T2 remains fail-closed because the exploratory LAUFU snapshot is not calibration-eligible
-last_updated: "2026-09-06T15:28:40-03:00"
-last_activity: 2026-09-06
-last_activity_desc: 04-01 v2 hardens the T2 gate: source authority, dataset calibration eligibility and production eligibility are separate; T1 passed 20/20, T2 failed closed 3 checks/1 error on the exploratory snapshot; shared bundle invariants, fixture semantics/hashes and temporal lineage checks are separate from T1-specific assertions; no product code, backtest or human calibration approval.
-state_head: 78a8cc896a4ec458a0980ffefe3109af917d48e9
+stopped_at: Phase 4 governance reconciled; 04-15 source-authority candidate is integrated and 04-01 remains fail-closed
+last_updated: "2026-09-07"
+last_activity: 2026-09-07
+last_activity_desc: Governance S0-S9 approved; STATE reconciled to master HEAD 67119f5; 04-15/T2 is approved and integrated; 04-01/T2 remains fail-closed; no product execution or calibration approval.
+state_head: 67119f504bb39a4a0698c8fc22622a1e589ae823
 progress:
   total_phases: 8
   completed_phases: 3
@@ -16,6 +16,23 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Reconciliation checkpoint - 2026-09-07
+
+- `master` and `origin/master` are at `67119f504bb39a4a0698c8fc22622a1e589ae823`.
+- Plan `04-15` is documentary/source governance only: its technical HEAD
+  `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` is an ancestor of `master`; its
+  T2 approval is recorded in `04-15-SUMMARY.md` and `04-VALIDATION.md`; it does
+  not authorize runtime, schema, roster or calibration work.
+- Plan `04-01` has no completed implementation SUMMARY. Its validation evidence
+  records T1 `20/20`, T2 fail-closed with `3` checks and `1` error, and
+  `wave_0_complete: false`; the exploratory LAUFU capture is not calibration
+  or production eligible.
+- Phase 4 remains in planning with `0/19` phase plans executed. The approved
+  Supervisor/Worker governance is now the operating contract, but it does not
+  release any product plan or human checkpoint.
+- The next material action is a fresh S0 preflight. Any stale handoff, branch,
+  HEAD, dependency or checkpoint mismatch remains blocking.
 
 # Estado do Projeto
 

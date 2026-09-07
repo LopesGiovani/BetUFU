@@ -20,11 +20,12 @@ for literal do `<verify>` e tiver sido aprovado para aquela chamada por
 do worker ajuda o desenvolvimento; somente a repetição pelo orquestrador vale
 como certificação.
 
-## Ciclo de uma onda
+## Procedimento detalhado da onda
 
-1. Execute `$gsd-execute-phase <fase> --wave <onda> --interactive` para preparar
+1. Use `$gsd-execute-phase <fase> --wave <onda> --interactive` somente para preparar
    o briefing. Apresente objetivos, planos, arquivos, comandos, impactos e
-   riscos; aguarde aprovação específica da onda.
+   riscos; aguarde aprovação específica da onda. Ele não despacha implementação;
+   toda execução material passa pelo `node .agents/agy-wave.mjs`.
 2. Gere e revise o dry-run:
 
    ```bash
@@ -115,6 +116,42 @@ como certificação.
     worktree. O resultado é rejeitado se base, HEAD, paths, gates ou findings
     divergirem do snapshot.
 12. Com `PASS`, apresente o handoff e pause. A próxima onda requer nova aprovação.
+
+## Contrato operacional S0-S9
+
+O ciclo acima é interpretado pelos seguintes estados obrigatórios:
+
+- **S0 Preflight:** ler `AGENTS.md`, `STATE.md`, plano ativo, predecessores,
+  validações e manifesto; comparar handoff, branch, HEAD, base, dependências,
+  checkpoints e allowlists. Divergência é `STALE`/`BLOCKED`.
+- **S1 Briefing/aprovação:** apresentar objetivo, abordagem, arquivos, comandos,
+  riscos, impacto, base SHA, branch, worktree e resultado esperado. Cada teste,
+  chamada externa e operação Git exige autorização própria.
+- **S2 Dry-run:** executar `node .agents/agy-wave.mjs --phase <fase> --wave <onda>
+  --dry-run`; o comando apenas valida e produz JSON, sem worktree, worker, teste
+  ou mutação Git.
+- **S3 Isolamento:** criar uma worktree e branch neutra por plano, a partir da
+  mesma base; nunca usar `master`/`main` para worker e nunca compartilhar checkout.
+- **S4 Dispatch:** chamar `--execute-task` para uma única task. O worker é
+  efêmero, usa somente a allowlist e devolve JSON; não faz Git mutável,
+  instalações, rede, Docker, Testcontainers ou suítes agregadas.
+- **S5 Auditoria:** comparar HEAD, branch, status, paths, `files_changed`,
+  `tests_requested` e `tests_executed`; registrar somente JSON sanitizado em
+  `.git/gsd/agy` e interromper em qualquer drift.
+- **S6 Verificação:** o Codex repete focais e executa as suítes exigidas em fila
+  independente; a prova do worker nunca substitui a certificação.
+- **S7 Snapshot/revisão:** congelar refs, hashes, status e evidências; preparar
+  revisão `plan`/`readonly`. Qualquer correção invalida o snapshot.
+- **S8 Git/integração:** stage, commit, integração, testes pós-merge, cleanup e
+  push são aprovações separadas.
+- **S9 Handoff/pausa:** entregar handoff compacto e encerrar a sessão antes de
+  20 mil tokens (teto absoluto de 25 mil). A próxima onda exige nova aprovação.
+
+`--continue-task` é reservado à correção da mesma task com snapshot, baseline,
+arquivos de correção, arquivos congelados e feedback. Não é atalho para a task
+seguinte. Como o launcher atual exige worktree limpa no `--execute-task` e o
+worker não cria commits, planos com múltiplas tasks materiais ficam bloqueados
+após a primeira até existir um modo seguro de baseline aceita.
 
 ## Particularidade da onda 1
 
