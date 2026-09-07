@@ -274,7 +274,7 @@ test('digest aprovado permanece estavel quando o checkout usa CRLF', () => {
 
 test('digest rejeita whitespace extra apos o JSON', () => {
   withTemporaryCandidate(
-    (source) => `${source}\n`,
+    (source) => `${source}${source.includes('\r\n') ? '\r\n' : '\n'}`,
     (root) => assert.throws(
       () => validateCandidateFile(root, { requireApproval: true }),
       (error) => error instanceof SportsOddsSourceCandidateValidationError
