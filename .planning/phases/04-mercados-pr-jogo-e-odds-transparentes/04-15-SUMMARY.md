@@ -20,7 +20,7 @@ affects: [04-02, 04-03, 04-16, 04-17, 04-18, 04-19, odds, sports]
 actuals:
   tokens: 0
   tasks: 2
-  commits: 3
+  commits: 5
   changed_technical_paths: 3
   changed_documentation_paths: 3
 
@@ -93,12 +93,13 @@ coverage:
 - Preserved one outcome authority per event, exact V16 score references, separate V24 lifecycle facts, append-only correction lineage and explicit roster/migration gates.
 - Reconciled the plan and phase validation documents to base snapshot
   `0963c965e8fced9af426727cecf9a0ed9306dbe0` and recorded technical HEAD
-  `e162a173393fe365006eb831ecede0119a03ae2d`.
+  `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b`.
 
 ## Verification Evidence
 
 - `node --check` for both modules: `2/2` successful.
-- Focal Node suite: `36/36` passed, zero failures, errors, skips or cancellations.
+- Focal Node suite: `36/36` passed in the LF worktree and in the equivalent CRLF
+  checkout, zero failures, errors, skips or cancellations.
 - Candidate validator `--check`: `414` checks, exit `0`, `T2=approved`.
 - Candidate validator `--require-approval`: `414` checks, exit `0`, `T2=approved`.
 - Node aggregate: `674/674` passed.
@@ -107,7 +108,7 @@ coverage:
   two required matricula HMAC variables. The wrapper's `1472` is a raw sum of
   repeated markers, not a distinct-test count.
 - `git diff --check`: exit `0`; LF/CRLF messages are checkout normalization warnings only.
-- Normalized LF SHA-256 after the portability fix: candidate `6D0B8E183D6B8D9AD646C5119BE684BC124C17BD37037A029E6283643D2BD40C`, validator `DA0031058F674653E8AC9C202817F1B792D5AC888FC4FBEDF753D02688FF5F2C`, tests `FCFB00E8A5AF5324E184B4F689FBB363D4F9B8074726805732D26678CC977AE9`.
+- Normalized LF SHA-256 after the checkout line-ending fixes: candidate `6D0B8E183D6B8D9AD646C5119BE684BC124C17BD37037A029E6283643D2BD40C`, validator `DA0031058F674653E8AC9C202817F1B792D5AC888FC4FBEDF753D02688FF5F2C`, tests `5A9BDD41BFA0F0F4B4A7378B0A94682A11D1F9C48F2A2D8B1E567D561FE0921B`.
 
 ## Approval and Scope
 
@@ -123,6 +124,13 @@ coverage:
 - The path assertion was corrected to use platform-native `join(...)`; the
   local technical correction is recorded in commit `e162a173` and keeps the
   suite valid on Windows and POSIX.
+- The first post-merge CRLF checkout run returned `35/36` because the whitespace
+  fixture appended LF to CRLF content. The validator correctly rejected mixed
+  endings; the fixture now detects and preserves the source terminator in
+  commit `ee611bec`, and the LF plus equivalent CRLF suites passed `36/36`.
+- A subsequent Maven run exposed a stale incremental `AthleteProfileMediaIT.class`
+  under the old package. `clean verify` removed only generated `backend/target`
+  output, rebuilt the current sources, and passed `736/736` distinct tests.
 - The candidate digest and approval hash were recomputed after the approved snapshot corrections; the final digest is recorded above.
 - Historical validation numbers (`28/28`, `416`, pending approval) remain in `04-VALIDATION.md` as explicitly labeled evidence from the pre-approval snapshot.
 - A Maven attempt without the required process environment produced `454`
@@ -140,11 +148,12 @@ coverage:
 - Worktree: `C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-04-15`.
 - Branch: `worktree-agent-04-15`.
 - Base SHA: `0963c965e8fced9af426727cecf9a0ed9306dbe0`.
-- Implementation commits: `0c486a1a2e288a83b19edcaeb83ef01674a0f4a6` and
-  `e162a173393fe365006eb831ecede0119a03ae2d`.
+- Implementation commits: `0c486a1a2e288a83b19edcaeb83ef01674a0f4a6`,
+  `e162a173393fe365006eb831ecede0119a03ae2d` and
+  `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b`.
 - Documentation commit: current documentation commit (hash intentionally omitted).
-- Integration and cleanup are the authorized closing operations after this
-  documentation commit; push remains disabled by owner instruction.
+- Integration and cleanup remain the authorized closing operations after this
+  documentation correction; push remains disabled by owner instruction.
 - The next phase plans may consume the approved source invariants only after satisfying their own human gates.
 
 ---

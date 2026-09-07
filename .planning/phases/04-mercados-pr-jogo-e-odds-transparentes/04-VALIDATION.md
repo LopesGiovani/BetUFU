@@ -17,7 +17,7 @@ created: 2026-09-04
 ## Scope and Authority
 
 - Worktree de execucao desta retomada: `C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-04-15`, branch `worktree-agent-04-15`.
-- Snapshot documental/base: `0963c965e8fced9af426727cecf9a0ed9306dbe0`, publicado em `master` e `origin/master`; o HEAD tecnico validado da worktree e `e162a173393fe365006eb831ecede0119a03ae2d`. RepoWise foi consultado no preflight em `indexed_commit=0963c965e8fc`, `live_head=0963c965e8fc` e `index_behind=false`; nao executar `repowise update`.
+- Snapshot documental/base: `0963c965e8fced9af426727cecf9a0ed9306dbe0`, publicado em `master` e `origin/master`; o HEAD tecnico validado da worktree e `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b`. RepoWise foi consultado no preflight em `indexed_commit=0963c965e8fc`, `live_head=0963c965e8fc` e `index_behind=false`; nao executar `repowise update`.
 - `STATE.md` inicia com `state_head: 78a8cc896a4ec458a0980ffefe3109af917d48e9`; a reconciliacao com a base e o HEAD tecnico esta registrada nesta formalizacao, sem editar `STATE.md` fora da allowlist. A fase continua sem UI-SPEC aprovado: 04-13 e 04-14 permanecem bloqueados ate esse gate, sem criar o documento nesta allowlist.
 - `eligibilitySubject=dataset_snapshot` no manifesto e no relatorio significa que
   `calibrationEligible`/`productionEligible` autorizam o dataset inteiro; os campos
@@ -416,12 +416,12 @@ autoridade, schema, governanca, roster ou runtime.
   executado nesse snapshot historico. O resultado nao certifica o candidato
   corrente.
 
-### 04-15 T2 Approval and final artifact validation - 2026-09-07 (revalidated after portability fix)
+### 04-15 T2 Approval and final artifact validation - 2026-09-07 (revalidated after checkout line-ending fixes)
 
 Este resultado certifica o candidato corrente e fecha o checkpoint de source;
 nao aprova schema, governanca, roster, runtime ou calibracao 04-01.
 
-- Worktree/branch: `worktree-agent-04-15`, base `0963c965e8fced9af426727cecf9a0ed9306dbe0`, HEAD tecnico `e162a173393fe365006eb831ecede0119a03ae2d`.
+- Worktree/branch: `worktree-agent-04-15`, base `0963c965e8fced9af426727cecf9a0ed9306dbe0`, HEAD tecnico `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b`.
 - Resposta humana registrada: `04-15/T2@2026-09-07: owner message 'aprovar source 14-15' normalized to plan 04-15`.
 - `approvedBy`: `LopesGiovani`; `approvedAt`: `2026-09-07T00:41:36.751Z`.
 - Digest canonico do snapshot pre-aprovacao: `1E7DB9D05625CD36CBE083144B95E2429C2523909155498C2CF25336CC17B867`.
@@ -436,11 +436,11 @@ nao aprova schema, governanca, roster, runtime ou calibracao 04-01.
   `454/454` = `736/736` testes distintos, `BUILD SUCCESS`; o wrapper imprimiu
   `1472` como soma bruta de marcadores repetidos. Nenhum skip ou falha foi
   observado.
-- Hashes SHA-256 normalizados (LF) dos tres artefatos no snapshot corrente apos a
-  correcao de portabilidade:
+- Hashes SHA-256 normalizados (LF) dos tres artefatos no snapshot corrente apos as
+  correcoes de portabilidade:
   candidato `6D0B8E183D6B8D9AD646C5119BE684BC124C17BD37037A029E6283643D2BD40C`;
   validador `DA0031058F674653E8AC9C202817F1B792D5AC888FC4FBEDF753D02688FF5F2C`;
-  testes `FCFB00E8A5AF5324E184B4F689FBB363D4F9B8074726805732D26678CC977AE9`.
+  testes `5A9BDD41BFA0F0F4B4A7378B0A94682A11D1F9C48F2A2D8B1E567D561FE0921B`.
   O snapshot final tambem registra bytes brutos, `git status -uall` e paths.
 - A aprovacao cobre invariantes de autoridade, taxonomia e temporalidade. O
   detalhamento fisico (envelope, constraints, roster, recuperacao e nomes de
@@ -448,9 +448,26 @@ nao aprova schema, governanca, roster, runtime ou calibracao 04-01.
 - A calibracao 04-01 continua fail-closed: a captura exploratoria LAUFU nao e
   autoridade de producao e `wave_0_complete` permanece `false`.
 - O commit tecnico inicial que contem os tres artefatos T1 e
-  `0c486a1a2e288a83b19edcaeb83ef01674a0f4a6`; a assercao de caminho foi
-  corrigida no commit tecnico `e162a173393fe365006eb831ecede0119a03ae2d`.
-  A formalizacao documental segue em commit separado.
+  `0c486a1a2e288a83b19edcaeb83ef01674a0f4a6`; as correcoes de portabilidade
+  foram registradas em `e162a173393fe365006eb831ecede0119a03ae2d` (separador)
+  e `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` (terminador de fixture). A
+  formalizacao documental segue em commit separado.
+
+### 04-15 Post-merge line-ending recovery - 2026-09-07
+
+Esta secao registra uma falha mecanica descoberta no checkout integrado e sua
+recuperacao; ela nao altera a regra de validacao de producao.
+
+- A primeira validacao na `master` em `08dadc1` retornou `35/36`; o caso
+  `digest rejeita whitespace extra apos o JSON` recebeu `CANDIDATE_LINE_ENDINGS`
+  porque a fixture anexava `\n` a um arquivo CRLF.
+- `core.autocrlf=true` foi confirmado na `master`; a worktree de execucao usava
+  LF. O validador rejeitar finais mistos e comportamento correto e fail-closed;
+  o defeito estava somente na fixture do teste.
+- A fixture passou a anexar o terminador detectado no proprio source. O ajuste
+  esta em `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b`; a repeticao na worktree LF
+  e a validacao equivalente no checkout CRLF do snapshot tecnico passaram
+  `36/36`. A prova de finais de linha fica fechada para a integracao.
 
 ### 04-15 Aggregate verification recovery - 2026-09-07
 
@@ -473,6 +490,12 @@ reexecucao valida; nao altera o candidato nem libera runtime.
   `node scripts/maven.mjs -f backend/pom.xml verify`; resultado `BUILD SUCCESS`,
   `1472` marcadores brutos, `0` falhas, `0` erros e `0` skips. A leitura dos
   XMLs confirmou `282` Surefire + `454` Failsafe = `736` testes distintos.
+- Uma segunda tentativa sem `clean` falhou por um `.class` incremental antigo
+  (`br.com.betufu.sports.AthleteProfileMediaIT`) no `target/test-classes`,
+  enquanto o fonte atual pertence a `br.com.betufu.sports.internal.media`.
+  `node scripts/maven.mjs -f backend/pom.xml clean verify` removeu somente o
+  `backend/target` gerado, recompilou os fontes atuais e terminou com `BUILD
+  SUCCESS`; apenas a classe no pacote correto permaneceu.
 - A escada Node foi repetida depois da recuperacao: `node --check` `2/2`, focal
   `36/36`, validadores `--check` e `--require-approval` com `414` verificacoes
   cada, e agregado `674/674` em `9` suites.
@@ -480,10 +503,22 @@ reexecucao valida; nao altera o candidato nem libera runtime.
   do PowerShell; a forma quoted passou. Esse diagnostico nao pertence ao
   `<verify>` do plano e nao e contado como evidencia de produto.
 
+### 04-15 Final post-clean verification - 2026-09-07
+
+- No checkout limpo da worktree, `node --test scripts/*.test.mjs` passou `674/674`
+  em `9` suites; o foco T1 permaneceu `36/36` e ambos os modos do validador
+  retornaram `414` verificacoes com `T2=approved`.
+- `node scripts/maven.mjs -f backend/pom.xml clean verify` passou com
+  `BUILD SUCCESS`; os XMLs registraram `282/282` Surefire e `454/454` Failsafe,
+  total distinto `736/736`, sem falhas, erros ou skips.
+- A exportacao CRLF do snapshot tecnico `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b`,
+  feita com `core.autocrlf=true`, passou o foco `36/36`, sem LF isolado nos tres
+  arquivos. A mesma arvore de blobs sera integrada linearmente na `master`.
+
 ### Frozen PLAN SHA-256
 
 Worktree/branch: `worktree-agent-04-15` (execucao isolada; publicacao documental em `master`).
-HEAD/base tecnico: `e162a173393fe365006eb831ecede0119a03ae2d` /
+HEAD/base tecnico: `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` /
 `0963c965e8fced9af426727cecf9a0ed9306dbe0`.
 Os hashes abaixo cobrem os 19 planos no snapshot corrente. Cada SHA-256 e calculado
 sobre os bytes UTF-8 com `CRLF` convertido para `LF` somente em memoria; finais de linha
@@ -506,7 +541,7 @@ externamente para evitar referencia circular. Qualquer edicao invalida o snapsho
 | 04-12-PLAN.md | `A433067ECF0B104CDDC108D1AA840A0651D5C3E322897C8626EDD9AF0D1180D5` |
 | 04-13-PLAN.md | `C4DC11A60F7BF12D84D82083B617A0D0ADA6A14C8CD426E68EC415A352BAE929` |
 | 04-14-PLAN.md | `B09A944BEC595B5ABB5E898F838F695F0B859A0ACB4CED93076D3D5D5A479BD5` |
-| 04-15-PLAN.md | `2F9DAE2B55E64DE4C394609AF455207B2964B2475C61B73E92CA7149B096B2D6` |
+| 04-15-PLAN.md | `58854C5786456D670781280CBF92E78BC4D2DC5803EB7C35EDE4C68E5C2A7094` |
 | 04-16-PLAN.md | `B9E0AC844FD1797713AC06000B6EE0CFBBB09F0ED8EA98A3A1E1B79C87C68900` |
 | 04-17-PLAN.md | `8734E858B2CC30477EDF759DF7CCF6239755532A47AED419C6A137F921C0EA00` |
 | 04-18-PLAN.md | `4868A58DD49E940286CF809DF9C46BC16BD58DDF3A7DD5A0BBDCF44FA185EBB9` |
