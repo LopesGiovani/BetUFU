@@ -196,6 +196,36 @@ requirements: []
   );
 });
 
+test('parsePlan aceita arquivos separados por ponto e vírgula e vírgula', () => {
+  const mixedPlan = `---
+phase: fixture
+plan: "99"
+wave: 1
+depends_on: []
+files_modified:
+  - scripts/one.mjs
+  - scripts/two.mjs
+  - scripts/three.mjs
+autonomous: false
+requirements: [TEST-01]
+---
+<tasks>
+<task type="auto">
+<name>fixture task</name>
+<files>scripts/one.mjs; scripts/two.mjs, scripts/three.mjs</files>
+<precondition></precondition>
+<verify><automated>node --test scripts/fixture.test.mjs</automated></verify>
+</task>
+</tasks>`;
+
+  const plan = parsePlan(mixedPlan, resolve(PROJECT_ROOT, '99-99-PLAN.md'), 99, PROJECT_ROOT);
+  assert.deepEqual(plan.tasks[0].files, [
+    'scripts/one.mjs',
+    'scripts/two.mjs',
+    'scripts/three.mjs',
+  ]);
+});
+
 test('dry-run da onda 1 libera 02-01 e 02-02, mas bloqueia 02-03 no gate A-7', async () => {
   const result = buildWaveDryRun(await plansPromise, 2, 1, await skillManifestPromise);
 

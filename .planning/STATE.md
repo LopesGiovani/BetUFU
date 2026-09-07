@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 governance reconciled; 04-15 source-authority candidate is integrated and 04-01 remains fail-closed
+stopped_at: Phase 4 S0 reconciled for Plan 04-02; 04-15 source authority is integrated and 04-01 remains fail-closed by D-120
 last_updated: "2026-09-07"
 last_activity: 2026-09-07
-last_activity_desc: Governance S0-S9 approved; STATE reconciled to master HEAD 67119f5; 04-15/T2 is approved and integrated; 04-01/T2 remains fail-closed; no product execution or calibration approval.
-state_head: af9d2639eac75b3b7d04419386cd254ccfa70928
+last_activity_desc: Owner approved reconciliation to master HEAD df2f009 and the full S0-S9 scope for Plan 04-02; 04-15/T2 is approved and integrated; 04-01/T2 remains fail-closed and is accepted only as a non-calibration prerequisite for this contract plan; no product execution yet.
+state_head: df2f00907b7bbdd48d4b860bf95106508c9e6ae7
 progress:
   total_phases: 8
   completed_phases: 3
@@ -19,7 +19,7 @@ milestone_name: milestone
 
 ## Reconciliation checkpoint - 2026-09-07
 
-- `master` and `origin/master` are at `67119f504bb39a4a0698c8fc22622a1e589ae823`.
+- `master` and `origin/master` are at `df2f00907b7bbdd48d4b860bf95106508c9e6ae7`.
 - Plan `04-15` is documentary/source governance only: its technical HEAD
   `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` is an ancestor of `master`; its
   T2 approval is recorded in `04-15-SUMMARY.md` and `04-VALIDATION.md`; it does
@@ -27,12 +27,17 @@ milestone_name: milestone
 - Plan `04-01` has no completed implementation SUMMARY. Its validation evidence
   records T1 `20/20`, T2 fail-closed with `3` checks and `1` error, and
   `wave_0_complete: false`; the exploratory LAUFU capture is not calibration
-  or production eligible.
+  or production eligible. By explicit owner decision, this fail-closed result is
+  definitive and satisfies only the dependency boundary for Plan 04-02; it does
+  not authorize calibration or production use.
+- Plan `04-02` is authorized for the full S0-S9 cycle from this HEAD, with the
+  dedicated worktree/branch `worktree-agent-04-02`; its T2 architecture decision
+  remains bounded by the candidate and allowlist in `04-02-PLAN.md`.
 - Phase 4 remains in planning with `0/19` phase plans executed. The approved
   Supervisor/Worker governance is now the operating contract, but it does not
   release any product plan or human checkpoint.
-- The next material action is a fresh S0 preflight. Any stale handoff, branch,
-  HEAD, dependency or checkpoint mismatch remains blocking.
+- The next material action is the authorized S2 dry-run. Any new stale handoff,
+  branch, HEAD, dependency or checkpoint mismatch remains blocking.
 
 # Estado do Projeto
 

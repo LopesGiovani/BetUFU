@@ -592,7 +592,8 @@ export function parsePlan(raw, filePath, phaseNumber, projectRoot = PROJECT_ROOT
       && taskFilesText === CHECKPOINT_WITHOUT_FILES
       ? []
       : taskFilesText
-        .split(',')
+        // Plans historically use both comma and semicolon separators.
+        .split(/[;,]/u)
         .map((path) => path.trim().replaceAll('`', ''))
         .filter(Boolean)
         .map(normalizeRepositoryPath);
