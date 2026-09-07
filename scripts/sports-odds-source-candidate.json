@@ -1,0 +1,573 @@
+{
+  "schemaVersion": "04-15.source-authority-candidate.v1",
+  "phase": "04-mercados-pr-jogo-e-odds-transparentes",
+  "plan": "04-15",
+  "kind": "source_authority_candidate",
+  "runtimeConsumable": false,
+  "purpose": "Candidato documental para a autoridade de outcomes, a taxonomia e o replay temporal antes de schema ou runtime.",
+  "decisionStatus": "approved_human_checkpoint_04-15-T2",
+  "decisionBasis": {
+    "selectedOption": "A",
+    "selectedOptionDescription": "Fatos administrativos separados e um unico head corrente por evento.",
+    "alreadyChosen": [
+      "uma autoridade de outcome por evento",
+      "fatos append-only",
+      "correcao cria nova linhagem",
+      "lifecycle permanece separado no contrato V24"
+    ],
+    "ratifiedAtCheckpoint": [
+      "autoridade sports_outcome_authority com um head corrente por evento",
+      "taxonomia de cinco classes com lifecycle V24 separado",
+      "sport_time imutavel no fato e replay as-of por historia",
+      "legado sem classificacao silenciosa e com quarentena",
+      "workflow administrativo server-side sem placar",
+      "correcao cross-kind como nova linhagem sem reescrever odds aceitas",
+      "confronto direto apenas como evidencia contextual, sem bonus automatico"
+    ],
+    "pendingRatification": [
+      "envelope e nomes fisicos",
+      "constraints e triggers",
+      "politica de legado",
+      "workflow administrativo detalhado",
+      "propagacao e recuperacao",
+      "binding e atomicidade de roster",
+      "ordem e nomes literais de migrations"
+    ]
+  },
+  "authority": {
+    "sourceOfTruth": "sports_outcome_authority",
+    "ownerModule": "sports",
+    "consumerModule": "odds",
+    "eventHeadCardinality": "at_most_one_current_head_per_event",
+    "factsStorage": "append_only",
+    "supersession": "new_fact_references_predecessor",
+    "headRole": "current_read_projection_only",
+    "headAndFactAtomicity": "required_transaction_and_compare_and_set",
+    "lifecycleOwner": "sports_event_lifecycle_history_v24",
+    "oddsOwnsCopyOfScore": false,
+    "secondAuthority": false
+  },
+  "taxonomy": {
+    "classes": [
+      "SPORTING_RESULT",
+      "ADMINISTRATIVE_WALKOVER",
+      "ABANDONED_NO_VALID_RESULT",
+      "CANCELLED",
+      "POSTPONED"
+    ],
+    "outcomeClasses": [
+      "SPORTING_RESULT",
+      "ADMINISTRATIVE_WALKOVER",
+      "ABANDONED_NO_VALID_RESULT"
+    ],
+    "lifecycleClasses": ["CANCELLED", "POSTPONED"],
+    "definitions": {
+      "SPORTING_RESULT": {
+        "meaning": "Resultado esportivo confirmado e vigente na cadeia V16.",
+        "feedsElo": true,
+        "hasSportsScore": true,
+        "requiresV16Reference": true
+      },
+      "ADMINISTRATIVE_WALKOVER": {
+        "meaning": "Vitoria administrativa sem resultado esportivo.",
+        "feedsElo": false,
+        "hasSportsScore": false,
+        "winnerMayBeRecorded": true
+      },
+      "ABANDONED_NO_VALID_RESULT": {
+        "meaning": "Abandono sem resultado esportivo valido.",
+        "feedsElo": false,
+        "hasSportsScore": false,
+        "winnerMayBeRecorded": false
+      },
+      "CANCELLED": {
+        "meaning": "Fato de lifecycle V24 com status CANCELADO, nao payload de outcome.",
+        "feedsElo": false,
+        "hasOutcomePayload": false,
+        "lifecycleStatus": "CANCELADO"
+      },
+      "POSTPONED": {
+        "meaning": "Fato de lifecycle V24 com status ADIADO, nao payload de outcome.",
+        "feedsElo": false,
+        "hasOutcomePayload": false,
+        "lifecycleStatus": "ADIADO"
+      }
+    },
+    "resultVersionStatuses": {
+      "admissibleAtReplay": ["CONFIRMADO", "CORRIGIDO"],
+      "notAdmissibleAtReplay": ["INFORMADO", "AGUARDANDO_REVISAO"]
+    },
+    "lifecycleV24Statuses": [
+      "RASCUNHO",
+      "PUBLICADO",
+      "SUSPENSO",
+      "ADIADO",
+      "CANCELADO"
+    ],
+    "separationRules": [
+      "CANCELLED e POSTPONED nao podem aparecer em payload de resultado.",
+      "ADMINISTRATIVE_WALKOVER e ABANDONED_NO_VALID_RESULT nao carregam placar.",
+      "placar numerico nao classifica W.O. ou abandono."
+    ]
+  },
+  "envelope": {
+    "physicalName": "pending_human_ratification",
+    "unknownFields": "reject",
+    "payloadDiscriminator": "outcomeKind",
+    "exclusivePayloads": true,
+    "requiredIdentity": ["factId", "eventId", "competitionId", "editionId"],
+    "requiredLineage": ["versionNo", "supersedesFactId", "recordedAt", "knownAt"],
+    "requiredSource": ["sourceReference", "recordedByIdentityId"],
+    "eventScopeIsComposite": true,
+    "candidateNamesRemainOpen": true
+  },
+  "payloads": {
+    "SPORTING_RESULT": {
+      "requiredFields": [
+        "outcomeKind",
+        "confirmedVersionId",
+        "confirmedVersionStatus",
+        "sportTime",
+        "knownAt",
+        "confirmedAt"
+      ],
+      "v16Reference": {
+        "table": "sports_result_version",
+        "versionIdField": "confirmedVersionId",
+        "exactReference": true,
+        "statusAllowlist": ["CONFIRMADO", "CORRIGIDO"],
+        "scoreTable": "sports_result_version_slot",
+        "slotCount": 2,
+        "slotNumbers": [1, 2],
+        "readOriginalScores": true,
+        "copyScoresIntoAuthority": false,
+        "synthesizeScores": false
+      },
+      "scorePolicy": {
+        "source": "exact V16 slots",
+        "originalOnly": true,
+        "nonNegative": true,
+        "exactlyTwoForHeadToHead": true,
+        "administrativeScoreForbidden": true
+      },
+      "regulationGate": "draw eligibility is read from the versioned regulation at the as-of cut",
+      "correction": "new fact supersedes the prior sporting fact"
+    },
+    "ADMINISTRATIVE_WALKOVER": {
+      "requiredFields": ["outcomeKind", "administrativeReason", "sportTime", "knownAt"],
+      "forbiddenFields": [
+        "homeScore",
+        "awayScore",
+        "score",
+        "scores",
+        "home_score",
+        "away_score",
+        "sourceHomeScore",
+        "sourceAwayScore",
+        "modelHomeScore",
+        "modelAwayScore",
+        "scoreForModel",
+        "homeScoreForModel",
+        "awayScoreForModel",
+        "confirmedVersionId"
+      ],
+      "winner": "optional canonical participant, never a sports score",
+      "feedsElo": false,
+      "feedsDavidson": false,
+      "marketEffect": "candidate for separate void/settlement handling"
+    },
+    "ABANDONED_NO_VALID_RESULT": {
+      "requiredFields": ["outcomeKind", "abandonmentReason", "sportTime", "knownAt"],
+      "forbiddenFields": [
+        "homeScore",
+        "awayScore",
+        "score",
+        "scores",
+        "home_score",
+        "away_score",
+        "sourceHomeScore",
+        "sourceAwayScore",
+        "modelHomeScore",
+        "modelAwayScore",
+        "scoreForModel",
+        "homeScoreForModel",
+        "awayScoreForModel",
+        "confirmedVersionId"
+      ],
+      "feedsElo": false,
+      "feedsDavidson": false,
+      "marketEffect": "candidate for separate void/settlement handling"
+    },
+    "CANCELLED": {
+      "payloadAllowed": false,
+      "lifecycleTable": "sports_event_lifecycle_history",
+      "lifecycleStatus": "CANCELADO"
+    },
+    "POSTPONED": {
+      "payloadAllowed": false,
+      "lifecycleTable": "sports_event_lifecycle_history",
+      "lifecycleStatus": "ADIADO"
+    }
+  },
+  "head": {
+    "onePerEvent": true,
+    "oneCurrentHeadWhenFactExists": true,
+      "uniqueKeyCandidate": ["eventId"],
+      "mutableProjectionOnly": true,
+      "historyIsAppendOnly": true,
+      "updatedTogetherWithFact": true,
+      "compareAndSetRequired": true,
+      "casInputCandidate": "event.lock_version",
+      "supersessionChain": {
+        "singleRootPerEvent": true,
+        "oneSuccessorPerPredecessor": true,
+        "acyclic": true,
+        "newFactMustSupersedeCurrentHead": true
+      },
+      "headCannotRewriteHistory": true,
+    "headCannotBeUsedForReplay": true,
+    "maxVersionNoCannotBeUsedForReplay": true,
+    "futureEventNeedsNoHead": true
+  },
+  "temporalProtocol": {
+    "fields": {
+      "sport_time": {
+        "meaning": "instante esportivo canonico do evento",
+        "candidateSource": "sports_event.scheduled_at capturado na insercao do fato",
+        "timezoneSource": "sports_event.zone_id capturado na insercao do fato",
+        "factField": "outcome_fact.sport_time",
+        "editionProvenance": "outcome_fact.competition_id e outcome_fact.edition_id",
+        "snapshotAtFactCreation": true,
+        "currentEventLookupForbidden": true,
+        "required": true
+      },
+      "known_at": {
+        "meaning": "instante em que o fato ficou conhecido pelo sistema/modelo",
+        "source": "outcome fact audit timestamp",
+        "required": true,
+        "distinctFromCapture": true
+      },
+      "confirmed_at": {
+        "meaning": "instante de confirmacao exata da versao V16",
+        "source": "sports_result_version.confirmed_at",
+        "requiredForSportingResult": true,
+        "distinctFromKnownAt": true
+      }
+    },
+    "cutoffRule": "known_at <= cutoff is required for an as-of replay",
+    "ordering": ["sport_time ASC", "known_at ASC", "stableFactId ASC"],
+    "tieBreak": "stableFactId after sport_time and known_at",
+    "correctionAfterCutoff": "excluded from the earlier replay and retained for later cuts",
+    "snapshotCaptureIsNotKnownAt": true,
+    "missingTimeDisposition": "unresolved quarantine",
+    "deterministic": true
+  },
+  "replay": {
+    "historyRequired": true,
+    "algorithm": "select the admissible fact in each supersession chain at the cutoff, then order sporting facts canonically",
+    "steps": [
+      "load append-only facts for the event",
+      "discard facts with known_at after the cutoff",
+      "resolve supersession chains without using the current head",
+      "reject forked or cyclic supersession chains",
+      "retain only CONFIRMADO or CORRIGIDO V16 references for SPORTING_RESULT",
+      "apply regulation version valid at the cut",
+      "sort by sport_time, known_at and stableFactId",
+      "emit a replay digest and lineage"
+    ],
+    "forbiddenShortcuts": [
+      "current head",
+      "MAX(version_no)",
+      "capture timestamp as known_at",
+      "latest row without an as-of cutoff"
+    ],
+    "leakageControl": "a correction known after the cutoff cannot alter a prior replay",
+    "reproducibility": "same facts, regulation versions and cutoff produce the same order"
+  },
+  "eloPolicy": {
+    "initialRating": 1500,
+    "ratingScope": ["sport", "category"],
+      "globalRating": false,
+    "headToHeadContext": {
+      "contextualEvidenceAllowed": true,
+      "automaticBonus": false,
+      "promotionRequires": "several editions and backtest demonstrating real gain"
+    },
+    "experiencePolicy": {
+      "provisionalK": 32,
+      "matureK": 16,
+      "experienceThreshold": "pending_human_ratification_by_backtest",
+      "thresholdIsNotImplicit": true
+    },
+    "editionRegression": {
+      "fractionTowardInitial": 0.5,
+      "initialRating": 1500,
+      "versioned": true
+    },
+    "chronologicalProcessing": true,
+    "recency": {
+      "formula": "pending_human_ratification_by_temporal_backtest",
+      "monthlyHalfLife": null,
+      "arbitraryHalfLifeForbidden": true
+    },
+    "draw": {
+      "conditionalOnRegulation": true,
+      "twoOutcomeWhenDrawImpossible": true,
+      "threeOutcomeWhenRegulationAllows": true,
+      "davidson": {
+        "enabledOnlyForThreeOutcomeBranch": true,
+        "parameters": "pending_human_ratification_by_backtest"
+      },
+      "sharedConservativePrior": true,
+      "specializationThreshold": "pending_human_ratification"
+    },
+    "lowSample": {
+      "estimate": "neutral",
+      "publicConfidenceLabel": "low_confidence",
+      "confidenceBands": "pending_human_ratification"
+    },
+    "eligibleOutcome": {
+      "kinds": ["SPORTING_RESULT"],
+      "v16Statuses": ["CONFIRMADO", "CORRIGIDO"],
+      "administrativeWalkover": false,
+      "abandonment": false,
+      "cancelled": false,
+      "postponed": false,
+      "futureEventNeedsNoOutcome": true
+    },
+    "forbiddenInputs": [
+      "betting_volume",
+      "betting_distribution",
+      "liquidity",
+      "exposure",
+      "user_behavior"
+    ],
+    "margin": {
+      "initial": 0.05,
+      "configurable": true,
+      "versioned": true,
+      "formula": "pending_human_ratification"
+    },
+    "publication": {
+      "fairProbabilitySeparate": true,
+      "publishedPriceImmutable": true,
+      "decimalPlaces": 2,
+      "roundingMode": "pending_human_ratification"
+    }
+  },
+  "legacy": {
+    "backfillMode": "evidence_only",
+    "authoritativeEvidence": [
+      "persisted canonical foreign key",
+      "verified V16 confirmed-version chain",
+      "authoritative source reference with audit trail",
+      "versioned lifecycle evidence"
+    ],
+    "forbiddenEvidence": [
+      "numeric score alone",
+      "team name alone",
+      "team slug alone",
+      "row order",
+      "latest version alone",
+      "capture timestamp as known_at"
+    ],
+    "numericWalkoverDisposition": "quarantine with score-for-model null",
+    "unresolvedDisposition": "quarantine",
+    "requiredBeforeClassification": [
+      "canonical identity",
+      "sport_time",
+      "known_at",
+      "confirmed V16 version chain",
+      "authoritative outcome kind"
+    ],
+    "classificationStates": ["classified", "unresolved", "quarantined"],
+    "noSilentClassification": true,
+    "quarantineReleaseRequires": [
+      "canonical_identity",
+      "known_at",
+      "confirmed_version_chain",
+      "authoritative_result_kind",
+      "independent_review"
+    ]
+  },
+  "compatibility": {
+    "confirmedVersionId": {
+      "currentField": "sports_event.confirmed_version_id",
+      "role": "temporary_compatibility_projection",
+      "secondAuthority": false,
+      "sportingResultOnly": true,
+      "readersToReconcile": [
+        "SportsResultRepository.findConfirmedResultVersion",
+        "sports public result projection"
+      ],
+      "writersToReconcile": [
+        "SportsResultService.confirmResult",
+        "SportsResultService.correctResult"
+      ],
+      "administrativeCorrectionPolicy": "pending_human_ratification: atomically clear or project non-sporting state before runtime",
+      "reconciliationRequiredBeforeRuntime": true
+    },
+    "v16": {
+      "table": "sports_result_version",
+      "scoresRemainOwnedBySports": true,
+      "rowsRemainImmutable": true,
+      "mustRemainByteIdentical": true
+    },
+    "v24": {
+      "table": "sports_event_lifecycle_history",
+      "lifecycleRemainsSeparate": true,
+      "rowsRemainImmutable": true,
+      "mustRemainByteIdentical": true
+    },
+    "crossKindCorrection": {
+      "createsNewFact": true,
+      "linksSupersededFact": true,
+      "atomicHeadTransition": true,
+      "oldFactRemainsReadable": true,
+      "acceptedOddsAreNotRewritten": true,
+      "policy": "pending_human_ratification"
+    }
+  },
+  "administrativeWorkflow": {
+    "serverSideOnly": true,
+    "operations": ["INFORM", "CONFIRM", "CORRECT"],
+    "scopeDerivedFromPersistedEvent": true,
+    "sourceReferenceRequired": true,
+    "correctionReasonRequired": true,
+    "bulkImport": false,
+    "newUi": false,
+    "clientAuthority": false,
+    "transaction": "lock event, compare expected version, insert fact, transition head and audit atomically",
+    "auditRequired": true,
+    "idempotency": "pending_human_ratification",
+    "rolesAndCapabilities": "pending_gate_04-18",
+    "administrativePayloadHasNoScore": true
+  },
+  "regulation": {
+    "versioned": true,
+    "source": "authoritative competition or edition regulation",
+    "drawEligibility": "regulation version valid for the event and as-of cut",
+    "missingRegulation": "pending_human_ratification",
+    "noImplicitDefault": true
+  },
+  "propagation": {
+    "strategy": "pending_human_ratification",
+    "candidateStrategies": [
+      "approved synchronous read port",
+      "opaque after-commit application event",
+      "versioned odds projection"
+    ],
+    "mustPreserve": [
+      "sports owns the source",
+      "odds cannot import sports.internal",
+      "correction creates a new lineage",
+      "accepted odds remain immutable"
+    ],
+    "correctionTriggersNewLineage": true,
+    "noUnapprovedSynchronousAssumption": true
+  },
+  "recovery": {
+    "appendOnly": true,
+    "replayFromHistory": true,
+    "headRebuild": "pending_human_ratification",
+    "partialFailure": "transaction rollback plus an audited reconciliation path",
+    "manualRepair": "new audited fact only",
+    "deleteHistory": false,
+    "useCurrentHeadAsHistory": false
+  },
+  "roster": {
+    "marketOpenRequiresPublishedRoster": true,
+    "requiredStatus": "PUBLICADO",
+    "bindingMode": "candidate_only",
+    "perParticipantPublicationId": "pending_gate_04-19-T1",
+    "perParticipantVersionNo": "pending_gate_04-19-T1",
+    "perParticipantKnownAt": "pending_gate_04-19-T1",
+    "correctionEffect": "pending_gate_04-19-T1",
+    "freezeAndAtomicity": "pending_gate_04-19-T1",
+    "latestImplicitSelection": false,
+    "lineupPerMatch": false,
+    "piiInOddsContract": false,
+    "correctionCreatesNewPublication": true
+  },
+  "constraints": {
+    "database": "PostgreSQL",
+    "checkCannotProveCrossTableCoherence": true,
+    "candidateForeignKeys": [
+      "fact(event_id, competition_id, edition_id) -> sports_event composite scope",
+      "sporting fact(event_id, confirmed_version_id) -> sports_result_version exact event/version",
+      "supersedes(event_id, supersedes_fact_id) -> prior fact of the same event",
+      "head(event_id) -> sports_event exact event"
+    ],
+    "candidateUniqueConstraints": [
+      "one head row per event",
+      "one fact version number per event",
+      "stable fact identifier per event",
+      "one supersession root per event",
+      "one successor per predecessor"
+    ],
+    "deferredConstraintTriggers": [
+      "exactly one exclusive payload subtype per fact",
+      "payload subtype belongs to the envelope event",
+      "SPORTING_RESULT has exactly two H2H score references",
+      "ADMINISTRATIVE_WALKOVER and ABANDONED_NO_VALID_RESULT have no score columns",
+      "head transition and fact insertion are coherent at transaction end"
+    ],
+    "databaseTriggers": [
+      "append-only fact immutability",
+      "head compare-and-set or lock-version protection",
+      "no self-supersession",
+      "no supersession forks or cycles"
+    ],
+    "constraintStatus": "candidate_pending_human_ratification",
+    "noCheckAcrossTablesPretended": true
+  },
+  "migrationCandidates": {
+    "status": "pending_human_ratification",
+    "numbersFixed": false,
+    "doesNotInferFromV24": true,
+    "sequence": [
+      {
+        "order": 1,
+        "filename": "VNN_MARKETS__create_odds_market_lineage.sql",
+        "plan": "04-09"
+      },
+      {
+        "order": 2,
+        "filename": "VNN_GOV__extend_odds_governance_audit.sql",
+        "plan": "04-18"
+      },
+      {
+        "order": 3,
+        "filename": "VNN_SOURCE__create_sports_outcome_authority.sql",
+        "plan": "04-16"
+      },
+      {
+        "order": 4,
+        "filename": "VNN_ROSTER__bind_event_roster_publication.sql",
+        "plan": "04-19"
+      }
+    ],
+    "ratifyLiteralFilenamesBeforeExecution": true
+  },
+  "openQuestions": [
+    "qual envelope e quais nomes fisicos serao ratificados",
+    "qual estrategia de propagacao sera adotada",
+    "como confirmed_version_id sera projetado apos correcao cross-kind administrativa",
+    "qual politica de recuperacao reconstruira o head",
+    "qual publicationId/versionNo/known_at de roster sera congelado por participante",
+    "qual efeito uma correcao de roster tera sobre mercado e odds",
+    "qual threshold de experiencia troca K=32 por K=16",
+    "quais parametros Davidson, bandas de confianca, recencia e arredondamento passarao no backtest"
+  ],
+  "approval": {
+    "kind": "human_checkpoint_token",
+    "status": "approved",
+    "approvedAt": "2026-09-07T00:41:36.751Z",
+    "approvedBy": "LopesGiovani",
+    "digest": "1E7DB9D05625CD36CBE083144B95E2429C2523909155498C2CF25336CC17B867",
+    "reviewReference": "04-15/T2@2026-09-07: owner message 'aprovar source 14-15' normalized to plan 04-15",
+    "reviewedArtifactHashes": {
+      "candidateSnapshot": "1E7DB9D05625CD36CBE083144B95E2429C2523909155498C2CF25336CC17B867"
+    }
+  }
+}
