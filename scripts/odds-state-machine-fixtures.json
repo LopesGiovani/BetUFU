@@ -1,0 +1,774 @@
+{
+  "schemaVersion": "04-02.odds-contract-fixtures.v1",
+  "phase": "04-mercados-pr-jogo-e-odds-transparentes",
+  "plan": "04-02",
+  "kind": "odds_contract_and_state_machine_candidate",
+  "runtimeConsumable": false,
+  "purpose": "Candidato documental para contrato publico sports -> odds, taxonomia e maquina de estados antes de implementacao Java ou schema.",
+  "decisionStatus": "approved_human_checkpoint_04-02-T2",
+  "decisionBasis": {
+    "optionsCompared": {
+      "A": {
+        "key": "approved_synchronous_read_port",
+        "name": "Porta sincrona de leitura em sports",
+        "description": "Contrato publico em sports (br.com.betufu.sports.SportsResultForOddsPort), produtor em sports.internal e consumidor em odds (br.com.betufu.odds) sem imports internos.",
+        "disposition": "APPROVED_FOR_IMPLEMENTATION",
+        "rationale": "Preserva fronteira modular Modulith sem introduzir fila/mensageria desnecessaria para o MVP; dependencias unidirecionais sports <- odds sao proibidas e odds -> sports consome somente contrato publico."
+      },
+      "B": {
+        "key": "opaque_after_commit_application_event",
+        "name": "Evento de aplicacao assincrono apos commit",
+        "description": "Publicacao de ApplicationEvent no Spring apos commit de resultado esportivo.",
+        "disposition": "REJECTED_FOR_MVP",
+        "rationale": "Adiciona complexidade assincrona e risco de reentrega fora de ordem desnecessarios para o MVP monolito modular."
+      },
+      "C": {
+        "key": "versioned_odds_projection",
+        "name": "Projecao dedicada em odds mantida por eventos",
+        "description": "Modulo odds mantem copia e projecao propria de resultados esportivos.",
+        "disposition": "REJECTED_FOR_MVP",
+        "rationale": "Viola principio de fonte unica de autoridade esportiva e duplica cadastro de placares."
+      }
+    },
+    "selectedOption": "A",
+    "selectedOptionKey": "approved_synchronous_read_port",
+    "selectedOptionDescription": "Contrato pertencente a sports, produtor em sports.internal e consumidor odds sem imports internos.",
+    "modularBoundary": {
+      "publicPortClass": "br.com.betufu.sports.SportsResultForOddsPort",
+      "publicModels": [
+        "br.com.betufu.sports.SportsEventForOdds",
+        "br.com.betufu.sports.ConfirmedSportsResultForOdds",
+        "br.com.betufu.sports.SportsResultKindForOdds"
+      ],
+      "oddsPackage": "br.com.betufu.odds",
+      "sportsInternalPackage": "br.com.betufu.sports.internal",
+      "forbiddenImports": [
+        "br.com.betufu.sports.internal.."
+      ],
+      "forbiddenReverseDependency": "sports cannot depend on odds"
+    }
+  },
+  "boundaryContract": {
+    "port": {
+      "name": "SportsResultForOddsPort",
+      "package": "br.com.betufu.sports",
+      "methods": [
+        {
+          "name": "getEventForOdds",
+          "parameters": [
+            "UUID eventId"
+          ],
+          "returns": "Optional<SportsEventForOdds>",
+          "description": "Consulta projecao minima de elegibilidade do evento pre-game."
+        },
+        {
+          "name": "getConfirmedResultForOdds",
+          "parameters": [
+            "UUID eventId",
+            "UUID confirmedVersionId"
+          ],
+          "returns": "Optional<ConfirmedSportsResultForOdds>",
+          "description": "Consulta versao exata confirmada de resultado para observacao historica ou liquidacao."
+        },
+        {
+          "name": "findAdmissibleResultsAsOf",
+          "parameters": [
+            "UUID competitionId",
+            "UUID editionId",
+            "Instant asOfCutoff"
+          ],
+          "returns": "List<ConfirmedSportsResultForOdds>",
+          "description": "Consulta cronologica de resultados confirmados conhecidos ate o corte temporal."
+        }
+      ]
+    },
+    "models": {
+      "SportsEventForOdds": {
+        "package": "br.com.betufu.sports",
+        "fields": [
+          "eventId",
+          "competitionId",
+          "editionId",
+          "sportId",
+          "categoryId",
+          "scheduledAt",
+          "zoneId",
+          "format",
+          "slots"
+        ],
+        "allowedFormats": [
+          "HEAD_TO_HEAD"
+        ],
+        "rejectedFormats": [
+          "GENERIC"
+        ],
+        "slotStructure": [
+          "slotNo",
+          "displayLabel",
+          "teamId",
+          "teamName"
+        ],
+        "slotCount": 2,
+        "requiresConfirmedVersion": false
+      },
+      "ConfirmedSportsResultForOdds": {
+        "package": "br.com.betufu.sports",
+        "fields": [
+          "versionId",
+          "eventId",
+          "competitionId",
+          "editionId",
+          "versionNo",
+          "status",
+          "resultKind",
+          "scores",
+          "confirmedAt",
+          "knownAt",
+          "sportTime",
+          "supersedesVersionId"
+        ],
+        "admissibleStatuses": [
+          "CONFIRMADO",
+          "CORRIGIDO"
+        ],
+        "inadmissibleStatuses": [
+          "INFORMADO",
+          "AGUARDANDO_REVISAO"
+        ],
+        "scorePolicy": {
+          "source": "sports_result_version_slot (V16)",
+          "requiredFor": [
+            "SPORTING_RESULT"
+          ],
+          "forbiddenFor": [
+            "ADMINISTRATIVE_WALKOVER",
+            "ABANDONED_NO_VALID_RESULT",
+            "CANCELLED",
+            "POSTPONED"
+          ]
+        }
+      },
+      "SportsResultKindForOdds": {
+        "package": "br.com.betufu.sports",
+        "values": [
+          "SPORTING_RESULT",
+          "ADMINISTRATIVE_WALKOVER",
+          "ABANDONED_NO_VALID_RESULT",
+          "CANCELLED",
+          "POSTPONED"
+        ]
+      }
+    }
+  },
+  "taxonomy": {
+    "classes": [
+      "SPORTING_RESULT",
+      "ADMINISTRATIVE_WALKOVER",
+      "ABANDONED_NO_VALID_RESULT",
+      "CANCELLED",
+      "POSTPONED"
+    ],
+    "outcomeClasses": [
+      "SPORTING_RESULT",
+      "ADMINISTRATIVE_WALKOVER",
+      "ABANDONED_NO_VALID_RESULT"
+    ],
+    "lifecycleClasses": [
+      "CANCELLED",
+      "POSTPONED"
+    ],
+    "definitions": {
+      "SPORTING_RESULT": {
+        "meaning": "Resultado esportivo valido confirmado/corrigido na cadeia V16.",
+        "feedsElo": true,
+        "feedsDavidson": true,
+        "hasScore": true,
+        "drawEligibility": "Apenas quando regulamento da modalidade/fase autorizar empate no tempo regulamentar.",
+        "marketOutcome": "VALID_SPORTING_OUTCOME",
+        "settlementEffect": "NORMAL_SETTLEMENT"
+      },
+      "ADMINISTRATIVE_WALKOVER": {
+        "meaning": "Vitoria por W.O. administrativo sem placar esportivo.",
+        "feedsElo": false,
+        "feedsDavidson": false,
+        "hasScore": false,
+        "winnerAllowed": true,
+        "winnerPolicy": "Vencedor administrativo opcional, sem efeito no rating Elo/Davidson.",
+        "marketOutcome": "ADMINISTRATIVE_WALKOVER",
+        "settlementEffect": "VOID_REFUND"
+      },
+      "ABANDONED_NO_VALID_RESULT": {
+        "meaning": "Partida abandonada/interrompida sem resultado esportivo valido.",
+        "feedsElo": false,
+        "feedsDavidson": false,
+        "hasScore": false,
+        "winnerAllowed": false,
+        "marketOutcome": "ABANDONED",
+        "settlementEffect": "VOID_REFUND"
+      },
+      "CANCELLED": {
+        "meaning": "Evento cancelado no lifecycle esportivo (V24 CANCELADO).",
+        "feedsElo": false,
+        "feedsDavidson": false,
+        "hasScore": false,
+        "winnerAllowed": false,
+        "marketOutcome": "CANCELLED",
+        "settlementEffect": "VOID_REFUND"
+      },
+      "POSTPONED": {
+        "meaning": "Evento adiado no lifecycle esportivo (V24 ADIADO).",
+        "feedsElo": false,
+        "feedsDavidson": false,
+        "hasScore": false,
+        "winnerAllowed": false,
+        "marketOutcome": "POSTPONED",
+        "settlementEffect": "SUSPEND_AND_VERSION_ON_RESCHEDULE"
+      }
+    },
+    "resultVersionStatuses": {
+      "admissibleAtReplay": [
+        "CONFIRMADO",
+        "CORRIGIDO"
+      ],
+      "notAdmissibleAtReplay": [
+        "INFORMADO",
+        "AGUARDANDO_REVISAO"
+      ]
+    },
+    "separationRules": [
+      "CANCELLED e POSTPONED sao classes de lifecycle V24 e nao devem carregar payload de placar.",
+      "ADMINISTRATIVE_WALKOVER e ABANDONED_NO_VALID_RESULT nao carregam placar esportivo nem sintetico.",
+      "Empate e uma politica regulamentar restrita exclusivamente a SPORTING_RESULT.",
+      "Vencedor administrativo no W.O. nao produz alteracao no rating Elo ou Davidson."
+    ]
+  },
+  "marketStateMachine": {
+    "states": [
+      "DRAFT",
+      "OPEN",
+      "SUSPENDED",
+      "CLOSED",
+      "LOCKED",
+      "CANCELLED"
+    ],
+    "stateDescriptions": {
+      "DRAFT": "Rascunho de mercado em configuracao antes de publicacao de odds.",
+      "OPEN": "Mercado aberto para consulta publica pre-jogo e aceitacao de palpites.",
+      "SUSPENDED": "Mercado temporariamente suspenso para operacao (adiamento, distorcao ou proposta de override).",
+      "CLOSED": "Apostas encerradas no close deadline (inicio canonico do evento).",
+      "LOCKED": "Encerramento definitivo bloqueado para aguardar apuracao e liquidacao.",
+      "CANCELLED": "Mercado anulado/cancelado com devolucao de creditos."
+    },
+    "initialState": "DRAFT",
+    "terminalStates": [
+      "LOCKED",
+      "CANCELLED"
+    ],
+    "transitions": [
+      {
+        "from": "DRAFT",
+        "to": "OPEN",
+        "action": "PUBLISH_MARKET",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Publicacao inicial do mercado com preco e elenco publicado."
+      },
+      {
+        "from": "DRAFT",
+        "to": "CANCELLED",
+        "action": "CANCEL_DRAFT",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Cancelamento de mercado em rascunho."
+      },
+      {
+        "from": "OPEN",
+        "to": "SUSPENDED",
+        "action": "SUSPEND_MARKET",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Suspensao por adiamento (D-111), deteccao de anomalia ou proposta de override (D-116)."
+      },
+      {
+        "from": "OPEN",
+        "to": "CLOSED",
+        "action": "CLOSE_DEADLINE",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Fechamento automatico ao atingir o scheduledAt do evento."
+      },
+      {
+        "from": "OPEN",
+        "to": "CANCELLED",
+        "action": "CANCEL_MARKET",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Cancelamento do mercado por cancelamento do evento (D-110)."
+      },
+      {
+        "from": "SUSPENDED",
+        "to": "OPEN",
+        "action": "RESUME_MARKET",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Reabertura apos resolucao de suspensao ou rejeicao de override."
+      },
+      {
+        "from": "SUSPENDED",
+        "to": "CLOSED",
+        "action": "CLOSE_SUSPENDED",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Chegada do deadline de inicio durante suspensao."
+      },
+      {
+        "from": "SUSPENDED",
+        "to": "CANCELLED",
+        "action": "CANCEL_SUSPENDED",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Cancelamento definitivo de evento suspenso."
+      },
+      {
+        "from": "CLOSED",
+        "to": "LOCKED",
+        "action": "LOCK_MARKET",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Bloqueio definitivo pos-partida antes do settlement."
+      },
+      {
+        "from": "CLOSED",
+        "to": "SUSPENDED",
+        "action": "REOPEN_SUSPENDED",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Suspensao emergencial se partida foi atrasada/nao ocorreu."
+      },
+      {
+        "from": "CLOSED",
+        "to": "CANCELLED",
+        "action": "CANCEL_CLOSED",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Cancelamento pos-fechamento se jogo nao ocorreu."
+      },
+      {
+        "from": "LOCKED",
+        "to": "CANCELLED",
+        "action": "VOID_LOCKED",
+        "requiredCapability": "MANAGE_ODDS_MARKET",
+        "description": "Anulacao administrativa extraordinaria antes da liquidacao."
+      }
+    ],
+    "forbiddenTransitions": [
+      {
+        "from": "CLOSED",
+        "to": "OPEN",
+        "reason": "Mercado fechado nao pode ser reaberto diretamente sem suspensao auditada."
+      },
+      {
+        "from": "LOCKED",
+        "to": "OPEN",
+        "reason": "Mercado locked e terminal e imutavel."
+      },
+      {
+        "from": "LOCKED",
+        "to": "DRAFT",
+        "reason": "Regressao para rascunho e proibida."
+      },
+      {
+        "from": "CANCELLED",
+        "to": "OPEN",
+        "reason": "Mercado cancelado e terminal."
+      },
+      {
+        "from": "CANCELLED",
+        "to": "LOCKED",
+        "reason": "Mercado cancelado nao pode ser liquidado."
+      },
+      {
+        "from": "DRAFT",
+        "to": "LOCKED",
+        "reason": "Salto nao autorizado sem publicacao/fechamento."
+      }
+    ],
+    "postponementPolicy": {
+      "d111Compliance": true,
+      "onPostpone": "SUSPENDED",
+      "onReschedule": "Creates new immutable MarketVersion and CalculationVersion with incremented versionNo and audit trace.",
+      "preservesPriorVersion": true
+    },
+    "overridePolicy": {
+      "d116Compliance": true,
+      "d117Compliance": true,
+      "allowedStates": [
+        "SUSPENDED"
+      ],
+      "forbiddenStates": [
+        "DRAFT",
+        "OPEN",
+        "CLOSED",
+        "LOCKED",
+        "CANCELLED"
+      ],
+      "distinctActorsRequired": true,
+      "odds10ProofRequired": true,
+      "createsNewPriceVersion": true,
+      "neverRewritesAcceptedOdds": true
+    }
+  },
+  "governanceAndAuthority": {
+    "roles": [
+      "ADMINISTRADOR_GERAL",
+      "ADMINISTRADOR_COMPETICAO",
+      "MODERADOR"
+    ],
+    "capabilities": [
+      "VIEW_ODDS_MARKET",
+      "MANAGE_ODDS_MARKET",
+      "PROPOSE_ODDS_OVERRIDE",
+      "APPROVE_ODDS_OVERRIDE"
+    ],
+    "roleCapabilityMatrix": {
+      "ADMINISTRADOR_GERAL": [
+        "VIEW_ODDS_MARKET",
+        "MANAGE_ODDS_MARKET",
+        "PROPOSE_ODDS_OVERRIDE",
+        "APPROVE_ODDS_OVERRIDE"
+      ],
+      "ADMINISTRADOR_COMPETICAO": [
+        "VIEW_ODDS_MARKET",
+        "MANAGE_ODDS_MARKET",
+        "PROPOSE_ODDS_OVERRIDE",
+        "APPROVE_ODDS_OVERRIDE"
+      ],
+      "MODERADOR": [
+        "VIEW_ODDS_MARKET"
+      ]
+    },
+    "scopeDerivationRule": "Derivado exclusivamente da entidade sports_event.competition_id no banco; payload do cliente nunca decide autoridade.",
+    "odds10PreOverrideProof": {
+      "required": true,
+      "fields": [
+        "attemptTimestamp",
+        "sourceCorrectionReference",
+        "recalculationAttempted",
+        "residualDistortionReason"
+      ],
+      "rule": "Administrador deve corrigir fonte oficial ou tentar recalculacao antes de propor override; proposta rejeitada se faltar prova."
+    }
+  },
+  "mappings": {
+    "sportsToMarketMapping": [
+      {
+        "sportsFact": "SPORTING_RESULT (CONFIRMADO/CORRIGIDO)",
+        "hasScore": true,
+        "marketState": "CLOSED / LOCKED",
+        "marketOutcome": "VALID_SPORTING_RESULT",
+        "feedsElo": true,
+        "settlement": "SETTLED_BY_SCORE"
+      },
+      {
+        "sportsFact": "ADMINISTRATIVE_WALKOVER (W.O.)",
+        "hasScore": false,
+        "marketState": "CANCELLED",
+        "marketOutcome": "ADMINISTRATIVE_WALKOVER",
+        "feedsElo": false,
+        "settlement": "VOID_REFUND"
+      },
+      {
+        "sportsFact": "ABANDONED_NO_VALID_RESULT",
+        "hasScore": false,
+        "marketState": "CANCELLED",
+        "marketOutcome": "ABANDONED",
+        "feedsElo": false,
+        "settlement": "VOID_REFUND"
+      },
+      {
+        "sportsFact": "CANCELLED (V24)",
+        "hasScore": false,
+        "marketState": "CANCELLED",
+        "marketOutcome": "CANCELLED",
+        "feedsElo": false,
+        "settlement": "VOID_REFUND"
+      },
+      {
+        "sportsFact": "POSTPONED (V24)",
+        "hasScore": false,
+        "marketState": "SUSPENDED",
+        "marketOutcome": "POSTPONED",
+        "feedsElo": false,
+        "settlement": "SUSPEND_OR_NEW_VERSION"
+      }
+    ]
+  },
+  "fixtures": [
+    {
+      "id": "fixture_generic_format_rejected",
+      "description": "Evento com formato GENERIC e rejeitado para abertura de mercado detalhado de odds.",
+      "inputEvent": {
+        "eventId": "11111111-1111-1111-1111-111111111111",
+        "competitionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "editionId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "sportId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "categoryId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+        "scheduledAt": "2026-10-10T14:00:00Z",
+        "zoneId": "America/Sao_Paulo",
+        "format": "GENERIC",
+        "slots": [
+          {
+            "slotNo": 1,
+            "displayLabel": "Competidor 1"
+          },
+          {
+            "slotNo": 2,
+            "displayLabel": "Competidor 2"
+          },
+          {
+            "slotNo": 3,
+            "displayLabel": "Competidor 3"
+          }
+        ]
+      },
+      "expectedMarketCreation": "REJECTED_GENERIC_FORMAT_NOT_SUPPORTED",
+      "allowsGenericAgenda": true
+    },
+    {
+      "id": "fixture_head_to_head_valid",
+      "description": "Evento HEAD_TO_HEAD valido com 2 participantes pre-game e elegivel para criacao de mercado.",
+      "inputEvent": {
+        "eventId": "22222222-2222-2222-2222-222222222222",
+        "competitionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "editionId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "sportId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+        "categoryId": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+        "scheduledAt": "2026-10-10T14:00:00Z",
+        "zoneId": "America/Sao_Paulo",
+        "format": "HEAD_TO_HEAD",
+        "slots": [
+          {
+            "slotNo": 1,
+            "displayLabel": "Engenharia",
+            "teamId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+            "teamName": "Engenharia UFU"
+          },
+          {
+            "slotNo": 2,
+            "displayLabel": "Medicina",
+            "teamId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            "teamName": "Medicina UFU"
+          }
+        ]
+      },
+      "expectedMarketCreation": "ACCEPTED_HEAD_TO_HEAD",
+      "initialMarketState": "DRAFT"
+    },
+    {
+      "id": "fixture_sporting_result_h2h_score",
+      "description": "Resultado esportivo confirmado com 2 slots de placar V16; alimenta Elo e Davidson.",
+      "result": {
+        "versionId": "33333333-3333-3333-3333-333333333333",
+        "eventId": "22222222-2222-2222-2222-222222222222",
+        "competitionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "editionId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "versionNo": 1,
+        "status": "CONFIRMADO",
+        "resultKind": "SPORTING_RESULT",
+        "scores": [
+          {
+            "slotNo": 1,
+            "score": 3,
+            "teamId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+            "displayLabel": "Engenharia"
+          },
+          {
+            "slotNo": 2,
+            "score": 1,
+            "teamId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            "displayLabel": "Medicina"
+          }
+        ],
+        "confirmedAt": "2026-10-10T16:00:00Z",
+        "knownAt": "2026-10-10T16:05:00Z",
+        "sportTime": "2026-10-10T14:00:00Z",
+        "supersedesVersionId": null
+      },
+      "feedsElo": true,
+      "feedsDavidson": true,
+      "hasSportsScore": true,
+      "marketOutcome": "HOME_WIN"
+    },
+    {
+      "id": "fixture_sporting_result_draw_regulation",
+      "description": "Resultado esportivo empatado validado contra regulamento que permite empate no tempo regulamentar.",
+      "result": {
+        "versionId": "44444444-4444-4444-4444-444444444444",
+        "eventId": "22222222-2222-2222-2222-222222222222",
+        "competitionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "editionId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "versionNo": 1,
+        "status": "CONFIRMADO",
+        "resultKind": "SPORTING_RESULT",
+        "scores": [
+          {
+            "slotNo": 1,
+            "score": 2,
+            "teamId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+            "displayLabel": "Engenharia"
+          },
+          {
+            "slotNo": 2,
+            "score": 2,
+            "teamId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            "displayLabel": "Medicina"
+          }
+        ],
+        "confirmedAt": "2026-10-10T16:00:00Z",
+        "knownAt": "2026-10-10T16:05:00Z",
+        "sportTime": "2026-10-10T14:00:00Z",
+        "supersedesVersionId": null
+      },
+      "regulationAllowsDraw": true,
+      "feedsElo": true,
+      "feedsDavidson": true,
+      "marketOutcome": "DRAW"
+    },
+    {
+      "id": "fixture_administrative_walkover",
+      "description": "Vitoria por W.O. administrativo sem placar; nao sintetiza placar e nao afeta Elo.",
+      "result": {
+        "versionId": "55555555-5555-5555-5555-555555555555",
+        "eventId": "22222222-2222-2222-2222-222222222222",
+        "competitionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "editionId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "versionNo": 1,
+        "status": "CONFIRMADO",
+        "resultKind": "ADMINISTRATIVE_WALKOVER",
+        "scores": null,
+        "winnerTeamId": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+        "administrativeReason": "Ausencia de equipe adversaria no horario regulamentar.",
+        "confirmedAt": "2026-10-10T14:30:00Z",
+        "knownAt": "2026-10-10T14:35:00Z",
+        "sportTime": "2026-10-10T14:00:00Z",
+        "supersedesVersionId": null
+      },
+      "feedsElo": false,
+      "feedsDavidson": false,
+      "hasSportsScore": false,
+      "marketEffect": "VOID_REFUND"
+    },
+    {
+      "id": "fixture_abandoned_no_score",
+      "description": "Abandono de partida sem resultado valido; sem placar e sem vencedor.",
+      "result": {
+        "versionId": "66666666-6666-6666-6666-666666666666",
+        "eventId": "22222222-2222-2222-2222-222222222222",
+        "competitionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "editionId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "versionNo": 1,
+        "status": "CONFIRMADO",
+        "resultKind": "ABANDONED_NO_VALID_RESULT",
+        "scores": null,
+        "winnerTeamId": null,
+        "abandonmentReason": "Chuva torrencial e alagamento da quadra aos 5 minutos do primeiro tempo.",
+        "confirmedAt": "2026-10-10T14:20:00Z",
+        "knownAt": "2026-10-10T14:25:00Z",
+        "sportTime": "2026-10-10T14:00:00Z",
+        "supersedesVersionId": null
+      },
+      "feedsElo": false,
+      "feedsDavidson": false,
+      "hasSportsScore": false,
+      "marketEffect": "VOID_REFUND"
+    },
+    {
+      "id": "fixture_cancelled_lifecycle",
+      "description": "Evento cancelado via lifecycle V24; mercado e cancelado sem resultado.",
+      "lifecycleEvent": {
+        "eventId": "22222222-2222-2222-2222-222222222222",
+        "competitionId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "editionId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "previousStatus": "PUBLICADO",
+        "newStatus": "CANCELADO",
+        "reason": "Desistencia formal da competicao antes da rodada.",
+        "occurredAt": "2026-10-09T10:00:00Z"
+      },
+      "feedsElo": false,
+      "feedsDavidson": false,
+      "hasSportsScore": false,
+      "marketEffect": "CANCELLED_AND_VOID_REFUND"
+    },
+    {
+      "id": "fixture_postponed_and_rescheduled",
+      "description": "Evento adiado suspende o mercado; remarcacao cria versao 2 do preco/mercado mantendo linhagem.",
+      "initialVersion": {
+        "marketVersion": 1,
+        "calculationVersion": 1,
+        "scheduledAt": "2026-10-10T14:00:00Z",
+        "state": "SUSPENDED",
+        "reason": "Evento adiado por condicoes climaticas."
+      },
+      "rescheduledVersion": {
+        "marketVersion": 2,
+        "calculationVersion": 2,
+        "scheduledAt": "2026-10-17T14:00:00Z",
+        "state": "OPEN",
+        "supersedesMarketVersion": 1,
+        "auditReason": "Remarcacao do evento para nova data."
+      },
+      "d111Compliant": true
+    },
+    {
+      "id": "fixture_override_suspended_maker_checker",
+      "description": "Proposta de override aceita em mercado SUSPENDED com dois administradores distintos e prova ODDS-10.",
+      "marketState": "SUSPENDED",
+      "proposerIdentityId": "77777777-7777-7777-7777-777777777777",
+      "approverIdentityId": "88888888-8888-8888-8888-888888888888",
+      "distinctActors": true,
+      "odds10Precondition": {
+        "attemptTimestamp": "2026-10-10T10:00:00Z",
+        "sourceCorrectionReference": "Súmula revisada sem alteração de placar no sistema oficial",
+        "recalculationAttempted": true,
+        "residualDistortionReason": "Erro material na identificação de escalação inicial gerou distorção severa na odd calculada."
+      },
+      "expectedOutcome": "APPROVED_CREATES_NEW_IMMUTABLE_VERSION"
+    },
+    {
+      "id": "fixture_unlisted_transitions",
+      "description": "Conjunto de transicoes invalidas rejeitadas pela maquina de estados.",
+      "rejectedTransitions": [
+        {
+          "from": "CLOSED",
+          "to": "OPEN",
+          "expectedError": "FORBIDDEN_TRANSITION"
+        },
+        {
+          "from": "LOCKED",
+          "to": "OPEN",
+          "expectedError": "FORBIDDEN_TRANSITION"
+        },
+        {
+          "from": "LOCKED",
+          "to": "DRAFT",
+          "expectedError": "FORBIDDEN_TRANSITION"
+        },
+        {
+          "from": "CANCELLED",
+          "to": "OPEN",
+          "expectedError": "FORBIDDEN_TRANSITION"
+        },
+        {
+          "from": "CANCELLED",
+          "to": "LOCKED",
+          "expectedError": "FORBIDDEN_TRANSITION"
+        },
+        {
+          "from": "DRAFT",
+          "to": "LOCKED",
+          "expectedError": "FORBIDDEN_TRANSITION"
+        }
+      ]
+    }
+  ],
+  "approval": {
+    "kind": "human_checkpoint_token",
+    "status": "approved",
+    "approvedAt": "2026-09-07T16:00:00.000Z",
+    "approvedBy": "LopesGiovani",
+    "digest": "E86BF60A5DAA6738FE2636C25F583D4FC1370C01A8C0ACF5C9A5306F27F5A710",
+    "reviewReference": "04-02/T2@2026-09-07: owner message 'aprovar contrato e state machine 04-02'",
+    "reviewedArtifactHashes": {
+      "candidateSnapshot": "E86BF60A5DAA6738FE2636C25F583D4FC1370C01A8C0ACF5C9A5306F27F5A710"
+    }
+  }
+}
