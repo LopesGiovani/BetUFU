@@ -8,7 +8,7 @@ stopped_at: Phase 4 governance reconciled; 04-15 source-authority candidate is i
 last_updated: "2026-09-07"
 last_activity: 2026-09-07
 last_activity_desc: Governance S0-S9 approved; STATE reconciled to master HEAD 67119f5; 04-15/T2 is approved and integrated; 04-01/T2 remains fail-closed; no product execution or calibration approval.
-state_head: 67119f504bb39a4a0698c8fc22622a1e589ae823
+state_head: af9d2639eac75b3b7d04419386cd254ccfa70928
 progress:
   total_phases: 8
   completed_phases: 3

@@ -44,8 +44,15 @@ como certificação.
      --worktree C:\Users\giova\gsd-workspaces\phase-02\02-01 `
      --expected-base <SHA_COMPLETO> `
      --expected-branch worktree-agent-02-01 `
+     --run-id <ID_UNICO_DA_EXECUCAO> `
+     --approval-ref <REFERENCIA_DA_APROVACAO> `
      --worker-test "node --test scripts/validador-focal.test.mjs"
    ```
+
+   `--run-id` identifica unicamente a chamada para correlação entre diagnóstico,
+   resultado e handoff. `--approval-ref` vincula o dispatch à aprovação humana
+   específica que autorizou aquela execução; ambas são obrigatórias em qualquer
+   modo material e não substituem os demais gates ou evidências.
 
    `--worker-test` é repetível no máximo duas vezes, aceita somente classes
    rápidas previstas pelo adaptador, deve coincidir byte a byte com um
@@ -132,8 +139,9 @@ O ciclo acima é interpretado pelos seguintes estados obrigatórios:
   ou mutação Git.
 - **S3 Isolamento:** criar uma worktree e branch neutra por plano, a partir da
   mesma base; nunca usar `master`/`main` para worker e nunca compartilhar checkout.
-- **S4 Dispatch:** chamar `--execute-task` para uma única task. O worker é
-  efêmero, usa somente a allowlist e devolve JSON; não faz Git mutável,
+- **S4 Dispatch:** chamar `--execute-task` para uma única task, sempre com
+  `--run-id` e `--approval-ref`. O worker é efêmero, usa somente a allowlist e
+  devolve JSON; não faz Git mutável,
   instalações, rede, Docker, Testcontainers ou suítes agregadas.
 - **S5 Auditoria:** comparar HEAD, branch, status, paths, `files_changed`,
   `tests_requested` e `tests_executed`; registrar somente JSON sanitizado em

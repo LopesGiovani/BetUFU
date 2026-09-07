@@ -37,7 +37,10 @@ const WORKTREE = PROJECT_ROOT;
 const COMMON_GIT_DIRECTORY = resolve(PROJECT_ROOT, '.git');
 const BASE = 'a'.repeat(40);
 const BRANCH = 'worktree-agent-02-01';
+const RUN_ID = 'run-test-02-01';
+const APPROVAL_REF = 'chat-approval-02-01';
 const POSTGRES_TEST = 'backend/src/test/java/br/com/betufu/platform/persistence/PostgresSemanticsIT.java';
+const REDIS_SUPPORT = 'backend/src/test/java/br/com/betufu/platform/session/RedisContainerSupport.java';
 const MEASUREMENTS = '.planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-MEASUREMENTS.md';
 const FROZEN_PLAN = '.planning/phases/02-contas-verifica-o-e-opera-es-governadas/02-15-PLAN.md';
 const HASH_A = 'A'.repeat(64);
@@ -127,6 +130,8 @@ async function baseExecutionOptions(taskId = '02-01-T1', overrides = {}) {
     workspaceRoot: WORKSPACE_ROOT,
     expectedBase: BASE,
     expectedBranch: BRANCH,
+    runId: RUN_ID,
+    approvalReference: APPROVAL_REF,
     timeoutMs: 60_000,
     plans: await plansPromise,
     projectRoot: PROJECT_ROOT,
@@ -1001,13 +1006,14 @@ test('CLI exige exatamente um modo e argumentos completos para execução materi
       '--phase', '2', '--wave', '1', '--dry-run',
       '--worker-test', 'node scripts/validate-phase1.mjs --contract',
     ]),
-    /dry-run.*worker-test/u,
+    /dry-run.*execução material/u,
   );
 
   const material = parseArguments([
     '--phase', '2', '--wave', '1', '--execute-task',
     '--task', '02-01-T1', '--worktree', WORKTREE, '--workspace-root', WORKSPACE_ROOT,
     '--expected-base', BASE, '--expected-branch', BRANCH,
+    '--run-id', RUN_ID, '--approval-ref', APPROVAL_REF,
     '--worker-test', 'node scripts/validate-phase1.mjs --contract',
   ]);
   assert.deepEqual(material.workerTests, ['node scripts/validate-phase1.mjs --contract']);
@@ -1034,6 +1040,8 @@ test('CLI de continuação exige snapshot, baseline, correção e feedback expl�
     '--workspace-root', WORKSPACE_ROOT,
     '--expected-base', BASE,
     '--expected-branch', BRANCH,
+    '--run-id', RUN_ID,
+    '--approval-ref', APPROVAL_REF,
   ];
   const parsed = parseArguments([
     ...common,
@@ -1064,8 +1072,145 @@ test('CLI de continuação exige snapshot, baseline, correção e feedback expl�
       '--phase', '2', '--wave', '1', '--execute-task',
       '--task', '02-01-T1', '--worktree', WORKTREE, '--workspace-root', WORKSPACE_ROOT,
       '--expected-base', BASE, '--expected-branch', BRANCH,
+      '--run-id', RUN_ID, '--approval-ref', APPROVAL_REF,
       '--feedback', 'indevido',
     ]),
     /não aceita argumentos de continuação/u,
   );
+});
+
+test('CLI aceita próxima task somente com baseline aceita completa', () => {
+  const statusHash = 'E'.repeat(64);
+  const parsed = parseArguments([
+    '--phase', '2', '--wave', '1', '--next-task',
+    '--task', '02-01-T2', '--worktree', WORKTREE, '--workspace-root', WORKSPACE_ROOT,
+    '--expected-base', BASE, '--expected-branch', BRANCH,
+    '--run-id', RUN_ID, '--approval-ref', APPROVAL_REF,
+    '--accepted-status-sha256', statusHash,
+    '--accepted-baseline-file', `${MEASUREMENTS}=${HASH_A}`,
+  ]);
+
+  assert.equal(parsed.mode, 'next-task');
+  assert.deepEqual(parsed.acceptedBaseline, {
+    expectedStatusSha256: statusHash,
+    baselineFiles: [{ path: MEASUREMENTS, sha256: HASH_A }],
+  });
+  assert.throws(
+    () => parseArguments([
+      '--phase', '2', '--wave', '1', '--next-task',
+      '--task', '02-01-T2', '--worktree', WORKTREE, '--workspace-root', WORKSPACE_ROOT,
+      '--expected-base', BASE, '--expected-branch', BRANCH,
+      '--run-id', RUN_ID, '--approval-ref', APPROVAL_REF,
+    ]),
+    /argumentos de próxima task ausentes/u,
+  );
+  assert.throws(
+    () => parseArguments([
+      '--phase', '2', '--wave', '1', '--next-task',
+      '--task', '02-01-T2', '--worktree', WORKTREE, '--workspace-root', WORKSPACE_ROOT,
+      '--expected-base', BASE, '--expected-branch', BRANCH,
+      '--run-id', RUN_ID, '--approval-ref', APPROVAL_REF,
+      '--accepted-status-sha256', statusHash,
+      '--accepted-baseline-file', `${MEASUREMENTS}=${HASH_A}`,
+      '--feedback', 'atalho indevido',
+    ]),
+    /não aceita argumentos de continuação/u,
+  );
+});
+
+test('branches master e main são rejeitadas antes do dispatch', async () => {
+  for (const branch of ['master', 'main']) {
+    const fake = fakeProcesses({ branch });
+    await assert.rejects(
+      executeTask(await baseExecutionOptions('02-01-T1', { expectedBranch: branch }), {
+        runProcess: fake.runProcess,
+      }),
+      /master e main são proibidas/u,
+    );
+    assert.equal(fake.calls.filter((call) => call.command === 'agy').length, 0);
+  }
+});
+
+test('registro de execução inclui run_id, aprovação e duração', async () => {
+  let written = null;
+  const times = [new Date('2026-09-07T10:00:00.000Z'), new Date('2026-09-07T10:00:01.250Z')];
+  const fake = fakeProcesses();
+  const result = await executeTask(await baseExecutionOptions(), {
+    runProcess: fake.runProcess,
+    now: () => times.shift(),
+    writeRecord: async (_commonDirectory, record) => {
+      written = record;
+      return 'execution-record.json';
+    },
+  });
+
+  assert.equal(result.execution.run_id, RUN_ID);
+  assert.equal(result.execution.approval_reference, APPROVAL_REF);
+  assert.equal(result.execution.started_at, '2026-09-07T10:00:00.000Z');
+  assert.equal(result.execution.finished_at, '2026-09-07T10:00:01.250Z');
+  assert.equal(result.execution.duration_ms, 1250);
+  assert.deepEqual(written.execution, result.execution);
+});
+
+test('próxima task preserva baseline aceita e congela arquivos herdados', async () => {
+  const initialStatus = `?? ${MEASUREMENTS}\0?? ${POSTGRES_TEST}\0`;
+  const options = await baseExecutionOptions('02-01-T2', {
+    satisfiedTasks: ['02-01-T1'],
+    acceptedBaseline: {
+      expectedStatusSha256: sha256Hex(initialStatus),
+      baselineFiles: [
+        { path: MEASUREMENTS, sha256: HASH_A },
+        { path: POSTGRES_TEST, sha256: HASH_B },
+      ],
+    },
+  });
+  const fake = fakeProcesses({
+    initialStatus,
+    finalStatus: `?? ${MEASUREMENTS}\0?? ${POSTGRES_TEST}\0`,
+    initialHashes: { [MEASUREMENTS]: HASH_A, [POSTGRES_TEST]: HASH_B },
+    finalHashes: { [MEASUREMENTS]: HASH_C, [POSTGRES_TEST]: HASH_B },
+    agyStdout: JSON.stringify({
+      status: 'SUCCESS',
+      result: JSON.stringify(workerPayload({
+        task_id: '02-01-T2',
+        files_changed: [MEASUREMENTS],
+        tests_requested: [],
+      })),
+    }),
+  });
+  let written = null;
+  const result = await executeTask(options, {
+    runProcess: fake.runProcess,
+    hashPath: fake.hashPath,
+    writeRecord: async (_commonDirectory, record) => {
+      written = record;
+      return 'next-task-record.json';
+    },
+  });
+
+  assert.equal(result.mode, 'next-task');
+  assert.deepEqual(result.filesChanged, [MEASUREMENTS]);
+  assert.deepEqual(written.snapshot.frozenFiles, [POSTGRES_TEST]);
+  assert.deepEqual(written.snapshot.mutableBaselineFiles, [MEASUREMENTS]);
+});
+
+test('próxima task rejeita baseline com arquivo que não pertence às tasks anteriores', async () => {
+  const initialStatus = `?? ${REDIS_SUPPORT}\0`;
+  const options = await baseExecutionOptions('02-01-T2', {
+    satisfiedTasks: ['02-01-T1'],
+    acceptedBaseline: {
+      expectedStatusSha256: sha256Hex(initialStatus),
+      baselineFiles: [{ path: REDIS_SUPPORT, sha256: HASH_A }],
+    },
+  });
+  const fake = fakeProcesses({
+    initialStatus,
+    initialHashes: { [REDIS_SUPPORT]: HASH_A },
+  });
+
+  await assert.rejects(
+    executeTask(options, { runProcess: fake.runProcess, hashPath: fake.hashPath }),
+    /fora da allowlist.*RedisContainerSupport\.java/u,
+  );
+  assert.equal(fake.calls.filter((call) => call.command === 'agy').length, 0);
 });
