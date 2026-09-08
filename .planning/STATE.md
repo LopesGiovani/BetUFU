@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Plan 04-02 completed and certified; 04-15 source authority is integrated and 04-01 remains fail-closed by D-120
+stopped_at: Phase 4 Plan 04-03 completed and certified in worktree; 04-15 source authority is integrated and 04-01 remains fail-closed by D-120
 last_updated: "2026-09-07"
 last_activity: 2026-09-07
-last_activity_desc: Plan 04-02 completed on technical HEAD 1caa579 after T2 approval, focal and aggregate certification; documentation was rebased as 87e2817 onto master 0daddee; 04-01/T2 remains fail-closed and LAUFU remains ineligible for calibration or production.
-state_head: 1caa579bf070931ed4ba289bd3989248b2f6178c
+last_activity_desc: Plan 04-03 candidate approved by owner and certified on technical HEAD 1bed82d; no DDL or runtime was created; 04-01/T2 remains fail-closed and LAUFU remains ineligible for calibration or production.
+state_head: 1bed82d206ce18ea50095e1dbea9d61a63747109
 progress:
   total_phases: 8
   completed_phases: 3
@@ -39,8 +39,8 @@ milestone_name: milestone
   Supervisor/Worker governance is now the operating contract; Plan 04-02's
   contract checkpoint is closed, while downstream schema/producer/roster gates
   remain independent.
-- Plan 04-02 is integrated and clean; the next material action belongs to a
-  separately approved downstream Phase 4 plan. Any stale handoff, branch, HEAD,
+- Plan 04-02 is integrated and clean; Plan 04-03 is certified in its dedicated
+  worktree and awaits the authorized fast-forward integration. Any stale handoff, branch, HEAD,
   dependency or checkpoint mismatch remains blocking.
 
 # Estado do Projeto
