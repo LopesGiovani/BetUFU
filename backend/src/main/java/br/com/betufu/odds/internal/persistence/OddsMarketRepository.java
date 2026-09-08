@@ -1,7 +1,9 @@
 package br.com.betufu.odds.internal.persistence;
 
+import br.com.betufu.odds.internal.market.OddsMarketModels.OddsMarketVersion;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -103,6 +105,91 @@ public class OddsMarketRepository {
                   expectedLockVersion)
               == 1;
         });
+  }
+
+  public Optional<OddsMarketRecord> findMarketByEvent(UUID eventId, String marketType) {
+    if (eventId == null || marketType == null) return Optional.empty();
+    return jdbcTemplate.query(
+        "SELECT market_id, event_id, market_type, current_version_id, lock_version, created_at, updated_at FROM public.odds_market WHERE event_id = ? AND market_type = ?",
+        rs ->
+            rs.next()
+                ? Optional.of(
+                    new OddsMarketRecord(
+                        rs.getObject("market_id", UUID.class),
+                        rs.getObject("event_id", UUID.class),
+                        rs.getString("market_type"),
+                        rs.getObject("current_version_id", UUID.class),
+                        rs.getLong("lock_version"),
+                        instant(rs.getTimestamp("created_at")),
+                        instant(rs.getTimestamp("updated_at"))))
+                : Optional.empty(),
+        eventId,
+        marketType);
+  }
+
+  public Optional<OddsMarketVersion> findCurrentVersion(UUID marketId) {
+    if (marketId == null) return Optional.empty();
+    return jdbcTemplate.query(
+        "SELECT v.market_version_id, v.market_id, v.version_no, v.state, v.close_deadline, v.supersedes_version_id, v.created_at FROM public.odds_market_version v JOIN public.odds_market m ON m.current_version_id = v.market_version_id WHERE m.market_id = ?",
+        rs ->
+            rs.next()
+                ? Optional.of(
+                    new OddsMarketVersion(
+                        rs.getObject("market_version_id", UUID.class),
+                        rs.getObject("market_id", UUID.class),
+                        rs.getLong("version_no"),
+                        domainState(rs.getString("state")),
+                        instant(rs.getTimestamp("close_deadline")),
+                        rs.getObject("supersedes_version_id", UUID.class),
+                        instant(rs.getTimestamp("created_at"))))
+                : Optional.empty(),
+        marketId);
+  }
+
+  public List<OddsMarketVersion> findVersions(UUID marketId) {
+    if (marketId == null) return List.of();
+    return jdbcTemplate.query(
+        "SELECT market_version_id, market_id, version_no, state, close_deadline, supersedes_version_id, created_at FROM public.odds_market_version WHERE market_id = ? ORDER BY version_no ASC",
+        (rs, rowNum) ->
+            new OddsMarketVersion(
+                rs.getObject("market_version_id", UUID.class),
+                rs.getObject("market_id", UUID.class),
+                rs.getLong("version_no"),
+                domainState(rs.getString("state")),
+                instant(rs.getTimestamp("close_deadline")),
+                rs.getObject("supersedes_version_id", UUID.class),
+                instant(rs.getTimestamp("created_at"))),
+        marketId);
+  }
+
+  public OddsMarketVersion saveVersion(OddsMarketVersion record) {
+    Objects.requireNonNull(record, "record must not be null");
+    transactions.execute(
+        status -> {
+          jdbcTemplate.update(
+              "INSERT INTO public.odds_market_version (market_version_id, market_id, version_no, state, close_deadline, supersedes_version_id, created_at) VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP(6)))",
+              record.marketVersionId(),
+              record.marketId(),
+              record.versionNo(),
+              storageState(record.state()),
+              record.closeDeadline() == null ? null : Timestamp.from(record.closeDeadline()),
+              record.supersedesVersionId(),
+              record.createdAt() == null ? null : Timestamp.from(record.createdAt()));
+          return null;
+        });
+    return findVersions(record.marketId()).stream()
+        .filter(v -> v.marketVersionId().equals(record.marketVersionId()))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  public long nextVersionNo(UUID marketId) {
+    Long max =
+        jdbcTemplate.queryForObject(
+            "SELECT max(version_no) FROM public.odds_market_version WHERE market_id = ?",
+            Long.class,
+            marketId);
+    return max == null ? 1L : max + 1L;
   }
 
   public Optional<OddsCalculationRecord> findCalculation(UUID calculationId) {
@@ -364,5 +451,17 @@ public class OddsMarketRepository {
 
   private static Instant instant(Timestamp timestamp) {
     return timestamp == null ? null : timestamp.toInstant();
+  }
+
+  private static String storageState(br.com.betufu.odds.internal.market.MarketState state) {
+    return state == br.com.betufu.odds.internal.market.MarketState.CANCELLED
+        ? "VOID"
+        : state.name();
+  }
+
+  private static br.com.betufu.odds.internal.market.MarketState domainState(String state) {
+    return "VOID".equals(state)
+        ? br.com.betufu.odds.internal.market.MarketState.CANCELLED
+        : br.com.betufu.odds.internal.market.MarketState.valueOf(state);
   }
 }
