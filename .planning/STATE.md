@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 11 Plan 04-05 certified; integration follows the documented fast-forward closeout
+stopped_at: Phase 4 Wave 12 Plan 04-06 certified; integration follows the documented fast-forward closeout
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 11 Plan 04-05 connected market lifecycle and secure public odds projections; focal 8/8 and Maven 646/646 passed.
+last_activity_desc: Wave 12 Plan 04-06 implemented maker-checker odds overrides and audit controls; focal 34/34, Node 719/719 and Maven 646/646 passed.
 state_head: PENDING
 progress:
   total_phases: 8
@@ -16,6 +16,17 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Wave 12 closeout - 2026-09-08
+
+- Plan `04-06` is complete on the technical snapshot based on `02e2fd9`; exceptional odds overrides now require a persisted correction attempt, a suspended market and two distinct administrators in the same persisted competition scope.
+- Proposals and approvals are append-only `odds_override` facts. Approval creates a new market version, calculation and publication, then advances the market head with an optimistic lock; accepted history is never rewritten.
+- Certification passed focal `34/34`, Node `719/719`, Maven `646/646` and Spotless apply/check, all with zero failures, errors, skips or cancellations.
+
+## Wave 12 Git
+
+- Commit técnico: `PENDING` neste arquivo para evitar auto-referência circular.
+- Commit documental: `PENDING` neste arquivo para evitar auto-referência circular.
 
 ## Wave 11 closeout - 2026-09-08
 
