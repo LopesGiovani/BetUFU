@@ -116,6 +116,10 @@ class SportsRosterService {
         status -> {
           RosterRecord roster =
               repository.findRosterByTeamId(teamId).orElseThrow(SportsRosterService::notFound);
+          roster =
+              repository
+                  .findRosterByIdForUpdate(roster.rosterId())
+                  .orElseThrow(SportsRosterService::notFound);
           if (roster.lockVersion() != expectedLockVersion) {
             throw staleVersion();
           }

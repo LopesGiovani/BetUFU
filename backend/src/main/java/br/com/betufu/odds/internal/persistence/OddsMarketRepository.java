@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Repository;
@@ -17,7 +17,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /** JDBC boundary for odds lineage facts. Historical rows are never updated in application code. */
 @Repository
-@ConditionalOnBean(JdbcTemplate.class)
+@Profile("runtime | integrated")
 public class OddsMarketRepository {
 
   private final JdbcTemplate jdbcTemplate;

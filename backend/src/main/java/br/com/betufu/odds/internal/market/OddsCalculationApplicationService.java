@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class OddsCalculationApplicationService {
   private final OddsMarketRepository repository;
   private final OddsPricingKernel kernel;
 
+  @Autowired
   public OddsCalculationApplicationService(
       SportsResultForOddsPort sports, OddsMarketRepository repository) {
     this(sports, repository, new OddsPricingKernel());

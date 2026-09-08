@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(28);
+    assertThat(result.migrationsExecuted).isEqualTo(29);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(28);
+    assertThat(applied).hasSize(29);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -191,7 +191,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(28);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(29);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -200,7 +200,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(28);
+    assertThat(applied).hasSize(29);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -241,13 +241,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(28);
+      assertThat(totalExecuted).isEqualTo(29);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(28);
+      assertThat(applied).hasSize(29);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1552,11 +1552,24 @@ class FlywayMigrationIT {
   void v27CreatesOutcomeAuthorityTables() {
     Flyway flyway =
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(28);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(29);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('sports_outcome_fact','sports_outcome_sporting_payload','sports_outcome_administrative_payload','sports_outcome_head')",
                 Integer.class))
         .isEqualTo(4);
+  }
+
+  @Test
+  @DisplayName("V28 cria binding imutavel de roster por versao de mercado")
+  void v28CreatesImmutableRosterBinding() {
+    Flyway flyway =
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(29);
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'odds_market_roster_binding'",
+                Integer.class))
+        .isEqualTo(1);
   }
 }
