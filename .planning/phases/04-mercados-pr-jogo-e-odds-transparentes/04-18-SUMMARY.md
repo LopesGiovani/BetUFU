@@ -4,9 +4,9 @@ plan: "18"
 wave: 5
 status: complete
 completed_at: "2026-09-08"
-base_commit: e4168cc
-technical_commit: d19c16b
-documentation_commit: current documentation commit (hash intentionally omitted)
+base_commit: 8797ae2
+technical_commit: 8f571bb
+documentation_commit: e31aa8a
 ---
 
 # Plano 04-18 - Resumo
@@ -49,6 +49,6 @@ documentation_commit: current documentation commit (hash intentionally omitted)
 
 ## Git
 
-- Commit tecnico: `d19c16b`.
+- Commit tecnico: `8f571bb`.
 - Commit documental, integracao fast-forward e limpeza da worktree/branch foram concluidos localmente.
 - Nenhum push remoto foi executado.

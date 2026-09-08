@@ -4,9 +4,9 @@ plan: "12"
 status: complete
 completed_at: "2026-09-07"
 requirements: [ODDS-02, ODDS-03, ODDS-04, ODDS-06, ODDS-07, ODDS-08]
-base_commit: e896158
-technical_commit: 672fdd8
-documentation_commit: current documentation commit (hash intentionally omitted)
+base_commit: d290179
+technical_commit: 22823ae
+documentation_commit: 4a40ad2
 ---
 
 # Plano 04-12 - Resumo

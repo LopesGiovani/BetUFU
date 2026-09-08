@@ -4,9 +4,9 @@ plan: "16"
 wave: 6
 status: complete
 completed_at: "2026-09-08"
-base_commit: 927a03a
-technical_commit: db175ea
-documentation_commit: current documentation commit (hash intentionally omitted)
+base_commit: e31aa8a
+technical_commit: db5aab9
+documentation_commit: 1005b0b
 requirements: [ODDS-01, ODDS-04, ODDS-08, ODDS-13]
 ---
 
@@ -34,7 +34,7 @@ requirements: [ODDS-01, ODDS-04, ODDS-08, ODDS-13]
 
 - Os 12 caminhos alterados coincidem com a allowlist efetivamente executada; não houve dependências, OpenAPI, frontend, infraestrutura, V16, V24 ou push remoto.
 - O filename ratificado foi usado literalmente: `V27__create_sports_outcome_authority.sql`.
-- A integração foi fast-forward de `927a03a` para `db175ea`; a worktree e a branch temporárias foram removidas após a integração.
+- A reconstrução canônica preservou a árvore final de `64fba75` e consolidou a sequência a partir de `0daddee`; a worktree e a branch temporárias foram removidas após a integração.
 
 ## Limites e follow-ups
 
@@ -60,7 +60,7 @@ requirements: [ODDS-01, ODDS-04, ODDS-08, ODDS-13]
 
 ## Git
 
-- Commit tecnico: `db175ea`.
+- Commit tecnico: `db5aab9`.
 - Integracao fast-forward e limpeza da worktree/branch exatas concluidas localmente.
 - Nenhum push remoto foi executado.
 

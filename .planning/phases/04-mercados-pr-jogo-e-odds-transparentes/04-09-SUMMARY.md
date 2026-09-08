@@ -4,9 +4,9 @@ plan: "09"
 status: complete
 completed_at: "2026-09-08"
 requirements: [ODDS-08, ODDS-13]
-base_commit: 831b6ad
-technical_commit: ba3ccd8
-documentation_commit: current documentation commit (hash intentionally omitted)
+base_commit: 4a40ad2
+technical_commit: b406927
+documentation_commit: 8797ae2
 ---
 
 # Plano 04-09 - Resumo
@@ -31,7 +31,7 @@ documentation_commit: current documentation commit (hash intentionally omitted)
 ## Garantias
 
 - Repetir um comando com a mesma chave e digest preserva uma unica referencia; reutilizar a chave com payload divergente falha fechado.
-- A correcao `ba3ccd8` garante que retries de calculo, publicacao, lifecycle e override relerem o fato original em vez de tentar um novo `INSERT`.
+- A correcao incorporada em `b406927` garante que retries de calculo, publicacao, lifecycle e override relerem o fato original em vez de tentar um novo `INSERT`.
 - Corridas usam transacao PostgreSQL e locks para impedir escrita parcial ou avancos concorrentes inconsistentes.
 - Calculo, preco, lifecycle e override mantem referencias historicas exatas em vez de reescrever o passado.
 - A migration nao cria apostas, saldo, ledger ou liquidacao e nao antecipa os planos de governanca, produtor sports ou roster.
@@ -59,6 +59,6 @@ documentation_commit: current documentation commit (hash intentionally omitted)
 
 ## Revisao
 
-- O risco estrutural do range `831b6ad..ba3ccd8` foi classificado como `Elevated` pelo RepoWise, sem consumidores quebrados, ciclos, violacoes de seguranca ou gaps de testes funcionais apontados.
+- O risco estrutural do range canonico `4a40ad2..b406927` foi classificado como `Elevated` pelo RepoWise, sem consumidores quebrados, ciclos, violacoes de seguranca ou gaps de testes funcionais apontados.
 - A metrica de coesao do repositorio e um alerta de manutencao para futura separacao por agregado; a classe permanece deliberadamente unificada nesta allowlist para manter a transacao e o lock idempotente no mesmo boundary.
 - A cobertura por teste do RepoWise nao esta ingerida; a evidencia executavel focal e agregada permanece registrada acima.

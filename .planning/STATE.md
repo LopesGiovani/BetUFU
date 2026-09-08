@@ -8,7 +8,7 @@ stopped_at: Phase 4 Wave 6 completed, integrated and cleaned; Plan 04-16 is comp
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
 last_activity_desc: Wave 6 Plan 04-16 implemented the V27 unified sports outcome authority, administrative outcome workflow and V16 compatibility bridge; focal 38/38 + 2/2 + 20/20, Node 699/699 and Maven 594/594 passed.
-state_head: db175ea
+state_head: 1005b0b
 progress:
   total_phases: 8
   completed_phases: 3
@@ -19,7 +19,7 @@ milestone_name: milestone
 
 ## Wave 6 closeout - 2026-09-08
 
-- Plan `04-16` is complete on technical commit `db175ea`, based on `927a03a`.
+- Plan `04-16` is complete on technical commit `db5aab9`, based on `e31aa8a`.
 - Flyway V27 materializes one immutable outcome fact history plus one mutable current head per sports event. Sporting payloads reference exact V16 result versions; administrative payloads have no score columns and clear the legacy projection atomically.
 - The administrative service re-resolves operational identity, enforces global or competition-scoped administrator authority, locks the event row and advances the event version with compare-and-set semantics.
 - Certification passed focal T1 `38/38`, focal T2 `2/2`, focal T3 `20/20`, Node `699/699` and Maven `594/594`, all with zero failures, errors, skips or cancellations.
@@ -28,7 +28,7 @@ milestone_name: milestone
 
 ## Wave 5 closeout - 2026-09-08
 
-- Plan `04-18` is complete on technical commit `d19c16b`, based on `e4168cc`.
+- Plan `04-18` is complete on technical commit `8f571bb`, based on `8797ae2`.
 - Governance candidate, odds capabilities, server-side authorization, V26 audit vocabulary and append-only regression proofs are integrated in the technical snapshot.
 - Certification passed focal `108/108`, Node `699/699` and Maven `594/594`, with zero failures, errors or skips.
 - Global Spotless remains limited by two historical files outside this plan's allowlist; all new 04-18 files were formatted and the issue does not affect test certification.
@@ -37,7 +37,7 @@ milestone_name: milestone
 
 ## Wave 4 closeout - 2026-09-08
 
-- Plan `04-09` is complete on technical commits `61b209e` and corrective `ba3ccd8`, based on `831b6ad`; documentation is integrated in `0705315`.
+- Plan `04-09` is complete on technical commit `b406927`, based on `4a40ad2`; documentation is integrated in `8797ae2`.
 - Flyway V25 materializes the schema approved in 04-03 with append-only history, transactional idempotency and concurrency control, without betting, ledger or settlement objects.
 - Certification passed focal schema `2/2`, focal consolidated `54/54`, Node `699/699` and Maven `test` `594/594`, all with zero failures, errors or skips.
 - The Java files changed by 04-09 pass targeted Spotless. Global `clean verify` remains blocked by 19 preexisting LF/CRLF formatting divergences outside this plan's allowlist.
@@ -46,7 +46,7 @@ milestone_name: milestone
 
 ## Reconciliation checkpoint - 2026-09-07
 
-- The Wave 3 closeout used technical snapshot `672fdd8`; Wave 4 is now integrated locally through `0705315`, while `origin/master` remains at `8db17c6`; no push was performed.
+- The Wave 3 closeout used canonical technical snapshot `22823ae`; Wave 4 is now integrated locally through `8797ae2`; no push was performed.
 - Plan `04-15` is documentary/source governance only: its technical HEAD
   `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` is an ancestor of `master`; its
   T2 approval is recorded in `04-15-SUMMARY.md` and `04-VALIDATION.md`; it does
@@ -57,8 +57,8 @@ milestone_name: milestone
   or production eligible. By explicit owner decision, this fail-closed result is
   definitive and satisfies only the dependency boundary for Plan 04-02; it does
   not authorize calibration or production use.
-- Plan `04-02` is complete on technical HEAD `1caa579`, with documentation
-  commit `87e2817`; T2 approved the public
+- Plan `04-02` is complete on technical HEAD `0ec7580`, with documentation
+  commit `33b9111`; T2 approved the public
   sports-to-odds boundary, five-class taxonomy and independent market state
   machine. Its summary records focal/aggregate evidence and the remaining
   phase-boundary limitations.
