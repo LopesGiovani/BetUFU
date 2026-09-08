@@ -79,6 +79,9 @@ class FlywayChecksumIT {
     originalFlyway.migrate();
     assertThat(new ClassPathResource("db/migration/V26__extend_odds_governance_audit.sql").exists())
         .isTrue();
+    assertThat(
+            new ClassPathResource("db/migration/V27__create_sports_outcome_authority.sql").exists())
+        .isTrue();
 
     // 2. Prepara diretório temporário contendo V1 adulterada e V2 intacta
     Path tamperedV1 = tempDir.resolve("V1__create_local_identity.sql");

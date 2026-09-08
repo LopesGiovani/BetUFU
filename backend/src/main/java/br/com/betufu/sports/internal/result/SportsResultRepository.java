@@ -358,6 +358,45 @@ class SportsResultRepository {
         expectedLockVersion);
   }
 
+  void insertSportingOutcomeAuthority(
+      EventScope event, SportsResultVersion version, UUID supersedesFactId, Instant knownAt) {
+    UUID factId = UUID.randomUUID();
+    UUID currentFact =
+        jdbcTemplate.query(
+            "SELECT fact_id FROM public.sports_outcome_head WHERE event_id = ?",
+            rs -> rs.next() ? rs.getObject("fact_id", UUID.class) : null,
+            event.eventId());
+    supersedesFactId = supersedesFactId == null ? currentFact : supersedesFactId;
+    Instant sportTime =
+        jdbcTemplate.queryForObject(
+            "SELECT scheduled_at FROM public.sports_event WHERE event_id = ?",
+            (rs, rowNum) -> rs.getTimestamp(1).toInstant(),
+            event.eventId());
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_outcome_fact (fact_id,event_id,competition_id,edition_id,version_no,outcome_kind,source_reference,reason,recorded_by_identity_id,sport_time,known_at,supersedes_fact_id) VALUES (?,?,?,?,?,'SPORTING_RESULT',?,?,?,?,?,?)",
+        factId,
+        event.eventId(),
+        event.competitionId(),
+        event.editionId(),
+        version.versionNo(),
+        version.sourceReference(),
+        version.reason(),
+        version.recordedByIdentityId(),
+        Timestamp.from(sportTime),
+        Timestamp.from(knownAt),
+        supersedesFactId);
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_outcome_sporting_payload (fact_id,event_id,confirmed_version_id,confirmed_version_status,confirmed_at) VALUES (?,?,?,?,?)",
+        factId,
+        event.eventId(),
+        version.versionId(),
+        version.status(),
+        Timestamp.from(version.confirmedAt()));
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_outcome_head (event_id,fact_id,lock_version) VALUES (?,?,?) ON CONFLICT (event_id) DO UPDATE SET fact_id = EXCLUDED.fact_id, lock_version = EXCLUDED.lock_version, updated_at = CURRENT_TIMESTAMP(6)",
+        event.eventId(), factId, event.lockVersion() + 1);
+  }
+
   int updateEventLockVersion(UUID eventId, long expectedLockVersion) {
     return jdbcTemplate.update(
         """

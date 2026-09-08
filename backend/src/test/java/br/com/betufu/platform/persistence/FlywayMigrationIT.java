@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(27);
+    assertThat(result.migrationsExecuted).isEqualTo(28);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(27);
+    assertThat(applied).hasSize(28);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -174,6 +174,7 @@ class FlywayMigrationIT {
     assertThat(applied[25].getVersion().getVersion()).isEqualTo("25");
     assertThat(applied[25].getState()).isEqualTo(MigrationState.SUCCESS);
     assertThat(applied[26].getVersion().getVersion()).isEqualTo("26");
+    assertThat(applied[27].getVersion().getVersion()).isEqualTo("27");
     assertThat(applied[26].getState()).isEqualTo(MigrationState.SUCCESS);
 
     Integer guardCount =
@@ -190,7 +191,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(27);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(28);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -199,7 +200,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(27);
+    assertThat(applied).hasSize(28);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -240,13 +241,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(27);
+      assertThat(totalExecuted).isEqualTo(28);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(27);
+      assertThat(applied).hasSize(28);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1544,5 +1545,16 @@ class FlywayMigrationIT {
                     "https://example.invalid/v22-invalido",
                     identityId))
         .hasMessageContaining("ck_sports_event_publication_format");
+  }
+
+  @Test
+  @DisplayName("V27 cria a autoridade unica de outcomes sem alterar V16 e V24")
+  void v27CreatesOutcomeAuthorityTables() {
+    Flyway flyway = Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(28);
+    assertThat(jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('sports_outcome_fact','sports_outcome_sporting_payload','sports_outcome_administrative_payload','sports_outcome_head')",
+            Integer.class))
+        .isEqualTo(4);
   }
 }

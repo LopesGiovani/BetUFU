@@ -269,6 +269,8 @@ public class SportsResultService {
                   expectedLockVersion,
                   scoreItems);
 
+          repository.insertSportingOutcomeAuthority(locked, created, null, now);
+
           int eventUpdated =
               repository.updateEventConfirmedVersion(
                   eventId, created.versionId(), expectedLockVersion);
@@ -350,6 +352,8 @@ public class SportsResultService {
                   supersedesId,
                   expectedLockVersion,
                   scoreItems);
+
+          repository.insertSportingOutcomeAuthority(locked, created, null, now);
 
           int eventUpdated =
               repository.updateEventConfirmedVersion(
