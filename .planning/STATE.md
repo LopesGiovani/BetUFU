@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 6 completed, integrated and cleaned; Plan 04-16 is complete
+stopped_at: Phase 4 Wave 7 completed in worktree; Plan 04-17 is complete pending integration
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 6 Plan 04-16 implemented the V27 unified sports outcome authority, administrative outcome workflow and V16 compatibility bridge; focal 38/38 + 2/2 + 20/20, Node 699/699 and Maven 594/594 passed.
-state_head: 1005b0b
+last_activity_desc: Wave 7 Plan 04-17 implemented the concrete sports result producer for odds with temporal replay and boundary proofs; focal 2/2 + 10/10, Node 699/699 and Maven 594/594 passed.
+state_head: f1bcce9
 progress:
   total_phases: 8
   completed_phases: 3
@@ -16,6 +16,13 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Wave 7 closeout - 2026-09-08
+
+- Plan `04-17` is complete in the dedicated worktree based on `032a98d`; the producer, JDBC read-model, mapper and temporal/boundary ITs are ready for linear integration.
+- The odds boundary consumes only the public sports port. Current result reads require the V27 head and exact V16 `confirmed_version_id`; as-of replay uses `known_at` and supersession rather than hindsight.
+- Certification passed focal `2/2` and `10/10`, Spotless apply/check, Node `699/699` and Maven `594/594`, all with zero failures, errors, skips or cancellations.
+- Technical and documentation commit hashes will be recorded in `04-17-SUMMARY.md` during the authorized two-commit closeout.
 
 ## Wave 6 closeout - 2026-09-08
 
