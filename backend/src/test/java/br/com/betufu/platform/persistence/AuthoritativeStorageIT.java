@@ -57,6 +57,8 @@ import org.testcontainers.utility.DockerImageName;
       "BETUFU_OIDC_ISSUER_URI=https://idp.invalid",
       "BETUFU_OIDC_CLIENT_ID=betufu-authoritative-it",
       "BETUFU_OIDC_CLIENT_SECRET=unused-secret",
+      "BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION=v1",
+      "BETUFU_MATRICULA_HMAC_KEY_V1=dGVzdC1vbmx5LWZhaWwtY2xvc2VkLWtleS0wMDAwMDE=",
       "BETUFU_S3_BUCKET=betufu-private",
       "BETUFU_S3_REGION=us-east-1",
       "BETUFU_S3_ACCESS_KEY_ID=test-access-key",
