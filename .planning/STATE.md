@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 10 Plan 04-19 certified; integration follows the documented fast-forward closeout
+stopped_at: Phase 4 Wave 11 Plan 04-05 certified; integration follows the documented fast-forward closeout
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 9 Plan 04-10 implemented temporal odds replay, input filtering and restoring negative mutation proofs; focal 44/44, Node 714/714 and Maven 646/646 passed.
+last_activity_desc: Wave 11 Plan 04-05 connected market lifecycle and secure public odds projections; focal 8/8 and Maven 646/646 passed.
 state_head: PENDING
 progress:
   total_phases: 8
@@ -16,6 +16,18 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Wave 11 closeout - 2026-09-08
+
+- Plan `04-05` is complete on the technical snapshot based on `3e15f33`; H2H market creation, publication, lifecycle and public projections are integrated.
+- The existing `odds.internal.persistence.OddsMarketRepository` remains the sole persistence boundary. Market versions and lifecycle facts are append-only, with optimistic head advancement.
+- Anonymous GET access is limited to `/api/v1/public/odds/**`; the public DTO separates current summary from mathematical/lineage explanation and omits operational identity and evidence.
+- Certification passed focal `8/8`, Spotless apply/check and Maven `646/646`, all with zero failures, errors or skips.
+
+## Wave 11 Git
+
+- Commit técnico: `PENDING` neste arquivo para evitar auto-referência circular.
+- Commit documental: `PENDING` neste arquivo para evitar auto-referência circular.
 
 ## Wave 10 closeout - 2026-09-08
 
