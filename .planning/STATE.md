@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 8 Plan 04-04 certified; integration follows the documented fast-forward closeout
+stopped_at: Phase 4 Wave 9 Plan 04-10 certified; integration follows the documented fast-forward closeout
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 8 Plan 04-04 implemented the deterministic odds pricing kernel and application service; focal 24/24 + 4/4, Node 699/699 and Maven 602/602 passed.
-state_head: f741e21
+last_activity_desc: Wave 9 Plan 04-10 implemented temporal odds replay, input filtering and restoring negative mutation proofs; focal 44/44, Node 714/714 and Maven 646/646 passed.
+state_head: c9dd669
 progress:
   total_phases: 8
   completed_phases: 3
@@ -16,6 +16,19 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Wave 9 closeout - 2026-09-08
+
+- Plan `04-10` is complete on the technical commit recorded below, based on `4d142a6`.
+- `OddsInputFilter` excludes administrative, invalid and numeric W.O. outcomes without synthesizing scores; `OddsReplayService` replays admissible immutable history at the requested temporal cutoff and preserves prior prices.
+- Volume, liquidity and exposure remain outside the pricing input; correction and supersession produce new calculations without rewriting historical facts.
+- Certification passed focal `44/44`, the Node mutation harness `15/15`, Spotless apply/check, Node `714/714` and Maven `646/646`, all with zero failures, errors, skips or cancellations.
+- The seven implementation/test paths are the only technical paths changed; no migration, OpenAPI, frontend, dependency or infrastructure path was modified.
+
+## Wave 9 Git
+
+- Commit técnico: `c9dd669`.
+- Commit documental: `PENDING` neste arquivo para evitar auto-referência circular.
 
 ## Wave 8 closeout - 2026-09-08
 
