@@ -277,6 +277,32 @@ class AuditImmutabilityIT {
   }
 
   @Test
+  @DisplayName("V26 aceita acoes odds novas e preserva a imutabilidade append-only")
+  void v26AcceptsOddsActionsAndRejectsHistoricalMutation() {
+    JdbcTemplate migrator = migratorJdbcTemplate();
+    UUID eventId = UUID.randomUUID();
+    migrator.update(
+        "INSERT INTO public.audit_event (event_id, action, outcome, reason) VALUES (?, ?, ?, ?)",
+        eventId,
+        AuditEntry.ACTION_ODDS_OVERRIDE_APPROVED,
+        AuditEntry.OUTCOME_PERMITTED,
+        "Override aprovado por segundo administrador");
+
+    assertThatThrownBy(
+            () ->
+                migrator.update(
+                    "UPDATE public.audit_event SET action = ? WHERE event_id = ?",
+                    AuditEntry.ACTION_ODDS_MARKET_CREATED,
+                    eventId))
+        .isInstanceOf(DataAccessException.class)
+        .hasMessageContaining("audit_event is immutable");
+    assertThatThrownBy(
+            () -> migrator.update("DELETE FROM public.audit_event WHERE event_id = ?", eventId))
+        .isInstanceOf(DataAccessException.class)
+        .hasMessageContaining("audit_event is immutable");
+  }
+
+  @Test
   @DisplayName("AUDT-02: Runtime insere e le, mas nao altera, remove, trunca nem cria objeto")
   void runtimeHasOnlySelectAndInsertOnAuditTrailAndNoDdl() {
     UUID eventId = UUID.randomUUID();

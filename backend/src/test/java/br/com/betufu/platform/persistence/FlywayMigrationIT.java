@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(26);
+    assertThat(result.migrationsExecuted).isEqualTo(27);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(26);
+    assertThat(applied).hasSize(27);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -173,6 +173,8 @@ class FlywayMigrationIT {
     assertThat(applied[24].getState()).isEqualTo(MigrationState.SUCCESS);
     assertThat(applied[25].getVersion().getVersion()).isEqualTo("25");
     assertThat(applied[25].getState()).isEqualTo(MigrationState.SUCCESS);
+    assertThat(applied[26].getVersion().getVersion()).isEqualTo("26");
+    assertThat(applied[26].getState()).isEqualTo(MigrationState.SUCCESS);
 
     Integer guardCount =
         jdbcTemplate.queryForObject(
@@ -188,7 +190,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(26);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(27);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -197,7 +199,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(26);
+    assertThat(applied).hasSize(27);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -238,13 +240,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(26);
+      assertThat(totalExecuted).isEqualTo(27);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(26);
+      assertThat(applied).hasSize(27);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();

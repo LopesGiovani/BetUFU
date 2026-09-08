@@ -22,7 +22,11 @@ class OperationalCapabilitiesResponseTest {
           "MANAGE_ROLES",
           "CORRECT_ENROLLMENT",
           "MANAGE_SPORTS_CATALOG",
-          "BOOTSTRAP_SPORTS_COMPETITION");
+          "BOOTSTRAP_SPORTS_COMPETITION",
+          "VIEW_ODDS_MARKET",
+          "MANAGE_ODDS_MARKET",
+          "PROPOSE_ODDS_OVERRIDE",
+          "APPROVE_ODDS_OVERRIDE");
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -57,6 +61,10 @@ class OperationalCapabilitiesResponseTest {
     assertThat(OperationalCapability.CORRECT_ENROLLMENT.ordinal()).isEqualTo(2);
     assertThat(OperationalCapability.MANAGE_SPORTS_CATALOG.ordinal()).isEqualTo(3);
     assertThat(OperationalCapability.BOOTSTRAP_SPORTS_COMPETITION.ordinal()).isEqualTo(4);
+    assertThat(OperationalCapability.VIEW_ODDS_MARKET.ordinal()).isEqualTo(5);
+    assertThat(OperationalCapability.MANAGE_ODDS_MARKET.ordinal()).isEqualTo(6);
+    assertThat(OperationalCapability.PROPOSE_ODDS_OVERRIDE.ordinal()).isEqualTo(7);
+    assertThat(OperationalCapability.APPROVE_ODDS_OVERRIDE.ordinal()).isEqualTo(8);
   }
 
   @Test

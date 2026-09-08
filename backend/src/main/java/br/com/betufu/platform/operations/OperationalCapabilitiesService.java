@@ -103,6 +103,14 @@ public class OperationalCapabilitiesService {
     } else if (isScopedCompAdmin) {
       capabilities.add(OperationalCapability.MANAGE_SPORTS_CATALOG);
     }
+    if (isGlobalAdmin || isScopedCompAdmin || isScopedModerator) {
+      capabilities.add(OperationalCapability.VIEW_ODDS_MARKET);
+    }
+    if (isGlobalAdmin || isScopedCompAdmin) {
+      capabilities.add(OperationalCapability.MANAGE_ODDS_MARKET);
+      capabilities.add(OperationalCapability.PROPOSE_ODDS_OVERRIDE);
+      capabilities.add(OperationalCapability.APPROVE_ODDS_OVERRIDE);
+    }
 
     return new OperationalCapabilitiesResponse(capabilities);
   }

@@ -249,12 +249,16 @@ class OperationalCapabilitiesIT {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.capabilities").isArray())
-        .andExpect(jsonPath("$.capabilities.length()").value(5))
+        .andExpect(jsonPath("$.capabilities.length()").value(9))
         .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
         .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_ROLES"))
         .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"))
         .andExpect(jsonPath("$.capabilities[3]").value("MANAGE_SPORTS_CATALOG"))
-        .andExpect(jsonPath("$.capabilities[4]").value("BOOTSTRAP_SPORTS_COMPETITION"));
+        .andExpect(jsonPath("$.capabilities[4]").value("BOOTSTRAP_SPORTS_COMPETITION"))
+        .andExpect(jsonPath("$.capabilities[5]").value("VIEW_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[6]").value("MANAGE_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[7]").value("PROPOSE_ODDS_OVERRIDE"))
+        .andExpect(jsonPath("$.capabilities[8]").value("APPROVE_ODDS_OVERRIDE"));
   }
 
   @Test
@@ -267,9 +271,13 @@ class OperationalCapabilitiesIT {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.capabilities").isArray())
-        .andExpect(jsonPath("$.capabilities.length()").value(2))
+        .andExpect(jsonPath("$.capabilities.length()").value(6))
         .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
-        .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_SPORTS_CATALOG"));
+        .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_SPORTS_CATALOG"))
+        .andExpect(jsonPath("$.capabilities[2]").value("VIEW_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[3]").value("MANAGE_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[4]").value("PROPOSE_ODDS_OVERRIDE"))
+        .andExpect(jsonPath("$.capabilities[5]").value("APPROVE_ODDS_OVERRIDE"));
   }
 
   @Test
@@ -282,8 +290,9 @@ class OperationalCapabilitiesIT {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.capabilities").isArray())
-        .andExpect(jsonPath("$.capabilities.length()").value(1))
-        .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"));
+        .andExpect(jsonPath("$.capabilities.length()").value(2))
+        .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
+        .andExpect(jsonPath("$.capabilities[1]").value("VIEW_ODDS_MARKET"));
   }
 
   @Test
@@ -349,9 +358,13 @@ class OperationalCapabilitiesIT {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.capabilities").isArray())
-        .andExpect(jsonPath("$.capabilities.length()").value(2))
+        .andExpect(jsonPath("$.capabilities.length()").value(6))
         .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
-        .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_SPORTS_CATALOG"));
+        .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_SPORTS_CATALOG"))
+        .andExpect(jsonPath("$.capabilities[2]").value("VIEW_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[3]").value("MANAGE_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[4]").value("PROPOSE_ODDS_OVERRIDE"))
+        .andExpect(jsonPath("$.capabilities[5]").value("APPROVE_ODDS_OVERRIDE"));
 
     // Usuário com ADMINISTRADOR_GERAL global e MODERADOR escopado
     mockMvc
@@ -361,12 +374,16 @@ class OperationalCapabilitiesIT {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.capabilities").isArray())
-        .andExpect(jsonPath("$.capabilities.length()").value(5))
+        .andExpect(jsonPath("$.capabilities.length()").value(9))
         .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
         .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_ROLES"))
         .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"))
         .andExpect(jsonPath("$.capabilities[3]").value("MANAGE_SPORTS_CATALOG"))
-        .andExpect(jsonPath("$.capabilities[4]").value("BOOTSTRAP_SPORTS_COMPETITION"));
+        .andExpect(jsonPath("$.capabilities[4]").value("BOOTSTRAP_SPORTS_COMPETITION"))
+        .andExpect(jsonPath("$.capabilities[5]").value("VIEW_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[6]").value("MANAGE_ODDS_MARKET"))
+        .andExpect(jsonPath("$.capabilities[7]").value("PROPOSE_ODDS_OVERRIDE"))
+        .andExpect(jsonPath("$.capabilities[8]").value("APPROVE_ODDS_OVERRIDE"));
   }
 
   @Test
@@ -429,7 +446,7 @@ class OperationalCapabilitiesIT {
                 .with(oidcPrincipalWithCustomIss(ISSUER, "admin-sub"))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.capabilities.length()").value(5));
+        .andExpect(jsonPath("$.capabilities.length()").value(9));
 
     // java.net.URL
     mockMvc
@@ -438,7 +455,7 @@ class OperationalCapabilitiesIT {
                 .with(oidcPrincipalWithCustomIss(URI.create(ISSUER).toURL(), "admin-sub"))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.capabilities.length()").value(5));
+        .andExpect(jsonPath("$.capabilities.length()").value(9));
 
     // java.net.URI
     mockMvc
@@ -447,7 +464,7 @@ class OperationalCapabilitiesIT {
                 .with(oidcPrincipalWithCustomIss(URI.create(ISSUER), "admin-sub"))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.capabilities.length()").value(5));
+        .andExpect(jsonPath("$.capabilities.length()").value(9));
   }
 
   @Test
@@ -509,7 +526,7 @@ class OperationalCapabilitiesIT {
 
     assertThat(body)
         .contains(
-            "\"capabilities\":[\"VIEW_OPERATIONAL_PANEL\",\"MANAGE_ROLES\",\"CORRECT_ENROLLMENT\",\"MANAGE_SPORTS_CATALOG\",\"BOOTSTRAP_SPORTS_COMPETITION\"]")
+            "\"capabilities\":[\"VIEW_OPERATIONAL_PANEL\",\"MANAGE_ROLES\",\"CORRECT_ENROLLMENT\",\"MANAGE_SPORTS_CATALOG\",\"BOOTSTRAP_SPORTS_COMPETITION\",\"VIEW_ODDS_MARKET\",\"MANAGE_ODDS_MARKET\",\"PROPOSE_ODDS_OVERRIDE\",\"APPROVE_ODDS_OVERRIDE\"]")
         .doesNotContain(adminIdentityId.toString())
         .doesNotContain("admin_geral")
         .doesNotContain("ADMINISTRADOR_GERAL")

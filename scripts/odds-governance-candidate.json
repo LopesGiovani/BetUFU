@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "04-18.odds-governance-candidate.v1",
+  "phase": "04-mercados-pr-jogo-e-odds-transparentes",
+  "plan": "04-18",
+  "kind": "non_runtime_governance_candidate",
+  "runtimeConsumable": false,
+  "decisionStatus": "approved_human_checkpoint_04-18-T1",
+  "approval": {
+    "approvedBy": "LopesGiovani",
+    "approvalReference": "aprovar governance 04-18",
+    "scope": "matriz de capabilities, autorizacao server-side, escopo derivado do recurso e vocabulario de auditoria",
+    "requiresFreshApprovalWhenChanged": true
+  },
+  "commands": [
+    {
+      "name": "VIEW_ODDS_MARKET",
+      "capability": "VIEW_ODDS_MARKET",
+      "roles": ["ADMINISTRADOR_GERAL", "ADMINISTRADOR_COMPETICAO", "MODERADOR"],
+      "scope": "sports_event.competition_id persistido",
+      "authorizationOwner": "OddsAuthorizationService",
+      "uiOnly": false,
+      "auditAction": "ODDS_MARKET_VIEWED"
+    },
+    {
+      "name": "MANAGE_ODDS_MARKET",
+      "capability": "MANAGE_ODDS_MARKET",
+      "roles": ["ADMINISTRADOR_GERAL", "ADMINISTRADOR_COMPETICAO"],
+      "scope": "sports_event.competition_id persistido",
+      "authorizationOwner": "OddsAuthorizationService",
+      "uiOnly": false,
+      "auditAction": "ODDS_MARKET_LIFECYCLE_CHANGED"
+    },
+    {
+      "name": "PROPOSE_ODDS_OVERRIDE",
+      "capability": "PROPOSE_ODDS_OVERRIDE",
+      "roles": ["ADMINISTRADOR_GERAL", "ADMINISTRADOR_COMPETICAO"],
+      "scope": "odds_market.event_id -> sports_event.competition_id persistido",
+      "authorizationOwner": "OddsAuthorizationService",
+      "uiOnly": false,
+      "auditAction": "ODDS_OVERRIDE_PROPOSED",
+      "requires": ["marketState=SUSPENDED", "odds10PreOverrideProof", "distinctApproverLater"]
+    },
+    {
+      "name": "APPROVE_ODDS_OVERRIDE",
+      "capability": "APPROVE_ODDS_OVERRIDE",
+      "roles": ["ADMINISTRADOR_GERAL", "ADMINISTRADOR_COMPETICAO"],
+      "scope": "odds_market.event_id -> sports_event.competition_id persistido",
+      "authorizationOwner": "OddsAuthorizationService",
+      "uiOnly": false,
+      "auditAction": "ODDS_OVERRIDE_APPROVED",
+      "requires": ["marketState=SUSPENDED", "proposerId != approverId", "noAcceptedOddsRewrite"]
+    }
+  ],
+  "roles": [
+    "ADMINISTRADOR_GERAL",
+    "ADMINISTRADOR_COMPETICAO",
+    "MODERADOR"
+  ],
+  "capabilities": [
+    "VIEW_ODDS_MARKET",
+    "MANAGE_ODDS_MARKET",
+    "PROPOSE_ODDS_OVERRIDE",
+    "APPROVE_ODDS_OVERRIDE"
+  ],
+  "roleCapabilityMatrix": {
+    "ADMINISTRADOR_GERAL": [
+      "VIEW_ODDS_MARKET",
+      "MANAGE_ODDS_MARKET",
+      "PROPOSE_ODDS_OVERRIDE",
+      "APPROVE_ODDS_OVERRIDE"
+    ],
+    "ADMINISTRADOR_COMPETICAO": [
+      "VIEW_ODDS_MARKET",
+      "MANAGE_ODDS_MARKET",
+      "PROPOSE_ODDS_OVERRIDE",
+      "APPROVE_ODDS_OVERRIDE"
+    ],
+    "MODERADOR": [
+      "VIEW_ODDS_MARKET"
+    ]
+  },
+  "authorizationOwners": {
+    "navigation": "OperationalCapabilitiesService",
+    "oddsCommands": "br.com.betufu.odds.internal.governance.OddsAuthorizationService",
+    "identityResolution": "br.com.betufu.platform.identity.OperationalIdentityLookup",
+    "sportsCommands": "SportsOutcomeService",
+    "auditPersistence": "br.com.betufu.audit.internal.AuditService"
+  },
+  "scopeDerivationRule": "Derivado exclusivamente da entidade sports_event.competition_id no banco; payload do cliente nunca decide autoridade.",
+  "odds10PreOverrideProof": {
+    "required": true,
+    "fields": [
+      "attemptTimestamp",
+      "sourceCorrectionReference",
+      "recalculationAttempted",
+      "residualDistortionReason"
+    ],
+    "rule": "Administrador deve corrigir fonte oficial ou tentar recalculacao antes de propor override; proposta rejeitada se faltar prova."
+  },
+  "auditActions": [
+    "ODDS_MARKET_VIEWED",
+    "ODDS_MARKET_CREATED",
+    "ODDS_MARKET_LIFECYCLE_CHANGED",
+    "ODDS_CALCULATION_RECORDED",
+    "ODDS_PUBLICATION_RECORDED",
+    "ODDS_OVERRIDE_PROPOSED",
+    "ODDS_OVERRIDE_APPROVED",
+    "ODDS_OVERRIDE_REJECTED"
+  ],
+  "legacyAuditActionsPreserved": true,
+  "migrationCandidate": {
+    "filename": "backend/src/main/resources/db/migration/V26__extend_odds_governance_audit.sql",
+    "successorOf": "V25__create_odds_market_lineage.sql",
+    "forwardOnly": true,
+    "runtimeDdlOwner": "Flyway",
+    "adds": ["closed audit vocabulary in public.audit_event", "governance audit metadata"],
+    "forbiddenObjects": ["ledger", "settlement", "bet", "wager", "payout"],
+    "doesNotEditAppliedMigrations": true
+  },
+  "negativeControls": [
+    "unknown capability is omitted from navigation",
+    "capability presence never authorizes a command",
+    "missing identity, role or persisted scope is denied",
+    "client-supplied market/competition scope is ignored",
+    "self-approval is denied",
+    "audit UPDATE and DELETE are denied",
+    "unknown audit action is denied by Java and PostgreSQL"
+  ]
+}

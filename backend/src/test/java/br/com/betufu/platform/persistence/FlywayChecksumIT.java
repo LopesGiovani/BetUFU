@@ -1,5 +1,6 @@
 package br.com.betufu.platform.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
@@ -76,6 +77,8 @@ class FlywayChecksumIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     originalFlyway.migrate();
+    assertThat(new ClassPathResource("db/migration/V26__extend_odds_governance_audit.sql").exists())
+        .isTrue();
 
     // 2. Prepara diretório temporário contendo V1 adulterada e V2 intacta
     Path tamperedV1 = tempDir.resolve("V1__create_local_identity.sql");
