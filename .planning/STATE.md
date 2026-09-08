@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 5 completed, integrated and cleaned; Plan 04-18 is complete
+stopped_at: Phase 4 Wave 6 completed, integrated and cleaned; Plan 04-16 is complete
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 5 Plan 04-18 implemented odds governance capabilities, server-side authorization and closed audit vocabulary; focal 108/108, Node 699/699 and Maven 594/594 passed.
-state_head: d19c16b
+last_activity_desc: Wave 6 Plan 04-16 implemented the V27 unified sports outcome authority, administrative outcome workflow and V16 compatibility bridge; focal 38/38 + 2/2 + 20/20, Node 699/699 and Maven 594/594 passed.
+state_head: db175ea
 progress:
   total_phases: 8
   completed_phases: 3
@@ -16,6 +16,15 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Wave 6 closeout - 2026-09-08
+
+- Plan `04-16` is complete on technical commit `db175ea`, based on `927a03a`.
+- Flyway V27 materializes one immutable outcome fact history plus one mutable current head per sports event. Sporting payloads reference exact V16 result versions; administrative payloads have no score columns and clear the legacy projection atomically.
+- The administrative service re-resolves operational identity, enforces global or competition-scoped administrator authority, locks the event row and advances the event version with compare-and-set semantics.
+- Certification passed focal T1 `38/38`, focal T2 `2/2`, focal T3 `20/20`, Node `699/699` and Maven `594/594`, all with zero failures, errors, skips or cancellations.
+- Known limits are recorded in `04-16-SUMMARY.md`: audit action vocabulary, persistent command receipts and a dedicated real cross-kind concurrency/as-of proof require a subsequent ratified plan; no behavior was invented outside this allowlist.
+- The worktree and temporary branch were integrated linearly and removed. No remote push was performed.
 
 ## Wave 5 closeout - 2026-09-08
 
