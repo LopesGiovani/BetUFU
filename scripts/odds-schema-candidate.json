@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "04-03.odds-schema-candidate.v1",
+  "phase": "04-mercados-pr-jogo-e-odds-transparentes",
+  "plan": "04-03",
+  "kind": "non_runtime_postgresql_schema_candidate",
+  "runtimeConsumable": false,
+  "purpose": "Candidato documental para revisar a persistencia de mercados e sua linhagem antes de qualquer DDL ou runtime.",
+  "decisionStatus": "approved_human_checkpoint_04-03-T1",
+  "approval": {
+    "approvedBy": "LopesGiovani",
+    "approvalReference": "04-03/T1@2026-09-07: owner approved additive odds schema modeling",
+    "scope": "modelagem aditiva de identidade, calculo, probabilidade justa, preco publicado, lifecycle e auditoria",
+    "sha256RecordedInSummary": true,
+    "requiresFreshApprovalWhenChanged": true
+  },
+  "migrationInventoryDigest": {
+    "algorithm": "SHA-256",
+    "value": "B2A8576E678F6F95DDB99E2658879A8641C7E7146C6AE1C15FABB56F76DC3870",
+    "calculation": "sorted filename:raw-file-sha256 lines joined with LF",
+    "lastExistingMigration": "V24__create_event_lifecycle_history.sql",
+    "inventorySource": "backend/src/main/resources/db/migration"
+  },
+  "migrationSequence": [
+    {
+      "sequence": 1,
+      "filenameCandidate": "VNN_MARKETS__create_odds_market_lineage.sql",
+      "filenameStatus": "requires_literal_ratification_before_04-09",
+      "ownerPlan": "04-09",
+      "dependsOn": ["V24__create_event_lifecycle_history.sql"],
+      "creates": ["market_identity", "market_version", "calculation", "published_price", "market_lifecycle", "override", "odds_audit_event"],
+      "forwardOnly": true,
+      "mayEditAppliedMigrations": false
+    },
+    {
+      "sequence": 2,
+      "filenameCandidate": "future_forward_fix_ratified_by_04-16_or_04-19",
+      "filenameStatus": "not_created_by_this_plan",
+      "ownerPlan": "04-16-or-04-19",
+      "dependsOn": ["the_literal_04-09_migration"],
+      "creates": ["later_authority_or_roster_constraints_only"],
+      "forwardOnly": true,
+      "mayEditAppliedMigrations": false
+    }
+  ],
+  "sourceAuthority": {
+    "database": "PostgreSQL",
+    "migrationTool": "Flyway",
+    "authoritativeStore": "PostgreSQL tables created by ratified forward-only migrations",
+    "redisAllowedForAuthoritativeOddsStorage": false,
+    "candidateDoesNotCreateRuntime": true,
+    "candidateDoesNotExecuteDdl": true
+  },
+  "tables": [
+    {
+      "name": "odds_market",
+      "role": "stable market identity",
+      "appendOnly": false,
+      "mutableFields": ["current_version_id", "lock_version", "updated_at"],
+      "immutableFields": ["market_id", "event_id", "market_type", "created_at"],
+      "identity": ["market_id", "event_id", "market_type"]
+    },
+    {
+      "name": "odds_market_version",
+      "role": "versioned template and state facts",
+      "appendOnly": true,
+      "immutableFields": ["market_version_id", "market_id", "version_no", "state", "close_deadline", "created_at", "supersedes_version_id"]
+    },
+    {
+      "name": "odds_calculation",
+      "role": "append-only model calculation and fair probabilities",
+      "appendOnly": true,
+      "immutableFields": ["calculation_id", "market_version_id", "algorithm_version", "configuration_digest", "input_snapshot", "confirmed_version_id", "fair_probability", "confidence", "created_at"]
+    },
+    {
+      "name": "odds_published_price",
+      "role": "append-only published prices and margin",
+      "appendOnly": true,
+      "immutableFields": ["published_price_version_id", "calculation_id", "margin", "rounding_mode", "published_odds", "published_at"]
+    },
+    {
+      "name": "odds_market_lifecycle",
+      "role": "append-only suspend, resume, close, lock, postpone, cancel and void facts",
+      "appendOnly": true,
+      "immutableFields": ["lifecycle_fact_id", "market_id", "from_state", "to_state", "reason", "actor_id", "occurred_at"]
+    },
+    {
+      "name": "odds_override",
+      "role": "append-only maker-checker override request and decision facts",
+      "appendOnly": true,
+      "immutableFields": ["override_id", "market_id", "calculation_id", "proposer_id", "approver_id", "reason", "decision", "created_at"]
+    },
+    {
+      "name": "odds_audit_event",
+      "role": "append-only audit envelope for protected changes",
+      "appendOnly": true,
+      "immutableFields": ["audit_event_id", "aggregate_type", "aggregate_id", "action", "actor_id", "payload_digest", "occurred_at"]
+    },
+    {
+      "name": "odds_idempotency_command",
+      "role": "unique command receipt for retry-safe writes",
+      "appendOnly": true,
+      "immutableFields": ["command_id", "actor_id", "command_type", "idempotency_key", "payload_digest", "result_reference", "created_at"]
+    }
+  ],
+  "constraints": [
+    {"id": "C-01", "rule": "market_id is stable and never reused for another event or market type"},
+    {"id": "C-02", "rule": "one market identity has at most one current version pointer"},
+    {"id": "C-03", "rule": "market version number is unique per market and supersession is acyclic"},
+    {"id": "C-04", "rule": "calculation references exactly one market version and immutable configuration digest"},
+    {"id": "C-05", "rule": "published price references exactly one calculation and cannot be updated or deleted"},
+    {"id": "C-06", "rule": "fair probabilities and published odds are non-negative finite values"},
+    {"id": "C-07", "rule": "published odds use a versioned rounding mode and preserve the separate fair probability"},
+    {"id": "C-08", "rule": "historical facts reject UPDATE and DELETE through database privileges and trigger protection"},
+    {"id": "C-09", "rule": "override proposer and approver are distinct identities and both decisions are audited"},
+    {"id": "C-10", "rule": "payload discriminator enforces exclusive sport-result versus administrative/lifecycle payload"},
+    {"id": "C-11", "rule": "sport result references the exact confirmedVersionId from V16 without copying or synthesizing scores"},
+    {"id": "C-12", "rule": "administrative walkover, abandonment, cancellation and postponement carry no sports score"},
+    {"id": "C-13", "rule": "foreign keys to 04-16 authority and 04-19 roster are added only in their later ratified forward-fix"},
+    {"id": "C-14", "rule": "legacy V16/V24 rows remain readable and are never rewritten by odds migrations"}
+  ],
+  "locks": {
+    "strategy": "PostgreSQL row lock plus optimistic compare-and-set",
+    "identityLock": "SELECT FOR UPDATE on odds_market during current_version update",
+    "compareAndSet": "lock_version must match the command snapshot before mutation",
+    "deadlockPolicy": "stable aggregate ordering and bounded retry outside the candidate",
+    "partialWritePolicy": "single transaction rolls back fact, head pointer, audit and command receipt together"
+  },
+  "idempotency": {
+    "key": ["actor_id", "command_type", "idempotency_key"],
+    "payloadDigestRequired": true,
+    "samePayload": "return the original result_reference without another fact",
+    "differentPayload": "reject with no new rows or head mutation",
+    "receiptAppendOnly": true
+  },
+  "lineageEnvelope": {
+    "appendOnlyFacts": true,
+    "requiredIdentity": ["fact_id", "market_id", "event_id"],
+    "requiredTemporalFields": ["created_at", "known_at"],
+    "requiredPredecessorFields": ["version_no", "supersedes_id"],
+    "headIsProjectionOnly": true,
+    "sportResult": {
+      "authority": "sports_outcome_authority",
+      "confirmedVersionId": "exact_V16_reference",
+      "allowedStatuses": ["CONFIRMADO", "CORRIGIDO"],
+      "scoresCopiedIntoOdds": false,
+      "syntheticScores": false
+    },
+    "administrativeFacts": {
+      "scoreAllowed": false,
+      "feedsEloOrDavidson": false,
+      "lifecycleOwner": "sports_event_lifecycle_history_v24"
+    }
+  },
+  "compatibility": {
+    "baseline": ["V16__create_event_result_versions.sql", "V24__create_event_lifecycle_history.sql"],
+    "legacyReaders": "continue reading V16/V24 without requiring odds rows",
+    "legacyWriters": "remain unchanged; odds does not alter sports result or lifecycle history",
+    "confirmedVersionReference": "nullable for a pre-game market, exact and admissible when a historical sporting result is used",
+    "eventPreGame": "may exist without a result head or confirmedVersionId",
+    "regulationAndAsOf": "store the versioned regulation and as-of cut used by each calculation",
+    "roster": "binding and atomicity remain owned by 04-19",
+    "rollback": "conceptual rollback is a forward-fix migration; applied migrations are never edited"
+  },
+  "forbiddenObjects": [
+    "ledger",
+    "settlement",
+    "bet",
+    "bets",
+    "wager",
+    "credits",
+    "liquidity",
+    "exposure",
+    "payout",
+    "redis_authoritative_odds_store",
+    "sports_internal_repository_copy"
+  ],
+  "phaseBoundaries": {
+    "thisPlan": ["document candidate and invariants only"],
+    "04-09": ["literal migration, PostgreSQL enforcement and persistence tests after fresh gate"],
+    "04-16": ["sports authority and workflow constraints"],
+    "04-17": ["sports producer/read model"],
+    "04-18": ["governance and override policy"],
+    "04-19": ["roster binding and atomicity"],
+    "notImplementedHere": ["DDL", "entities", "repositories", "pricing", "settlement", "API", "UI"]
+  }
+}
