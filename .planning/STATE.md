@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Plan 04-03 completed and certified in worktree; 04-15 source authority is integrated and 04-01 remains fail-closed by D-120
+stopped_at: Phase 4 Wave 3 completed, integrated and cleaned; Plans 04-03 and 04-12 are certified
 last_updated: "2026-09-07"
 last_activity: 2026-09-07
-last_activity_desc: Plan 04-03 candidate approved by owner and certified on technical HEAD 1bed82d; no DDL or runtime was created; 04-01/T2 remains fail-closed and LAUFU remains ineligible for calibration or production.
-state_head: 1bed82d206ce18ea50095e1dbea9d61a63747109
+last_activity_desc: Wave 3 Plans 04-03 and 04-12 integrated and certified; Node 699/699 and Maven 592/592 passed; schema remains documentary and calibration vectors are independent of LAUFU.
+state_head: 672fdd8
 progress:
   total_phases: 8
   completed_phases: 3
@@ -19,7 +19,7 @@ milestone_name: milestone
 
 ## Reconciliation checkpoint - 2026-09-07
 
-- `master` is at `0daddee711fb` and `origin/master` remains at `df2f00907b7b`; the worker branch is based on the live master.
+- `master` contains the corrected technical snapshot `672fdd8`; the documentation closeout is the current local commit and `origin/master` remains at `8db17c6`; no push was performed.
 - Plan `04-15` is documentary/source governance only: its technical HEAD
   `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` is an ancestor of `master`; its
   T2 approval is recorded in `04-15-SUMMARY.md` and `04-VALIDATION.md`; it does
@@ -35,12 +35,12 @@ milestone_name: milestone
   sports-to-odds boundary, five-class taxonomy and independent market state
   machine. Its summary records focal/aggregate evidence and the remaining
   phase-boundary limitations.
-- Phase 4 remains in planning with `1/19` phase plans executed. The approved
+- Phase 4 remains in planning with `3/19` phase plans executed. The approved
   Supervisor/Worker governance is now the operating contract; Plan 04-02's
   contract checkpoint is closed, while downstream schema/producer/roster gates
   remain independent.
-- Plan 04-02 is integrated and clean; Plan 04-03 is certified in its dedicated
-  worktree and awaits the authorized fast-forward integration. Any stale handoff, branch, HEAD,
+- Plans 04-02, 04-03 and 04-12 are integrated and clean; Wave 3 aggregate
+  certification passed Node `699/699` and Maven `592/592`. Any stale handoff, branch, HEAD,
   dependency or checkpoint mismatch remains blocking.
 
 # Estado do Projeto
@@ -68,14 +68,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** snapshot documental da Fase 4 aprovado; o gate 04-01 está endurecido e os parâmetros do Elo, empate e confrontos de referência continuam condicionados à calibração aprovada.
+**Current focus:** Wave 3 concluida; o schema candidato e os oraculos independentes estao prontos para os planos posteriores, sem promover a captura LAUFU.
 
 ## Current Position
 
 Phase: 4 of 8 — Mercados Pré-jogo e Odds Transparentes
-Plan: 19 planos documentados (46 tasks); nenhum plano executado.
-Status: Planning - snapshot documental da Fase 4 aprovado; execução bloqueada por 9 checkpoints humanos.
-Last activity: 2026-09-06 - 04-01 T1 passou 20/20; T2 permaneceu fail-closed após separação entre invariantes compartilhadas e asserções T1, com paths seguros e elegibilidade explícita; nenhum código de produto ou backtest executado.
+Plan: 19 planos documentados (46 tasks); 3 planos executados.
+Status: Planning - Waves 0 a 3 possuem entregas parciais; gates dos planos posteriores continuam independentes.
+Last activity: 2026-09-07 - Wave 3 concluiu 04-03 e 04-12; Node 699/699 e Maven 592/592 passaram, sem DDL, motor de pricing ou uso da LAUFU.
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.

@@ -6,6 +6,7 @@ completed_at: "2026-09-07"
 requirements: [ODDS-08, ODDS-13]
 base_commit: 8db17c6
 technical_commit: 1bed82d
+documentation_commit: e896158
 ---
 
 # Plano 04-03 - Resumo
@@ -27,7 +28,7 @@ technical_commit: 1bed82d
 ## Evidencia
 
 - Comando oficial de schema: exit code `0`.
-- Candidato: `FE7F4C7A45EBC426D968E52B4A2D7BA6621818BEFDB7B1F330D9921C74E17DA9`.
+- Candidato, SHA-256 normalizado para LF: `FE7F4C7A45EBC426D968E52B4A2D7BA6621818BEFDB7B1F330D9921C74E17DA9`.
 - Inventario existente de migrations: `B2A8576E678F6F95DDB99E2658879A8641C7E7146C6AE1C15FABB56F76DC3870`.
 - Nenhuma tabela de betting, ledger ou settlement aparece no candidato.
 
