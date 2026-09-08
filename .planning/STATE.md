@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 7 completed in worktree; Plan 04-17 is complete pending integration
+stopped_at: Phase 4 Wave 8 Plan 04-04 certified; integration follows the documented fast-forward closeout
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 7 Plan 04-17 implemented the concrete sports result producer for odds with temporal replay and boundary proofs; focal 2/2 + 10/10, Node 699/699 and Maven 594/594 passed.
-state_head: f1bcce9
+last_activity_desc: Wave 8 Plan 04-04 implemented the deterministic odds pricing kernel and application service; focal 24/24 + 4/4, Node 699/699 and Maven 602/602 passed.
+state_head: f741e21
 progress:
   total_phases: 8
   completed_phases: 3
@@ -17,12 +17,20 @@ progress:
 milestone_name: milestone
 ---
 
+## Wave 8 closeout - 2026-09-08
+
+- Plan `04-04` is complete on technical commit `f741e21`, based on `7fed324`.
+- The pure pricing kernel applies the ratified Elo/Davidson, confidence, margin and rounding parameters; low samples are neutral and administrative facts never enter the rating replay.
+- `OddsCalculationApplicationService` consumes the public sports port, enforces the temporal cutoff and stores fair probability separately from the published two-decimal odds.
+- Certification passed focal model/calibration `24/24`, PostgreSQL application `4/4`, Spotless apply/check, Node `699/699` and Maven `602/602`, all with zero failures, errors, skips or cancellations.
+- The exact ten implementation/test paths are recorded in the technical commit; migration, OpenAPI, frontend and infrastructure remain untouched.
+
 ## Wave 7 closeout - 2026-09-08
 
-- Plan `04-17` is complete in the dedicated worktree based on `032a98d`; the producer, JDBC read-model, mapper and temporal/boundary ITs are ready for linear integration.
+- Plan `04-17` is complete on technical commit `f1bcce9`, based on `032a98d`; the producer, JDBC read-model, mapper and temporal/boundary ITs are integrated in the current master line.
 - The odds boundary consumes only the public sports port. Current result reads require the V27 head and exact V16 `confirmed_version_id`; as-of replay uses `known_at` and supersession rather than hindsight.
 - Certification passed focal `2/2` and `10/10`, Spotless apply/check, Node `699/699` and Maven `594/594`, all with zero failures, errors, skips or cancellations.
-- Technical and documentation commit hashes will be recorded in `04-17-SUMMARY.md` during the authorized two-commit closeout.
+- The documentation hash remains intentionally omitted from the summary to avoid a self-referential commit; no remote push was performed by that wave.
 
 ## Wave 6 closeout - 2026-09-08
 
