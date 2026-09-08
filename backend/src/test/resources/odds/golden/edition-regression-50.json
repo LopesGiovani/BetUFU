@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "04-12.golden.v1",
+  "fixtureId": "edition-regression-50",
+  "oracle": "independent_closed_form",
+  "sourceAuthority": "owner_ratified_parameter_set",
+  "sourceManifest": "04-01.calibration-manifest.v2",
+  "usesLaufu": false,
+  "derivation": "new edition rating moves 50 percent from the previous rating toward initial 1500",
+  "payload": {
+    "previousRating": 1700.0,
+    "initialRating": 1500.0,
+    "regressionFraction": 0.5,
+    "expectedRating": 1600.0
+  },
+  "oracleDigestInput": "edition-regression-50|1700|1500|0.5|1600",
+  "oracleDigestSha256": "2DE2D3EEBA72337945FBE2D00EF7969ECAFA9B96C5FC6AD1A03D0299DBB65504"
+}

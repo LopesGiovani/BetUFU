@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "04-12.golden.v1",
+  "fixtureId": "davidson-draw",
+  "oracle": "independent_regulation_branch",
+  "sourceAuthority": "owner_ratified_parameter_set",
+  "sourceManifest": "04-01.calibration-manifest.v2",
+  "usesLaufu": false,
+  "derivation": "the regulation branch controls whether the draw outcome exists; the numerical Davidson prior remains open for a later calibration gate",
+  "payload": {
+    "withoutDraw": {
+      "regulationAllowsDraw": false,
+      "outcomes": ["HOME", "AWAY"],
+      "probabilityCount": 2
+    },
+    "withDraw": {
+      "regulationAllowsDraw": true,
+      "outcomes": ["HOME", "DRAW", "AWAY"],
+      "probabilityCount": 3
+    },
+    "drawPriorStatus": "open_pending_calibration"
+  },
+  "oracleDigestInput": "davidson-draw|no-draw=HOME,AWAY|draw=HOME,DRAW,AWAY|prior=open",
+  "oracleDigestSha256": "1C817CDD4EDD8A084D462FBC0F7ECE96F7CD34D1273FF96C661175E109A26192"
+}

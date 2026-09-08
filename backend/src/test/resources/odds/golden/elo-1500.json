@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "04-12.golden.v1",
+  "fixtureId": "elo-1500",
+  "oracle": "independent_closed_form",
+  "sourceAuthority": "owner_ratified_parameter_set",
+  "sourceManifest": "04-01.calibration-manifest.v2",
+  "usesLaufu": false,
+  "derivation": "initial rating is 1500 independently for each sport and category",
+  "payload": {
+    "sport": "FUTSAL",
+    "category": "MASCULINO",
+    "homeInitialRating": 1500.0,
+    "awayInitialRating": 1500.0,
+    "expectedEqualProbability": 0.5
+  },
+  "oracleDigestInput": "elo-1500|FUTSAL|MASCULINO|1500|1500|0.5",
+  "oracleDigestSha256": "8470EEAFF7AD3EBB90FE7FF549CBF3ECEDE490DB95AD73ADC9E1CA51C132551C"
+}

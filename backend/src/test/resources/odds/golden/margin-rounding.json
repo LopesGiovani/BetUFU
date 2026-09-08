@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "04-12.golden.v1",
+  "fixtureId": "margin-rounding",
+  "oracle": "independent_price_transform",
+  "sourceAuthority": "owner_ratified_parameter_set",
+  "sourceManifest": "04-01.calibration-manifest.v2",
+  "usesLaufu": false,
+  "derivation": "published price is separate from fair probability and applies a versioned five percent margin; the rounding mode remains open",
+  "payload": {
+    "fairProbabilities": [0.6, 0.4],
+    "margin": 0.05,
+    "expectedOverround": 1.05,
+    "decimalPlaces": 2,
+    "roundingModeStatus": "open_pending_calibration",
+    "roundingModeSelectedHere": false,
+    "unroundedPublishedOdds": [1.5873015873015872, 2.380952380952381]
+  },
+  "oracleDigestInput": "margin-rounding|0.6,0.4|0.05|scale=2|mode=open",
+  "oracleDigestSha256": "8DF2BFFC5CE9FF6D57E54F9D17381A8F23DC09C8307E401D8DD9E25BDACFB3CA"
+}

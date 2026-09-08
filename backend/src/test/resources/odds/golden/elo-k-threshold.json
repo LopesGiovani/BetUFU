@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "04-12.golden.v1",
+  "fixtureId": "elo-k-threshold",
+  "oracle": "independent_parameter_boundary",
+  "sourceAuthority": "owner_ratified_parameter_set",
+  "sourceManifest": "04-01.calibration-manifest.v2",
+  "usesLaufu": false,
+  "derivation": "provisional and mature modes are explicit; the future engine supplies no hidden K value",
+  "payload": {
+    "modes": [
+      {"name": "PROVISIONAL", "kFactor": 32.0, "thresholdSelectedHere": false},
+      {"name": "MATURE", "kFactor": 16.0, "thresholdSelectedHere": false}
+    ],
+    "transitionRule": "approved threshold is supplied by the calibration gate, not invented by this oracle"
+  },
+  "oracleDigestInput": "elo-k-threshold|provisional=32|mature=16",
+  "oracleDigestSha256": "C9A64560666709F88C2CE99698386C7FEA556C4B0D468537814F6235651724A4"
+}

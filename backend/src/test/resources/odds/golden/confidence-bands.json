@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "04-12.golden.v1",
+  "fixtureId": "confidence-bands",
+  "oracle": "independent_confidence_boundary",
+  "sourceAuthority": "owner_ratified_parameter_set",
+  "sourceManifest": "04-01.calibration-manifest.v2",
+  "usesLaufu": false,
+  "derivation": "confidence is an explicit stored explanation and never silently changes the margin; numerical thresholds remain open",
+  "payload": {
+    "lowSample": {
+      "band": "LOW",
+      "neutralEstimate": true,
+      "marginMultiplier": 1.0
+    },
+    "matureSample": {
+      "band": "HIGH",
+      "neutralEstimate": false,
+      "marginMultiplier": 1.0
+    },
+    "thresholdsStatus": "open_pending_calibration",
+    "numericConfidenceValuesSelectedHere": false
+  },
+  "oracleDigestInput": "confidence-bands|low=neutral-visible|high=non-neutral|thresholds=open",
+  "oracleDigestSha256": "92405BC01EF3E9829F1BB60E6A4E79B7EF867010906FC32225FF85038661B9CB"
+}
