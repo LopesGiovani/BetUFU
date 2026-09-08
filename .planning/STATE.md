@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 3 completed, integrated and cleaned; Plans 04-03 and 04-12 are certified
-last_updated: "2026-09-07"
-last_activity: 2026-09-07
-last_activity_desc: Wave 3 Plans 04-03 and 04-12 integrated and certified; Node 699/699 and Maven 592/592 passed; schema remains documentary and calibration vectors are independent of LAUFU.
-state_head: 672fdd8
+stopped_at: Phase 4 Wave 4 completed, integrated and cleaned; Plan 04-09 is complete
+last_updated: "2026-09-08"
+last_activity: 2026-09-08
+last_activity_desc: Wave 4 Plan 04-09 implemented PostgreSQL odds lineage and transactional persistence; focal 54/54, Node 699/699 and Maven 594/594 passed.
+state_head: 61b209e
 progress:
   total_phases: 8
   completed_phases: 3
@@ -17,9 +17,18 @@ progress:
 milestone_name: milestone
 ---
 
+## Wave 4 closeout - 2026-09-08
+
+- Plan `04-09` is complete on technical commits `61b209e` and corrective `ba3ccd8`, based on `831b6ad`; documentation is integrated in `0705315`.
+- Flyway V25 materializes the schema approved in 04-03 with append-only history, transactional idempotency and concurrency control, without betting, ledger or settlement objects.
+- Certification passed focal schema `2/2`, focal consolidated `54/54`, Node `699/699` and Maven `test` `594/594`, all with zero failures, errors or skips.
+- The Java files changed by 04-09 pass targeted Spotless. Global `clean verify` remains blocked by 19 preexisting LF/CRLF formatting divergences outside this plan's allowlist.
+- Phase 4 remains in progress with `4/19` plans executed. Wave 4 is closed; Wave 5 and Plan 04-18 require their own approval.
+- No remote push was performed.
+
 ## Reconciliation checkpoint - 2026-09-07
 
-- `master` contains the corrected technical snapshot `672fdd8`; the documentation closeout is the current local commit and `origin/master` remains at `8db17c6`; no push was performed.
+- The Wave 3 closeout used technical snapshot `672fdd8`; Wave 4 is now integrated locally through `0705315`, while `origin/master` remains at `8db17c6`; no push was performed.
 - Plan `04-15` is documentary/source governance only: its technical HEAD
   `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` is an ancestor of `master`; its
   T2 approval is recorded in `04-15-SUMMARY.md` and `04-VALIDATION.md`; it does
@@ -35,11 +44,11 @@ milestone_name: milestone
   sports-to-odds boundary, five-class taxonomy and independent market state
   machine. Its summary records focal/aggregate evidence and the remaining
   phase-boundary limitations.
-- Phase 4 remains in planning with `3/19` phase plans executed. The approved
+- Phase 4 remains in planning with `4/19` phase plans executed. The approved
   Supervisor/Worker governance is now the operating contract; Plan 04-02's
   contract checkpoint is closed, while downstream schema/producer/roster gates
   remain independent.
-- Plans 04-02, 04-03 and 04-12 are integrated and clean; Wave 3 aggregate
+- Plans 04-02, 04-03, 04-09 and 04-12 are integrated and clean; Wave 4 aggregate
   certification passed Node `699/699` and Maven `592/592`. Any stale handoff, branch, HEAD,
   dependency or checkpoint mismatch remains blocking.
 
