@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 4 completed, integrated and cleaned; Plan 04-09 is complete
+stopped_at: Phase 4 Wave 5 completed, integrated and cleaned; Plan 04-18 is complete
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 4 Plan 04-09 implemented PostgreSQL odds lineage and transactional persistence; focal 54/54, Node 699/699 and Maven 594/594 passed.
-state_head: 61b209e
+last_activity_desc: Wave 5 Plan 04-18 implemented odds governance capabilities, server-side authorization and closed audit vocabulary; focal 108/108, Node 699/699 and Maven 594/594 passed.
+state_head: d19c16b
 progress:
   total_phases: 8
   completed_phases: 3
@@ -17,13 +17,22 @@ progress:
 milestone_name: milestone
 ---
 
+## Wave 5 closeout - 2026-09-08
+
+- Plan `04-18` is complete on technical commit `d19c16b`, based on `e4168cc`.
+- Governance candidate, odds capabilities, server-side authorization, V26 audit vocabulary and append-only regression proofs are integrated in the technical snapshot.
+- Certification passed focal `108/108`, Node `699/699` and Maven `594/594`, with zero failures, errors or skips.
+- Global Spotless remains limited by two historical files outside this plan's allowlist; all new 04-18 files were formatted and the issue does not affect test certification.
+- RepoWise review found no security or integration blocker; service complexity/cohesion is recorded as a maintenance follow-up.
+- No remote push was performed.
+
 ## Wave 4 closeout - 2026-09-08
 
 - Plan `04-09` is complete on technical commits `61b209e` and corrective `ba3ccd8`, based on `831b6ad`; documentation is integrated in `0705315`.
 - Flyway V25 materializes the schema approved in 04-03 with append-only history, transactional idempotency and concurrency control, without betting, ledger or settlement objects.
 - Certification passed focal schema `2/2`, focal consolidated `54/54`, Node `699/699` and Maven `test` `594/594`, all with zero failures, errors or skips.
 - The Java files changed by 04-09 pass targeted Spotless. Global `clean verify` remains blocked by 19 preexisting LF/CRLF formatting divergences outside this plan's allowlist.
-- Phase 4 remains in progress with `4/19` plans executed. Wave 4 is closed; Wave 5 and Plan 04-18 require their own approval.
+- Phase 4 remains in progress with `5/19` plans executed. Waves 4 and 5 are closed; subsequent plans require their own approval.
 - No remote push was performed.
 
 ## Reconciliation checkpoint - 2026-09-07
