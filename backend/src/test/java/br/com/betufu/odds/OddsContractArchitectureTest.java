@@ -27,7 +27,9 @@ class OddsContractArchitectureTest {
   @Test
   void oddsDoesNotImportSportsInternal() {
     JavaClasses classes =
-        new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS).importPackages("br.com.betufu");
+        new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages("br.com.betufu");
     ODDS_MUST_NOT_IMPORT_SPORTS_INTERNAL.check(classes);
   }
 
@@ -36,7 +38,8 @@ class OddsContractArchitectureTest {
     assertThat(MarketTransition.apply(MarketState.DRAFT, MarketTransition.Action.PUBLISH_MARKET))
         .isEqualTo(MarketState.OPEN);
     assertThatThrownBy(
-            () -> MarketTransition.apply(MarketState.CLOSED, MarketTransition.Action.PUBLISH_MARKET))
+            () ->
+                MarketTransition.apply(MarketState.CLOSED, MarketTransition.Action.PUBLISH_MARKET))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("FORBIDDEN_TRANSITION");
   }

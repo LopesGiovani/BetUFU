@@ -23,13 +23,14 @@ class OddsCalibrationFixtureTest {
 
   @Test
   void loadsExactlySixIndependentGoldenVectors() {
-    assertThat(List.of(
-            "elo-1500.json",
-            "elo-k-threshold.json",
-            "edition-regression-50.json",
-            "davidson-draw.json",
-            "confidence-bands.json",
-            "margin-rounding.json"))
+    assertThat(
+            List.of(
+                "elo-1500.json",
+                "elo-k-threshold.json",
+                "edition-regression-50.json",
+                "davidson-draw.json",
+                "confidence-bands.json",
+                "margin-rounding.json"))
         .allSatisfy(file -> assertCommon(load(file), file.substring(0, file.length() - 5)));
   }
 
@@ -124,8 +125,12 @@ class OddsCalibrationFixtureTest {
     assertThat(BigDecimal.valueOf(sum(fair)).multiply(multiplier).doubleValue()).isEqualTo(1.05);
     for (int i = 0; i < fair.size(); i++) {
       BigDecimal fairProbability = BigDecimal.valueOf(fair.get(i).asDouble());
-      double odds = BigDecimal.ONE.divide(fairProbability.multiply(multiplier), 16, java.math.RoundingMode.HALF_EVEN).doubleValue();
-      assertThat(odds).isCloseTo(unroundedOdds.get(i).asDouble(), org.assertj.core.data.Offset.offset(1e-12));
+      double odds =
+          BigDecimal.ONE
+              .divide(fairProbability.multiply(multiplier), 16, java.math.RoundingMode.HALF_EVEN)
+              .doubleValue();
+      assertThat(odds)
+          .isCloseTo(unroundedOdds.get(i).asDouble(), org.assertj.core.data.Offset.offset(1e-12));
     }
   }
 
@@ -166,7 +171,8 @@ class OddsCalibrationFixtureTest {
 
   private static String sha256(String value) {
     try {
-      byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+      byte[] digest =
+          MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
       StringBuilder hex = new StringBuilder(digest.length * 2);
       for (byte item : digest) {
         hex.append(String.format("%02X", item));

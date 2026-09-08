@@ -9,7 +9,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Repository;
@@ -32,7 +31,9 @@ public class OddsMarketRepository {
   }
 
   public OddsMarketRepository(JdbcTemplate jdbcTemplate) {
-    this(jdbcTemplate, new DataSourceTransactionManager(Objects.requireNonNull(jdbcTemplate.getDataSource())));
+    this(
+        jdbcTemplate,
+        new DataSourceTransactionManager(Objects.requireNonNull(jdbcTemplate.getDataSource())));
   }
 
   public Optional<OddsMarketRecord> findMarket(UUID marketId) {
@@ -295,7 +296,8 @@ public class OddsMarketRepository {
         actorId,
         idempotencyKey,
         payloadDigest,
-        new IdempotentOperation<>(record.overrideId(), () -> saveOverride(record), this::findOverride));
+        new IdempotentOperation<>(
+            record.overrideId(), () -> saveOverride(record), this::findOverride));
   }
 
   private <T> T idempotent(
@@ -333,13 +335,15 @@ public class OddsMarketRepository {
           if (existing.isPresent()) {
             IdempotencyReceipt receipt = existing.get();
             if (!receipt.payloadDigest().equals(payloadDigest)) {
-              throw new IllegalStateException("idempotency key was reused with a different payload");
+              throw new IllegalStateException(
+                  "idempotency key was reused with a different payload");
             }
             return operation
                 .find()
                 .apply(receipt.resultReference())
                 .orElseThrow(
-                    () -> new IllegalStateException("idempotency receipt references a missing fact"));
+                    () ->
+                        new IllegalStateException("idempotency receipt references a missing fact"));
           }
           T value = operation.create().get();
           jdbcTemplate.update(

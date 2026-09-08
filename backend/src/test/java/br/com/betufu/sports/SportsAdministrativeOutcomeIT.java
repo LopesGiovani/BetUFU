@@ -10,7 +10,8 @@ class SportsAdministrativeOutcomeIT {
   @Test
   void administrativeRequestCarriesReasonAndNoScoreFields() {
     AdministrativeOutcomeRequest request =
-        new AdministrativeOutcomeRequest(OutcomeKind.ADMINISTRATIVE_WALKOVER, "W.O. confirmado", "https://source.invalid", 1);
+        new AdministrativeOutcomeRequest(
+            OutcomeKind.ADMINISTRATIVE_WALKOVER, "W.O. confirmado", "https://source.invalid", 1);
     assertThat(request.outcomeKind()).isEqualTo(OutcomeKind.ADMINISTRATIVE_WALKOVER);
     assertThat(request.reason()).isEqualTo("W.O. confirmado");
     assertThat(request).hasNoNullFieldsOrPropertiesExcept("winnerSlotNo");

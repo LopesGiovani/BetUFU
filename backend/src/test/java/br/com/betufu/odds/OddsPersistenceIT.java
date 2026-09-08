@@ -105,7 +105,8 @@ class OddsPersistenceIT {
         UUID.randomUUID(),
         "market-command-1",
         "digest-a");
-    long before = jdbcTemplate.queryForObject("SELECT count(*) FROM public.odds_market", Long.class);
+    long before =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM public.odds_market", Long.class);
 
     repository.saveMarket(
         new OddsMarketRecord(marketId, UUID.randomUUID(), "H2H", null, 0, null, null),
@@ -126,8 +127,7 @@ class OddsPersistenceIT {
     UUID calculationMarketId = UUID.randomUUID();
     UUID calculationVersionId = UUID.randomUUID();
     repository.saveMarket(
-        new OddsMarketRecord(
-            calculationMarketId, UUID.randomUUID(), "H2H", null, 0, null, null));
+        new OddsMarketRecord(calculationMarketId, UUID.randomUUID(), "H2H", null, 0, null, null));
     jdbcTemplate.update(
         "INSERT INTO public.odds_market_version (market_version_id, market_id, version_no, state) VALUES (?, ?, 1, 'OPEN')",
         calculationVersionId,

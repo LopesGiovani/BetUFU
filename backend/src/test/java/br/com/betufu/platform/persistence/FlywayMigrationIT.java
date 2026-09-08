@@ -1550,11 +1550,13 @@ class FlywayMigrationIT {
   @Test
   @DisplayName("V27 cria a autoridade unica de outcomes sem alterar V16 e V24")
   void v27CreatesOutcomeAuthorityTables() {
-    Flyway flyway = Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
+    Flyway flyway =
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
     assertThat(flyway.migrate().migrationsExecuted).isEqualTo(28);
-    assertThat(jdbcTemplate.queryForObject(
-            "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('sports_outcome_fact','sports_outcome_sporting_payload','sports_outcome_administrative_payload','sports_outcome_head')",
-            Integer.class))
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('sports_outcome_fact','sports_outcome_sporting_payload','sports_outcome_administrative_payload','sports_outcome_head')",
+                Integer.class))
         .isEqualTo(4);
   }
 }

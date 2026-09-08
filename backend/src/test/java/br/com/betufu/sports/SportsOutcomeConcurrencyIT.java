@@ -9,6 +9,7 @@ class SportsOutcomeConcurrencyIT {
   @Test
   void outcomeKindsRemainDisjointFromSportsScores() {
     assertThat(OutcomeKind.values())
-        .containsExactly(OutcomeKind.ADMINISTRATIVE_WALKOVER, OutcomeKind.ABANDONED_NO_VALID_RESULT);
+        .containsExactly(
+            OutcomeKind.ADMINISTRATIVE_WALKOVER, OutcomeKind.ABANDONED_NO_VALID_RESULT);
   }
 }

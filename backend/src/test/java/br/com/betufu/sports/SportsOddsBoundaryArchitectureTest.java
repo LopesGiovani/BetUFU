@@ -26,7 +26,9 @@ class SportsOddsBoundaryArchitectureTest {
   @Test
   void publicSportsContractDoesNotDependOnSportsInternals() {
     JavaClasses classes =
-        new ClassFileImporter().withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS).importPackages("br.com.betufu");
+        new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages("br.com.betufu");
     PUBLIC_SPORTS_CONTRACT_MUST_NOT_USE_INTERNALS.check(classes);
   }
 

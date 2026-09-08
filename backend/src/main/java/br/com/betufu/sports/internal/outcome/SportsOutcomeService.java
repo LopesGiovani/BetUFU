@@ -28,45 +28,94 @@ public class SportsOutcomeService {
   private final OperationalIdentityLookup identityLookup;
   private final TransactionTemplate transactions;
 
-  SportsOutcomeService(SportsOutcomeRepository repository, OperationalIdentityLookup identityLookup,
+  SportsOutcomeService(
+      SportsOutcomeRepository repository,
+      OperationalIdentityLookup identityLookup,
       PlatformTransactionManager transactionManager) {
     this.repository = Objects.requireNonNull(repository);
     this.identityLookup = Objects.requireNonNull(identityLookup);
     this.transactions = new TransactionTemplate(Objects.requireNonNull(transactionManager));
   }
 
-  public OutcomeFact recordAdministrativeOutcome(String issuer, String subject, UUID eventId,
-      Long expectedLockVersion, AdministrativeOutcomeRequest request) {
-    if (expectedLockVersion == null || expectedLockVersion < 0 || request == null || request.outcomeKind() == null
-        || request.reason() == null || request.reason().isBlank() || request.sourceReference() == null
-        || request.sourceReference().isBlank() || (request.outcomeKind() == OutcomeKind.ABANDONED_NO_VALID_RESULT && request.winnerSlotNo() != null)) {
+  public OutcomeFact recordAdministrativeOutcome(
+      String issuer,
+      String subject,
+      UUID eventId,
+      Long expectedLockVersion,
+      AdministrativeOutcomeRequest request) {
+    if (expectedLockVersion == null
+        || expectedLockVersion < 0
+        || request == null
+        || request.outcomeKind() == null
+        || request.reason() == null
+        || request.reason().isBlank()
+        || request.sourceReference() == null
+        || request.sourceReference().isBlank()
+        || (request.outcomeKind() == OutcomeKind.ABANDONED_NO_VALID_RESULT
+            && request.winnerSlotNo() != null)) {
       throw validation();
     }
     requireLength(request.reason().trim(), 1024);
     requireLength(request.sourceReference().trim(), 2048);
     OperationalIdentity actor = resolveIdentity(issuer, subject);
-    return transactions.execute(status -> {
-      EventScope event = repository.findEventForUpdate(eventId).orElseThrow(SportsOutcomeService::notFound);
-      requireWritable(actor, event.competitionId());
-      if (event.format().name().equals("GENERIC") || "RASCUNHO".equals(event.status()) || "CANCELADO".equals(event.status())) throw validation();
-      if (event.lockVersion() != expectedLockVersion) throw staleVersion();
-      Optional<OutcomeFact> head = repository.findHead(eventId);
-      OutcomeFact fact = repository.insertAdministrativeFact(event, repository.nextVersion(eventId), request.outcomeKind(), request.sourceReference(), request.reason(), actor.identityId(), Instant.now(), head.map(OutcomeFact::factId).orElse(null), request.winnerSlotNo());
-      if (repository.advanceEvent(eventId, expectedLockVersion) == 0) throw staleVersion();
-      return fact;
-    });
+    return transactions.execute(
+        status -> {
+          EventScope event =
+              repository.findEventForUpdate(eventId).orElseThrow(SportsOutcomeService::notFound);
+          requireWritable(actor, event.competitionId());
+          if (event.format().name().equals("GENERIC")
+              || "RASCUNHO".equals(event.status())
+              || "CANCELADO".equals(event.status())) throw validation();
+          if (event.lockVersion() != expectedLockVersion) throw staleVersion();
+          Optional<OutcomeFact> head = repository.findHead(eventId);
+          OutcomeFact fact =
+              repository.insertAdministrativeFact(
+                  event,
+                  repository.nextVersion(eventId),
+                  request.outcomeKind(),
+                  request.sourceReference(),
+                  request.reason(),
+                  actor.identityId(),
+                  Instant.now(),
+                  head.map(OutcomeFact::factId).orElse(null),
+                  request.winnerSlotNo());
+          if (repository.advanceEvent(eventId, expectedLockVersion) == 0) throw staleVersion();
+          return fact;
+        });
   }
 
   private OperationalIdentity resolveIdentity(String issuer, String subject) {
-    if (issuer == null || issuer.isBlank() || subject == null || subject.isBlank()) throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
-    return identityLookup.lookupIdentity(issuer, subject).orElseThrow(() -> new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN));
+    if (issuer == null || issuer.isBlank() || subject == null || subject.isBlank())
+      throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
+    return identityLookup
+        .lookupIdentity(issuer, subject)
+        .orElseThrow(() -> new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN));
   }
+
   private static void requireWritable(OperationalIdentity actor, UUID competitionId) {
-    boolean allowed = actor.roles().stream().anyMatch(role -> (GENERAL_ADMIN.equals(role.roleName()) && role.scopeRef() == null) || (COMPETITION_ADMIN.equals(role.roleName()) && competitionId.equals(role.scopeRef())));
+    boolean allowed =
+        actor.roles().stream()
+            .anyMatch(
+                role ->
+                    (GENERAL_ADMIN.equals(role.roleName()) && role.scopeRef() == null)
+                        || (COMPETITION_ADMIN.equals(role.roleName())
+                            && competitionId.equals(role.scopeRef())));
     if (!allowed) throw new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
   }
-  private static void requireLength(String value, int max) { if (value.getBytes(StandardCharsets.UTF_8).length > max) throw validation(); }
-  private static ApiProblemException validation() { return new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED); }
-  private static ApiProblemException notFound() { return new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND); }
-  private static ApiProblemException staleVersion() { return new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.STALE_VERSION); }
+
+  private static void requireLength(String value, int max) {
+    if (value.getBytes(StandardCharsets.UTF_8).length > max) throw validation();
+  }
+
+  private static ApiProblemException validation() {
+    return new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+  }
+
+  private static ApiProblemException notFound() {
+    return new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
+  }
+
+  private static ApiProblemException staleVersion() {
+    return new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.STALE_VERSION);
+  }
 }

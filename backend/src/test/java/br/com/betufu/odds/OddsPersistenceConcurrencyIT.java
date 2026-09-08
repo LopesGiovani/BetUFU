@@ -144,7 +144,13 @@ class OddsPersistenceConcurrencyIT {
     OddsLifecycleRecord lifecycle =
         repository.saveLifecycle(
             new OddsLifecycleRecord(
-                UUID.randomUUID(), marketId, "SUSPENDED", "OPEN", "revisão concluída", UUID.randomUUID(), null));
+                UUID.randomUUID(),
+                marketId,
+                "SUSPENDED",
+                "OPEN",
+                "revisão concluída",
+                UUID.randomUUID(),
+                null));
     OddsOverrideRecord override =
         repository.saveOverride(
             new OddsOverrideRecord(
@@ -175,6 +181,7 @@ class OddsPersistenceConcurrencyIT {
     connectionDataSource.setUsername(POSTGRESQL.getUsername());
     connectionDataSource.setPassword(POSTGRESQL.getPassword());
     return new OddsMarketRepository(
-        new JdbcTemplate(connectionDataSource), new DataSourceTransactionManager(connectionDataSource));
+        new JdbcTemplate(connectionDataSource),
+        new DataSourceTransactionManager(connectionDataSource));
   }
 }

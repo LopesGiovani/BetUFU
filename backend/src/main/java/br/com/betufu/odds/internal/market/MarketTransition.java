@@ -37,7 +37,8 @@ public record MarketTransition(
 
   private static Map.Entry<Key, MarketTransition> entry(
       MarketState from, MarketState to, Action action) {
-    return Map.entry(new Key(from, action), new MarketTransition(from, to, action, MANAGE_ODDS_MARKET));
+    return Map.entry(
+        new Key(from, action), new MarketTransition(from, to, action, MANAGE_ODDS_MARKET));
   }
 
   public static Optional<MarketTransition> find(MarketState from, Action action) {

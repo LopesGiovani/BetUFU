@@ -394,7 +394,9 @@ class SportsResultRepository {
         Timestamp.from(version.confirmedAt()));
     jdbcTemplate.update(
         "INSERT INTO public.sports_outcome_head (event_id,fact_id,lock_version) VALUES (?,?,?) ON CONFLICT (event_id) DO UPDATE SET fact_id = EXCLUDED.fact_id, lock_version = EXCLUDED.lock_version, updated_at = CURRENT_TIMESTAMP(6)",
-        event.eventId(), factId, event.lockVersion() + 1);
+        event.eventId(),
+        factId,
+        event.lockVersion() + 1);
   }
 
   int updateEventLockVersion(UUID eventId, long expectedLockVersion) {

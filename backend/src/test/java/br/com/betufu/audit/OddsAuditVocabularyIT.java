@@ -25,8 +25,16 @@ class OddsAuditVocabularyIT {
     assertThatThrownBy(
             () ->
                 new AuditEntry(
-                    null, null, null, "ODDS_ACTION_NOT_APPROVED", AuditEntry.OUTCOME_PERMITTED,
-                    null, null, null, null, null))
+                    null,
+                    null,
+                    null,
+                    "ODDS_ACTION_NOT_APPROVED",
+                    AuditEntry.OUTCOME_PERMITTED,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null))
         .isInstanceOf(IllegalArgumentException.class);
 
     String migration =
