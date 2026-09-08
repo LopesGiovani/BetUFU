@@ -4,11 +4,11 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 9 Plan 04-10 certified; integration follows the documented fast-forward closeout
+stopped_at: Phase 4 Wave 10 Plan 04-19 certified; integration follows the documented fast-forward closeout
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
 last_activity_desc: Wave 9 Plan 04-10 implemented temporal odds replay, input filtering and restoring negative mutation proofs; focal 44/44, Node 714/714 and Maven 646/646 passed.
-state_head: c9dd669
+state_head: PENDING
 progress:
   total_phases: 8
   completed_phases: 3
@@ -16,6 +16,18 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Wave 10 closeout - 2026-09-08
+
+- Plan `04-19` is complete on the technical snapshot based on `2a69746`; V28 binds each market version to exact published roster snapshots per participant.
+- Corrections create new roster publications and never rewrite frozen bindings. Opening validation locks the sports event and fails closed on stale, draft, mismatched or concurrent snapshots.
+- The `SportsRosterForOddsPort` boundary exposes only opaque publication/version/time references; odds does not import sports internals or receive athlete PII.
+- Certification passed focal `96/96`, Node `719/719`, Maven `646/646` and Spotless apply/check, all with zero failures, errors, skips or cancellations.
+
+## Wave 10 Git
+
+- Commit tecnico: `PENDING` neste arquivo para evitar auto-referencia circular.
+- Commit documental: `PENDING` neste arquivo para evitar auto-referencia circular.
 
 ## Wave 9 closeout - 2026-09-08
 
