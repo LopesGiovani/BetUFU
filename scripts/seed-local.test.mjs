@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { seedLocal, sanitizeSqlError } from './seed-local.mjs';
+import { buildSql, closeDeadlineFor, sanitizeSqlError, scheduledAtForMatch, seedLocal } from './seed-local.mjs';
 
 const ENV = {
   KC_BOOTSTRAP_ADMIN_USERNAME: 'local-admin',
@@ -17,6 +17,22 @@ const FIXTURE = {
     time_mandante_nome: 'DIREITO', time_visitante_nome: 'FISIOTERAPIA',
   }],
 };
+
+const MATCHES = Array.from({ length: 8 }, (_, index) => ({
+  origem_id: String(393614 + index),
+  origem_url: `https://laufu.jliga.club/jogos/${393614 + index}`,
+  campeonato_id: '9774',
+  data: '2026-02-26',
+  horario: '22:00',
+  data_hora_iso: '2026-02-26T22:00:00-03:00',
+  time_mandante_nome: `TIME CASA ${index}`,
+  time_visitante_nome: `TIME FORA ${index}`,
+}));
+
+const PERSONA_ROWS = ['admin', 'maker', 'checker', 'moderator', 'student', 'athlete'].map((key) => ({
+  key,
+  subject: `subject-${key}`,
+}));
 
 function response(body, status = 200) {
   return {
@@ -149,4 +165,44 @@ test('sanitizeSqlError remove linhas DETAIL, mascara segredos do env e redige ha
   assert.doesNotMatch(sanitized, /local-password/u);
   assert.match(sanitized, /\[REDACTED:KC_BOOTSTRAP_ADMIN_PASSWORD\]/u);
   assert.match(sanitized, /\[REDACTED_HASH\]/u);
+});
+
+test('projeta partidas daily para hoje e dias futuros e recalcula close_deadline', () => {
+  const now = new Date('2026-09-09T12:00:00Z');
+  assert.equal(scheduledAtForMatch(MATCHES[0], 0, { now }), '2026-09-09T18:00:00-03:00');
+  assert.equal(scheduledAtForMatch(MATCHES[1], 1, { now }), '2026-09-09T21:00:00-03:00');
+  assert.equal(scheduledAtForMatch(MATCHES[2], 2, { now }), '2026-09-10T18:00:00-03:00');
+  assert.equal(scheduledAtForMatch(MATCHES[4], 4, { now }), '2026-09-11T18:00:00-03:00');
+  const projectedDates = MATCHES.map((match, index) => scheduledAtForMatch(match, index, { now }).slice(0, 10));
+  assert.equal(projectedDates.filter((date) => date === '2026-09-09').length, 2);
+  assert.equal(projectedDates.filter((date) => date === '2026-09-10').length, 2);
+  assert.equal(closeDeadlineFor('2026-09-09T18:00:00-03:00'), '2026-09-09T20:30:00.000Z');
+
+  const sqlText = buildSql({ personas: PERSONA_ROWS, matches: MATCHES, env: ENV, now });
+  assert.match(sqlText, /'2026-09-09T18:00:00-03:00'/u);
+  assert.match(sqlText, /'2026-09-10T21:00:00-03:00'/u);
+  assert.match(sqlText, /'2026-09-09T20:30:00\.000Z'/u);
+  assert.doesNotMatch(sqlText, /2026-12-31T23:59:59Z/u);
+  assert.match(sqlText, /ON CONFLICT \(event_id\) DO UPDATE SET scheduled_at=EXCLUDED\.scheduled_at/u);
+  assert.match(sqlText, /SELECT max\(version_no\) \+ 1 FROM public\.sports_event_publication/u);
+  assert.match(sqlText, /WHERE NOT EXISTS \(SELECT 1 FROM public\.sports_event_publication WHERE publication_id=/u);
+  assert.match(sqlText, /SELECT max\(version_no\) \+ 1 FROM public\.odds_market_version/u);
+  assert.match(sqlText, /state,close_deadline,supersedes_version_id\) SELECT/u);
+});
+
+test('preserva datas do fixture somente com configuração explícita', () => {
+  const now = new Date('2026-09-09T12:00:00Z');
+  const projected = scheduledAtForMatch(MATCHES[0], 0, { now });
+  const preserved = scheduledAtForMatch(MATCHES[0], 0, { now, preserveFixtureDates: true });
+  assert.equal(projected, '2026-09-09T18:00:00-03:00');
+  assert.equal(preserved, '2026-02-26T22:00:00-03:00');
+
+  const sqlText = buildSql({
+    personas: PERSONA_ROWS,
+    matches: MATCHES.slice(0, 1),
+    env: { ...ENV, BETUFU_SEED_PRESERVE_FIXTURE_DATES: 'true' },
+    now,
+  });
+  assert.match(sqlText, /'2026-02-26T22:00:00-03:00'/u);
+  assert.match(sqlText, /'2026-02-27T00:30:00\.000Z'/u);
 });

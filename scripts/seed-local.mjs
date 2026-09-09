@@ -18,6 +18,8 @@ const DEFAULT_KEYCLOAK = 'http://localhost:8081';
 const DEFAULT_REALM = 'betufu-local';
 const PASSWORD = 'BetUfuTest@2026';
 const DAILY_MATCHES = 8;
+const SEED_TIME_ZONE = 'America/Sao_Paulo';
+const SEED_TIME_ZONE_OFFSET = '-03:00';
 
 export const PERSONAS = Object.freeze([
   { key: 'admin', username: 'admin.geral@betufu.local', email: 'admin.geral@betufu.local', role: 'ADMINISTRADOR_GERAL', scope: null, nickname: 'admin-geral' },
@@ -121,7 +123,40 @@ function organizationForTeam(name) {
   return 'Monetária';
 }
 
-function buildSql({ personas, matches, env }) {
+function localDateParts(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: SEED_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  return Object.fromEntries(
+    parts
+      .filter((part) => ['year', 'month', 'day'].includes(part.type))
+      .map((part) => [part.type, Number.parseInt(part.value, 10)]),
+  );
+}
+
+function dateAfterDays(year, month, day, days) {
+  const result = new Date(Date.UTC(year, month - 1, day + days));
+  return result.toISOString().slice(0, 10);
+}
+
+function scheduledAtForMatch(match, index, { now = new Date(), preserveFixtureDates = false } = {}) {
+  if (preserveFixtureDates) return match.data_hora_iso ?? `${match.data}T${match.horario}:00-03:00`;
+  const { year, month, day } = localDateParts(now);
+  const dayOffset = index < 2 ? 0 : Math.floor((index - 2) / 2) + 1;
+  const hour = index % 2 === 0 ? 18 : 21;
+  return `${dateAfterDays(year, month, day, dayOffset)}T${String(hour).padStart(2, '0')}:00:00${SEED_TIME_ZONE_OFFSET}`;
+}
+
+function closeDeadlineFor(scheduledAt) {
+  const parsed = new Date(scheduledAt);
+  if (Number.isNaN(parsed.getTime())) throw new Error(`scheduled_at inválido: ${scheduledAt}`);
+  return new Date(parsed.getTime() - 30 * 60 * 1000).toISOString();
+}
+
+function buildSql({ personas, matches, env, now = new Date() }) {
   const competitionId = stableUuid('competition:laufu-2026-futsal-masculino');
   const editionId = stableUuid('edition:laufu-2026-futsal-masculino');
   const sportId = stableUuid('sport:futsal');
@@ -132,6 +167,7 @@ function buildSql({ personas, matches, env }) {
   const athleteHmac = hmacHex('202600002', hmacKey);
   const users = personas.map((p) => `INSERT INTO public.local_identity(identity_id,issuer,subject) VALUES (${sql(stableUuid(`identity:${p.key}`))},${sql(env.BETUFU_ISSUER ?? DEFAULT_ISSUER)},${sql(p.subject)}) ON CONFLICT (issuer,subject) DO NOTHING;`);
   const lines = ['BEGIN;', ...users];
+  const preserveFixtureDates = ['1', 'true', 'yes'].includes(String(env.BETUFU_SEED_PRESERVE_FIXTURE_DATES ?? '').toLowerCase());
   lines.push(`INSERT INTO public.sports_sport(sport_id,name,slug) VALUES (${sql(sportId)},'Futsal','futsal') ON CONFLICT (slug) DO NOTHING;`);
   lines.push(`INSERT INTO public.sports_competition(competition_id,name,slug,status,sport_id) VALUES (${sql(competitionId)},'LAUFU 2026 - Futsal Masculino','laufu-2026-futsal-masculino','ATIVA',${sql(sportId)}) ON CONFLICT (slug) DO NOTHING;`);
   lines.push(`INSERT INTO public.sports_edition(edition_id,competition_id,name,slug,start_date,end_date,status) VALUES (${sql(editionId)},${sql(competitionId)},'2026','2026','2026-01-01','2026-12-31','ATIVA') ON CONFLICT (competition_id,slug) DO NOTHING;`);
@@ -154,27 +190,33 @@ function buildSql({ personas, matches, env }) {
   lines.push(`INSERT INTO public.sports_roster_member(roster_id,athlete_id,jersey_number,position_name) VALUES (${sql(rosterId)},${sql(athleteId)},10,'Ala') ON CONFLICT (roster_id,athlete_id) DO NOTHING;`);
   lines.push(`INSERT INTO public.sports_roster_publication(publication_id,roster_id,team_id,competition_id,edition_id,organization_id,sport_id,category_id,version_no,team_name,organization_name,edition_name,competition_name,sport_name,category_name,published_by_identity_id,base_lock_version) VALUES (${sql(rosterPublicationId)},${sql(rosterId)},${sql(rosterTeamId)},${sql(competitionId)},${sql(editionId)},${sql(stableUuid('organization:Monetária'))},${sql(sportId)},${sql(categoryId)},1,'MONETÁRIA','Monetária','2026','LAUFU 2026 - Futsal Masculino','Futsal','Masculino',${sql(stableUuid('identity:admin'))},0) ON CONFLICT (roster_id,version_no) DO NOTHING;`);
   lines.push(`INSERT INTO public.sports_roster_publication_member(publication_id,athlete_id,athlete_name,athlete_slug,jersey_number,position_name) VALUES (${sql(rosterPublicationId)},${sql(athleteId)},'Atleta de Teste','atleta-de-teste',10,'Ala') ON CONFLICT (publication_id,athlete_id) DO NOTHING;`);
-  for (const match of matches) {
+  for (const [index, match] of matches.entries()) {
     const eventId = stableUuid(`event:${match.origem_id}`);
     const homeId = stableUuid(`team:${match.time_mandante_nome}`);
     const awayId = stableUuid(`team:${match.time_visitante_nome}`);
-    const when = match.data_hora_iso ?? `${match.data}T${match.horario}:00-03:00`;
-    lines.push(`INSERT INTO public.sports_event(event_id,competition_id,edition_id,title,event_format,status,scheduled_at,zone_id,venue_state,source_reference,sport_id,category_id,phase_id) VALUES (${sql(eventId)},${sql(competitionId)},${sql(editionId)},${sql(`${match.time_mandante_nome} x ${match.time_visitante_nome}`)},'HEAD_TO_HEAD','PUBLICADO',${sql(when)},'America/Sao_Paulo','LOCAL_A_DEFINIR',${sql(match.origem_url)},${sql(sportId)},${sql(categoryId)},${sql(phaseId)}) ON CONFLICT (event_id) DO NOTHING;`);
+    const when = scheduledAtForMatch(match, index, { now, preserveFixtureDates });
+    lines.push(`INSERT INTO public.sports_event(event_id,competition_id,edition_id,title,event_format,status,scheduled_at,zone_id,venue_state,source_reference,sport_id,category_id,phase_id) VALUES (${sql(eventId)},${sql(competitionId)},${sql(editionId)},${sql(`${match.time_mandante_nome} x ${match.time_visitante_nome}`)},'HEAD_TO_HEAD','PUBLICADO',${sql(when)},'America/Sao_Paulo','LOCAL_A_DEFINIR',${sql(match.origem_url)},${sql(sportId)},${sql(categoryId)},${sql(phaseId)}) ON CONFLICT (event_id) DO UPDATE SET scheduled_at=EXCLUDED.scheduled_at;`);
     lines.push(`INSERT INTO public.sports_event_slot(event_id,slot_no,display_label,team_id) VALUES (${sql(eventId)},1,${sql(match.time_mandante_nome)},${sql(homeId)}),(${sql(eventId)},2,${sql(match.time_visitante_nome)},${sql(awayId)}) ON CONFLICT (event_id,slot_no) DO NOTHING;`);
-    const pubId = stableUuid(`event-publication:${match.origem_id}`);
-    lines.push(`INSERT INTO public.sports_event_publication(publication_id,event_id,competition_id,edition_id,version_no,competition_name,edition_name,title,event_format,scheduled_at,zone_id,venue_state,source_reference,published_by_identity_id,base_lock_version,sport_id,sport_name,category_id,category_name,phase_id,phase_name) VALUES (${sql(pubId)},${sql(eventId)},${sql(competitionId)},${sql(editionId)},1,'LAUFU 2026 - Futsal Masculino','2026',${sql(`${match.time_mandante_nome} x ${match.time_visitante_nome}`)},'HEAD_TO_HEAD',${sql(when)},'America/Sao_Paulo','LOCAL_A_DEFINIR',${sql(match.origem_url)},${sql(stableUuid('identity:admin'))},0,${sql(sportId)},'Futsal',${sql(categoryId)},'Masculino',${sql(phaseId)},'Fase de grupos') ON CONFLICT (event_id,version_no) DO NOTHING;`);
+    const pubId = stableUuid(`event-publication:${match.origem_id}:${when}`);
+    lines.push(`INSERT INTO public.sports_event_publication(publication_id,event_id,competition_id,edition_id,version_no,competition_name,edition_name,title,event_format,scheduled_at,zone_id,venue_state,source_reference,published_by_identity_id,base_lock_version,sport_id,sport_name,category_id,category_name,phase_id,phase_name) SELECT ${sql(pubId)},${sql(eventId)},${sql(competitionId)},${sql(editionId)},COALESCE((SELECT max(version_no) + 1 FROM public.sports_event_publication WHERE event_id=${sql(eventId)}),1),'LAUFU 2026 - Futsal Masculino','2026',${sql(`${match.time_mandante_nome} x ${match.time_visitante_nome}`)},'HEAD_TO_HEAD',${sql(when)},'America/Sao_Paulo','LOCAL_A_DEFINIR',${sql(match.origem_url)},${sql(stableUuid('identity:admin'))},0,${sql(sportId)},'Futsal',${sql(categoryId)},'Masculino',${sql(phaseId)},'Fase de grupos' WHERE NOT EXISTS (SELECT 1 FROM public.sports_event_publication WHERE publication_id=${sql(pubId)}) ON CONFLICT DO NOTHING;`);
     lines.push(`INSERT INTO public.sports_event_publication_slot(publication_id,slot_no,display_label,team_id,team_name) VALUES (${sql(pubId)},1,${sql(match.time_mandante_nome)},${sql(homeId)},${sql(match.time_mandante_nome)}),(${sql(pubId)},2,${sql(match.time_visitante_nome)},${sql(awayId)},${sql(match.time_visitante_nome)}) ON CONFLICT (publication_id,slot_no) DO NOTHING;`);
   }
   const marketStates = ['OPEN', 'OPEN', 'SUSPENDED', 'LOCKED'];
   for (let index = 0; index < Math.min(4, matches.length); index += 1) {
     const match = matches[index];
+    const when = scheduledAtForMatch(match, index, { now, preserveFixtureDates });
     const eventId = stableUuid(`event:${match.origem_id}`);
     const marketId = stableUuid(`market:${index}`);
     const versionId = stableUuid(`market-version:${index}:1`);
+    const historyVersionId = index === 1 ? stableUuid('market-version:1:2') : versionId;
+    const scheduledVersionId = stableUuid(`market-version:${index}:scheduled:${when}`);
+    const deadline = closeDeadlineFor(when);
     lines.push(`INSERT INTO public.odds_market(market_id,event_id,market_type,current_version_id,lock_version) VALUES (${sql(marketId)},${sql(eventId)},'MATCH_WINNER',NULL,0) ON CONFLICT (event_id,market_type) DO NOTHING;`);
-    lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline) VALUES (${sql(versionId)},${sql(marketId)},1,${sql(marketStates[index])},'2026-12-31T23:59:59Z') ON CONFLICT (market_id,version_no) DO NOTHING;`);
-    if (index === 1) lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,supersedes_version_id) VALUES (${sql(stableUuid('market-version:1:2'))},${sql(marketId)},2,'OPEN',${sql(versionId)}) ON CONFLICT (market_id,version_no) DO NOTHING;`);
-    lines.push(`UPDATE public.odds_market SET current_version_id=${sql(index === 1 ? stableUuid('market-version:1:2') : versionId)} WHERE market_id=${sql(marketId)};`);
+    lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline) VALUES (${sql(versionId)},${sql(marketId)},1,${sql(marketStates[index])},${sql(deadline)}) ON CONFLICT (market_id,version_no) DO NOTHING;`);
+    if (index === 1) lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline,supersedes_version_id) VALUES (${sql(historyVersionId)},${sql(marketId)},2,'OPEN',${sql(deadline)},${sql(versionId)}) ON CONFLICT (market_id,version_no) DO NOTHING;`);
+    lines.push(`UPDATE public.odds_market SET current_version_id=COALESCE(current_version_id,${sql(historyVersionId)}) WHERE market_id=${sql(marketId)};`);
+    lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline,supersedes_version_id) SELECT ${sql(scheduledVersionId)},${sql(marketId)},COALESCE((SELECT max(version_no) + 1 FROM public.odds_market_version WHERE market_id=${sql(marketId)}),1),${sql(marketStates[index])},${sql(deadline)},current_version_id FROM public.odds_market WHERE market_id=${sql(marketId)} AND NOT EXISTS (SELECT 1 FROM public.odds_market_version WHERE market_version_id=${sql(scheduledVersionId)}) ON CONFLICT DO NOTHING;`);
+    lines.push(`UPDATE public.odds_market SET current_version_id=${sql(scheduledVersionId)} WHERE market_id=${sql(marketId)};`);
     const calculationId = stableUuid(`calculation:${index}:1`);
     lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) VALUES (${sql(calculationId)},${sql(versionId)},'elo-v1','seed-local',${sqlJson({ confidenceBand: 'MEDIUM', sampleSize: 8 })},0.5,0.75) ON CONFLICT (calculation_id) DO NOTHING;`);
     lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) VALUES (${sql(stableUuid(`publication:${index}:1`))},${sql(calculationId)},0.05,'HALF_UP',2.1,NULL,0) ON CONFLICT (publication_id) DO NOTHING;`);
@@ -280,4 +322,4 @@ async function main() {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
 
-export { buildSql, stableUuid, sql, sanitizeSqlError };
+export { buildSql, closeDeadlineFor, sanitizeSqlError, scheduledAtForMatch, sql, stableUuid };
