@@ -14,7 +14,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - [x] **Phase 1: Fundação Segura da Plataforma** - Estabelecer a base modular, observável e segura da qual todas as capacidades do MVP dependem.
 - [x] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
 - [ ] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar um catálogo genérico de competições e edições, começando pela Olimpíada Universitária UFU 2026 e detalhando inicialmente confrontos diretos.
-- [ ] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
+- [x] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [ ] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
 - [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
 - [ ] **Phase 7: Comunidade Moderada e Prontidão do Piloto** - Entregar chat seguro por partida e uma experiência responsiva, privada e operacionalmente pronta para o piloto público.
@@ -390,28 +390,28 @@ Plans:
   4. Um administrador precisa suspender o mercado e tentar corrigir a fonte ou recalcular antes de propor uma substituição, apresentando evidências e uma comparação visível com o modelo.
   5. Um segundo administrador, distinto, precisa aprovar a substituição excepcional, produzindo uma nova versão imutável e auditada que não altera odds já aceitas nem mercados definitivamente encerrados.
 
-**Plans**: 19 planos / 46 tasks (snapshot documental aprovado; execução bloqueada por 9 checkpoints humanos)
+**Plans**: 19/19 planos / 46 tasks concluídos; Wave 17 certificada com bloqueios explícitos e UAT humano `04-08/T3` pendente
 
 **Planos e ondas**:
 
-- **Wave 0**: 04-01 — calibração, amostra, parâmetros e backtest.
-- **Wave 1**: 04-15 — candidato de autoridade da fonte e políticas temporais/legado.
-- **Wave 2**: 04-02 — fronteira pública `sports` → `odds`, taxonomia e estados.
-- **Wave 3**: 04-03 — candidato de schema; 04-12 — oráculos golden independentes.
-- **Wave 4**: 04-09 — persistência odds e lineage.
-- **Wave 5**: 04-18 — governança, autorização server-side e auditoria.
-- **Wave 6**: 04-16 — autoridade de outcomes, head e compatibilidade V16/V24.
-- **Wave 7**: 04-17 — produtor real e projeção temporal.
-- **Wave 8**: 04-04 — kernel e cálculo.
-- **Wave 9**: 04-10 — replay, correções e mutações negativas.
-- **Wave 10**: 04-19 — binding, freeze e correção de roster.
-- **Wave 11**: 04-05 — criação, publicação e lifecycle do mercado.
-- **Wave 12**: 04-06 — override maker-checker e critério de correção prévia.
-- **Wave 13**: 04-07 — candidato OpenAPI e digest governado.
-- **Wave 14**: 04-11 — cliente gerado a partir do digest aprovado.
-- **Wave 15**: 04-13 — superfície pública de consulta e explicação.
-- **Wave 16**: 04-14 — superfície operacional e jornadas de browser.
-- **Wave 17**: 04-08 — certificação focal, agregada, mutações, snapshot e UAT.
+- [x] **Wave 0**: 04-01 — calibração, amostra, parâmetros e backtest.
+- [x] **Wave 1**: 04-15 — candidato de autoridade da fonte e políticas temporais/legado.
+- [x] **Wave 2**: 04-02 — fronteira pública `sports` → `odds`, taxonomia e estados.
+- [x] **Wave 3**: 04-03 — candidato de schema; 04-12 — oráculos golden independentes.
+- [x] **Wave 4**: 04-09 — persistência odds e lineage.
+- [x] **Wave 5**: 04-18 — governança, autorização server-side e auditoria.
+- [x] **Wave 6**: 04-16 — autoridade de outcomes, head e compatibilidade V16/V24.
+- [x] **Wave 7**: 04-17 — produtor real e projeção temporal.
+- [x] **Wave 8**: 04-04 — kernel e cálculo.
+- [x] **Wave 9**: 04-10 — replay, correções e mutações negativas.
+- [x] **Wave 10**: 04-19 — binding, freeze e correção de roster.
+- [x] **Wave 11**: 04-05 — criação, publicação e lifecycle do mercado.
+- [x] **Wave 12**: 04-06 — override maker-checker e critério de correção prévia.
+- [x] **Wave 13**: 04-07 — candidato OpenAPI e digest governado.
+- [x] **Wave 14**: 04-11 — cliente gerado a partir do digest aprovado.
+- [x] **Wave 15**: 04-13 — superfície pública de consulta e explicação.
+- [x] **Wave 16**: 04-14 — superfície operacional e jornadas de browser.
+- [x] **Wave 17**: 04-08 — certificação focal, mutações, snapshot e UAT preparado.
 
 Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-*-PLAN.md` e a matriz de evidências em `04-VALIDATION.md`. Esta decomposição é planejamento, não autorização de código, migration, dependência, infraestrutura ou Git.
 **UI hint**: yes
@@ -480,7 +480,7 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; integrated and cleaned locally; push not performed | 2026-09-04 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
-| 4. Mercados Pré-jogo e Odds Transparentes | 0/19 | Planned; snapshot documental aprovado; execução bloqueada | - |
+| 4. Mercados Pré-jogo e Odds Transparentes | 19/19 | Complete; evidências e snapshot registrados; UAT `04-08/T3` e dois gates ambientais pendentes | 2026-09-09 |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |

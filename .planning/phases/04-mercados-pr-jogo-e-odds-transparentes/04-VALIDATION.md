@@ -1,7 +1,7 @@
 ---
 phase: 4
 slug: mercados-pr-jogo-e-odds-transparentes
-status: draft
+status: certification_pending_uat
 nyquist_compliant: false
 wave_0_complete: false
 created: 2026-09-04
@@ -546,3 +546,73 @@ externamente para evitar referencia circular. Qualquer edicao invalida o snapsho
 | 04-17-PLAN.md | `8734E858B2CC30477EDF759DF7CCF6239755532A47AED419C6A137F921C0EA00` |
 | 04-18-PLAN.md | `4868A58DD49E940286CF809DF9C46BC16BD58DDF3A7DD5A0BBDCF44FA185EBB9` |
 | 04-19-PLAN.md | `8B51FDB7551D423C82D7AB58E28EFA67DAE93722C8F17210A36ECDCBD1AC4E13` |
+
+## Wave 17 Certification - 2026-09-09
+
+Este bloco registra a evidencia executada na worktree `worktree-agent-04-08`,
+branch `worktree-agent-04-08`, base e HEAD pre-Git
+`1e190e601e87f3da341412b30e6f71af946dfaa6`. Os resultados abaixo nao
+substituem o UAT humano `04-08/T3` e nao promovem automaticamente os gates que
+permaneceram bloqueados.
+
+### Matriz ODDS-01 a ODDS-13
+
+| Requisito | Evidencia atual | Resultado |
+|---|---|---|
+| ODDS-01 | `OddsCertificationIT`: 1/1; mercado H2H e elegibilidade cobertos internamente | PASS |
+| ODDS-02 | Pricing/replay/taxonomia/independencia: 44/44; pricing/calibracao: 24/24 | PASS |
+| ODDS-03 | Pricing/calibracao: 24/24; replay/correcao incluído no grupo de 44/44 | PASS |
+| ODDS-04 | Taxonomia/replay: grupo 44/44; lifecycle/mercado: 16/16 | PASS |
+| ODDS-05 | Pricing/calibracao: 24/24 (margem configuravel e arredondamento) | PASS |
+| ODDS-06 | Pricing/calibracao: 24/24 (baixa confianca/neutro) | PASS |
+| ODDS-07 | Pricing/replay/taxonomia: 44/44 | PASS |
+| ODDS-08 | Mercado/lifecycle/public view/privacy/override: 16/16; governanca: 74/74 | PASS |
+| ODDS-09 | Public view/privacy/override: 16/16; Node generator: 73/73; Angular focal: 57/57; Playwright: 6/6 | PASS |
+| ODDS-10 | Governanca/capabilities/auditoria: 74/74; override: 16/16 | PASS |
+| ODDS-11 | Governanca/capabilities/auditoria: 74/74; override: 16/16; mutacoes M_SCOPE/M_PUBLIC_ALLOWLIST: expected-red | PASS |
+| ODDS-12 | Override/lifecycle/concurrency: 16/16; mutacoes M_SELF_APPROVAL/M_FINAL_STATE: expected-red | PASS |
+| ODDS-13 | Override/concurrency/privacy: 16/16; mutacoes M_IMMUTABILITY/M_GENERATED_CLIENT: expected-red | PASS |
+
+### Comandos e gates
+
+| Comando | Resultado literal | Estado |
+|---|---|---|
+| `node scripts/maven.mjs -f backend/pom.xml -Dtest=OddsCertificationIT test` | 1/1 teste JUnit; wrapper reflexivo exige e executa pelo menos 30 metodos determinísticos | PASS |
+| `node scripts/maven.mjs -f backend/pom.xml '-Dtest=OddsReplayCorrectionTest,OddsPricingVolumeIndependenceTest,OddsResultTaxonomyTest' test` | 44/44 | PASS |
+| `node scripts/maven.mjs -f backend/pom.xml -Dtest=OddsCalibrationFixtureTest test` | 24/24 | PASS |
+| `node scripts/maven.mjs -f backend/pom.xml '-Dtest=OddsMarketIT,OddsMarketLifecycleIT,OddsPublicViewIT,OddsPublicPrivacyIT,OddsOverrideIT,OddsOverrideConcurrencyIT,OddsOverrideSecurityIT' test` | 16/16 | PASS |
+| `node scripts/maven.mjs -f backend/pom.xml '-Dtest=OddsOperationalCapabilitiesIT,OddsAuthorizationIT,OddsAuditVocabularyIT,AuditImmutabilityIT,AuditEventIT,OperationalCapabilitiesIT,OperationalCapabilitiesResponseTest' test` | 74/74, com HMAC de teste definido somente no processo | PASS |
+| `node scripts/maven.mjs -f backend/pom.xml '-Dtest=OddsMigrationIT,FlywayMigrationIT,FlywayChecksumIT,AuthoritativeStorageIT' test` | `OddsMigrationIT` 1 falha em 2 (esperava 27 migrations, encontrou 29); `FlywayMigrationIT` 18/18; `FlywayChecksumIT` 1/1; `AuthoritativeStorageIT` 4/4 | FAIL/BLOCKED |
+| `node frontend/scripts/generate-api.mjs --check` | `ENGINE_MISSING`: JAR OpenAPI aprovado ausente na worktree | SKIP/BLOCKED |
+| `node --test frontend/scripts/generate-api.test.mjs` | 73/73 | PASS |
+| Angular focal (contrato, rotas, pagina publica e operacional) | 57/57 | PASS |
+| Angular agregado | 364/364 na execucao validada da Wave 16; nao reexecutado nesta worktree de certificacao | NOT RUN (historical evidence only) |
+| Playwright `phase4-chromium` + `phase4-firefox` (desktop/320px) | 6/6 | PASS |
+| `node --test scripts/validate-odds-negative-mutations.test.mjs` | 21/21 | PASS |
+| `node scripts/validate-odds-negative-mutations.mjs` | 11/11 mutacoes expected-red; SHA-256 restaurado em cada caso | PASS |
+| `node scripts/validate-angular-route-boundary.mjs` | OK | PASS |
+| `node scripts/maven.mjs -f backend/pom.xml verify` | Nao executado nesta worktree de certificacao | NOT RUN/BLOCKED |
+| `node --test scripts/*.test.mjs` | Nao executado nesta worktree de certificacao | NOT RUN/BLOCKED |
+| `git diff --check` | exit 0 | PASS |
+
+As falhas de migration e do engine ausente sao bloqueios de certificacao, nao
+foram corrigidas por alteracao fora da allowlist e nao autorizam editar
+migrations aplicadas ou instalar dependencias.
+
+### Mutacoes negativas
+
+As 11 mutacoes (`M_WO_NUMERIC`, `M_VOLUME`, `M_K_FACTOR`, `M_REGRESSION`,
+`M_ROUNDING`, `M_SCOPE`, `M_SELF_APPROVAL`, `M_FINAL_STATE`, `M_IMMUTABILITY`,
+`M_PUBLIC_ALLOWLIST`, `M_GENERATED_CLIENT`) produziram o sinal vermelho
+esperado e restauraram o SHA-256 anterior antes do caso seguinte. A mutacao de
+estado final foi deliberadamente ancorada em `requireProposalAllowed`, o ponto
+exercitado por `OddsOverrideIT`; a mutacao de imutabilidade usa
+`OddsPersistenceIT`, que verifica os triggers reais.
+
+### Human checkpoint
+
+`04-08/T3` permanece `BLOCKING`: o responsavel deve revisar a matriz, os hashes,
+as jornadas publicas/operacionais em 320px e desktop, a ausencia de PII e as
+proibicoes de creditos, apostas, settlement, liquidez, H2H positivo e LAUFU de
+producao. Sinal esperado: `aprovar snapshot final da Fase 4` ou divergencia
+especifica.

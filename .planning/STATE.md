@@ -3,19 +3,40 @@ gsd_state_version: 1.0
 milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
-status: planning
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-09-09T03:07:00.000Z"
+status: verification_pending_uat
+stopped_at: Phase 4 Plan 04-08 T3 UAT checkpoint
+last_updated: "2026-09-09T04:30:00.000Z"
 last_activity: 2026-09-09
-last_activity_desc: Wave 16 Plan 04-14 delivered the operational odds Console and Chromium/Firefox browser matrix.
-state_head: 4ae0744
+last_activity_desc: Wave 17 Plan 04-08 certification and negative mutation evidence recorded; UAT and environment gates remain explicit.
+state_head: a4cd613
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 110
-  completed_plans: 108
+  completed_plans: 109
 milestone_name: milestone
 ---
+
+## Wave 17 closeout - 2026-09-09
+
+- Plano `04-08` registrou a certificacao focal da Fase 4, o harness de 11
+  mutacoes negativas e o snapshot de hashes em `04-VALIDATION.md` e
+  `04-VERIFICATION.md`.
+- Evidencias verdes: `OddsCertificationIT` 1/1, pricing/replay/taxonomia
+  44/44, pricing/calibracao 24/24, mercado/lifecycle/public/privacy/override
+  16/16, governanca 74/74, gerador Node 73/73, Angular focal 57/57,
+  Playwright 6/6, harness estrutural 21/21 e mutacoes reais 11/11.
+- Bloqueios preservados sem contorno: `OddsMigrationIT` 1 falha em 2 por
+  expectativa 27 versus 29 migrations; `generate-api.mjs --check` bloqueado
+  por `ENGINE_MISSING`; agregados nao reexecutados nesta worktree nao sao
+  promovidos por contagem historica.
+- O checkpoint humano `04-08/T3` continua bloqueante. O sinal esperado e
+  `aprovar snapshot final da Fase 4`; qualquer divergencia invalida o snapshot.
+
+## Wave 17 Git
+
+- Commit tecnico: `a4cd613`.
+- Commit documental: `PENDING`.
 
 ## Wave 16 closeout - 2026-09-09
 
