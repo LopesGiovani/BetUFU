@@ -106,6 +106,19 @@ const APPROVED_PUBLIC_MARKET_ROUTES = Object.freeze([
   ),
 ]);
 
+const APPROVED_ODDS_OPERATION_ROUTES = Object.freeze([
+  approvedRoute(
+    'operacao/odds/mercados',
+    './features/odds/operations/odds-operations-page.component',
+    'OddsOperationsPageComponent',
+  ),
+  approvedRoute(
+    'operacao/odds/mercados/:marketId',
+    './features/odds/operations/odds-operations-page.component',
+    'OddsOperationsPageComponent',
+  ),
+]);
+
 const APPROVED_CONSOLE_ROUTES = Object.freeze([
   approvedRoute(
     '',
@@ -257,6 +270,7 @@ const APPROVED_TECHNICAL_ROUTES = Object.freeze([
 ]);
 
 const APP_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*,\s*PUBLIC_MARKET_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*import\s*\{\s*ArenaShellComponent\s*\}\s*from\s*'\.\/layout\/arena-shell\.component'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*ArenaShellComponent\s*,\s*children\s*:\s*\[(?<publicChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*BUILD_SPECIFIC_ROUTES\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
+const APP_ROUTES_ODDS_HYBRID_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*,\s*PUBLIC_MARKET_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*import\s*\{\s*ArenaShellComponent\s*\}\s*from\s*'\.\/layout\/arena-shell\.component'\s*;\s*import\s*\{\s*ConsoleShellComponent\s*\}\s*from\s*'\.\/layout\/console-shell\.component'\s*;\s*import\s*\{\s*sportsOperationsRoutes\s*\}\s*from\s*'\.\/features\/sports\/operations\/sports-operations\.routes'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*ArenaShellComponent\s*,\s*children\s*:\s*\[(?<publicChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*\[\s*\.\.\.sportsOperationsRoutes\s*,\s*\.\.\.BUILD_SPECIFIC_ROUTES\s*,\s*\{\s*path\s*:\s*'(?<oddsOperationsPath>[^']+)'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'operational'\s*\}\s*,\s*children\s*:\s*\[(?<oddsOperationsChildren>[\s\S]*?)\]\s*,?\s*\}\s*,?\s*\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
 const APP_ROUTES_HYBRID_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*profileCompletionGuard\s*\}\s*from\s*'\.\/core\/profile\/profile-completion\.guard'\s*;\s*import\s*\{\s*BUILD_SPECIFIC_ROUTES\s*,\s*PUBLIC_MARKET_ROUTES\s*\}\s*from\s*'\.\/app\.routes\.development'\s*;\s*import\s*\{\s*ArenaShellComponent\s*\}\s*from\s*'\.\/layout\/arena-shell\.component'\s*;\s*import\s*\{\s*sportsOperationsRoutes\s*\}\s*from\s*'\.\/features\/sports\/operations\/sports-operations\.routes'\s*;\s*export\s+const\s+APP_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*ArenaShellComponent\s*,\s*children\s*:\s*\[(?<publicChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*canActivateChild\s*:\s*\[\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*\[\.\.\.sportsOperationsRoutes\s*,\s*\.\.\.BUILD_SPECIFIC_ROUTES\s*\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
 const BUILD_SPECIFIC_ROUTES_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\.\/layout\/authenticated-layout\.component'\s*;\s*import\s*\{\s*ConsoleShellComponent\s*\}\s*from\s*'\.\/layout\/console-shell\.component'\s*;\s*(?:export\s+const\s+PUBLIC_MARKET_ROUTES\s*:\s*Routes\s*=\s*\[[\s\S]*?\]\s*;\s*)?export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*'operacao\/esportes'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*children\s*:\s*\[(?<consoleChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*AuthenticatedLayoutComponent\s*,\s*children\s*:\s*\[(?<authenticatedChildren>[\s\S]*?)\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
 const BUILD_SPECIFIC_ROUTES_HYBRID_PATTERN = /^\s*import\s+type\s*\{\s*Routes\s*\}\s*from\s*'@angular\/router'\s*;\s*import\s*\{\s*AuthenticatedLayoutComponent\s*\}\s*from\s*'\.\/layout\/authenticated-layout\.component'\s*;\s*import\s*\{\s*ConsoleShellComponent\s*\}\s*from\s*'\.\/layout\/console-shell\.component'\s*;\s*(?:export\s+const\s+PUBLIC_MARKET_ROUTES\s*:\s*Routes\s*=\s*\[[\s\S]*?\]\s*;\s*)?export\s+const\s+BUILD_SPECIFIC_ROUTES\s*:\s*Routes\s*=\s*\[\s*\{\s*path\s*:\s*'operacao\/esportes'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'operational'\s*\}\s*,\s*children\s*:\s*\[(?<consoleChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*'conta'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'personal'\s*\}\s*,\s*children\s*:\s*\[(?<personalChildren>[\s\S]*?)\]\s*,?\s*\}\s*,\s*\{\s*path\s*:\s*''\s*,\s*component\s*:\s*AuthenticatedLayoutComponent\s*,\s*children\s*:\s*\[(?<authenticatedChildren>[\s\S]*?)\]\s*,?\s*\}\s*,?\s*\]\s*;\s*$/u;
@@ -712,7 +726,7 @@ function decodeUrlEscapes(source) {
 
 function approvedDynamicImportsFor(relativePath) {
   if (relativePath === PATHS.seam) {
-    return APPROVED_PUBLIC_ROUTES;
+    return [...APPROVED_PUBLIC_ROUTES, ...APPROVED_ODDS_OPERATION_ROUTES];
   }
   if (relativePath === PATHS.development) {
     return [
@@ -1884,7 +1898,8 @@ function validateRouteSources(sources) {
     'ARENA_SHELL_IMPORT',
     'import do shell publico da Arena',
   );
-  const hybridAppRoutesMatch = APP_ROUTES_HYBRID_PATTERN.exec(seam);
+  const oddsAppRoutesMatch = APP_ROUTES_ODDS_HYBRID_PATTERN.exec(seam);
+  const hybridAppRoutesMatch = oddsAppRoutesMatch ?? APP_ROUTES_HYBRID_PATTERN.exec(seam);
   const appRoutesMatch = hybridAppRoutesMatch ?? APP_ROUTES_PATTERN.exec(seam);
   expect(
     appRoutesMatch !== null,
@@ -1909,6 +1924,29 @@ function validateRouteSources(sources) {
     'PUBLIC_ARENA_ROUTES',
     'PUBLIC_MARKET_ROUTES deve ser espalhada uma unica vez na Arena publica.',
   );
+  if (oddsAppRoutesMatch !== null) {
+    expect(
+      oddsAppRoutesMatch.groups.oddsOperationsPath === 'operacao/odds/mercados',
+      'APP_ODDS_OPERATION_ROUTES',
+      'a seam deve usar o caminho operacional canonico de odds.',
+    );
+    const oddsOperationRoutes = parseLazyRoutes(
+      oddsAppRoutesMatch.groups.oddsOperationsChildren,
+      'APP_ODDS_OPERATION_ROUTES',
+      'rotas operacionais de odds na seam',
+    ).map((route) => ({
+      ...route,
+      path: route.path === ''
+        ? 'operacao/odds/mercados'
+        : `operacao/odds/mercados/${route.path}`,
+    }));
+    expectExactApprovedRoutes(
+      oddsOperationRoutes,
+      APPROVED_ODDS_OPERATION_ROUTES,
+      'APP_ODDS_OPERATION_ROUTES',
+      'rotas operacionais de odds na seam',
+    );
+  }
   expect(
     /const\s+PROFILE_COMPLETION_URL\s*=\s*'\/conta\/perfil\/completar'\s*;/u.test(profileGuard)
       && /const\s+ERROR_URL\s*=\s*'\/error'\s*;/u.test(profileGuard)
