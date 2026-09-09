@@ -63,15 +63,16 @@
 
 .agenda-head {
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
+  grid-template-columns: minmax(204px, 220px) minmax(0, 1fr);
   align-items: stretch;
   gap: 0;
   border-bottom: 2px solid var(--bt-text);
 }
 .date-lockup {
   display: grid;
+  min-width: 0;
   padding: var(--bt-space-4) var(--bt-space-6);
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: end;
   gap: var(--bt-space-2);
   border: 1px solid var(--bt-border-strong);
@@ -88,16 +89,18 @@
   font-variant-numeric: tabular-nums;
 }
 .date-lockup span {
+  min-width: 0;
   font-size: var(--bt-type-label);
   font-weight: 600;
   letter-spacing: 0.1em;
+  line-height: 1.1;
   text-transform: uppercase;
 }
 .agenda-title-block {
   display: flex;
   min-width: 0;
-  padding: var(--bt-space-4) 0 var(--bt-space-4) var(--bt-space-8);
-  align-items: flex-end;
+  padding: var(--bt-space-4) var(--bt-space-6) var(--bt-space-4) var(--bt-space-8);
+  align-items: center;
   justify-content: space-between;
   gap: var(--bt-space-6);
   border-top: 1px solid var(--bt-border-strong);
@@ -114,9 +117,11 @@
   text-transform: uppercase;
 }
 .agenda-title-block p {
-  margin: 0 0 var(--bt-space-1);
+  max-width: 18ch;
+  margin: 0;
   color: var(--bt-signal-soft);
   font-size: var(--bt-type-label);
+  line-height: 1.2;
   text-align: right;
 }
 
@@ -339,20 +344,23 @@
     grid-template-columns: 1fr;
   }
   .agenda-head {
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: 96px minmax(0, 1fr);
   }
   .date-lockup {
     grid-template-columns: 1fr;
+    align-content: center;
+    justify-items: start;
     padding: var(--bt-space-2) var(--bt-space-1);
     border-radius: var(--bt-radius-card) 0 0;
   }
   .agenda-title-block {
     display: grid;
-    padding: var(--bt-space-2) 0 var(--bt-space-2) var(--bt-space-4);
+    padding: var(--bt-space-2) var(--bt-space-4) var(--bt-space-2) var(--bt-space-4);
     gap: var(--bt-space-2);
     border-radius: 0 var(--bt-radius-card) 0 0;
   }
   .agenda-title-block p {
+    max-width: none;
     text-align: left;
   }
   .agenda-controls__row {
