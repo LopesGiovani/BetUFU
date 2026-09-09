@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 13 Plan 04-07 certified; integration follows the documented fast-forward closeout
+stopped_at: Phase 4 Wave 14 Plan 04-11 certified; integration follows the documented fast-forward closeout
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 13 Plan 04-07 ratified the governed OpenAPI odds candidate; generator 72/72 passed and governed hashes matched.
+last_activity_desc: Wave 14 Plan 04-11 generated the ratified TypeScript client; anti-drift, Node and Angular gates passed.
 state_head: PENDING
 progress:
   total_phases: 8
@@ -28,6 +28,19 @@ milestone_name: milestone
 
 - Commit técnico: `d7e74b5`.
 - Commit documental: `PENDING` neste arquivo para evitar auto-referência circular.
+
+## Wave 14 closeout - 2026-09-08
+
+- Plan `04-11` generated the official Angular TypeScript client from the OpenAPI contract ratified by 04-07.
+- The generated tree has 159 files and digest `51E5582AEA63F066EE6D80E552663C70269BB8385EB53EA2D31716E37DAC3B92`.
+- The responsible ratified the literal allowlist expansion to the 16 new odds outputs plus the updated barrels and `operational-capability.ts`.
+- Public odds consumption is anonymous and excludes actor, evidence, volume and other private fields; operational market and override commands carry typed bodies, `Content-Type`, XSRF and `Idempotency-Key` where required.
+- Certification passed anti-drift `--check`, Node `73/73`, Angular focal `14/14` and Angular aggregate `351/351`.
+
+## Wave 14 Git
+
+- Technical commit: `606be78`.
+- Documentation commit: `PENDING` neste arquivo para evitar auto-referÃªncia circular.
 
 ## Wave 12 closeout - 2026-09-08
 
@@ -414,9 +427,9 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 
 ## Session Continuity
 
-Last session: 2026-09-06T15:28:40-03:00
-Stopped at: Phase 4 documentary snapshot approved; 04-01 T1 passed and T2 remains fail-closed because the exploratory LAUFU snapshot is not calibration-eligible
-Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-VALIDATION.md
+Last session: 2026-09-08T22:10:00-03:00
+Stopped at: Phase 4 Wave 14 Plan 04-11 implementation and verification complete; documentation and integration remain in the closeout block
+Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-11-SUMMARY.md
 
 ## Accumulated Context
 
