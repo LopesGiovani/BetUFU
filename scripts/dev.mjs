@@ -37,6 +37,7 @@ import {
   sanitizeOutput,
   waitHealthy,
 } from './lib/compose.mjs';
+import { seedLocal } from './seed-local.mjs';
 
 const VALID_PROFILES = new Set(['daily', 'full']);
 const EXPECTED_DAILY_SERVICES = 5;
@@ -56,6 +57,7 @@ Comandos:
   status            Mostra estado dos containers
   stop              Para containers sem remover volumes
   logs [service]    Exibe logs (opcionalmente de um serviço)
+  seed <profile>    Carrega personas e fixtures (daily | full)
 
 Exemplos:
   node scripts/dev.mjs up daily
@@ -63,6 +65,7 @@ Exemplos:
   node scripts/dev.mjs verify full
   node scripts/dev.mjs stop
   node scripts/dev.mjs logs postgres
+  node scripts/dev.mjs seed daily
 `.trim());
 }
 
@@ -117,6 +120,15 @@ async function commandUp(profile) {
   } finally {
     await lock.release();
     info('Lock liberado.');
+  }
+}
+
+async function commandSeed(profile) {
+  if (!validateProfile(profile)) return;
+  try {
+    await seedLocal({ profile, log: info });
+  } catch (error) {
+    fail(error instanceof Error ? error.message : 'Falha no seeder local.');
   }
 }
 
@@ -809,6 +821,9 @@ try {
       break;
     case 'logs':
       await commandLogs(rest[0]);
+      break;
+    case 'seed':
+      await commandSeed(rest[0]);
       break;
     default:
       if (command) {
