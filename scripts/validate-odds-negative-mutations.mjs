@@ -67,6 +67,60 @@ export function mutateAlterMarginRounding(source) {
   );
 }
 
+export function mutateRemovePersistedScope(source) {
+  return replaceUniqueRegex(
+    source,
+    /    if \(persistedCompetitionId == null\) \{\r?\n      return AuthorizationDecision\.denied\("PERSISTED_SCOPE_MISSING"\);\r?\n    \}/u,
+    '    if (false) {\n      return AuthorizationDecision.denied("PERSISTED_SCOPE_MISSING");\n    }',
+    'M_SCOPE',
+  );
+}
+
+export function mutateAllowSelfApproval(source) {
+  return replaceUniqueRegex(
+    source,
+    /    if \(approverId\.equals\(proposal\.proposerId\(\)\)\) \{/u,
+    '    if (false && approverId.equals(proposal.proposerId())) {',
+    'M_SELF_APPROVAL',
+  );
+}
+
+export function mutateBypassSuspendedState(source) {
+  return replaceUniqueRegex(
+    source,
+    /(  public void requireProposalAllowed\([\s\S]*?)    if \(state != MarketState\.SUSPENDED\) \{/u,
+    '$1    if (false && state != MarketState.SUSPENDED) {',
+    'M_FINAL_STATE',
+  );
+}
+
+export function mutateRemoveImmutabilityTrigger(source) {
+  return replaceUniqueRegex(
+    source,
+    /CREATE OR REPLACE FUNCTION public\.prevent_odds_history_modification\(\)/u,
+    'CREATE OR REPLACE FUNCTION public.allow_odds_history_modification()',
+    'M_IMMUTABILITY',
+  );
+}
+
+export function mutateExposePublicActor(source) {
+  return replaceUniqueRegex(
+    source,
+    /      PublicOddsExplanation explanation\) \{/u,
+    '      PublicOddsExplanation explanation,\n      UUID actorId) {',
+    'M_PUBLIC_ALLOWLIST',
+  );
+}
+
+export function mutateGeneratedClient(source) {
+  return replaceUniqueRegex(
+    source,
+    /    explanation: PublicOddsExplanation;/u,
+    '    explanation: PublicOddsExplanation;\n    actorId?: string;',
+    'M_GENERATED_CLIENT',
+  );
+}
+
 export const MUTATIONS = Object.freeze([
   Object.freeze({
     id: 'M_WO_NUMERIC',
@@ -137,6 +191,77 @@ export const MUTATIONS = Object.freeze([
       'mvnw.cmd -f backend/pom.xml -Dtest=OddsPricingVolumeIndependenceTest test',
     timeoutMs: 120_000,
     expectedOutput: /BUILD FAILURE/u,
+  }),
+  Object.freeze({
+    id: 'M_SCOPE',
+    name: 'remocao_escopo_persistido',
+    description: 'Remocao da rejeicao de comandos sem escopo persistido',
+    threatId: 'T-04-SCOPE',
+    path: 'backend/src/main/java/br/com/betufu/odds/internal/governance/OddsAuthorizationService.java',
+    mutate: mutateRemovePersistedScope,
+    command: 'node scripts/maven.mjs -f backend/pom.xml -Dtest=OddsAuthorizationIT test',
+    fallbackCommand: 'mvnw.cmd -f backend/pom.xml -Dtest=OddsAuthorizationIT test',
+    timeoutMs: 120_000,
+    expectedOutput: /BUILD FAILURE/u,
+  }),
+  Object.freeze({
+    id: 'M_SELF_APPROVAL',
+    name: 'permissao_autoaprovacao',
+    description: 'Permissao indevida de o proponente aprovar o proprio override',
+    threatId: 'T-04-SELF-APPROVAL',
+    path: 'backend/src/main/java/br/com/betufu/odds/internal/override/OddsOverridePolicy.java',
+    mutate: mutateAllowSelfApproval,
+    command: 'node scripts/maven.mjs -f backend/pom.xml -Dtest=OddsOverrideIT test',
+    fallbackCommand: 'mvnw.cmd -f backend/pom.xml -Dtest=OddsOverrideIT test',
+    timeoutMs: 120_000,
+    expectedOutput: /BUILD FAILURE/u,
+  }),
+  Object.freeze({
+    id: 'M_FINAL_STATE',
+    name: 'bypass_estado_suspenso',
+    description: 'Permissao de proposta fora do estado SUSPENDED, incluindo estados finais',
+    threatId: 'T-04-RACE',
+    path: 'backend/src/main/java/br/com/betufu/odds/internal/override/OddsOverridePolicy.java',
+    mutate: mutateBypassSuspendedState,
+    command: 'node scripts/maven.mjs -f backend/pom.xml -Dtest=OddsOverrideIT test',
+    fallbackCommand: 'mvnw.cmd -f backend/pom.xml -Dtest=OddsOverrideIT test',
+    timeoutMs: 120_000,
+    expectedOutput: /BUILD FAILURE/u,
+  }),
+  Object.freeze({
+    id: 'M_IMMUTABILITY',
+    name: 'remocao_trigger_imutabilidade',
+    description: 'Remocao da funcao comum que bloqueia UPDATE e DELETE no historico de odds',
+    threatId: 'T-04-REWRITE',
+    path: 'backend/src/main/resources/db/migration/V25__create_odds_market_lineage.sql',
+    mutate: mutateRemoveImmutabilityTrigger,
+    command: 'node scripts/maven.mjs -f backend/pom.xml -Dtest=OddsPersistenceIT test',
+    fallbackCommand: 'mvnw.cmd -f backend/pom.xml -Dtest=OddsPersistenceIT test',
+    timeoutMs: 120_000,
+    expectedOutput: /BUILD FAILURE/u,
+  }),
+  Object.freeze({
+    id: 'M_PUBLIC_ALLOWLIST',
+    name: 'exposicao_actor_publico',
+    description: 'Exposicao indevida de actorId na projecao publica de odds',
+    threatId: 'T-04-PII',
+    path: 'backend/src/main/java/br/com/betufu/odds/internal/publicview/OddsPublicViewModels.java',
+    mutate: mutateExposePublicActor,
+    command: 'node scripts/maven.mjs -f backend/pom.xml -Dtest=OddsPublicPrivacyIT test',
+    fallbackCommand: 'mvnw.cmd -f backend/pom.xml -Dtest=OddsPublicPrivacyIT test',
+    timeoutMs: 120_000,
+    expectedOutput: /BUILD FAILURE/u,
+  }),
+  Object.freeze({
+    id: 'M_GENERATED_CLIENT',
+    name: 'edicao_manual_cliente_gerado',
+    description: 'Edicao manual de um modelo TypeScript governado',
+    threatId: 'T-04-SUPPLY-CHAIN',
+    path: 'frontend/src/app/api/generated/model/public-odds-view.ts',
+    mutate: mutateGeneratedClient,
+    command: 'node scripts/validate-angular-route-boundary.mjs',
+    timeoutMs: 120_000,
+    expectedOutput: /GENERATED_MANIFEST_DIGEST/u,
   }),
 ]);
 

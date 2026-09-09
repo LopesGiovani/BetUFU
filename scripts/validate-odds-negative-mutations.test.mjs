@@ -10,8 +10,14 @@ import {
   mutateAlterEditionRegression,
   mutateAlterKFactorThreshold,
   mutateAlterMarginRounding,
+  mutateAllowSelfApproval,
+  mutateBypassSuspendedState,
+  mutateExposePublicActor,
+  mutateGeneratedClient,
   mutateIncludeNumericWalkover,
   mutateInsertBettingVolume,
+  mutateRemoveImmutabilityTrigger,
+  mutateRemovePersistedScope,
   replaceUniqueRegex,
   runMutationCase,
   runMutationSuite,
@@ -236,8 +242,29 @@ test('cenario nomeado M_ROUNDING: detecta alteracao das casas decimais / arredon
   assert.ok(mutated.includes('DECIMAL_PLACES = 4'));
 });
 
+const extendedMutationExpectations = [
+  ['M_SCOPE', mutateRemovePersistedScope, 'if (false)'],
+  ['M_SELF_APPROVAL', mutateAllowSelfApproval, 'false && approverId.equals'],
+  ['M_FINAL_STATE', mutateBypassSuspendedState, 'false && state != MarketState.SUSPENDED'],
+  ['M_IMMUTABILITY', mutateRemoveImmutabilityTrigger, 'allow_odds_history_modification'],
+  ['M_PUBLIC_ALLOWLIST', mutateExposePublicActor, 'UUID actorId'],
+  ['M_GENERATED_CLIENT', mutateGeneratedClient, 'actorId?: string'],
+];
+
+for (const [id, mutate, marker] of extendedMutationExpectations) {
+  test(`cenario nomeado ${id}: altera o discriminante real esperado`, async () => {
+    const item = MUTATIONS.find((mutation) => mutation.id === id);
+    assert.ok(item, `${id} deve existir no catalogo de mutacoes`);
+    const filePath = join(defaultProjectRoot, item.path);
+    const original = await readFile(filePath, 'utf8');
+    const mutated = mutate(original);
+    assert.notEqual(mutated, original);
+    assert.ok(mutated.includes(marker));
+  });
+}
+
 test('todas as mutacoes declaradas possuem ancora unica, threatId, metadados validos e alteram o codigo real', async () => {
-  assert.ok(MUTATIONS.length >= 5, 'espera-se pelo menos 5 mutacoes de modelo');
+  assert.ok(MUTATIONS.length >= 11, 'espera-se a matriz ampliada de mutacoes da fase');
   const ids = new Set();
   const names = new Set();
 
