@@ -29,35 +29,39 @@
       </div>
 
       <nav class="console-nav" aria-label="Navegação do console">
-        @if (isPersonal) {
-          @for (destination of personalDestinations; track destination.path) {
-            <a
-              [routerLink]="destination.path"
-              routerLinkActive="is-active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              >{{ destination.label }}</a
-            >
+        <div class="console-nav__links">
+          @if (isPersonal) {
+            @for (destination of personalDestinations; track destination.path) {
+              <a
+                [routerLink]="destination.path"
+                routerLinkActive="is-active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                >{{ destination.label }}</a
+              >
+            }
+          } @else {
+            @for (destination of operationDestinations(); track destination.path) {
+              <a
+                [routerLink]="destination.path"
+                routerLinkActive="is-active"
+                [routerLinkActiveOptions]="{ exact: destination.path === '/operacao/esportes' }"
+                >{{ destination.label }}</a
+              >
+            }
           }
-        } @else {
-          @for (destination of operationDestinations(); track destination.path) {
-            <a
-              [routerLink]="destination.path"
-              routerLinkActive="is-active"
-              [routerLinkActiveOptions]="{ exact: destination.path === '/operacao/esportes' }"
-              >{{ destination.label }}</a
-            >
-          }
-        }
-        <a routerLink="/" (click)="closeMenu()">Arena</a>
-        <button
-          type="button"
-          class="console-nav__account"
-          (click)="toggleMenu()"
-          (keydown)="onMenuTriggerKeydown($event)"
-          aria-controls="console-account-menu"
-          [attr.aria-expanded]="menuOpen()">
-          {{ sessionStore.displayName() || 'Conta' }}
-        </button>
+        </div>
+        <div class="console-nav__actions">
+          <a routerLink="/" (click)="closeMenu()">Arena</a>
+          <button
+            type="button"
+            class="console-nav__account"
+            (click)="toggleMenu()"
+            (keydown)="onMenuTriggerKeydown($event)"
+            aria-controls="console-account-menu"
+            [attr.aria-expanded]="menuOpen()">
+            {{ sessionStore.displayName() || 'Conta' }}
+          </button>
+        </div>
       </nav>
 
       @if (menuOpen()) {

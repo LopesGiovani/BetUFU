@@ -36,6 +36,8 @@
   position: relative;
   display: flex;
   width: var(--bt-container);
+  max-width: 100%;
+  min-width: 0;
   min-height: tokens.$space-16;
   margin-inline: auto;
   align-items: center;
@@ -82,13 +84,23 @@
 
 .console-nav {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
+  max-width: 100%;
   margin-left: auto;
   align-items: center;
   gap: tokens.$space-2;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
   a,
   button {
     display: inline-flex;
+    flex-shrink: 0;
     min-height: tokens.$min-touch-target;
     padding: 0 tokens.$space-2;
     align-items: center;
@@ -99,6 +111,7 @@
     font: inherit;
     font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
     cursor: pointer;
     &:hover,
     &.is-active {
@@ -111,6 +124,29 @@
     padding-inline: tokens.$space-4;
     color: tokens.$color-text;
   }
+}
+
+.console-nav__links {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  gap: tokens.$space-2;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.console-nav__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: tokens.$space-2;
 }
 
 .console-menu {
@@ -228,13 +264,18 @@
     padding-bottom: tokens.$space-2;
   }
   .console-nav {
+    flex-basis: 100%;
     max-width: 100%;
     gap: 0;
-    overflow-x: auto;
+    order: 2;
   }
-  .console-nav a {
-    display: inline-flex;
-    flex: 0 0 auto;
+  .console-nav__links {
+    gap: 0;
+  }
+  .console-nav__account {
+    max-width: 42vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .console-main {
     padding-block: tokens.$space-6;
