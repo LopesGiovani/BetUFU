@@ -19,6 +19,8 @@ const EXPECTED = Object.freeze({
   // campos: detectar drift, nao apenas presenca.
   technicalFirstName: 'BETUFU',
   technicalLastName: 'Technical',
+  supportedLocales: ['pt-BR'],
+  defaultLocale: 'pt-BR',
   eventsListeners: ['jboss-logging', 'betufu-password-event-listener'],
   redirectUris: ['http://localhost:4200/login/oauth2/code/keycloak'],
   postLogoutRedirectUris: 'http://localhost:4200/',
@@ -91,6 +93,9 @@ export function validateRealmDocument(realm) {
       'registrationEmailAsUsername',
       'resetPasswordAllowed',
       'verifyEmail',
+      'internationalizationEnabled',
+      'supportedLocales',
+      'defaultLocale',
       'loginTheme',
       'smtpServer',
       'roles',
@@ -113,6 +118,9 @@ export function validateRealmDocument(realm) {
   expectExact(realm.registrationEmailAsUsername, true, 'realm.registrationEmailAsUsername');
   expectExact(realm.resetPasswordAllowed, true, 'realm.resetPasswordAllowed');
   expectExact(realm.verifyEmail, true, 'realm.verifyEmail');
+  expectExact(realm.internationalizationEnabled, true, 'realm.internationalizationEnabled');
+  expectExact(realm.supportedLocales, EXPECTED.supportedLocales, 'realm.supportedLocales');
+  expectExact(realm.defaultLocale, EXPECTED.defaultLocale, 'realm.defaultLocale');
   expectExact(realm.loginTheme, 'betufu', 'realm.loginTheme');
 
   expectExactKeys(

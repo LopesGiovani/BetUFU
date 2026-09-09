@@ -28,7 +28,7 @@ const REDIRECT_URI = 'http://localhost:4200/login/oauth2/code/keycloak';
 const MAX_REDIRECTS = 3;
 const REQUEST_TIMEOUT_MS = 10_000;
 const EXPECTED_LOGIN_CSS_SHA256 =
-  '69ae832b7e6e0dc12062af1df672f48f7cc173a74074ad98a2e320db1ddc3d0e';
+  'fc8b6f01f74814aeff0d6baed8714328abad6ff030562d9977ab7dc5b3912656';
 const EXPECTED_VALIDATION_SCRIPT_SHA256 =
   '25f7138b8204487302b8a86f888c89080eede8326da73098df50f6775f027eae';
 
@@ -41,6 +41,7 @@ const EXPECTED_THEME_PROPERTIES = new Map([
   ['styles', 'css/styles.css css/login.css'],
   ['scripts', 'js/required-field-validation.js'],
   ['darkMode', 'false'],
+  ['locales', 'pt-BR'],
 ]);
 
 const EXPECTED_ASSETS = new Map([
@@ -84,6 +85,13 @@ const EXPECTED_ASSETS = new Map([
       copyright: 'Copyright 2017 The Barlow Project Authors',
     },
   ],
+  [
+    'messages/messages_pt_BR.properties',
+    {
+      bytes: 613,
+      sha256: '2258aaa6c86813b5dc0b515fc9d7a59febdf0a2549e769c8ef9d4b2787f86d77',
+    },
+  ],
 ]);
 
 const EXPECTED_THEME_FILES = new Set([
@@ -91,6 +99,7 @@ const EXPECTED_THEME_FILES = new Set([
   'theme.properties',
   'resources/css/login.css',
   'resources/js/required-field-validation.js',
+  'messages/messages_pt_BR.properties',
   ...EXPECTED_ASSETS.keys(),
 ]);
 
@@ -99,6 +108,7 @@ const EXPECTED_THEME_DIRECTORIES = new Set([
   'resources/css',
   'resources/fonts',
   'resources/js',
+  'messages',
 ]);
 
 const EXPECTED_FONTS = [
@@ -120,16 +130,16 @@ const EXPECTED_FONTS = [
 ];
 
 const EXPECTED_COLOR_TOKENS = new Map([
-  ['--betufu-canvas', '#0b1220'],
-  ['--betufu-surface', '#142033'],
-  ['--betufu-surface-raised', '#1c2c42'],
-  ['--betufu-accent', '#ff8a3d'],
-  ['--betufu-on-accent', '#0b1220'],
-  ['--betufu-text', '#f8fafc'],
-  ['--betufu-text-muted', '#c5d1e0'],
-  ['--betufu-border', '#52657d'],
-  ['--betufu-focus', '#ffc08a'],
-  ['--betufu-error', '#ff6b6b'],
+  ['--betufu-canvas', '#120b12'],
+  ['--betufu-surface', '#171018'],
+  ['--betufu-surface-raised', '#21131d'],
+  ['--betufu-accent', '#ff626b'],
+  ['--betufu-on-accent', '#09080d'],
+  ['--betufu-text', '#fff4f4'],
+  ['--betufu-text-muted', '#cdbfc5'],
+  ['--betufu-border', '#5d4250'],
+  ['--betufu-focus', '#ffd2d4'],
+  ['--betufu-error', '#ff7a82'],
 ]);
 
 function invariant(condition, message) {
@@ -340,7 +350,7 @@ function assertCssColors(css) {
     'Cores hexadecimais devem existir somente nos tokens aprovados',
   );
 
-  const approvedShadowPattern = /rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*\.24\s*\)/gi;
+  const approvedShadowPattern = /rgba\(\s*9\s*,\s*8\s*,\s*13\s*,\s*\.36\s*\)/gi;
   const shadowMatches = css.match(approvedShadowPattern) ?? [];
   invariant(shadowMatches.length === 1, 'A sombra aprovada deve aparecer exatamente uma vez');
   const withoutApprovedShadow = css.replace(approvedShadowPattern, '');

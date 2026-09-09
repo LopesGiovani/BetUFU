@@ -9,6 +9,11 @@
   "registrationEmailAsUsername": true,
   "resetPasswordAllowed": true,
   "verifyEmail": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "pt-BR"
+  ],
+  "defaultLocale": "pt-BR",
   "loginTheme": "betufu",
   "smtpServer": {
     "host": "mailpit",

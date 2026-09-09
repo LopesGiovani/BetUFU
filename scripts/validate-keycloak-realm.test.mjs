@@ -285,6 +285,24 @@ const unsafeMutations = [
     },
   },
   {
+    name: 'internacionalizacao desabilitada',
+    mutate: (realm) => {
+      realm.internationalizationEnabled = false;
+    },
+  },
+  {
+    name: 'idioma padrao divergente',
+    mutate: (realm) => {
+      realm.defaultLocale = 'en';
+    },
+  },
+  {
+    name: 'idioma adicional habilitado',
+    mutate: (realm) => {
+      realm.supportedLocales.push('en');
+    },
+  },
+  {
     name: 'conta tecnica com email nao verificado',
     mutate: (realm) => {
       realm.users[0].emailVerified = false;
