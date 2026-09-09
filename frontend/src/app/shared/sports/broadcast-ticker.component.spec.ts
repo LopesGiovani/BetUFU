@@ -27,17 +27,21 @@ const EVENT: PublicAgendaEventViewModel = {
 };
 
 describe('BroadcastTickerComponent', () => {
-  it('repete somente a cópia visual e pausa o loop pelo controle compartilhado', async () => {
+  it('repete somente a cópia visual e mantém o loop ao passar o ponteiro', async () => {
     await TestBed.configureTestingModule({
       imports: [BroadcastTickerComponent],
     }).compileComponents();
     const fixture = TestBed.createComponent(BroadcastTickerComponent);
     fixture.componentRef.setInput('events', [EVENT]);
-    fixture.componentRef.setInput('paused', true);
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('.ticker')?.classList.contains('is-paused')).toBe(true);
+    const ticker = root.querySelector('.ticker') as HTMLElement;
+    ticker.dispatchEvent(new PointerEvent('pointerenter'));
+    fixture.detectChanges();
+
+    expect(ticker.classList.contains('is-paused')).toBe(false);
+    expect(root.querySelector('.ticker__track')).not.toBeNull();
     expect(root.querySelectorAll('a')).toHaveLength(1);
     expect(root.querySelector('a')?.getAttribute('href')).toBe('/eventos/evt-1');
     expect(root.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);

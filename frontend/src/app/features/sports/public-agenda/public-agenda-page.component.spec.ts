@@ -299,15 +299,17 @@ describe('PublicAgendaPageComponent', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('.ticker')).toBeNull();
   });
 
-  it('propaga a pausa de interação do ticker para o hero', async () => {
+  it('envia os eventos publicados ao hero sem renderizar controle manual de pausa', async () => {
     service.listPublishedSportsEvents.mockReturnValue(of(publishedPage()));
     const fixture = await render();
-    fixture.componentInstance.tickerInteractionPaused.set(true);
-    fixture.detectChanges();
 
     const hero = fixture.debugElement.query(By.directive(AutoEventHeroComponent))
       .componentInstance as AutoEventHeroComponent;
-    expect(hero.sharedPaused()).toBe(true);
-    expect(hero.paused()).toBe(false);
+    expect(hero.events()).toHaveLength(2);
+    expect(hero.event()?.id).toBe('11111111-1111-4111-8111-111111111111');
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Pausar destaques');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('app-highlight-motion-control'),
+    ).toBeNull();
   });
 });

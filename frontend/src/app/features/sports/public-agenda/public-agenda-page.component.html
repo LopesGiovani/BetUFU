@@ -1,20 +1,14 @@
 @if (store.nextEvent(); as nextEvent) {
   <app-auto-event-hero
     [event]="nextEvent"
-    [eventCount]="store.totalElements()"
-    [paused]="motionPaused()"
-    [sharedPaused]="tickerInteractionPaused()"
-    (pausedChange)="motionPaused.set($event)"
-    (interactionPausedChange)="heroInteractionPaused.set($event)" />
+    [events]="store.upcomingEvents().length > 0 ? store.upcomingEvents() : store.displayEvents()"
+    [eventCount]="store.totalElements()" />
 } @else {
   <section class="empty-hero">
     <div class="empty-hero__court" aria-hidden="true"></div>
     <div class="empty-hero__content">
       <nav class="empty-hero__sports" aria-label="Agenda pública">
         <span class="is-active">Agenda pública</span>
-        <app-highlight-motion-control
-          [paused]="motionPaused()"
-          (pausedChange)="motionPaused.set($event)" />
       </nav>
       <div class="empty-hero__stage">
         <h1><span>Hoje em</span><strong>quadra.</strong></h1>
@@ -65,10 +59,7 @@
   </section>
 }
 
-<app-broadcast-ticker
-  [events]="tickerEvents()"
-  [paused]="composedMotionPaused()"
-  (interactionPausedChange)="tickerInteractionPaused.set($event)" />
+<app-broadcast-ticker [events]="tickerEvents()" />
 <app-sport-ribbon
   [published]="store.publishedResponseReceived()"
   [eventCount]="store.totalElements()"
@@ -77,7 +68,7 @@
   [loading]="store.isLoading()" />
 
 <section id="agenda" class="agenda" [attr.aria-busy]="store.isLoading()">
-  <app-grainient-background [paused]="composedMotionPaused()" />
+  <app-grainient-background />
   <div class="agenda__veil" aria-hidden="true"></div>
 
   <div class="agenda__content">

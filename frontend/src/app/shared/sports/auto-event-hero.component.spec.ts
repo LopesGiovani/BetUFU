@@ -26,6 +26,16 @@ const EVENT: PublicAgendaEventViewModel = {
   detailHref: '/eventos/evt-hero',
 };
 
+const SECOND_EVENT: PublicAgendaEventViewModel = {
+  ...EVENT,
+  id: 'evt-hero-2',
+  title: 'Medicina contra Computação',
+  eventName: 'Medicina × Computação',
+  scheduledAt: '2026-08-29T23:30:00Z',
+  timeLabel: '20:30',
+  detailHref: '/eventos/evt-hero-2',
+};
+
 describe('AutoEventHeroComponent', () => {
   beforeEach(() => {
     vi.stubGlobal(
@@ -80,16 +90,33 @@ describe('AutoEventHeroComponent', () => {
     expect(fixture.componentInstance.isCompositionInteractive(1)).toBe(false);
   });
 
-  it('preserva a composição enquanto a preferência manual estiver pausada', async () => {
+  it('rotaciona o evento e alterna a composição a cada 3 segundos', async () => {
     vi.useFakeTimers();
     await TestBed.configureTestingModule({ imports: [AutoEventHeroComponent] }).compileComponents();
     const fixture = TestBed.createComponent(AutoEventHeroComponent);
     fixture.componentRef.setInput('event', EVENT);
-    fixture.componentRef.setInput('paused', true);
+    fixture.componentRef.setInput('events', [EVENT, SECOND_EVENT]);
+    fixture.componentRef.setInput('eventCount', 2);
     fixture.detectChanges();
 
-    vi.advanceTimersByTime(7_000);
+    expect(fixture.componentInstance.currentEvent()?.id).toBe('evt-hero');
+    expect(fixture.componentInstance.activeIndex()).toBe(0);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('1 de 2');
+
+    vi.advanceTimersByTime(3_000);
+    TestBed.flushEffects();
     fixture.detectChanges();
+
+    expect(fixture.componentInstance.currentEvent()?.id).toBe('evt-hero-2');
+    expect(fixture.componentInstance.activeIndex()).toBe(1);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Medicina × Computação');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('2 de 2');
+
+    vi.advanceTimersByTime(3_000);
+    TestBed.flushEffects();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.currentEvent()?.id).toBe('evt-hero');
     expect(fixture.componentInstance.activeIndex()).toBe(0);
   });
 
@@ -106,31 +133,41 @@ describe('AutoEventHeroComponent', () => {
     expect(directSlide.textContent).toContain('BRT');
   });
 
-  it('cancela uma troca em curso quando o ponteiro entra no hero', async () => {
+  it('pausa a rotação durante hover e retoma ao sair do hero', async () => {
     vi.useFakeTimers();
     await TestBed.configureTestingModule({ imports: [AutoEventHeroComponent] }).compileComponents();
     const fixture = TestBed.createComponent(AutoEventHeroComponent);
     fixture.componentRef.setInput('event', EVENT);
+    fixture.componentRef.setInput('events', [EVENT, SECOND_EVENT]);
     fixture.detectChanges();
-
-    vi.advanceTimersByTime(5_200);
-    fixture.detectChanges();
-    expect(fixture.componentInstance.switching()).toBe(true);
 
     fixture.componentInstance.hovered.set(true);
     TestBed.flushEffects();
     fixture.detectChanges();
-    vi.advanceTimersByTime(700);
+    vi.advanceTimersByTime(4_000);
     fixture.detectChanges();
 
-    expect(fixture.componentInstance.switching()).toBe(false);
+    expect(fixture.componentInstance.currentEventIndex()).toBe(0);
     expect(fixture.componentInstance.activeIndex()).toBe(0);
 
     fixture.componentInstance.hovered.set(false);
     TestBed.flushEffects();
     fixture.detectChanges();
-    vi.advanceTimersByTime(5_600);
+    vi.advanceTimersByTime(3_000);
+    TestBed.flushEffects();
     fixture.detectChanges();
+
+    expect(fixture.componentInstance.currentEventIndex()).toBe(1);
     expect(fixture.componentInstance.activeIndex()).toBe(1);
+  });
+
+  it('não renderiza o controle manual de pausa', async () => {
+    await TestBed.configureTestingModule({ imports: [AutoEventHeroComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(AutoEventHeroComponent);
+    fixture.componentRef.setInput('event', EVENT);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-highlight-motion-control')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Pausar destaques');
   });
 });

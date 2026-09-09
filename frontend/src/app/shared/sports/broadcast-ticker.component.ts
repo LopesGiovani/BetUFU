@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { PublicAgendaEventViewModel } from '../../features/sports/public-agenda/public-agenda-api.adapter';
 
 @Component({
@@ -6,14 +6,7 @@ import { PublicAgendaEventViewModel } from '../../features/sports/public-agenda/
   standalone: true,
   template: `
     @if (events().length > 0) {
-      <div
-        class="ticker"
-        [class.is-paused]="paused() || interactionPaused()"
-        (pointerenter)="interactionPaused.set(true); interactionPausedChange.emit(true)"
-        (pointerleave)="interactionPaused.set(false); interactionPausedChange.emit(false)"
-        (focusin)="interactionPaused.set(true); interactionPausedChange.emit(true)"
-        (focusout)="onFocusOut($event)"
-        aria-label="Resumo dos próximos eventos publicados">
+      <div class="ticker" aria-label="Resumo dos próximos eventos publicados">
         <div class="ticker__track">
           <div class="ticker__set">
             @for (event of events(); track event.id; let index = $index) {
@@ -53,9 +46,6 @@ import { PublicAgendaEventViewModel } from '../../features/sports/public-agenda/
       width: max-content;
       animation: ticker-move 24s linear infinite;
       transform: translate3d(0, 0, 0);
-    }
-    .ticker.is-paused .ticker__track {
-      animation-play-state: paused;
     }
     .ticker__set {
       display: flex;
@@ -116,17 +106,4 @@ import { PublicAgendaEventViewModel } from '../../features/sports/public-agenda/
 })
 export class BroadcastTickerComponent {
   readonly events = input<readonly PublicAgendaEventViewModel[]>([]);
-  readonly paused = input(false);
-  readonly interactionPausedChange = output<boolean>();
-  readonly interactionPaused = signal(false);
-
-  onFocusOut(event: FocusEvent): void {
-    const root = event.currentTarget as HTMLElement;
-    const next = event.relatedTarget;
-    const stillInside = next instanceof Node && root.contains(next);
-    if (!stillInside) {
-      this.interactionPaused.set(false);
-      this.interactionPausedChange.emit(false);
-    }
-  }
 }

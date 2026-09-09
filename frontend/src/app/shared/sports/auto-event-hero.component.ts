@@ -8,20 +8,16 @@ import {
   computed,
   effect,
   input,
-  output,
   signal,
 } from '@angular/core';
 import { PublicAgendaEventViewModel } from '../../features/sports/public-agenda/public-agenda-api.adapter';
-import { HighlightMotionControlComponent } from './highlight-motion-control.component';
 
-const CYCLE_MS = 5_200;
-const SWITCH_POINT_MS = 330;
+const CYCLE_MS = 3_000;
 const SWITCH_DURATION_MS = 780;
 
 @Component({
   selector: 'app-auto-event-hero',
   standalone: true,
-  imports: [HighlightMotionControlComponent],
   template: `
     <section
       #heroRoot
@@ -31,80 +27,83 @@ const SWITCH_DURATION_MS = 780;
       (focusin)="focusWithin.set(true)"
       (focusout)="onFocusOut($event)">
       <div class="event-hero__court" aria-hidden="true"></div>
-      <h1 class="sr-only">Hoje em quadra — {{ event().eventName }}</h1>
+      @if (currentEvent(); as activeEvent) {
+        <h1 class="sr-only">Hoje em quadra — {{ activeEvent.eventName }}</h1>
 
-      <div class="hero-content">
-        <div class="sports-nav">
-          <div class="sports-nav__context">
-            <span class="sports-nav__item is-active">Todos</span>
-            <span class="sports-nav__item">Agenda pública</span>
+        <div class="hero-content">
+          <div class="sports-nav">
+            <div class="sports-nav__context">
+              <span class="sports-nav__item is-active">Todos</span>
+              <span class="sports-nav__item">Agenda pública</span>
+            </div>
+            <span class="sports-nav__position" aria-live="polite">{{ eventPosition() }}</span>
           </div>
-          <app-highlight-motion-control
-            [paused]="paused()"
-            (pausedChange)="pausedChange.emit($event)" />
-        </div>
 
-        <div
-          class="hero-stage"
-          [class.is-switching]="switching()"
-          [attr.data-active-composition]="activeIndex()"
-          role="region"
-          aria-label="Destaque do próximo evento publicado"
-          aria-live="off">
-          <section
-            class="hero-slide hero-slide--manifesto"
-            [class.is-active]="isCompositionInteractive(0)"
-            [attr.aria-hidden]="!isCompositionInteractive(0)"
-            [attr.inert]="!isCompositionInteractive(0) ? '' : null">
-            <p class="manifesto-title" aria-hidden="true">Hoje em</p>
-            <div class="manifesto-label">
-              <span>Próximo evento</span>
-              <span>{{ event().shortDateLabel }}</span>
-            </div>
-            <div class="manifesto-beam">
-              <strong>Quadra.</strong>
-              <div class="manifesto-clock">
-                <time [attr.datetime]="event().scheduledAt">{{ event().timeLabel }}</time>
-                <span>{{ event().zoneLabel }}</span>
+          <div
+            class="hero-stage"
+            [class.is-switching]="switching()"
+            [attr.data-active-composition]="activeIndex()"
+            role="region"
+            aria-label="Destaque do próximo evento publicado"
+            aria-live="off">
+            <section
+              class="hero-slide hero-slide--manifesto"
+              [class.is-active]="isCompositionInteractive(0)"
+              [attr.aria-hidden]="!isCompositionInteractive(0)"
+              [attr.inert]="!isCompositionInteractive(0) ? '' : null">
+              <p class="manifesto-title" aria-hidden="true">Hoje em</p>
+              <div class="manifesto-label">
+                <span>Próximo evento</span>
+                <span>{{ activeEvent.shortDateLabel }}</span>
               </div>
-            </div>
-            <div class="manifesto-context">
-              <strong
-                >{{ eventCountDisplay() }}
-                {{ eventCount() === 1 ? 'evento publicado' : 'eventos publicados' }}</strong
-              >
-              <span>Eventos publicados · programação do campus</span>
-            </div>
-            <div class="manifesto-match">
-              <h2>{{ event().eventName }}</h2>
-              <p>{{ event().contextLabel }} · {{ event().venueLabel }}</p>
-              <a [href]="event().detailHref" [tabIndex]="isCompositionInteractive(0) ? 0 : -1"
-                >Abrir evento</a
-              >
-            </div>
-          </section>
+              <div class="manifesto-beam">
+                <strong>Quadra.</strong>
+                <div class="manifesto-clock">
+                  <time [attr.datetime]="activeEvent.scheduledAt">{{ activeEvent.timeLabel }}</time>
+                  <span>{{ activeEvent.zoneLabel }}</span>
+                </div>
+              </div>
+              <div class="manifesto-context">
+                <strong
+                  >{{ eventCountDisplay() }}
+                  {{ eventCount() === 1 ? 'evento publicado' : 'eventos publicados' }}</strong
+                >
+                <span>Eventos publicados · programação do campus</span>
+              </div>
+              <div class="manifesto-match">
+                <h2>{{ activeEvent.eventName }}</h2>
+                <p>{{ activeEvent.contextLabel }} · {{ activeEvent.venueLabel }}</p>
+                <a [href]="activeEvent.detailHref" [tabIndex]="isCompositionInteractive(0) ? 0 : -1"
+                  >Abrir evento</a
+                >
+              </div>
+            </section>
 
-          <section
-            class="hero-slide hero-slide--direct"
-            [class.is-active]="isCompositionInteractive(1)"
-            [attr.aria-hidden]="!isCompositionInteractive(1)"
-            [attr.inert]="!isCompositionInteractive(1) ? '' : null">
-            <p class="direct-title" aria-hidden="true">
-              <span>Hoje em</span>
-              <strong>quadra.</strong>
-            </p>
-            <aside class="direct-board">
-              <div class="direct-board__label">Próximo evento</div>
-              <time [attr.datetime]="event().scheduledAt">{{ event().timeLabel }}</time>
-              <h2>{{ event().eventName }}</h2>
-              <p>{{ event().contextLabel }} · {{ event().venueLabel }} · {{ event().zoneLabel }}</p>
-              <a [href]="event().detailHref" [tabIndex]="isCompositionInteractive(1) ? 0 : -1"
-                >Abrir evento</a
-              >
-            </aside>
-          </section>
+            <section
+              class="hero-slide hero-slide--direct"
+              [class.is-active]="isCompositionInteractive(1)"
+              [attr.aria-hidden]="!isCompositionInteractive(1)"
+              [attr.inert]="!isCompositionInteractive(1) ? '' : null">
+              <p class="direct-title" aria-hidden="true">
+                <span>Hoje em</span>
+                <strong>quadra.</strong>
+              </p>
+              <aside class="direct-board">
+                <div class="direct-board__label">Próximo evento</div>
+                <time [attr.datetime]="activeEvent.scheduledAt">{{ activeEvent.timeLabel }}</time>
+                <h2>{{ activeEvent.eventName }}</h2>
+                <p>
+                  {{ activeEvent.contextLabel }} · {{ activeEvent.venueLabel }} ·
+                  {{ activeEvent.zoneLabel }}
+                </p>
+                <a [href]="activeEvent.detailHref" [tabIndex]="isCompositionInteractive(1) ? 0 : -1"
+                  >Abrir evento</a
+                >
+              </aside>
+            </section>
+          </div>
         </div>
-      </div>
+      }
     </section>
   `,
   styles: `
@@ -144,6 +143,14 @@ const SWITCH_DURATION_MS = 780;
     }
     .sports-nav__context::-webkit-scrollbar {
       display: none;
+    }
+    .sports-nav__position {
+      flex: 0 0 auto;
+      color: var(--bt-hero-muted);
+      font-size: var(--bt-type-label);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }
     .sports-nav__item {
       display: inline-flex;
@@ -503,13 +510,25 @@ const SWITCH_DURATION_MS = 780;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AutoEventHeroComponent implements AfterViewInit, OnDestroy {
-  readonly event = input.required<PublicAgendaEventViewModel>();
+  readonly events = input<readonly PublicAgendaEventViewModel[]>([]);
+  readonly event = input<PublicAgendaEventViewModel | null>(null);
   readonly eventCount = input(0);
-  readonly paused = input(false);
-  readonly sharedPaused = input(false);
-  readonly pausedChange = output<boolean>();
-  readonly interactionPausedChange = output<boolean>();
   readonly eventCountDisplay = computed(() => String(this.eventCount()).padStart(2, '0'));
+  readonly currentEventIndex = signal(0);
+  readonly currentEvent = computed(() => {
+    const list = this.events();
+    if (list.length > 0) {
+      return list[this.currentEventIndex() % list.length];
+    }
+    return this.event();
+  });
+  readonly eventPosition = computed(() => {
+    const count = this.events().length;
+    if (count === 0) {
+      return '1 de 1';
+    }
+    return `${(this.currentEventIndex() % count) + 1} de ${count}`;
+  });
 
   @ViewChild('heroRoot', { static: true })
   private heroRoot?: ElementRef<HTMLElement>;
@@ -525,16 +544,6 @@ export class AutoEventHeroComponent implements AfterViewInit, OnDestroy {
   private readonly reducedMotion = signal(false);
   private readonly motionPaused = computed(
     () =>
-      this.paused() ||
-      this.sharedPaused() ||
-      this.hovered() ||
-      this.focusWithin() ||
-      !this.visible() ||
-      this.documentHidden() ||
-      this.reducedMotion(),
-  );
-  private readonly localInteractionPaused = computed(
-    () =>
       this.hovered() ||
       this.focusWithin() ||
       !this.visible() ||
@@ -544,11 +553,12 @@ export class AutoEventHeroComponent implements AfterViewInit, OnDestroy {
 
   private intersectionObserver?: IntersectionObserver;
   private mediaQuery?: MediaQueryList;
-  private switchTimer?: ReturnType<typeof setTimeout>;
   private finishTimer?: ReturnType<typeof setTimeout>;
 
   private readonly cycle = effect((onCleanup) => {
     this.activeIndex();
+    this.currentEventIndex();
+    this.events();
     if (this.motionPaused()) {
       this.cancelSwitch();
       if (this.reducedMotion()) {
@@ -559,10 +569,6 @@ export class AutoEventHeroComponent implements AfterViewInit, OnDestroy {
 
     const timerId = setTimeout(() => this.switchComposition(), CYCLE_MS);
     onCleanup(() => clearTimeout(timerId));
-  });
-
-  private readonly interactionPauseEffect = effect(() => {
-    this.interactionPausedChange.emit(this.localInteractionPaused());
   });
 
   ngAfterViewInit(): void {
@@ -593,7 +599,6 @@ export class AutoEventHeroComponent implements AfterViewInit, OnDestroy {
     this.mediaQuery?.removeEventListener('change', this.onMotionPreferenceChange);
     document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.cycle.destroy();
-    this.interactionPauseEffect.destroy();
   }
 
   isCompositionInteractive(index: number): boolean {
@@ -609,17 +614,15 @@ export class AutoEventHeroComponent implements AfterViewInit, OnDestroy {
   private switchComposition(): void {
     this.cancelSwitch();
     this.switching.set(true);
-    this.switchTimer = setTimeout(() => {
-      this.activeIndex.update((index) => (index === 0 ? 1 : 0));
-    }, SWITCH_POINT_MS);
+    const events = this.events();
+    if (events.length > 1) {
+      this.currentEventIndex.update((index) => (index + 1) % events.length);
+    }
+    this.activeIndex.update((index) => (index === 0 ? 1 : 0));
     this.finishTimer = setTimeout(() => this.switching.set(false), SWITCH_DURATION_MS);
   }
 
   private cancelSwitch(): void {
-    if (this.switchTimer) {
-      clearTimeout(this.switchTimer);
-      this.switchTimer = undefined;
-    }
     if (this.finishTimer) {
       clearTimeout(this.finishTimer);
       this.finishTimer = undefined;

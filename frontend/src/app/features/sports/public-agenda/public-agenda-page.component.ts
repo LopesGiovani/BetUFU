@@ -16,7 +16,6 @@ import { startWith } from 'rxjs';
 import { AutoEventHeroComponent } from '../../../shared/sports/auto-event-hero.component';
 import { BroadcastTickerComponent } from '../../../shared/sports/broadcast-ticker.component';
 import { EventRowComponent } from '../../../shared/sports/event-row.component';
-import { HighlightMotionControlComponent } from '../../../shared/sports/highlight-motion-control.component';
 import { SportRibbonComponent } from '../../../shared/sports/sport-ribbon.component';
 import { GrainientBackgroundComponent } from '../../../shared/visual/grainient-background.component';
 import { AgendaPeriod, PublicAgendaQuery } from './public-agenda-api.adapter';
@@ -30,7 +29,6 @@ import { PublicAgendaStore, agendaPeriodLabel } from './public-agenda.store';
     AutoEventHeroComponent,
     BroadcastTickerComponent,
     EventRowComponent,
-    HighlightMotionControlComponent,
     SportRibbonComponent,
     GrainientBackgroundComponent,
   ],
@@ -48,13 +46,7 @@ export class PublicAgendaPageComponent implements OnInit {
   @ViewChild('filterToggle') private filterToggle?: ElementRef<HTMLButtonElement>;
   @ViewChild('agendaTitle') private agendaTitle?: ElementRef<HTMLElement>;
 
-  readonly motionPaused = signal(false);
-  readonly heroInteractionPaused = signal(false);
-  readonly tickerInteractionPaused = signal(false);
   readonly pendingLoad = signal(false);
-  readonly composedMotionPaused = computed(
-    () => this.motionPaused() || this.heroInteractionPaused() || this.tickerInteractionPaused(),
-  );
   readonly filtersOpen = signal(false);
   readonly filterAnnouncement = signal('');
   readonly filterForm = new FormGroup({
