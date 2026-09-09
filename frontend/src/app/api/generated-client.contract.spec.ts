@@ -10,8 +10,16 @@ import {
   AthleteLinkService,
   CurrentIdentityResponse,
   IdentityService,
+  OddsMarketService,
+  OddsMarketState,
+  OddsMarketView,
+  OddsOverrideService,
+  OddsOverrideView,
+  OddsPublicService,
   ProfileService,
   PublicCompetitionDetail,
+  PublicOddsExplanation,
+  PublicOddsView,
   PublicSportsEventPage,
   SportsAthleteCreateRequest,
   SportsAthleteService,
@@ -43,6 +51,9 @@ describe('Generated BETUFU API client contract', () => {
   let sportsStandingsService: SportsStandingsService;
   let profileService: ProfileService;
   let athleteLinkService: AthleteLinkService;
+  let oddsMarketService: OddsMarketService;
+  let oddsOverrideService: OddsOverrideService;
+  let oddsPublicService: OddsPublicService;
 
   function configureClient(includeApiProvider: boolean): void {
     document.cookie = 'XSRF-TOKEN=' + xsrfToken + '; path=/';
@@ -71,6 +82,9 @@ describe('Generated BETUFU API client contract', () => {
     sportsStandingsService = TestBed.inject(SportsStandingsService);
     profileService = TestBed.inject(ProfileService);
     athleteLinkService = TestBed.inject(AthleteLinkService);
+    oddsMarketService = TestBed.inject(OddsMarketService);
+    oddsOverrideService = TestBed.inject(OddsOverrideService);
+    oddsPublicService = TestBed.inject(OddsPublicService);
   }
 
   afterEach(() => {
@@ -642,5 +656,168 @@ describe('Generated BETUFU API client contract', () => {
     expect(previewRequest.request.headers.has('X-XSRF-TOKEN')).toBe(false);
     previewRequest.flush({ ...response, status: 'RASCUNHO' });
     await expect(previewResult).resolves.toMatchObject({ status: 'RASCUNHO' });
+  });
+
+  it('consome a projeção pública de odds sem autenticação nem dados privados', async () => {
+    configureClient(true);
+    const marketId = 'm1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
+    const response: PublicOddsView = {
+      marketId,
+      eventId: 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      marketType: PublicOddsView.MarketTypeEnum.HeadToHead,
+      state: OddsMarketState.Open,
+      current: {
+        publicationId: 'p1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+        publishedOdds: [1.82, 2.05],
+        publishedAt: '2026-09-08T12:00:00Z',
+      },
+      history: [
+        {
+          publicationId: 'p0a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+          publishedOdds: 1.9,
+          publishedAt: '2026-09-07T12:00:00Z',
+        },
+      ],
+      explanation: {
+        algorithmVersion: 'ELO_V1',
+        configurationVersion: 'ODDS_CFG_1',
+        fairProbability: 0.55,
+        margin: 0.05,
+        roundingMode: PublicOddsExplanation.RoundingModeEnum.HalfUp,
+        confidence: 0.8,
+        confidenceBand: PublicOddsExplanation.ConfidenceBandEnum.High,
+        sampleSize: 12,
+      },
+    };
+
+    const resultPromise = firstValueFrom(oddsPublicService.getPublicOddsMarket({ marketId }));
+    const request = httpTesting.expectOne(`/api/v1/public/odds/markets/${marketId}`);
+
+    expect(request.request.method).toBe('GET');
+    expect(request.request.headers.has('Authorization')).toBe(false);
+    expect(request.request.headers.has('Cookie')).toBe(false);
+    expect(request.request.headers.has('X-XSRF-TOKEN')).toBe(false);
+    expect(request.request.withCredentials).toBe(false);
+    request.flush(response);
+
+    await expect(resultPromise).resolves.toEqual(response);
+    expect(response).not.toHaveProperty('actorId');
+    expect(response).not.toHaveProperty('evidenceReference');
+    expect(response).not.toHaveProperty('stakeVolume');
+  });
+
+  it('tipa comandos operacionais de mercado e override com idempotência e XSRF', async () => {
+    configureClient(true);
+    const marketId = 'm1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
+    const proposalId = 'p1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
+    const marketResponse: OddsMarketView = {
+      marketId,
+      eventId: 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      marketType: OddsMarketView.MarketTypeEnum.HeadToHead,
+      state: OddsMarketState.Open,
+      currentVersionId: 'v1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      marketVersionId: null,
+      publishedPriceVersionId: null,
+      confirmedVersionId: null,
+      versionNo: 1,
+      closeDeadline: '2026-09-10T12:00:00Z',
+      lockVersion: 0,
+      createdAt: '2026-09-08T12:00:00Z',
+      updatedAt: '2026-09-08T12:00:00Z',
+    };
+
+    const createResult = firstValueFrom(
+      oddsMarketService.createOddsMarket({
+        idempotencyKey: 'odds-create-001',
+        createOddsMarketRequest: {
+          eventId: marketResponse.eventId,
+          regulationAllowsDraw: false,
+          margin: 0.05,
+        },
+      }),
+    );
+    const createRequest = httpTesting.expectOne('/api/v1/operations/odds/markets');
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.headers.get('Idempotency-Key')).toBe('odds-create-001');
+    expect(createRequest.request.headers.get('Content-Type')).toBe('application/json');
+    expect(createRequest.request.headers.get('X-XSRF-TOKEN')).toBe(xsrfToken);
+    expect(createRequest.request.body).toEqual({
+      eventId: marketResponse.eventId,
+      regulationAllowsDraw: false,
+      margin: 0.05,
+    });
+    createRequest.flush(marketResponse);
+    await expect(createResult).resolves.toEqual(marketResponse);
+
+    const lifecycleResult = firstValueFrom(
+      oddsMarketService.transitionOddsMarketLifecycle({
+        marketId,
+        expectedLockVersion: 0,
+        oddsMarketLifecycleRequest: { action: 'PUBLISH_MARKET' },
+      }),
+    );
+    const lifecycleRequest = httpTesting.expectOne(
+      `/api/v1/operations/odds/markets/${marketId}/lifecycle?expectedLockVersion=0`,
+    );
+    expect(lifecycleRequest.request.method).toBe('POST');
+    expect(lifecycleRequest.request.headers.get('Content-Type')).toBe('application/json');
+    expect(lifecycleRequest.request.headers.get('X-XSRF-TOKEN')).toBe(xsrfToken);
+    lifecycleRequest.flush({ ...marketResponse, state: OddsMarketState.Open, lockVersion: 1 });
+    await expect(lifecycleResult).resolves.toMatchObject({ lockVersion: 1 });
+
+    const overrideResponse: OddsOverrideView = {
+      overrideId: proposalId,
+      marketId,
+      calculationId: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      decision: OddsOverrideView.DecisionEnum.Proposed,
+      previousOdds: 1.82,
+      proposedOdds: 1.9,
+      delta: 0.08,
+      createdAt: '2026-09-08T12:01:00Z',
+    };
+    const proposalResult = firstValueFrom(
+      oddsOverrideService.proposeOddsOverride({
+        marketId,
+        idempotencyKey: 'odds-override-001',
+        oddsOverrideProposalRequest: {
+          correctionCalculationId: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+          previousOdds: 1.82,
+          proposedOdds: 1.9,
+          evidenceReference: 'correction-001',
+          reason: 'Correção validada',
+          expectedLockVersion: 1,
+        },
+      }),
+    );
+    const proposalRequest = httpTesting.expectOne(
+      `/api/v1/operations/odds/markets/${marketId}/overrides`,
+    );
+    expect(proposalRequest.request.method).toBe('POST');
+    expect(proposalRequest.request.headers.get('Idempotency-Key')).toBe('odds-override-001');
+    expect(proposalRequest.request.headers.get('Content-Type')).toBe('application/json');
+    expect(proposalRequest.request.headers.get('X-XSRF-TOKEN')).toBe(xsrfToken);
+    proposalRequest.flush(overrideResponse);
+    await expect(proposalResult).resolves.toEqual(overrideResponse);
+
+    const approvalResult = firstValueFrom(
+      oddsOverrideService.approveOddsOverride({
+        marketId,
+        proposalId,
+        idempotencyKey: 'odds-approve-001',
+        oddsOverrideApprovalRequest: {
+          expectedLockVersion: 1,
+          reason: 'Aprovado por segundo administrador',
+        },
+      }),
+    );
+    const approvalRequest = httpTesting.expectOne(
+      `/api/v1/operations/odds/markets/${marketId}/overrides/${proposalId}/approve`,
+    );
+    expect(approvalRequest.request.method).toBe('POST');
+    expect(approvalRequest.request.headers.get('Idempotency-Key')).toBe('odds-approve-001');
+    expect(approvalRequest.request.headers.get('Content-Type')).toBe('application/json');
+    expect(approvalRequest.request.headers.get('X-XSRF-TOKEN')).toBe(xsrfToken);
+    approvalRequest.flush({ ...overrideResponse, decision: OddsOverrideView.DecisionEnum.Approved });
+    await expect(approvalResult).resolves.toMatchObject({ decision: 'APPROVED' });
   });
 });

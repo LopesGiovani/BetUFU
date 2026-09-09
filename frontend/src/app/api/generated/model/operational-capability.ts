@@ -17,6 +17,10 @@ export const OperationalCapability = {
     ManageRoles: 'MANAGE_ROLES',
     CorrectEnrollment: 'CORRECT_ENROLLMENT',
     ManageSportsCatalog: 'MANAGE_SPORTS_CATALOG',
-    BootstrapSportsCompetition: 'BOOTSTRAP_SPORTS_COMPETITION'
+    BootstrapSportsCompetition: 'BOOTSTRAP_SPORTS_COMPETITION',
+    ViewOddsMarket: 'VIEW_ODDS_MARKET',
+    ManageOddsMarket: 'MANAGE_ODDS_MARKET',
+    ProposeOddsOverride: 'PROPOSE_ODDS_OVERRIDE',
+    ApproveOddsOverride: 'APPROVE_ODDS_OVERRIDE'
 } as const;
 export type OperationalCapability = typeof OperationalCapability[keyof typeof OperationalCapability];

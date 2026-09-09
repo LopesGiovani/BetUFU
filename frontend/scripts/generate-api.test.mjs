@@ -371,6 +371,38 @@ test('manifesto aprovado identifica exatamente a arvore TypeScript versionada', 
   assert.equal(assertApprovedGeneratedManifest(manifest), true);
 });
 
+test('inventario ratificado inclui todos os outputs de odds e barrels atualizados', async () => {
+  const generatedRoot = join(projectRoot, 'frontend', 'src', 'app', 'api', 'generated');
+  const manifest = await readTreeManifest(generatedRoot);
+  const oddsFiles = [
+    'api/odds-market.service.ts',
+    'api/odds-override.service.ts',
+    'api/odds-public.service.ts',
+    'model/create-odds-market-request.ts',
+    'model/odds-lineage-references.ts',
+    'model/odds-market-lifecycle-request.ts',
+    'model/odds-market-state.ts',
+    'model/odds-market-view.ts',
+    'model/odds-override-approval-request.ts',
+    'model/odds-override-proposal-request.ts',
+    'model/odds-override-view.ts',
+    'model/public-odds-explanation.ts',
+    'model/public-odds-history.ts',
+    'model/public-odds-summary.ts',
+    'model/public-odds-view.ts',
+    'model/sports-roster-snapshot-for-odds.ts',
+  ];
+
+  assert.equal(manifest.digest, '51E5582AEA63F066EE6D80E552663C70269BB8385EB53EA2D31716E37DAC3B92');
+  assert.deepEqual(
+    oddsFiles.filter((path) => manifest.files.includes(path)),
+    oddsFiles,
+  );
+  assert.equal(manifest.files.includes('api/api.ts'), true);
+  assert.equal(manifest.files.includes('model/models.ts'), true);
+  assert.equal(manifest.files.includes('index.ts'), true);
+});
+
 test('manifesto aprovado recusa arquivo, servico e bytes extras', async () => {
   const generatedRoot = join(projectRoot, 'frontend', 'src', 'app', 'api', 'generated');
   const manifest = await readTreeManifest(generatedRoot);

@@ -261,6 +261,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/diagnostic.service.ts',
   'api/enrollment.service.ts',
   'api/identity.service.ts',
+  'api/odds-market.service.ts',
+  'api/odds-override.service.ts',
+  'api/odds-public.service.ts',
   'api/operational-capabilities.service.ts',
   'api/operational-panel.service.ts',
   'api/password-reset-recovery.service.ts',
@@ -290,6 +293,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/athlete-public-profile.ts',
   'model/betufu-field-violation.ts',
   'model/betufu-problem-details.ts',
+  'model/create-odds-market-request.ts',
   'model/current-device-logout-response.ts',
   'model/current-identity-response.ts',
   'model/current-profile-response.ts',
@@ -302,6 +306,13 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/enrollment-status-response.ts',
   'model/favorite-organization-request.ts',
   'model/models.ts',
+  'model/odds-lineage-references.ts',
+  'model/odds-market-lifecycle-request.ts',
+  'model/odds-market-state.ts',
+  'model/odds-market-view.ts',
+  'model/odds-override-approval-request.ts',
+  'model/odds-override-proposal-request.ts',
+  'model/odds-override-view.ts',
   'model/operational-capabilities-response.ts',
   'model/operational-capability.ts',
   'model/operational-panel-response.ts',
@@ -318,6 +329,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/public-event-detail.ts',
   'model/public-event-result-detail.ts',
   'model/public-event-slot-item.ts',
+  'model/public-odds-explanation.ts',
+  'model/public-odds-history.ts',
+  'model/public-odds-summary.ts',
+  'model/public-odds-view.ts',
   'model/public-organization-detail.ts',
   'model/public-organization-roster-member-item.ts',
   'model/public-organization-team-item.ts',
@@ -377,6 +392,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/sports-roster-member-item.ts',
   'model/sports-roster-member-request.ts',
   'model/sports-roster-publication.ts',
+  'model/sports-roster-snapshot-for-odds.ts',
   'model/sports-roster-update-request.ts',
   'model/sports-sport-summary.ts',
   'model/sports-standings-row.ts',
@@ -435,7 +451,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // singulares de modalidade pela colecao N:N sem alterar a allowlist de caminhos.
 // D8DD... foi aprovado literalmente pelo responsavel no 03-22; acrescenta GENERIC
 // ao contrato de eventos sem alterar a allowlist de caminhos.
-export const APPROVED_GENERATED_DIGEST = '5D6400EF390D0D459B05A0D3CB4C94774271928E16D7DB618968100D59809D9B';
+export const APPROVED_GENERATED_DIGEST = '51E5582AEA63F066EE6D80E552663C70269BB8385EB53EA2D31716E37DAC3B92';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
