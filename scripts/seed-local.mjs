@@ -72,7 +72,7 @@ function requireEnv(env, key) {
 async function httpJson(fetchImpl, url, init = {}) {
   const response = await fetchImpl(url, { ...init, redirect: 'error', signal: AbortSignal.timeout(15_000) });
   if (!response.ok) throw new Error(`Keycloak recusou operação com HTTP ${response.status}.`);
-  if (response.status === 204) return null;
+  if (response.status === 204 || response.status === 201) return null;
   return response.json();
 }
 
@@ -193,13 +193,30 @@ function buildSql({ personas, matches, env }) {
   lines.push(`INSERT INTO public.betufu_profile(profile_id,identity_id,nickname) VALUES (${sql(stableUuid('profile:athlete'))},${sql(athlete)},'atleta-ufu') ON CONFLICT (identity_id) DO NOTHING;`);
   lines.push(`INSERT INTO public.ufu_enrollment(enrollment_id,identity_id,matricula_hmac,hmac_version,status) VALUES (${sql(stableUuid('enrollment:student'))},${sql(student)},decode(${sql(studentHmac)},'hex'),1,'ATIVO') ON CONFLICT DO NOTHING;`);
   lines.push(`INSERT INTO public.ufu_enrollment(enrollment_id,identity_id,matricula_hmac,hmac_version,status) VALUES (${sql(stableUuid('enrollment:athlete'))},${sql(athlete)},decode(${sql(athleteHmac)},'hex'),1,'ATIVO') ON CONFLICT DO NOTHING;`);
-  lines.push(`INSERT INTO public.sports_athlete_link_proposal(proposal_id,athlete_id,identity_id,status) VALUES (${sql(stableUuid('athlete-link:accepted'))},${sql(athleteId)},${sql(athlete)},'ACEITA') ON CONFLICT (proposal_id) DO NOTHING;`);
+  lines.push(`INSERT INTO public.sports_athlete_link_proposal(proposal_id,athlete_id,identity_id,status,decided_by_identity_id,decided_at) VALUES (${sql(stableUuid('athlete-link:accepted'))},${sql(athleteId)},${sql(athlete)},'ACEITA',${sql(stableUuid('identity:admin'))},CURRENT_TIMESTAMP(6)) ON CONFLICT (proposal_id) DO NOTHING;`);
   lines.push(`INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid('grant:admin'))},${sql(stableUuid('identity:admin'))},'ADMINISTRADOR_GERAL',NULL,'VIGENTE') ON CONFLICT DO NOTHING;`);
   lines.push(`INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid('grant:maker'))},${sql(stableUuid('identity:maker'))},'ADMINISTRADOR_COMPETICAO',${sql(competitionId)},'VIGENTE') ON CONFLICT DO NOTHING;`);
   lines.push(`INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid('grant:checker'))},${sql(stableUuid('identity:checker'))},'ADMINISTRADOR_COMPETICAO',${sql(competitionId)},'VIGENTE') ON CONFLICT DO NOTHING;`);
   lines.push(`INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid('grant:moderator'))},${sql(stableUuid('identity:moderator'))},'MODERADOR',${sql(competitionId)},'VIGENTE') ON CONFLICT DO NOTHING;`);
   lines.push('COMMIT;');
   return lines.join('\n');
+}
+
+function sanitizeSqlError(text, env = {}) {
+  if (typeof text !== 'string' || text.length === 0) return '';
+  let result = text
+    .split(/\r?\n/u)
+    .filter((line) => !line.trim().startsWith('DETAIL:'))
+    .join('\n')
+    .replace(/\b[0-9a-fA-F]{64}\b/gu, '[REDACTED_HASH]');
+
+  for (const [key, value] of Object.entries(env)) {
+    if (typeof value === 'string' && value.length >= 6) {
+      const escaped = value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+      result = result.replace(new RegExp(escaped, 'gu'), `[REDACTED:${key}]`);
+    }
+  }
+  return result.trim();
 }
 
 function run(command, args, input = '') {
@@ -209,7 +226,16 @@ function run(command, args, input = '') {
     child.stdout.on('data', (chunk) => stdout.push(chunk));
     child.stderr.on('data', (chunk) => stderr.push(chunk));
     child.once('error', rejectPromise);
-    child.once('close', (code) => code === 0 ? resolvePromise(Buffer.concat(stdout).toString('utf8')) : rejectPromise(new Error(`docker exec falhou com exit code ${code}.`)));
+    child.once('close', (code) => {
+      if (code === 0) {
+        resolvePromise(Buffer.concat(stdout).toString('utf8'));
+      } else {
+        const rawStderr = Buffer.concat(stderr).toString('utf8').trim();
+        const sanitized = sanitizeSqlError(rawStderr, process.env);
+        const detail = sanitized.length > 0 ? `: ${sanitized}` : '';
+        rejectPromise(new Error(`docker exec falhou com exit code ${code}${detail}`));
+      }
+    });
     child.stdin.end(input);
   });
 }
@@ -230,7 +256,14 @@ export async function seedLocal({ profile = 'daily', env: providedEnv = process.
   const containerResult = await runCommand('docker', compose);
   const containerId = String(containerResult).trim().split(/\r?\n/u)[0];
   if (!/^[a-f0-9]+$/iu.test(containerId)) throw new Error('container postgres não está disponível; seeder falha fechado.');
-  await runCommand('docker', [ 'exec', '-i', containerId, 'psql', '-X', '-v', 'ON_ERROR_STOP=1', '-U', env.POSTGRES_USER ?? 'postgres', '-d', env.BETUFU_DB_NAME ?? 'betufu_local', '-f', '-' ], sqlText);
+  try {
+    await runCommand('docker', [ 'exec', '-i', containerId, 'psql', '-X', '-v', 'ON_ERROR_STOP=1', '-U', env.POSTGRES_USER ?? 'postgres', '-d', env.BETUFU_DB_NAME ?? 'betufu_local', '-f', '-' ], sqlText);
+  } catch (error) {
+    if (error instanceof Error) {
+      error.message = sanitizeSqlError(error.message, env);
+    }
+    throw error;
+  }
   log(`seed ${profile} concluído: ${matches.length} partidas e ${personas.length} personas.`);
   return { profile, matches: matches.length, personas: personas.length };
 }
@@ -247,4 +280,4 @@ async function main() {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();
 
-export { buildSql, stableUuid, sql };
+export { buildSql, stableUuid, sql, sanitizeSqlError };
