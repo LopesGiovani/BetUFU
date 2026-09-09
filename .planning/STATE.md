@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 12 Plan 04-06 certified; integration follows the documented fast-forward closeout
+stopped_at: Phase 4 Wave 13 Plan 04-07 certified; integration follows the documented fast-forward closeout
 last_updated: "2026-09-08"
 last_activity: 2026-09-08
-last_activity_desc: Wave 12 Plan 04-06 implemented maker-checker odds overrides and audit controls; focal 34/34, Node 719/719 and Maven 646/646 passed.
+last_activity_desc: Wave 13 Plan 04-07 ratified the governed OpenAPI odds candidate; generator 72/72 passed and governed hashes matched.
 state_head: PENDING
 progress:
   total_phases: 8
@@ -16,6 +16,18 @@ progress:
   completed_plans: 91
 milestone_name: milestone
 ---
+
+## Wave 13 closeout - 2026-09-08
+
+- Plan `04-07` is complete on the technical snapshot based on `ea4d2a4`; the governed OpenAPI candidate now describes public odds projection, market lifecycle and maker-checker override commands.
+- The public contract matches the live `OddsPublicController` and public DTOs, while the future lineage references remain isolated in an explicit schema without exposing unsupported runtime fields.
+- The candidate includes the four odds operational capabilities and the exact roster snapshot fields consumed by the Java record.
+- Certification passed the candidate artifact invariant check and the generator suite `72/72`, with zero failures, errors, skips or cancellations.
+
+## Wave 13 Git
+
+- Commit técnico: `d7e74b5`.
+- Commit documental: `PENDING` neste arquivo para evitar auto-referência circular.
 
 ## Wave 12 closeout - 2026-09-08
 
