@@ -1,0 +1,115 @@
+<main class="market-page" [attr.aria-busy]="store.isLoading()">
+  <div class="market-topline">
+    <a class="back-link" routerLink="/">Voltar para a agenda</a>
+    @if (store.snapshot(); as market) {
+      <span class="eyebrow">Mercado publico · confronto direto</span>
+    }
+  </div>
+
+  @if (store.isLoading()) {
+    <section class="state-panel" role="status" aria-live="polite">
+      <h1>Carregando odds</h1>
+      <div class="skeleton" aria-hidden="true"><span></span><span></span><span></span></div>
+      <p>Buscando a versao publica registrada para este confronto.</p>
+    </section>
+  } @else if (store.isEmpty()) {
+    <section class="state-panel state-panel--empty" role="status">
+      <h1>Mercado ainda nao publicado</h1>
+      <p>Este confronto ainda nao possui uma odd publica. Volte ao evento para acompanhar atualizacoes.</p>
+      <a class="action" routerLink="/">Voltar para a agenda</a>
+    </section>
+  } @else if (store.isError()) {
+    <section class="state-panel state-panel--error" role="alert">
+      <h1>Odds indisponiveis</h1>
+      <p>{{ store.errorMessage() }}</p>
+      <button class="action" type="button" (click)="retry()">Tentar novamente</button>
+    </section>
+  } @else if (store.snapshot(); as market) {
+    <header class="market-topline">
+      <div>
+        <p class="eyebrow">Odd publica versionada</p>
+        <h1>Mercado pre-jogo</h1>
+        <p>Confronto direto · evento {{ market.eventId }}</p>
+      </div>
+      <div class="market-meta" aria-label="Estado do mercado">
+        <span class="status" [class]="statusClass()">{{ market.stateLabel }}</span>
+        <span class="confidence" [class.confidence--low]="market.isLowConfidence">{{ market.confidenceLabel }}</span>
+      </div>
+    </header>
+
+    @if (store.isStale()) {
+      <section class="state-panel state-panel--empty" role="status">
+        <h2>Dados podem estar desatualizados</h2>
+        <p>A versao publica anterior foi preservada enquanto uma nova leitura nao e concluida.</p>
+        <button class="action" type="button" (click)="retry()">Atualizar leitura</button>
+      </section>
+    }
+
+    <section class="market-card" aria-labelledby="current-heading">
+      <div class="market-card__header">
+        <p class="label">Publicacao vigente</p>
+        <h2 id="current-heading">Odd atual</h2>
+        <p>Versao {{ market.currentPublicationId }} · publicada em <time [attr.datetime]="market.publishedAt">{{ market.publishedAtLabel }}</time></p>
+      </div>
+      <div class="selections">
+        @for (selection of market.selections; track selection.label) {
+          <article class="selection selection--current">
+            <span class="selection__name">{{ selection.label }}</span>
+            <strong class="selection__odd">{{ formatOdd(selection.odd) }}</strong>
+          </article>
+        }
+      </div>
+      <div class="market-actions">
+        <button class="action" type="button" [attr.aria-expanded]="explanationOpen()" aria-controls="odds-explanation" (click)="toggleExplanation()">
+          {{ explanationOpen() ? 'Ocultar explicacao' : 'Ver explicacao completa' }}
+        </button>
+        <a class="action action--quiet" href="#odds-history">Ver historico de versoes</a>
+      </div>
+    </section>
+
+    @if (explanationOpen()) {
+      <section id="odds-explanation" class="explanation" aria-labelledby="explanation-heading">
+        <div class="explanation-head">
+          <div>
+            <p class="label">Metodologia legivel</p>
+            <h2 id="explanation-heading">Como esta odd foi calculada</h2>
+          </div>
+          <span class="confidence" [class.confidence--low]="market.isLowConfidence">{{ market.confidenceLabel }}</span>
+        </div>
+        <p>Esta e uma leitura publica do calculo versionado. O navegador nao recalcula a odd e nenhum volume de palpites participa desta projecao.</p>
+        <dl class="explanation-grid">
+          <div><dt>Algoritmo</dt><dd>{{ market.explanation.algorithmVersion }}</dd></div>
+          <div><dt>Configuracao</dt><dd>{{ market.explanation.configurationVersion }}</dd></div>
+          <div><dt>Probabilidade justa</dt><dd>{{ formatPercent(market.explanation.fairProbability) }}</dd></div>
+          <div><dt>Margem publicada</dt><dd>{{ formatPercent(market.explanation.margin) }}</dd></div>
+          <div><dt>Arredondamento</dt><dd>{{ market.explanation.roundingMode }}</dd></div>
+          <div><dt>Amostra</dt><dd>{{ market.explanation.sampleSize }}</dd></div>
+        </dl>
+        @if (market.isLowConfidence) {
+          <p role="note"><strong>Confianca baixa:</strong> os dados disponiveis sao escassos. A estimativa permanece neutra; nenhuma odd manual e aplicada.</p>
+        }
+      </section>
+    }
+
+    <section id="odds-history" class="history" aria-labelledby="history-heading">
+      <div class="history-head">
+        <div>
+          <p class="label">Linhagem publica</p>
+          <h2 id="history-heading">Historico de versoes</h2>
+        </div>
+        <p>{{ market.history.length }} {{ market.history.length === 1 ? 'versao registrada' : 'versoes registradas' }}</p>
+      </div>
+      <table>
+        <caption>Versoes publicadas mais recentes primeiro</caption>
+        <thead><tr><th scope="col">Publicacao</th><th scope="col">Odd</th><th scope="col">Data</th></tr></thead>
+        <tbody>
+          @for (entry of market.history; track entry.publicationId) {
+            <tr><td>{{ entry.publicationId }}</td><td>{{ formatOdd(entry.odd) }}</td><td><time [attr.datetime]="entry.publishedAt">{{ entry.publishedAtLabel }}</time></td></tr>
+          } @empty {
+            <tr><td colspan="3">Nenhuma versao historica adicional registrada.</td></tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</main>

@@ -5,10 +5,25 @@ import { SportsBracketPageComponent } from './features/sports/operations/bracket
 import { PublicStandingsPageComponent } from './features/sports/public-standings/public-standings-page.component';
 import { SportsStandingsPageComponent } from './features/sports/operations/standings/sports-standings-page.component';
 import { AthleteLinkProposalPageComponent } from './features/sports/link-proposal/athlete-link-proposal-page.component';
+import { PublicMarketPageComponent } from './features/odds/public-market/public-market-page.component';
 
 function childrenOf(route: (typeof APP_ROUTES)[number]): readonly (typeof APP_ROUTES)[number][] {
   return route.children ?? [];
 }
+
+it('resolve o deep link publico de odds sem guard autenticado ou rotas operacionais', async () => {
+  const arena = APP_ROUTES.find((route) =>
+    route.children?.some((candidate) => candidate.path === 'odds/mercados/:marketId'),
+  );
+  const route = childrenOf(arena!).find(
+    (candidate) => candidate.path === 'odds/mercados/:marketId',
+  );
+
+  expect(route).toBeDefined();
+  expect(route?.canActivate).toBeUndefined();
+  expect(route?.loadComponent).toBeDefined();
+  await expect(route?.loadComponent?.()).resolves.toBe(PublicMarketPageComponent);
+});
 
 describe('rotas de chaveamento e classificação', () => {
   it('resolve o deep link publico de chaveamento sem guard autenticado', async () => {

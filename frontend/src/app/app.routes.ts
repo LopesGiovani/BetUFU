@@ -1,7 +1,7 @@
 import type { Routes } from '@angular/router';
 
 import { profileCompletionGuard } from './core/profile/profile-completion.guard';
-import { BUILD_SPECIFIC_ROUTES } from './app.routes.development';
+import { BUILD_SPECIFIC_ROUTES, PUBLIC_MARKET_ROUTES } from './app.routes.development';
 import { ArenaShellComponent } from './layout/arena-shell.component';
 import { sportsOperationsRoutes } from './features/sports/operations/sports-operations.routes';
 
@@ -12,6 +12,7 @@ export const APP_ROUTES: Routes = [
     path: '',
     component: ArenaShellComponent,
     children: [
+      ...PUBLIC_MARKET_ROUTES,
       {
         path: '',
         pathMatch: 'full',

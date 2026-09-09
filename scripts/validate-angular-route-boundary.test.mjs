@@ -19,7 +19,7 @@ const CANONICAL_GUARDED_APP_ROUTES = [
   "import type { Routes } from '@angular/router';",
   '',
   "import { profileCompletionGuard } from './core/profile/profile-completion.guard';",
-  "import { BUILD_SPECIFIC_ROUTES } from './app.routes.development';",
+  "import { BUILD_SPECIFIC_ROUTES, PUBLIC_MARKET_ROUTES } from './app.routes.development';",
   "import { ArenaShellComponent } from './layout/arena-shell.component';",
   '',
   'export const APP_ROUTES: Routes = [',
@@ -27,6 +27,7 @@ const CANONICAL_GUARDED_APP_ROUTES = [
   "    path: '',",
   '    component: ArenaShellComponent,',
   '    children: [',
+  '      ...PUBLIC_MARKET_ROUTES,',
   '      {',
   "        path: '',",
   "        pathMatch: 'full',",
@@ -42,6 +43,25 @@ const CANONICAL_GUARDED_APP_ROUTES = [
   '    canActivateChild: [profileCompletionGuard],',
   '    children: BUILD_SPECIFIC_ROUTES,',
   '  },',
+  '];',
+  '',
+].join('\n');
+
+const CANONICAL_PUBLIC_MARKET_ROUTE_ENTRY = [
+  '  {',
+  "    path: 'odds/mercados/:marketId',",
+  '    loadComponent: () =>',
+  "      import('./features/odds/public-market/public-market-page.component').then(",
+  '        ({ PublicMarketPageComponent }) => PublicMarketPageComponent,',
+  '      ),',
+  '  },',
+].join('\n');
+
+const CANONICAL_PUBLIC_MARKET_ROUTES = [
+  "import type { Routes } from '@angular/router';",
+  '',
+  'export const PUBLIC_MARKET_ROUTES: Routes = [',
+  CANONICAL_PUBLIC_MARKET_ROUTE_ENTRY,
   '];',
   '',
 ].join('\n');
@@ -186,6 +206,10 @@ function canonicalAuthenticatedRoutes(routeEntries) {
     "import type { Routes } from '@angular/router';",
     "import { AuthenticatedLayoutComponent } from './layout/authenticated-layout.component';",
     "import { ConsoleShellComponent } from './layout/console-shell.component';",
+    '',
+    'export const PUBLIC_MARKET_ROUTES: Routes = [',
+    CANONICAL_PUBLIC_MARKET_ROUTE_ENTRY,
+    '];',
     '',
     'export const BUILD_SPECIFIC_ROUTES: Routes = [',
     '  {',
@@ -768,8 +792,8 @@ const tracerRouteMutations = [
     name: 'segunda rota development',
     rule: 'DEVELOPMENT_ROUTES_SHAPE',
     mutate: (source) => source.replace(
-      '];',
-      "  { path: 'other', redirectTo: '' },\n];",
+      /\];\s*$/u,
+      "  { path: 'other', redirectTo: '' },\n];\n",
     ),
   },
   {

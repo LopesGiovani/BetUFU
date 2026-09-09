@@ -1,6 +1,16 @@
 import type { Routes } from '@angular/router';
 import { ConsoleShellComponent } from './layout/console-shell.component';
 
+export const PUBLIC_MARKET_ROUTES: Routes = [
+  {
+    path: 'odds/mercados/:marketId',
+    loadComponent: () =>
+      import('./features/odds/public-market/public-market-page.component').then(
+        ({ PublicMarketPageComponent }) => PublicMarketPageComponent,
+      ),
+  },
+];
+
 export const BUILD_SPECIFIC_ROUTES: Routes = [
   {
     path: 'operacao/esportes',
