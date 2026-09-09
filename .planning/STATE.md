@@ -5,15 +5,15 @@ current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
 stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-09-09T01:42:13.483Z"
+last_updated: "2026-09-09T02:30:00.000Z"
 last_activity: 2026-09-08
-last_activity_desc: Wave 14 Plan 04-11 generated the ratified TypeScript client; anti-drift, Node and Angular gates passed.
-state_head: 30cca2daeaf5b7803e5e3055acf2a54274d10bf2
+last_activity_desc: Wave 15 Plan 04-13 delivered the public odds market page, anonymous route seam and Angular certification.
+state_head: 4856861
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 110
-  completed_plans: 106
+  completed_plans: 107
 milestone_name: milestone
 ---
 
@@ -41,6 +41,19 @@ milestone_name: milestone
 
 - Technical commit: `606be78`.
 - Documentation commit: `PENDING` neste arquivo para evitar auto-referÃªncia circular.
+
+## Wave 15 closeout - 2026-09-08
+
+- Plan `04-13` delivered the public odds market through the generated `OddsPublicService`, a validated adapter, a Signal store and a standalone OnPush page.
+- The anonymous route `odds/mercados/:marketId` is registered in both development and production seams, spread inside `ArenaShell` before the profile guard, and does not import the future operations page from 04-14.
+- The public projection exposes only current odds, immutable history, explanation, confidence and market state. Loading, empty/404, error, stale, suspended, low-confidence and closed states remain readable and actionable in Portuguese.
+- The route-boundary validator was updated mechanically to ratify `PUBLIC_MARKET_ROUTES` and its literal lazy import in both environment files. The two validator files are the documented `AGENTS.md` exception for a legitimate route allowlist divergence; no product dependency or external scope was added.
+- Public UI tests assert the absence of actor, evidence, PII, tokens, betting and liquidity data; the adapter rejects incomplete or non-H2H DTOs before rendering.
+
+## Wave 15 Git
+
+- Technical commit: `4856861`.
+- Documentation commit: `PENDING` neste arquivo para evitar auto-referencia circular.
 
 ## Wave 12 closeout - 2026-09-08
 
