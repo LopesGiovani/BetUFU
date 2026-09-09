@@ -290,6 +290,9 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'SportsRoster',
     'SportsStandings',
     'SportsTabularImport',
+    'OddsMarket',
+    'OddsOverride',
+    'OddsPublic',
   ]);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('AthleteMediaResponse'), true);
@@ -332,6 +335,19 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportPreviewError'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportPreviewSummary'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsTabularImportResult'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('CreateOddsMarketRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('OddsLineageReferences'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('OddsMarketLifecycleRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('OddsMarketState'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('OddsMarketView'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('OddsOverrideApprovalRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('OddsOverrideProposalRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('OddsOverrideView'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicOddsExplanation'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicOddsHistory'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicOddsSummary'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicOddsView'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterSnapshotForOdds'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCompetitionCreateRequest'), false);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsAthlete'), true);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsBracket'), true);

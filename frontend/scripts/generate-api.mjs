@@ -92,6 +92,9 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'SportsRoster',
   'SportsStandings',
   'SportsTabularImport',
+  'OddsMarket',
+  'OddsOverride',
+  'OddsPublic',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'AdministrativeCorrectionEventDto',
@@ -205,6 +208,19 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'SportsVenueSummary',
   'TimeWindow',
   'UnregisteredEnrollmentsBlock',
+  'CreateOddsMarketRequest',
+  'OddsLineageReferences',
+  'OddsMarketLifecycleRequest',
+  'OddsMarketState',
+  'OddsMarketView',
+  'OddsOverrideApprovalRequest',
+  'OddsOverrideProposalRequest',
+  'OddsOverrideView',
+  'PublicOddsExplanation',
+  'PublicOddsHistory',
+  'PublicOddsSummary',
+  'PublicOddsView',
+  'SportsRosterSnapshotForOdds',
 ]);
 export const PUBLIC_GENERATOR_GLOBAL_PROPERTY = [
   `apis=${PUBLIC_GENERATOR_API_TAGS.join(':')}`,
@@ -221,7 +237,19 @@ const GENERATED_API_MODULE_DIAGNOSTIC = [
   "            'See also https://github.com/angular/angular/issues/20575');",
   '        }',
 ].join('\n');
-const PUBLIC_SCHEMA_FORBIDDEN_FIELDS = Object.freeze(['matricula']);
+const PUBLIC_SCHEMA_FORBIDDEN_FIELDS = Object.freeze([
+  'actorId',
+  'approverId',
+  'bettingVolume',
+  'evidenceReference',
+  'exposure',
+  'hmac',
+  'internalEvidence',
+  'liquidity',
+  'matricula',
+  'proposerId',
+  'stakeVolume',
+]);
 
 export const APPROVED_GENERATED_FILES = Object.freeze([
   'api.base.service.ts',
@@ -934,6 +962,13 @@ export function inspectOpenApiContract(source) {
     schemas: schemas.sort(),
     publicSchemas: schemas.filter((schema) => schema.startsWith('Public')).sort(),
   };
+}
+
+function inspectOpenApiOperationIds(source) {
+  const normalized = String(source).replace(/\r\n?/gu, '\n');
+  return [...normalized.matchAll(/^\s+operationId:\s*([A-Za-z][A-Za-z0-9_-]*)\s*$/gmu)]
+    .map((match) => match[1])
+    .sort();
 }
 
 export function inspectGeneratedOpenApiContract(source) {
@@ -1957,12 +1992,14 @@ export async function executeGenerateApi({
       const openApiInventory = inspectGeneratedOpenApiContract(
         await readFile(context.inputSpec, 'utf8'),
       );
+      const operationIds = inspectOpenApiOperationIds(await readFile(context.inputSpec, 'utf8'));
       const metadata = {
         version: 1,
         generatedTarget: context.configuration.generator.target,
         files: candidateManifest.files,
         digest: candidateManifest.digest,
         endpoints: openApiInventory.endpoints,
+        operationIds,
         schemas: openApiInventory.schemas,
         publicSchemas: openApiInventory.publicSchemas,
       };
