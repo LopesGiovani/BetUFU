@@ -90,6 +90,7 @@ const EXPECTED_ASSETS = new Map([
     {
       bytes: 613,
       sha256: '2258aaa6c86813b5dc0b515fc9d7a59febdf0a2549e769c8ef9d4b2787f86d77',
+      text: true,
     },
   ],
 ]);
@@ -456,15 +457,18 @@ function assertCss(css) {
 async function assertAssets() {
   for (const [relativePath, expected] of EXPECTED_ASSETS) {
     const bytes = await readFile(join(LOGIN_THEME_ROOT, ...relativePath.split('/')));
-    invariant(bytes.length === expected.bytes, `Tamanho inválido para ${relativePath}`);
-    invariant(sha256(bytes) === expected.sha256, `SHA-256 inválido para ${relativePath}`);
+    const comparableBytes = expected.text
+      ? canonicalizeUtf8Text(bytes, relativePath)
+      : bytes;
+    invariant(comparableBytes.length === expected.bytes, `Tamanho inválido para ${relativePath}`);
+    invariant(sha256(comparableBytes) === expected.sha256, `SHA-256 inválido para ${relativePath}`);
 
     if (expected.signature) {
       invariant(bytes.subarray(0, 4).toString('ascii') === expected.signature, `Assinatura WOFF2 inválida: ${relativePath}`);
     }
 
     if (expected.copyright) {
-      invariant(bytes.toString('utf8').includes(expected.copyright), `Copyright obrigatório ausente: ${relativePath}`);
+      invariant(comparableBytes.toString('utf8').includes(expected.copyright), `Copyright obrigatório ausente: ${relativePath}`);
     }
   }
 }
