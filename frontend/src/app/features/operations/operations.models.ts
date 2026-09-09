@@ -11,7 +11,11 @@ export type OperationalCapabilityName =
   | 'MANAGE_ROLES'
   | 'CORRECT_ENROLLMENT'
   | 'MANAGE_SPORTS_CATALOG'
-  | 'BOOTSTRAP_SPORTS_COMPETITION';
+  | 'BOOTSTRAP_SPORTS_COMPETITION'
+  | 'VIEW_ODDS_MARKET'
+  | 'MANAGE_ODDS_MARKET'
+  | 'PROPOSE_ODDS_OVERRIDE'
+  | 'APPROVE_ODDS_OVERRIDE';
 
 export interface OperationalNavigationItem {
   readonly capability: OperationalCapabilityName;

@@ -82,6 +82,11 @@ const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Obje
     label: 'Revisões de vínculo',
     path: '/operacao/esportes/revisoes',
   }),
+  Object.freeze({
+    capability: 'VIEW_ODDS_MARKET',
+    label: 'Mercados e odds',
+    path: '/operacao/odds/mercados',
+  }),
 ]);
 
 const PERSONAL_DESTINATIONS = Object.freeze([

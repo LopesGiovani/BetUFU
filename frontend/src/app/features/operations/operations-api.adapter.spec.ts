@@ -448,6 +448,24 @@ describe('OperationsApiAdapter (Contrato e Mapeamento S4)', () => {
     expect(result).toEqual(['MANAGE_ROLES']);
   });
 
+  it('aceita somente as quatro capabilities de odds ratificadas', () => {
+    expect(
+      adapter.adaptOperationalCapabilities({
+        capabilities: [
+          'VIEW_ODDS_MARKET',
+          'MANAGE_ODDS_MARKET',
+          'PROPOSE_ODDS_OVERRIDE',
+          'APPROVE_ODDS_OVERRIDE',
+        ],
+      }),
+    ).toEqual([
+      'VIEW_ODDS_MARKET',
+      'MANAGE_ODDS_MARKET',
+      'PROPOSE_ODDS_OVERRIDE',
+      'APPROVE_ODDS_OVERRIDE',
+    ]);
+  });
+
   it.each([
     null,
     undefined,

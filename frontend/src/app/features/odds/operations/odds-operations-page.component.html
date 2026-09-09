@@ -1,0 +1,190 @@
+<main aria-labelledby="odds-operations-title">
+  <div class="toolbar">
+    <div>
+      <div class="eyebrow">Console operacional · governanca de odds</div>
+      <h1 id="odds-operations-title">Mercado de odds</h1>
+      <p class="muted">
+        A capability controla a navegacao; a autorizacao e o escopo continuam no servidor.
+      </p>
+    </div>
+    <a class="action" routerLink="/operacao/painel">Voltar ao painel</a>
+  </div>
+
+  @if (store.isLoading() && !store.snapshot()) {
+    <section class="panel state" role="status" aria-live="polite">
+      <h2>Consultando mercado...</h2>
+      <p>Aguarde a leitura do estado persistido.</p>
+    </section>
+  } @else if (store.isEmpty()) {
+    <section class="panel state" role="status">
+      <h2>Mercado nao encontrado</h2>
+      <p>O identificador nao corresponde a um mercado visivel para esta sessao.</p>
+    </section>
+  } @else if (store.isError() && !store.snapshot()) {
+    <section class="panel state" role="alert" aria-live="assertive">
+      <h2>Operacao indisponivel</h2>
+      <p>{{ store.errorMessage() }}</p>
+      <button type="button" class="primary" (click)="refresh()">Tentar leitura novamente</button>
+    </section>
+  }
+
+  @if (store.snapshot(); as snapshot) {
+    <section class="panel" aria-labelledby="market-summary-title">
+      <h2 id="market-summary-title">Resumo do mercado</h2>
+      <dl class="facts">
+        <div>
+          <dt>Mercado</dt>
+          <dd>{{ snapshot.marketId }}</dd>
+        </div>
+        <div>
+          <dt>Evento</dt>
+          <dd>{{ snapshot.eventId }}</dd>
+        </div>
+        <div>
+          <dt>Estado</dt>
+          <dd>{{ snapshot.stateLabel }}</dd>
+        </div>
+        <div>
+          <dt>Versao</dt>
+          <dd>{{ snapshot.versionNo }} · lock {{ snapshot.lockVersion }}</dd>
+        </div>
+        <div>
+          <dt>Atualizado em</dt>
+          <dd>{{ snapshot.updatedAt }}</dd>
+        </div>
+      </dl>
+      @if (snapshot.isReadOnly) {
+        <div class="panel state--warn" role="status">
+          <strong>Mercado encerrado (CLOSED/LOCKED).</strong>
+          <p>Overrides e alteracoes nao estao disponiveis.</p>
+        </div>
+      }
+      @if (store.isStale()) {
+        <div class="panel state--warn" role="alert">
+          <strong>Dados podem estar desatualizados.</strong>
+          <p>Compare a versao local e carregue a atual antes de mutar.</p>
+        </div>
+      }
+      <div class="actions">
+        <button
+          type="button"
+          (click)="refresh()"
+          [disabled]="store.isLoading() || store.isMutating()">
+          Atualizar leitura
+        </button>
+        @if (
+          !snapshot.isReadOnly && (snapshot.state === 'OPEN' || snapshot.state === 'SUSPENDED')
+        ) {
+          <button type="button" (click)="startCorrection()">Corrigir fonte e recalcular</button>
+        }
+        @if (
+          !snapshot.isReadOnly &&
+          snapshot.state === 'OPEN' &&
+          capabilities().includes('MANAGE_ODDS_MARKET')
+        ) {
+          <button
+            type="button"
+            class="primary"
+            (click)="suspendMarket()"
+            [disabled]="store.isMutating()">
+            Suspender mercado
+          </button>
+        }
+      </div>
+    </section>
+
+    @if (correctionMode() && !snapshot.isReadOnly) {
+      <section class="panel" aria-labelledby="correction-title">
+        <h2 id="correction-title">Tentativa registrada</h2>
+        <p class="muted">
+          Informe a referencia da correcao persistida pelo backend. Este formulario nao concede
+          permissao nem substitui a pre-condicao server-side.
+        </p>
+        <label
+          >Calculo da correcao<input
+            [value]="correctionCalculationId()"
+            (input)="set(correctionCalculationId, $event)"
+            autocomplete="off"
+        /></label>
+        <label
+          >Evidencia permitida<input
+            [value]="evidenceReference()"
+            (input)="set(evidenceReference, $event)"
+            autocomplete="off"
+        /></label>
+        <label>Motivo<input [value]="reason()" (input)="set(reason, $event)" /></label>
+        <label
+          >Odd do modelo<input
+            inputmode="decimal"
+            [value]="modelOdds()"
+            (input)="set(modelOdds, $event)"
+        /></label>
+        <label
+          >Odd proposta<input
+            inputmode="decimal"
+            [value]="proposedOdds()"
+            (input)="set(proposedOdds, $event)"
+        /></label>
+        @if (capabilities().includes('PROPOSE_ODDS_OVERRIDE')) {
+          <div class="actions">
+            <button
+              type="button"
+              class="primary"
+              (click)="submitProposal()"
+              [disabled]="store.isMutating() || snapshot.state !== 'SUSPENDED'">
+              Solicitar override excepcional
+            </button>
+          </div>
+        }
+        <p class="muted">
+          A proposta so e aceita pelo servidor quando o mercado esta SUSPENDED e a tentativa de
+          correcao existe.
+        </p>
+      </section>
+    }
+
+    @if (store.proposal(); as proposal) {
+      <section class="panel state--ok" aria-labelledby="proposal-title" aria-live="polite">
+        <h2 id="proposal-title">Proposta {{ proposal.decision }}</h2>
+        <div class="compare">
+          <div>
+            <span class="muted">Modelo</span
+            ><strong>{{ proposal.previousOdds | number: '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span class="muted">Proposta</span
+            ><strong>{{ proposal.proposedOdds | number: '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span class="muted">Delta</span><strong>{{ proposal.delta | number: '1.2-2' }}</strong>
+          </div>
+        </div>
+        <p>
+          Aguardando segundo administrador do mesmo escopo. A pessoa que propos nao pode aprovar.
+        </p>
+        @if (capabilities().includes('APPROVE_ODDS_OVERRIDE') && !localProposal()) {
+          <label
+            >Motivo da aprovacao<input
+              [value]="approvalReason()"
+              (input)="set(approvalReason, $event)"
+          /></label>
+          <div class="actions">
+            <button
+              type="button"
+              class="primary"
+              (click)="approveProposal()"
+              [disabled]="store.isMutating() || proposal.decision !== 'PROPOSED'">
+              Aprovar override
+            </button>
+          </div>
+        }
+      </section>
+    }
+    @if (store.feedbackMessage()) {
+      <p class="panel state--ok" role="status" aria-live="polite">{{ store.feedbackMessage() }}</p>
+    }
+    @if (store.errorMessage()) {
+      <p class="panel state" role="alert">{{ store.errorMessage() }}</p>
+    }
+  }
+</main>

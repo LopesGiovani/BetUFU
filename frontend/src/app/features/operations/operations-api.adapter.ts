@@ -37,6 +37,10 @@ const OPERATIONAL_CAPABILITY_ORDER: readonly OperationalCapabilityName[] = Objec
   GeneratedOperationalCapability.CorrectEnrollment,
   GeneratedOperationalCapability.ManageSportsCatalog,
   GeneratedOperationalCapability.BootstrapSportsCompetition,
+  GeneratedOperationalCapability.ViewOddsMarket,
+  GeneratedOperationalCapability.ManageOddsMarket,
+  GeneratedOperationalCapability.ProposeOddsOverride,
+  GeneratedOperationalCapability.ApproveOddsOverride,
 ]);
 
 @Injectable({

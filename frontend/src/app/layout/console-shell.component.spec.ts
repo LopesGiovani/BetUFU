@@ -89,6 +89,28 @@ describe('ConsoleShellComponent', () => {
     );
   });
 
+  it('mostra Mercados e odds somente com VIEW_ODDS_MARKET', async () => {
+    routeData['consoleVariant'] = undefined;
+    operationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(of(['VIEW_ODDS_MARKET']));
+    fixture = TestBed.createComponent(ConsoleShellComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operationDestinations().map((item) => item.path)).toEqual([
+      '/operacao/odds/mercados',
+    ]);
+  });
+
+  it('ignora capability desconhecida e nao concede destino operacional', async () => {
+    routeData['consoleVariant'] = undefined;
+    operationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(of(['UNKNOWN_CAPABILITY']));
+    fixture = TestBed.createComponent(ConsoleShellComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operationDestinations()).toEqual([]);
+  });
+
   it('preserva o estado de checking sem montar conteúdo privado antes da sessão', () => {
     fixture = TestBed.createComponent(ConsoleShellComponent);
     fixture.detectChanges();
@@ -105,7 +127,9 @@ describe('ConsoleShellComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const trigger = fixture.nativeElement.querySelector('.console-nav__account') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector(
+      '.console-nav__account',
+    ) as HTMLButtonElement;
     trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     fixture.detectChanges();
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
@@ -140,7 +164,9 @@ describe('ConsoleShellComponent', () => {
 
       const skipLink = fixture.nativeElement.querySelector('a.skip-link') as HTMLAnchorElement;
       const main = fixture.nativeElement.querySelector('main#console-main') as HTMLElement;
-      const account = fixture.nativeElement.querySelector('.console-nav__account') as HTMLButtonElement;
+      const account = fixture.nativeElement.querySelector(
+        '.console-nav__account',
+      ) as HTMLButtonElement;
 
       expect(skipLink.getAttribute('href')).toBe('#console-main');
       expect(main.getAttribute('tabindex')).toBe('-1');

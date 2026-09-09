@@ -3,6 +3,7 @@ import type { Routes } from '@angular/router';
 import { profileCompletionGuard } from './core/profile/profile-completion.guard';
 import { BUILD_SPECIFIC_ROUTES, PUBLIC_MARKET_ROUTES } from './app.routes.development';
 import { ArenaShellComponent } from './layout/arena-shell.component';
+import { ConsoleShellComponent } from './layout/console-shell.component';
 import { sportsOperationsRoutes } from './features/sports/operations/sports-operations.routes';
 
 // Build-specific routes include both the legacy personal console and the scoped sports console.
@@ -75,6 +76,30 @@ export const APP_ROUTES: Routes = [
   {
     path: '',
     canActivateChild: [profileCompletionGuard],
-    children: [...sportsOperationsRoutes, ...BUILD_SPECIFIC_ROUTES],
+    children: [
+      ...sportsOperationsRoutes,
+      ...BUILD_SPECIFIC_ROUTES,
+      {
+        path: 'operacao/odds/mercados',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'operational' },
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/odds/operations/odds-operations-page.component').then(
+                ({ OddsOperationsPageComponent }) => OddsOperationsPageComponent,
+              ),
+          },
+          {
+            path: ':marketId',
+            loadComponent: () =>
+              import('./features/odds/operations/odds-operations-page.component').then(
+                ({ OddsOperationsPageComponent }) => OddsOperationsPageComponent,
+              ),
+          },
+        ],
+      },
+    ],
   },
 ];

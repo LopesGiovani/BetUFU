@@ -6,6 +6,7 @@ import { PublicStandingsPageComponent } from './features/sports/public-standings
 import { SportsStandingsPageComponent } from './features/sports/operations/standings/sports-standings-page.component';
 import { AthleteLinkProposalPageComponent } from './features/sports/link-proposal/athlete-link-proposal-page.component';
 import { PublicMarketPageComponent } from './features/odds/public-market/public-market-page.component';
+import { OddsOperationsPageComponent } from './features/odds/operations/odds-operations-page.component';
 
 function childrenOf(route: (typeof APP_ROUTES)[number]): readonly (typeof APP_ROUTES)[number][] {
   return route.children ?? [];
@@ -23,6 +24,17 @@ it('resolve o deep link publico de odds sem guard autenticado ou rotas operacion
   expect(route?.canActivate).toBeUndefined();
   expect(route?.loadComponent).toBeDefined();
   await expect(route?.loadComponent?.()).resolves.toBe(PublicMarketPageComponent);
+});
+
+it('mantem a operacao de odds protegida e separada da Arena publica', async () => {
+  const guarded = APP_ROUTES.find((route) => route.canActivateChild);
+  const route = childrenOf(guarded!).find(
+    (candidate) => candidate.path === 'operacao/odds/mercados',
+  );
+  expect(route?.component).toBeDefined();
+  expect(guarded?.canActivateChild).toBeDefined();
+  const detail = childrenOf(route!).find((candidate) => candidate.path === ':marketId');
+  await expect(detail?.loadComponent?.()).resolves.toBe(OddsOperationsPageComponent);
 });
 
 describe('rotas de chaveamento e classificação', () => {
