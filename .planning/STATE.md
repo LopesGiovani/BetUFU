@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
-stopped_at: Phase 4 Wave 14 Plan 04-11 certified; integration follows the documented fast-forward closeout
-last_updated: "2026-09-08"
+stopped_at: Phase 4 UI-SPEC approved
+last_updated: "2026-09-09T01:42:13.483Z"
 last_activity: 2026-09-08
 last_activity_desc: Wave 14 Plan 04-11 generated the ratified TypeScript client; anti-drift, Node and Angular gates passed.
-state_head: PENDING
+state_head: 30cca2daeaf5b7803e5e3055acf2a54274d10bf2
 progress:
   total_phases: 8
-  completed_phases: 3
-  total_plans: 91
-  completed_plans: 91
+  completed_phases: 2
+  total_plans: 110
+  completed_plans: 106
 milestone_name: milestone
 ---
 
@@ -139,21 +139,25 @@ milestone_name: milestone
   `ee611bec0bf2d4fc56a79df4ba27e8e9f06a944b` is an ancestor of `master`; its
   T2 approval is recorded in `04-15-SUMMARY.md` and `04-VALIDATION.md`; it does
   not authorize runtime, schema, roster or calibration work.
+
 - Plan `04-01` has no completed implementation SUMMARY. Its validation evidence
   records T1 `20/20`, T2 fail-closed with `3` checks and `1` error, and
   `wave_0_complete: false`; the exploratory LAUFU capture is not calibration
   or production eligible. By explicit owner decision, this fail-closed result is
   definitive and satisfies only the dependency boundary for Plan 04-02; it does
   not authorize calibration or production use.
+
 - Plan `04-02` is complete on technical HEAD `0ec7580`, with documentation
   commit `33b9111`; T2 approved the public
   sports-to-odds boundary, five-class taxonomy and independent market state
   machine. Its summary records focal/aggregate evidence and the remaining
   phase-boundary limitations.
+
 - Phase 4 remains in planning with `4/19` phase plans executed. The approved
   Supervisor/Worker governance is now the operating contract; Plan 04-02's
   contract checkpoint is closed, while downstream schema/producer/roster gates
   remain independent.
+
 - Plans 04-02, 04-03, 04-09 and 04-12 are integrated and clean; Wave 4 aggregate
   certification passed Node `699/699` and Maven `592/592`. Any stale handoff, branch, HEAD,
   dependency or checkpoint mismatch remains blocking.
@@ -427,9 +431,9 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 
 ## Session Continuity
 
-Last session: 2026-09-08T22:10:00-03:00
-Stopped at: Phase 4 Wave 14 Plan 04-11 implementation and verification complete; documentation and integration remain in the closeout block
-Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-11-SUMMARY.md
+Last session: 2026-09-09T01:42:12.163Z
+Stopped at: Phase 4 UI-SPEC approved
+Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-UI-SPEC.md
 
 ## Accumulated Context
 
