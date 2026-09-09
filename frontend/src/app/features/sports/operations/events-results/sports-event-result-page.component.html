@@ -359,11 +359,11 @@
                 <div class="score-display">
                   <div class="score-side">
                     <span class="team-label">{{ getSlotLabel(event, 1) }}</span>
-                    <strong class="score-val">{{ confirmed.scores[0]?.score ?? '-' }}</strong>
+                    <strong class="score-val">{{ confirmed.scores.length > 0 ? confirmed.scores[0].score : '-' }}</strong>
                   </div>
                   <span class="score-divider">x</span>
                   <div class="score-side">
-                    <strong class="score-val">{{ confirmed.scores[1]?.score ?? '-' }}</strong>
+                    <strong class="score-val">{{ confirmed.scores.length > 1 ? confirmed.scores[1].score : '-' }}</strong>
                     <span class="team-label">{{ getSlotLabel(event, 2) }}</span>
                   </div>
                 </div>
@@ -558,7 +558,7 @@
                 <select formControlName="venueSpaceId">
                   <option value="">Selecione o espaço</option>
                   @for (sp of tree()?.venues ?? [] | slice: 0; track sp.venueId) {
-                    @for (space of sp.spaces ?? []; track space.venueSpaceId) {
+                    @for (space of sp.spaces; track space.venueSpaceId) {
                       <option [value]="space.venueSpaceId">{{ space.name }} ({{ sp.name }})</option>
                     }
                   }
@@ -956,11 +956,11 @@
             <div class="diff-scores">
               <span
                 >{{ getSlotLabel(store.selectedEvent(), 1) }}:
-                <strong>{{ diff.current.scores[0]?.score ?? '-' }}</strong></span
+                <strong>{{ diff.current.scores.length > 0 ? diff.current.scores[0].score : '-' }}</strong></span
               >
               <span
                 >{{ getSlotLabel(store.selectedEvent(), 2) }}:
-                <strong>{{ diff.current.scores[1]?.score ?? '-' }}</strong></span
+                <strong>{{ diff.current.scores.length > 1 ? diff.current.scores[1].score : '-' }}</strong></span
               >
             </div>
             <p><strong>Fonte:</strong> {{ diff.current.sourceReference }}</p>
