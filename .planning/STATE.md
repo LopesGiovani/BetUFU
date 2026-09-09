@@ -5,17 +5,31 @@ current_phase: 4
 current_phase_name: Mercados Pré-jogo e Odds Transparentes
 status: planning
 stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-09-09T02:30:00.000Z"
-last_activity: 2026-09-08
-last_activity_desc: Wave 15 Plan 04-13 delivered the public odds market page, anonymous route seam and Angular certification.
-state_head: 4856861
+last_updated: "2026-09-09T03:07:00.000Z"
+last_activity: 2026-09-09
+last_activity_desc: Wave 16 Plan 04-14 delivered the operational odds Console and Chromium/Firefox browser matrix.
+state_head: 4ae0744
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 110
-  completed_plans: 107
+  completed_plans: 108
 milestone_name: milestone
 ---
+
+## Wave 16 closeout - 2026-09-09
+
+- Plano `04-14` implementou a superficie operacional de odds no Console com adapter, store Signal, pagina standalone OnPush e rota protegida separada da Arena publica.
+- A navegacao usa somente as capabilities ratificadas `VIEW_ODDS_MARKET`, `MANAGE_ODDS_MARKET`, `PROPOSE_ODDS_OVERRIDE` e `APPROVE_ODDS_OVERRIDE`; a autorizacao e o escopo permanecem server-side.
+- O fluxo mostra suspensao, tentativa de correcao, proposta com odd do modelo/proposta/delta e estados CLOSED/LOCKED, 401/403/409 sem retry de mutacao ou dados privados.
+- A matriz Playwright cobre Chromium (Chrome local) e Firefox em desktop e 320px, com privacidade e maker-checker visual; passou `6/6`.
+- Certificacao Angular focal passou `57/57`; a suite completa passou `364/364` na repeticao. `git diff --check` passou.
+- O validador `node scripts/validate-angular-route-boundary.mjs` permanece bloqueado porque seu inventario externo a allowlist ainda nao ratifica a nova importacao lazy de odds; nenhum arquivo fora do plano foi alterado para contornar o fail-closed.
+
+## Wave 16 Git
+
+- Commit tecnico: `4ae0744`.
+- Commit documental: `PENDING` neste arquivo para evitar auto-referencia circular.
 
 ## Wave 13 closeout - 2026-09-08
 
