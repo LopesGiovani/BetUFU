@@ -211,7 +211,8 @@ function buildSql({ personas, matches, env, now = new Date() }) {
     const historyVersionId = index === 1 ? stableUuid('market-version:1:2') : versionId;
     const scheduledVersionId = stableUuid(`market-version:${index}:scheduled:${when}`);
     const deadline = closeDeadlineFor(when);
-    lines.push(`INSERT INTO public.odds_market(market_id,event_id,market_type,current_version_id,lock_version) VALUES (${sql(marketId)},${sql(eventId)},'MATCH_WINNER',NULL,0) ON CONFLICT (event_id,market_type) DO NOTHING;`);
+    // O contrato público usa o mesmo formato canônico dos eventos: HEAD_TO_HEAD.
+    lines.push(`INSERT INTO public.odds_market(market_id,event_id,market_type,current_version_id,lock_version) VALUES (${sql(marketId)},${sql(eventId)},'HEAD_TO_HEAD',NULL,0) ON CONFLICT (event_id,market_type) DO NOTHING;`);
     lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline) VALUES (${sql(versionId)},${sql(marketId)},1,${sql(marketStates[index])},${sql(deadline)}) ON CONFLICT (market_id,version_no) DO NOTHING;`);
     if (index === 1) lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline,supersedes_version_id) VALUES (${sql(historyVersionId)},${sql(marketId)},2,'OPEN',${sql(deadline)},${sql(versionId)}) ON CONFLICT (market_id,version_no) DO NOTHING;`);
     lines.push(`UPDATE public.odds_market SET current_version_id=COALESCE(current_version_id,${sql(historyVersionId)}) WHERE market_id=${sql(marketId)};`);

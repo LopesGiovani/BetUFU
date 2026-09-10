@@ -159,4 +159,21 @@ describe('PublicMarketApiAdapter', () => {
     expect(snapshot.history[0].publicationId).toBe('pub-previous');
     expect(() => adapter.adapt(null)).toThrow('CONTRATO_ODDS_PUBLICAS_INVALIDO');
   });
+
+  it('aceita uma unica odd publicada conforme o contrato OpenAPI', () => {
+    const service = { getPublicOddsMarket: vi.fn() };
+    TestBed.configureTestingModule({
+      providers: [PublicMarketApiAdapter, { provide: OddsPublicService, useValue: service }],
+    });
+    const adapter = TestBed.inject(PublicMarketApiAdapter);
+
+    const snapshot = adapter.adapt(
+      publicMarket({
+        current: { ...publicMarket().current, publishedOdds: [2.1] },
+      }),
+    );
+
+    expect(snapshot.selections).toHaveLength(1);
+    expect(snapshot.selections[0].odd).toBe(2.1);
+  });
 });

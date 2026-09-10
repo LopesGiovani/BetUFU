@@ -74,6 +74,7 @@ class CsrfSecurityIT {
   private static final String ALLOWED_ORIGIN = "http://localhost:4200";
   private static final String DISALLOWED_ORIGIN = "http://evil.attacker.invalid";
   private static final String PROBE_PATH = "/api/v1/csrf-probe";
+  private static final String PUBLIC_ODDS_PROBE_PATH = "/api/v1/public/odds/security-probe";
   private static final String LOGOUT_PATH = "/api/v1/session/logout";
 
   @Autowired private WebApplicationContext applicationContext;
@@ -124,6 +125,14 @@ class CsrfSecurityIT {
         .andExpect(status().isForbidden())
         .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
         .andExpect(jsonPath("$.status").value(403));
+  }
+
+  @Test
+  void permitsAnonymousReadOfThePublicOddsBoundary() throws Exception {
+    mockMvc
+        .perform(get(PUBLIC_ODDS_PROBE_PATH).accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("PUBLIC_ODDS_OK"));
   }
 
   @Test
@@ -366,6 +375,11 @@ class CsrfSecurityIT {
     @GetMapping(PROBE_PATH)
     ResponseEntity<Map<String, String>> readGet() {
       return ResponseEntity.ok(Map.of("status", "READ_OK"));
+    }
+
+    @GetMapping(PUBLIC_ODDS_PROBE_PATH)
+    ResponseEntity<Map<String, String>> readPublicOdds() {
+      return ResponseEntity.ok(Map.of("status", "PUBLIC_ODDS_OK"));
     }
 
     @PutMapping(PROBE_PATH)

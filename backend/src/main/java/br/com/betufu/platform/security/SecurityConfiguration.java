@@ -231,6 +231,10 @@ public class SecurityConfiguration {
                     // The HTTP method is part of the rule: mutations remain authenticated.
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/sports/**")
                     .permitAll()
+                    // A leitura publicada de odds compõe a mesma fronteira anônima da Arena.
+                    // Restringir por método mantém qualquer comando de mercado autenticado.
+                    .requestMatchers(HttpMethod.GET, "/api/v1/public/odds/**")
+                    .permitAll()
                     // Diagnostico exige o papel tecnico, e o matcher precisa vir ANTES de
                     // /api/v1/** — senao aquele matcher mais largo o engoliria e bastaria
                     // estar autenticado. A autoridade so pode ser produzida pelo

@@ -98,7 +98,7 @@ export class PublicMarketApiAdapter {
       throw new Error('CONTRATO_ODDS_PUBLICAS_INVALIDO: resumo incompleto.');
     }
     if (
-      summary.publishedOdds.length < 2 ||
+      summary.publishedOdds.length < 1 ||
       summary.publishedOdds.some((odd) => !Number.isFinite(odd) || odd <= 1) ||
       !this.validDate(summary.publishedAt)
     ) {

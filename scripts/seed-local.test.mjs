@@ -103,6 +103,8 @@ test('duas execuções convergem para o mesmo SQL sem recriar usuários', async 
   assert.equal(sqlRuns[0], sqlRuns[1]);
   assert.equal(keycloak.calls.filter((call) => call.method === 'POST' && call.url.endsWith('/users')).length, 6);
   assert.match(sqlRuns[0], /ON CONFLICT DO NOTHING/u);
+  assert.match(sqlRuns[0], /odds_market\([^\n]+,'HEAD_TO_HEAD'/u);
+  assert.doesNotMatch(sqlRuns[0], /'MATCH_WINNER'/u);
   assert.doesNotMatch(sqlRuns[0], /BetUfuTest@2026|opaque-test-token|202600001/u);
 });
 

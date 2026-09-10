@@ -39,7 +39,7 @@ public class OddsPublicViewRepository {
     Header h = headers.get(0);
     List<PublicationRow> rows =
         jdbc.query(
-            "SELECT p.publication_id, p.published_odds, p.published_at, p.margin, p.rounding_mode, c.algorithm_version, c.configuration_digest, c.fair_probability, c.confidence, c.input_snapshot FROM public.odds_publication p JOIN public.odds_calculation c ON c.calculation_id = p.calculation_id JOIN public.odds_market_version v ON v.market_version_id = c.market_version_id WHERE v.market_id = ? ORDER BY p.published_at DESC, p.publication_id DESC",
+            "SELECT p.publication_id, p.published_odds, p.published_at, p.margin, p.rounding_mode, c.algorithm_version, c.configuration_digest, c.fair_probability, c.confidence, c.input_snapshot ->> 'confidenceBand' AS confidence_band, CAST(c.input_snapshot ->> 'sampleSize' AS integer) AS sample_size FROM public.odds_publication p JOIN public.odds_calculation c ON c.calculation_id = p.calculation_id JOIN public.odds_market_version v ON v.market_version_id = c.market_version_id WHERE v.market_id = ? ORDER BY p.published_at DESC, p.publication_id DESC",
             (rs, n) ->
                 new PublicationRow(
                     rs.getObject("publication_id", UUID.class),
@@ -51,7 +51,8 @@ public class OddsPublicViewRepository {
                     rs.getString("configuration_digest"),
                     rs.getBigDecimal("fair_probability"),
                     rs.getBigDecimal("confidence"),
-                    rs.getString("input_snapshot")),
+                    rs.getString("confidence_band"),
+                    rs.getObject("sample_size", Integer.class)),
             marketId);
     PublicOddsSummary current =
         rows.isEmpty()
@@ -74,8 +75,8 @@ public class OddsPublicViewRepository {
                 new BigDecimal(rows.get(0).margin()),
                 rows.get(0).roundingMode(),
                 rows.get(0).confidence(),
-                confidenceBand(rows.get(0).inputSnapshot()),
-                sampleSize(rows.get(0).inputSnapshot()));
+                rows.get(0).confidenceBand(),
+                rows.get(0).sampleSize() == null ? 0 : rows.get(0).sampleSize());
     return Optional.of(
         new PublicOddsView(
             h.marketId(), h.eventId(), h.marketType(), h.state(), current, history, explanation));
@@ -83,28 +84,6 @@ public class OddsPublicViewRepository {
 
   private static MarketState state(String value) {
     return "VOID".equals(value) ? MarketState.CANCELLED : MarketState.valueOf(value);
-  }
-
-  private static String confidenceBand(String snapshot) {
-    if (snapshot == null) return null;
-    int i = snapshot.indexOf("\"confidenceBand\":\"");
-    if (i < 0) return null;
-    int start = i + 17;
-    int end = snapshot.indexOf('"', start);
-    return end < 0 ? null : snapshot.substring(start, end);
-  }
-
-  private static int sampleSize(String snapshot) {
-    if (snapshot == null) return 0;
-    int i = snapshot.indexOf("\"sampleSize\":");
-    if (i < 0) return 0;
-    int start = i + 13, end = start;
-    while (end < snapshot.length() && Character.isDigit(snapshot.charAt(end))) end++;
-    try {
-      return Integer.parseInt(snapshot.substring(start, end));
-    } catch (RuntimeException e) {
-      return 0;
-    }
   }
 
   private record Header(
@@ -120,5 +99,6 @@ public class OddsPublicViewRepository {
       String configurationDigest,
       BigDecimal fairProbability,
       BigDecimal confidence,
-      String inputSnapshot) {}
+      String confidenceBand,
+      Integer sampleSize) {}
 }
