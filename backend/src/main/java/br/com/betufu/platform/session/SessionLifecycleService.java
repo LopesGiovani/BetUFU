@@ -19,18 +19,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 public final class SessionLifecycleService implements AuthenticationSuccessHandler {
 
+  private static final String PUBLIC_DEFAULT_TARGET = "/";
+  private static final String OPERATIONAL_DEFAULT_TARGET = "/operacao/esportes";
+
   private final SessionPolicy sessionPolicy;
   private final Clock clock;
   private final AuthenticationSuccessHandler delegate;
 
   public SessionLifecycleService(SessionPolicy sessionPolicy, Clock clock) {
-    this(sessionPolicy, clock, new SavedRequestAwareAuthenticationSuccessHandler());
+    this(sessionPolicy, clock, new RoleAwareSavedRequestAuthenticationSuccessHandler());
   }
 
   SessionLifecycleService(
@@ -266,6 +270,41 @@ public final class SessionLifecycleService implements AuthenticationSuccessHandl
   private static boolean isAmrItemAttribute(String name) {
     return name.startsWith(AUTHENTICATION_AMR_PREFIX)
         && !name.equals(AUTHENTICATION_AMR_COUNT_ATTRIBUTE);
+  }
+
+  private static final class RoleAwareSavedRequestAuthenticationSuccessHandler
+      implements AuthenticationSuccessHandler {
+
+    private final AuthenticationSuccessHandler operational =
+        savedRequestHandler(OPERATIONAL_DEFAULT_TARGET);
+    private final AuthenticationSuccessHandler publicArena =
+        savedRequestHandler(PUBLIC_DEFAULT_TARGET);
+
+    @Override
+    public void onAuthenticationSuccess(
+        HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+        throws IOException, ServletException {
+      handlerFor(authentication).onAuthenticationSuccess(request, response, authentication);
+    }
+
+    private AuthenticationSuccessHandler handlerFor(Authentication authentication) {
+      boolean operationalRole =
+          authentication.getAuthorities().stream()
+              .map(GrantedAuthority::getAuthority)
+              .anyMatch(
+                  authority ->
+                      authority.equals("ROLE_ADMINISTRADOR_GERAL")
+                          || authority.equals("ROLE_ADMINISTRADOR_COMPETICAO")
+                          || authority.equals("ROLE_MODERADOR"));
+      return operationalRole ? operational : publicArena;
+    }
+
+    private static AuthenticationSuccessHandler savedRequestHandler(String defaultTarget) {
+      SavedRequestAwareAuthenticationSuccessHandler handler =
+          new SavedRequestAwareAuthenticationSuccessHandler();
+      handler.setDefaultTargetUrl(defaultTarget);
+      return handler;
+    }
   }
 
   private static void invalidateQuietly(HttpSession session) {

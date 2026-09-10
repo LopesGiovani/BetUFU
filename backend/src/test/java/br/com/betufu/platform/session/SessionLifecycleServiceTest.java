@@ -1,6 +1,7 @@
 package br.com.betufu.platform.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -11,9 +12,17 @@ import jakarta.servlet.http.HttpSession;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 /**
  * Focal proof that {@code SessionLifecycleService.currentState} never creates a session.
@@ -90,6 +99,75 @@ class SessionLifecycleServiceTest {
     verify(session, never())
         .setAttribute(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
     verify(session, never()).invalidate();
+  }
+
+  @Test
+  void redirectsOperationalUsersToTheConsoleWhenNoSavedRequestExists() throws Exception {
+    MockHttpServletRequest request = callbackRequest();
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    newService()
+        .onAuthenticationSuccess(
+            request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
+
+    assertThat(response.getRedirectedUrl()).isEqualTo("/operacao/esportes");
+  }
+
+  @Test
+  void redirectsModeratorsAndCompetitionAdministratorsToTheConsole() throws Exception {
+    for (String role : List.of("ROLE_ADMINISTRADOR_COMPETICAO", "ROLE_MODERADOR")) {
+      MockHttpServletRequest request = callbackRequest();
+      MockHttpServletResponse response = new MockHttpServletResponse();
+
+      newService().onAuthenticationSuccess(request, response, authentication(role));
+
+      assertThat(response.getRedirectedUrl()).isEqualTo("/operacao/esportes");
+    }
+  }
+
+  @Test
+  void keepsUsersWithoutOperationalRoleInThePublicArena() throws Exception {
+    MockHttpServletRequest request = callbackRequest();
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    newService().onAuthenticationSuccess(request, response, authentication("ROLE_USER"));
+
+    assertThat(response.getRedirectedUrl()).isEqualTo("/");
+  }
+
+  @Test
+  void preservesAnInternalSavedRequestBeforeApplyingTheRoleFallback() throws Exception {
+    MockHttpServletRequest request = callbackRequest();
+    MockHttpServletRequest savedRequest =
+        new MockHttpServletRequest("GET", "/operacao/odds/mercados");
+    savedRequest.setSession(request.getSession());
+    new HttpSessionRequestCache().saveRequest(savedRequest, new MockHttpServletResponse());
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    newService()
+        .onAuthenticationSuccess(
+            request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
+
+    assertThat(response.getRedirectedUrl())
+        .startsWith("http://localhost/operacao/odds/mercados");
+  }
+
+  private static MockHttpServletRequest callbackRequest() {
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("GET", "/login/oauth2/code/keycloak");
+    request.getSession(true).setAttribute("session-marker", "present");
+    return request;
+  }
+
+  private static Authentication authentication(String role) {
+    Authentication authentication = mock(Authentication.class);
+    OidcUser principal = mock(OidcUser.class);
+    when(authentication.getPrincipal()).thenReturn(principal);
+    when(principal.getClaim("acr")).thenReturn(null);
+    when(principal.getClaim("amr")).thenReturn(null);
+    Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+    doReturn(authorities).when(authentication).getAuthorities();
+    return authentication;
   }
 
   private static SessionLifecycleService newService() {
