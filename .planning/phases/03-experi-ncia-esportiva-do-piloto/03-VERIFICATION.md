@@ -1,12 +1,13 @@
 ---
 phase: 03-experi-ncia-esportiva-do-piloto
-verified: 2026-09-02T21:55:03Z
-status: gaps_found
-score: "1/5 must-haves verified"
+verified: 2026-09-12T20:37:20-03:00
+status: passed
+score: "5/5 must-haves verified"
 behavior_unverified: 0
 overrides_applied: 0
 decision_coverage: "48/48"
-gaps:
+gaps: []
+historical_gaps:
   - truth: "SPRT-01: o catalogo suporta varias modalidades por competicao."
     status: failed
     reason: "V10 e o codigo vivo modelam uma relacao singular entre competicao e esporte."
@@ -85,10 +86,80 @@ gaps:
 
 # Phase 3: Experiencia Esportiva do Piloto - Verification Report
 
+## Veredito final autoritativo - Plano 03-27
+
+**Status:** `passed`
+
+**Snapshot:** `worktree-agent-phase3-finalize` @
+`766799cef8c328ae5ec98913441ddf4a129e34ac`, em 2026-09-12.
+
+O parecer inicial preservado abaixo foi emitido antes dos planos de fechamento
+03-21 a 03-26 e esta formalmente superado. A recertificacao atual executou as
+provas materiais sobre o codigo vivo e confirmou as cinco verdades do objetivo
+da fase.
+
+### Resultado das verdades observaveis
+
+| # | Verdade | Status | Evidencia atual |
+|---:|---|---|---|
+| 1 | Visitante navega agenda, filtra e abre evento | VERIFIED | Angular `366/366`, Playwright `28/28`, rotas `175/175` e deep links codificados |
+| 2 | Administradores mantem dados somente no escopo atribuido | VERIFIED | focais dos gaps `272/272` e arquitetura/privacidade `46/46` |
+| 3 | Paginas publicas exibem somente dados autorizados | VERIFIED | backend agregado verde, arquitetura/privacidade e matriz browser sem PII |
+| 4 | Atleta sem conta, HMAC transitorio e proposta explicita | VERIFIED | focais owner/identity, mutacoes negativas e fluxos browser aprovados |
+| 5 | Elencos, lifecycle, bracket, standings e modalidades genericas preservam fatos oficiais | VERIFIED | focais Flyway/lifecycle/importacao e Maven completo verdes |
+
+### Matriz final de requisitos
+
+| Requisito | Status | Prova discriminante principal |
+|---|---|---|
+| AUTH-01 | SATISFIED | rotas publicas, DTOs allowlisted, Playwright anonimo e guards negativos |
+| SPRT-01 | SATISFIED | catalogo N:N e `SportsCatalogIT` |
+| SPRT-02 | SATISFIED | autorizacao derivada do recurso e focais de organizacao/atleta/roster/importacao |
+| SPRT-03 | SATISFIED | atleta independente de conta local |
+| SPRT-04 | SATISFIED | seam HMAC transitorio e privacidade |
+| SPRT-05 | SATISFIED | schema guarda somente versao e fingerprint |
+| SPRT-06 | SATISFIED | proposta unica e idempotencia |
+| SPRT-07 | SATISFIED | divergencia e multiplos candidatos bloqueados |
+| SPRT-08 | SATISFIED | rota owner, identidade server-side e decisao/contestacao protegida |
+| SPRT-09 | SATISFIED | roster publicado exige correcao versionada, motivo e auditoria |
+| SPRT-10 | SATISFIED | evento valida participantes, horario, fonte e local |
+| SPRT-11 | SATISFIED | lifecycle append-only e concorrencia 409 |
+| SPRT-12 | SATISFIED | agenda responsiva e `/eventos/:eventId` codificado |
+| SPRT-13 | SATISFIED | paginas publicas allowlisted sem PII |
+| SPRT-14 | SATISFIED | modalidades genericas e fatos oficiais sem regra inventada |
+| SPRT-15 | SATISFIED | favorito associado a organizacao persistente |
+| SPRT-16 | SATISFIED | perfil/midia owner-only e projecao publica segura |
+
+### Evidencia material consolidada
+
+- Maven completo: `1628/1628`, zero failures, errors ou skips.
+- Node agregado: `737/737` em 9 suites.
+- Angular agregado: `366/366` em 59 arquivos.
+- Playwright Chromium + Firefox: `28/28`.
+- Arquitetura/privacidade: `46/46`.
+- Focais backend dos gaps: `272/272`.
+- Fronteira Angular: validação viva `OK` e suite `175/175`.
+- Cliente OpenAPI: `--check` sem drift.
+- Mutacoes negativas: harness `6/6`, tres vermelhos discriminantes e
+  restauracao por SHA-256.
+- `git diff --check`: aprovado.
+
+O controle `Pausar destaques` continua removido. O teste E2E nao tenta mais
+aciona-lo e comprova explicitamente que o botao nao existe. Esta reconciliacao
+nao reintroduz estado, signal ou componente de pausa.
+
+**Conclusao:** a Fase 3 atende `AUTH-01` e `SPRT-01` a `SPRT-16`; nao ha gap
+funcional bloqueante conhecido para iniciar o planejamento da Fase 5. O
+checkpoint humano e as operacoes Git permanecem separados deste parecer.
+
+---
+
+## Verificacao inicial historica - superada pela recertificacao acima
+
 **Phase Goal:** Visitantes conseguem acompanhar um catalogo confiavel e generico de competicoes e edicoes esportivas, comecando pela Olimpiada Universitaria UFU 2026, enquanto administradores mantem seus dados somente nos escopos atribuidos.
 **Verified:** 2026-09-02T21:55:03Z
 **Status:** `gaps_found`
-**Re-verification:** No - initial verification
+**Re-verification:** Yes - superseded by the authoritative 2026-09-12 recertification
 
 ## Goal Achievement
 

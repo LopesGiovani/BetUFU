@@ -13,7 +13,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 
 - [x] **Phase 1: Fundação Segura da Plataforma** - Estabelecer a base modular, observável e segura da qual todas as capacidades do MVP dependem.
 - [x] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
-- [ ] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar um catálogo genérico de competições e edições, começando pela Olimpíada Universitária UFU 2026 e detalhando inicialmente confrontos diretos.
+- [x] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar um catálogo genérico de competições e edições, começando pela Olimpíada Universitária UFU 2026 e detalhando inicialmente confrontos diretos.
 - [x] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [ ] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
 - [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
@@ -251,7 +251,7 @@ Plans:
   4. Um atleta pode existir sem conta; matrícula transitória produz HMAC sem comprovante nem persistência bruta, e correspondência única gera proposta explícita, aceitável, rejeitável e contestável.
   5. Elencos são publicados manualmente; confrontos diretos exibem chaveamento derivado das partidas, enquanto outras modalidades e classificações manuais preservam fonte oficial sem simular regras não implementadas.
 
-**Plans**: 27/27 plans executed; Phase 3 gap closure certified, integrated and cleaned locally; push not performed
+**Plans**: 27/27 plans executed; final post-gap certification and human snapshot approval completed on 2026-09-12
 
 Plans:
 **Wave 1**
@@ -358,7 +358,7 @@ Plans:
 
 - [x] 03-26-PLAN.md — tornar proposta owner navegável e corrigir deep links da agenda; implementação, focais e Playwright `4/4` concluídos localmente
 
-**Wave 27** *(gap closure; depends on 03-26; integrated and cleaned locally; push not performed)*
+**Wave 27** *(gap closure; depends on 03-26; final snapshot approved on 2026-09-12; Git formalization pending)*
 
 - [x] 03-27-PLAN.md — recertificar a Fase 3 após o fechamento dos gaps; suites, contratos, dois browsers e snapshot humano aprovados localmente
 
@@ -501,7 +501,7 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 |-------|----------------|--------|-----------|
 | 1. Fundação Segura da Plataforma | 31/31 | Complete | 2026-08-19 |
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
-| 3. Experiência Esportiva do Piloto | 27/27 | Complete; integrated and cleaned locally; push not performed | 2026-09-04 |
+| 3. Experiência Esportiva do Piloto | 27/27 | Complete; final post-gap snapshot approved | 2026-09-12 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |

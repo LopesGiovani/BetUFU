@@ -9,7 +9,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Acesso e Perfis
 
-- [ ] **AUTH-01**: Visitante pode consultar competições, agenda, partidas, equipes e resultados públicos sem criar conta.
+- [x] **AUTH-01**: Visitante pode consultar competições, agenda, partidas, equipes e resultados públicos sem criar conta.
 - [ ] **AUTH-02**: Pessoa pode criar uma conta pelo fluxo hospedado do Keycloak com e-mail e senha e completar o perfil BETUFU, sem que a aplicação receba ou persista a senha.
 - [ ] **AUTH-03**: Usuário pode confirmar o e-mail, entrar, permanecer autenticado entre acessos e encerrar a sessão.
 - [ ] **AUTH-04**: Usuário pode recuperar o acesso por um fluxo seguro de redefinição de senha.
@@ -26,22 +26,22 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Competições, Equipes e Elencos
 
-- [ ] **SPRT-01**: Administrador autorizado pode cadastrar esporte, competição, edição, categoria, fase e local reutilizável com espaço interno opcional dentro do escopo atribuído; a Olimpíada UFU 2026 é a primeira edição real de um catálogo genérico.
-- [ ] **SPRT-02**: Administrador da competição pode cadastrar organizações esportivas, equipes por edição, atletas e vínculos de elenco por modalidade, categoria e período, individualmente ou por CSV oficial validado de forma atômica.
-- [ ] **SPRT-03**: Um atleta pode existir no catálogo sem possuir conta BETUFU.
-- [ ] **SPRT-04**: Para cadastrar um atleta, o administrador informa a matrícula somente como entrada transitória; o servidor normaliza, calcula HMAC versionado e descarta o valor bruto. A coincidência não comprova vínculo oficial, titularidade ou legitimidade esportiva.
-- [ ] **SPRT-05**: O cadastro do atleta pode guardar o mesmo HMAC versionado usado na verificação da conta, sem expor nem conservar o número consultável e sem receber comprovante documental no MVP.
-- [ ] **SPRT-06**: Quando uma conta verificada produzir HMAC igual ao de um atleta ainda sem usuário, o sistema propõe vínculo único e auditável entre os registros.
-- [ ] **SPRT-07**: HMAC já ligado a outra conta, múltiplos candidatos ou divergência de dados bloqueiam o vínculo automático e abrem revisão manual.
-- [ ] **SPRT-08**: A pessoa recebe a proposta de vínculo, precisa aceitá-la explicitamente e pode rejeitar ou contestar uma associação de atleta incorreta; foto e campos pessoais do atleta só são liberados após o aceite.
-- [ ] **SPRT-09**: Elenco nasce como rascunho, é publicado manualmente antes da abertura do primeiro mercado afetado e não possui escalação por partida no MVP; alteração ou vínculo tardio exige motivo e auditoria.
-- [ ] **SPRT-10**: Administrador pode cadastrar evento com participantes, horário canônico, fuso, fase, fonte e local opcionalmente detalhado por espaço interno.
-- [ ] **SPRT-11**: Administrador pode manter evento e resultado como rascunho, publicar, suspender, adiar, cancelar, informar e corrigir com fonte, motivo, versões e auditoria; o mesmo administrador pode confirmar no MVP ou pedir revisão opcional.
-- [ ] **SPRT-12**: Pessoa pode navegar primeiro pela agenda e filtrar por data, esporte, competição/edição, categoria, fase e estado, abrindo a página completa do evento.
-- [ ] **SPRT-13**: Pessoa pode abrir páginas de organização, equipe e atleta com equipes da edição, elenco público autorizado, próximos eventos, resultados e estatísticas genéricas confiáveis; campos pessoais opcionais são controlados pelo atleta vinculado.
-- [ ] **SPRT-14**: O piloto opera detalhadamente eventos de confronto direto confiáveis, incluindo chaveamento derivado das partidas; outras modalidades podem aparecer no catálogo e agenda básica, e classificações de grupos/pontos corridos são transcritas da fonte oficial sem motor automático de desempate.
-- [ ] **SPRT-15**: Usuário pode escolher como favorito uma organização esportiva permanente, que agrega suas equipes de diferentes modalidades e edições; a Fase 3 reconcilia a referência técnica de equipe criada na Fase 2 sem perder o perfil existente.
-- [ ] **SPRT-16**: Após aceitar o vínculo, somente o atleta controla foto, curso, biografia e redes sociais opcionais; mídia e links recebem validação segura, campos removíveis não incluem dados privados e estatísticas públicas permanecem genéricas no MVP.
+- [x] **SPRT-01**: Administrador autorizado pode cadastrar esporte, competição, edição, categoria, fase e local reutilizável com espaço interno opcional dentro do escopo atribuído; a Olimpíada UFU 2026 é a primeira edição real de um catálogo genérico.
+- [x] **SPRT-02**: Administrador da competição pode cadastrar organizações esportivas, equipes por edição, atletas e vínculos de elenco por modalidade, categoria e período, individualmente ou por CSV oficial validado de forma atômica.
+- [x] **SPRT-03**: Um atleta pode existir no catálogo sem possuir conta BETUFU.
+- [x] **SPRT-04**: Para cadastrar um atleta, o administrador informa a matrícula somente como entrada transitória; o servidor normaliza, calcula HMAC versionado e descarta o valor bruto. A coincidência não comprova vínculo oficial, titularidade ou legitimidade esportiva.
+- [x] **SPRT-05**: O cadastro do atleta pode guardar o mesmo HMAC versionado usado na verificação da conta, sem expor nem conservar o número consultável e sem receber comprovante documental no MVP.
+- [x] **SPRT-06**: Quando uma conta verificada produzir HMAC igual ao de um atleta ainda sem usuário, o sistema propõe vínculo único e auditável entre os registros.
+- [x] **SPRT-07**: HMAC já ligado a outra conta, múltiplos candidatos ou divergência de dados bloqueiam o vínculo automático e abrem revisão manual.
+- [x] **SPRT-08**: A pessoa recebe a proposta de vínculo, precisa aceitá-la explicitamente e pode rejeitar ou contestar uma associação de atleta incorreta; foto e campos pessoais do atleta só são liberados após o aceite.
+- [x] **SPRT-09**: Elenco nasce como rascunho, é publicado manualmente antes da abertura do primeiro mercado afetado e não possui escalação por partida no MVP; alteração ou vínculo tardio exige motivo e auditoria.
+- [x] **SPRT-10**: Administrador pode cadastrar evento com participantes, horário canônico, fuso, fase, fonte e local opcionalmente detalhado por espaço interno.
+- [x] **SPRT-11**: Administrador pode manter evento e resultado como rascunho, publicar, suspender, adiar, cancelar, informar e corrigir com fonte, motivo, versões e auditoria; o mesmo administrador pode confirmar no MVP ou pedir revisão opcional.
+- [x] **SPRT-12**: Pessoa pode navegar primeiro pela agenda e filtrar por data, esporte, competição/edição, categoria, fase e estado, abrindo a página completa do evento.
+- [x] **SPRT-13**: Pessoa pode abrir páginas de organização, equipe e atleta com equipes da edição, elenco público autorizado, próximos eventos, resultados e estatísticas genéricas confiáveis; campos pessoais opcionais são controlados pelo atleta vinculado.
+- [x] **SPRT-14**: O piloto opera detalhadamente eventos de confronto direto confiáveis, incluindo chaveamento derivado das partidas; outras modalidades podem aparecer no catálogo e agenda básica, e classificações de grupos/pontos corridos são transcritas da fonte oficial sem motor automático de desempate.
+- [x] **SPRT-15**: Usuário pode escolher como favorito uma organização esportiva permanente, que agrega suas equipes de diferentes modalidades e edições; a Fase 3 reconcilia a referência técnica de equipe criada na Fase 2 sem perder o perfil existente.
+- [x] **SPRT-16**: Após aceitar o vínculo, somente o atleta controla foto, curso, biografia e redes sociais opcionais; mídia e links recebem validação segura, campos removíveis não incluem dados privados e estatísticas públicas permanecem genéricas no MVP.
 
 ### Papéis, Operação e Integridade
 
@@ -274,23 +274,23 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | PRIV-01 | Phase 2 | Complete |
 | AUDT-01 | Phase 2 | Complete |
 | AUDT-02 | Phase 2 | Complete |
-| AUTH-01 | Phase 3 | Pending |
-| SPRT-01 | Phase 3 | Pending |
-| SPRT-02 | Phase 3 | Pending |
-| SPRT-03 | Phase 3 | Pending |
-| SPRT-04 | Phase 3 | Pending |
-| SPRT-05 | Phase 3 | Pending |
-| SPRT-06 | Phase 3 | Pending |
-| SPRT-07 | Phase 3 | Pending |
-| SPRT-08 | Phase 3 | Pending |
-| SPRT-09 | Phase 3 | Pending |
-| SPRT-10 | Phase 3 | Pending |
-| SPRT-11 | Phase 3 | Pending |
-| SPRT-12 | Phase 3 | Pending |
-| SPRT-13 | Phase 3 | Pending |
-| SPRT-14 | Phase 3 | Pending |
-| SPRT-15 | Phase 3 | Pending |
-| SPRT-16 | Phase 3 | Pending |
+| AUTH-01 | Phase 3 | Complete |
+| SPRT-01 | Phase 3 | Complete |
+| SPRT-02 | Phase 3 | Complete |
+| SPRT-03 | Phase 3 | Complete |
+| SPRT-04 | Phase 3 | Complete |
+| SPRT-05 | Phase 3 | Complete |
+| SPRT-06 | Phase 3 | Complete |
+| SPRT-07 | Phase 3 | Complete |
+| SPRT-08 | Phase 3 | Complete |
+| SPRT-09 | Phase 3 | Complete |
+| SPRT-10 | Phase 3 | Complete |
+| SPRT-11 | Phase 3 | Complete |
+| SPRT-12 | Phase 3 | Complete |
+| SPRT-13 | Phase 3 | Complete |
+| SPRT-14 | Phase 3 | Complete |
+| SPRT-15 | Phase 3 | Complete |
+| SPRT-16 | Phase 3 | Complete |
 | ODDS-01 | Phase 4 | Complete |
 | ODDS-02 | Phase 4 | Complete |
 | ODDS-03 | Phase 4 | Complete |
@@ -386,4 +386,4 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 
 ---
 *Requisitos definidos em: 2026-08-01*
-*Última atualização: 2026-08-26 após reconciliar o contexto da Fase 3 e manter 138/138 requisitos v1 mapeados*
+*Última atualização: 2026-09-12 após aprovar a recertificação final da Fase 3; 138/138 requisitos v1 permanecem mapeados*

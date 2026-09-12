@@ -1,11 +1,89 @@
 ---
 phase: 3
 slug: experiencia-esportiva-do-piloto
-status: in_progress
+status: complete
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-08-26
 ---
+
+## Plan 03-27 - Recertificacao final autoritativa (2026-09-12)
+
+Esta secao substitui, como evidencia normativa, as contagens antigas preservadas
+abaixo para auditoria historica. A recertificacao foi executada na worktree
+`C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-phase3-finalize`, branch
+`worktree-agent-phase3-finalize`, sobre o HEAD/base
+`766799cef8c328ae5ec98913441ddf4a129e34ac`. Nenhum resultado historico foi
+promovido sem uma nova execucao ou uma prova focal atual compativel.
+
+### Evidencias finais
+
+| Gate | Exit code | Evidencia literal atual |
+|---|---:|---|
+| Backend agregado | 0 | `node scripts/maven.mjs -f backend/pom.xml verify`: `BUILD SUCCESS`; wrapper `Tests run: 1628`, `Failures: 0`, `Errors: 0`, `Skipped: 0` |
+| Backend - expectativa Flyway | 0 | `OddsMigrationIT` focal `4/4`; a expectativa passou de 27 para as 29 migrations reais (V1-V28 mais V5_1) |
+| Backend - arquitetura/privacidade | 0 | `PrivacyArchitectureTest,ModulithArchitectureTests,ModuleDependencyRulesTest`: `46/46` |
+| Backend - focais dos sete gaps | 0 | 16 classes discriminantes: `272/272`, sem falhas, erros ou skips |
+| Formatacao Java | 0 | `spotless:apply` seguido de `spotless:check`: `BUILD SUCCESS` |
+| Node agregado | 0 | `node --test scripts/*.test.mjs`: `737/737`, 9 suites, zero fail/cancelled/skipped/todo |
+| Angular agregado | 0 | `npm --prefix frontend run test -- --watch=false`: `366/366` em 59 arquivos |
+| Browser material | 0 | Playwright Chromium + Firefox: `28/28`; configuracao temporaria de reuso da porta 4200 foi removida apos a execucao |
+| Fronteira Angular viva | 0 | `node scripts/validate-angular-route-boundary.mjs`: `OK` |
+| Fronteira Angular - suite | 0 | `node --test scripts/validate-angular-route-boundary.test.mjs`: `175/175` |
+| Cliente governado | 0 | `node frontend/scripts/generate-api.mjs --check`: `OK`, sem drift |
+| Mutacoes negativas | 0 | harness `6/6`; M1, M2 e M3 produziram os vermelhos esperados e restauraram os bytes |
+| Integridade textual | 0 | `git diff --check`: aprovado; somente avisos informativos de conversao LF/CRLF no checkout Windows |
+
+O total `1628` e o valor emitido pelo wrapper oficial, que soma as linhas de
+execucao do ciclo Maven. Os relatorios XML finais tambem foram inspecionados e
+nao contem failures, errors ou skips. Esta distincao evita misturar o total de
+invocacoes do ciclo com o inventario final de arquivos XML.
+
+### Correcoes mecanicas incorporadas ao snapshot
+
+- `frontend/e2e/sports-pilot.spec.ts` deixou de procurar o controle removido
+  `Pausar destaques` e agora prova explicitamente sua ausencia. O carrossel
+  automatico continua coberto; nenhum controle de pausa foi reintroduzido.
+- `scripts/validate-angular-route-boundary.test.mjs` passou a incluir o alias
+  publico `/arena`, ja ratificado no roteamento vivo.
+- `backend/src/test/java/br/com/betufu/odds/OddsMigrationIT.java` passou a
+  esperar 29 migrations, alinhando a prova Flyway ao inventario atual.
+- O Spotless normalizou apenas o estilo de
+  `SessionLifecycleServiceTest.java`. `BetufuApplicationSmokeTest.java` foi
+  tocado pelo normalizador de finais de linha, mas permanece sem diff de
+  conteudo.
+- A primeira tentativa do Maven com `SPRING_PROFILES_ACTIVE=dev` ativou beans
+  runtime incompatíveis com o smoke hermetico. A certificacao valida foi
+  repetida sem esse profile, mantendo apenas as variaveis HMAC de teste.
+- A primeira repeticao completa revelou a expectativa Flyway antiga; a segunda
+  alcancou o gate Spotless; depois das correcoes focais, a execucao final passou
+  integralmente. As falhas intermediarias nao foram ocultadas nem promovidas.
+
+### Hashes congelados
+
+| Artefato | SHA-256 |
+|---|---|
+| `03-21-PLAN.md` | `3B42211E7CB853EE4D14E0AB8AB03CDDFAF4CEBCD11690C17E2A44AB5E5E8477` |
+| `03-22-PLAN.md` | `4BC6D3974C2A945BA58B64FDE1B1C44E6B2544587A2758FC5CF2E50DD6B7A648` |
+| `03-23-PLAN.md` | `DD7D86C4E867ED7E2260123DE6677309A43AF743624EFA978650C67228F7D3C3` |
+| `03-24-PLAN.md` | `AE2542B2393B0C177609601E6271C3638090C7DD04F80CB5747E22D0AF950486` |
+| `03-25-PLAN.md` | `D3D13B968AFAEFEDD45C1FBC2C2BEA8A7A3C314D319AF041D3FD7DD8A13B4CBF` |
+| `03-26-PLAN.md` | `8D39E8D0710307FDE0BFC1C6718501D3741477811CD794584A5A099F6D469910` |
+| `OddsMigrationIT.java` | `A9FAD7374731239856DC5A5DC1AFF80C3083C14BB82316B67EB1E16953CF5C62` |
+| `SessionLifecycleServiceTest.java` | `C66F5D3AE5D534A87729F473C7729B75151E4EB4946605F55869B59C63FF3936` |
+| `sports-pilot.spec.ts` | `A5D37AF3C5F73EDAA646DB9E9B0D05E41ECE3767A5A9803DAE63CEF2575312F4` |
+| `validate-angular-route-boundary.test.mjs` | `8AB9BCA6EFFDE56C666F6C6B9781EA5E6F825774FC366E89DD8036237B46A72D` |
+
+Hashes das mutacoes apos restauracao: M1
+`A0FECD40AD9E6DF0E4EFB7FC21F3658865076014910BBFD7B99838AE20222222`,
+M2 `73BCFF750FD0B43C710432A206586D47D4EC44E33303043AE5C788EF1A548062`
+e M3 `603D74EBEC33392F0D391C614B84A1FECA2CB78AF3F6213115E3587677848691`.
+
+**Task 1:** PASS. **Task 2:** PASS. **Task 3:** pronta para o checkpoint
+humano sobre este snapshot; nenhuma operacao Git mutavel foi executada.
+
+As secoes anteriores abaixo permanecem somente como trilha historica das
+certificacoes realizadas em commits mais antigos.
 
 ## Plan 03-27 - Task 1 - Snapshot pos-03-26
 

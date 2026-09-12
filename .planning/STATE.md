@@ -1,21 +1,31 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: 3
-current_phase_name: Experiência Esportiva do Piloto
+current_phase: 5
+current_phase_name: Créditos Virtuais e Palpites Protegidos
 status: planning
-stopped_at: Phase 4 complete, ready to plan Phase 3
-last_updated: "2026-09-12T15:54:53.752Z"
+stopped_at: Phase 3 final post-gap snapshot approved, ready to plan Phase 5
+last_updated: "2026-09-12T20:44:12.055-03:00"
 last_activity: 2026-09-12
-last_activity_desc: Phase 4 complete, transitioned to Phase 3
-state_head: 1d72461bf53a32e0571acf3cc8b6c6f86ef3a625
+last_activity_desc: Phase 3 final post-gap certification approved, transitioned to Phase 5 planning
+state_head: 766799cef8c328ae5ec98913441ddf4a129e34ac
 progress:
   total_phases: 8
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 112
   completed_plans: 112
 milestone_name: milestone
 ---
+
+## Phase 3 final post-gap certification - 2026-09-12
+
+- O checkpoint humano `03-27/T3` aprovou o snapshot final pos-gaps da Fase 3
+  sobre o HEAD `766799cef8c328ae5ec98913441ddf4a129e34ac`.
+- `AUTH-01` e `SPRT-01` a `SPRT-16` estao satisfeitos por evidencia atual em
+  `03-VALIDATION.md` e `03-VERIFICATION.md`; a Fase 3 esta concluida.
+- A proxima etapa do produto e o planejamento interativo da Fase 5. Stage,
+  commits, integracao, limpeza e push da formalizacao corrente permanecem
+  separados e dependem de autorizacao especifica.
 
 ## Wave 17 closeout - 2026-09-09
 
