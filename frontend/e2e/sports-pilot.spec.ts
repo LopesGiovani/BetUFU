@@ -82,11 +82,7 @@ test.describe('@03-03-home-v Arena pública variante V', () => {
       `/eventos/${FIRST_EVENT_ID}`,
     );
 
-    const motionControl = page.getByRole('button', { name: 'Pausar destaques' });
-    await motionControl.focus();
-    await expect(motionControl).toBeFocused();
-    await motionControl.click();
-    await expect(page.getByRole('button', { name: 'Retomar destaques' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('button', { name: 'Pausar destaques' })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Filtrar agenda' }).click();
     await expect(page.getByLabel('Competição')).toBeVisible();
@@ -137,9 +133,7 @@ test.describe('@03-03-home-v Arena pública variante V', () => {
     await expect(page.getByRole('link', { name: 'Competições' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Entrar' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Menu' })).toHaveCount(0);
-    const motionControl = await page.getByRole('button', { name: 'Pausar destaques' }).boundingBox();
-    expect(motionControl).not.toBeNull();
-    expect((motionControl?.x ?? 0) + (motionControl?.width ?? 0)).toBeLessThanOrEqual(320);
+    await expect(page.getByRole('button', { name: 'Pausar destaques' })).toHaveCount(0);
     expect(calls.sessionCalls()).toBe(0);
   });
 });
@@ -561,11 +555,7 @@ async function expectHeroSemantics(page: Page): Promise<void> {
   await expect(slides.nth(1)).toHaveAttribute('aria-hidden', 'true');
   await expect(slides.nth(1)).toHaveAttribute('inert', '');
   await expect(slides.nth(1).getByRole('link', { name: 'Abrir evento', includeHidden: true })).toHaveAttribute('tabindex', '-1');
-  const motionControl = page.getByRole('button', { name: 'Pausar destaques' });
-  await motionControl.focus();
-  await expect(motionControl).toBeFocused();
-  await motionControl.click();
-  await expect(page.getByRole('button', { name: 'Retomar destaques' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Pausar destaques' })).toHaveCount(0);
 }
 
 test.describe('@03-17-visual-matrix UI medida em dois navegadores', () => {

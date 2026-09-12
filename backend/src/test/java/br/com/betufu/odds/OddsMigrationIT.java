@@ -60,7 +60,7 @@ class OddsMigrationIT {
     MigrateResult result = flyway.migrate();
 
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(27);
+    assertThat(result.migrationsExecuted).isEqualTo(29);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('odds_market', 'odds_market_version', 'odds_calculation', 'odds_publication', 'odds_lifecycle', 'odds_override', 'odds_audit_event', 'odds_idempotency_command')",

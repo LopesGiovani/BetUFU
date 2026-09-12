@@ -107,8 +107,7 @@ class SessionLifecycleServiceTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     newService()
-        .onAuthenticationSuccess(
-            request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
+        .onAuthenticationSuccess(request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
 
     assertThat(response.getRedirectedUrl()).isEqualTo("/operacao/esportes");
   }
@@ -145,11 +144,9 @@ class SessionLifecycleServiceTest {
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     newService()
-        .onAuthenticationSuccess(
-            request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
+        .onAuthenticationSuccess(request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
 
-    assertThat(response.getRedirectedUrl())
-        .startsWith("http://localhost/operacao/odds/mercados");
+    assertThat(response.getRedirectedUrl()).startsWith("http://localhost/operacao/odds/mercados");
   }
 
   private static MockHttpServletRequest callbackRequest() {
