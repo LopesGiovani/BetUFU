@@ -2,11 +2,12 @@
 phase: 04-mercados-pr-jogo-e-odds-transparentes
 plan: "04-08"
 wave: 17
-status: complete_pending_human_uat
+status: complete
 completed_at: "2026-09-09"
 base_commit: 1e190e601e87f3da341412b30e6f71af946dfaa6
 technical_commit: a4cd613
-documentation_commit: PENDING
+documentation_commit: f24acf5
+reconciled_commit: 1d72461
 requirements: [ODDS-01, ODDS-02, ODDS-03, ODDS-04, ODDS-05, ODDS-06, ODDS-07, ODDS-08, ODDS-09, ODDS-10, ODDS-11, ODDS-12, ODDS-13]
 ---
 
@@ -55,4 +56,14 @@ plano só deve ser considerado pronto para a próxima fase após o sinal literal
 ## Git
 
 - Commit técnico: `a4cd613 test(04-08): certify phase 4 odds invariants and negative mutations`.
-- Commit documental: `PENDING docs(04-08): formalize plan 04-08 verification, roadmap and snapshot`.
+- Commit documental: `f24acf5 docs(04-08): formalize plan 04-08 verification, roadmap and snapshot`.
+
+## Reconciliacao final
+
+O checkpoint humano `04-08/T3` foi aprovado com o sinal literal `aprovar
+snapshot final da Fase 4`. A auditoria posterior confirmou os gates de backend,
+Angular, seeder, Playwright, gerador, mutacoes negativas e rotas publicas na
+linha `1d72461`. O unico alerta residual foi o `404` de favicon fora do escopo.
+
+Este resumo e considerado concluido e libera o planejamento da Fase 5. Os
+limites historicos do snapshot original continuam registrados acima.

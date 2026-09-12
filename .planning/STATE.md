@@ -1,19 +1,19 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: 4
-current_phase_name: Mercados Pré-jogo e Odds Transparentes
-status: verification_pending_uat
-stopped_at: Phase 4 Plan 04-08 T3 UAT checkpoint
-last_updated: "2026-09-09T04:30:00.000Z"
-last_activity: 2026-09-09
-last_activity_desc: Wave 17 Plan 04-08 certification and negative mutation evidence recorded; UAT and environment gates remain explicit.
-state_head: a4cd613
+current_phase: 3
+current_phase_name: Experiência Esportiva do Piloto
+status: planning
+stopped_at: Phase 4 complete, ready to plan Phase 3
+last_updated: "2026-09-12T15:54:53.752Z"
+last_activity: 2026-09-12
+last_activity_desc: Phase 4 complete, transitioned to Phase 3
+state_head: 1d72461bf53a32e0571acf3cc8b6c6f86ef3a625
 progress:
   total_phases: 8
-  completed_phases: 2
-  total_plans: 110
-  completed_plans: 109
+  completed_phases: 3
+  total_plans: 112
+  completed_plans: 112
 milestone_name: milestone
 ---
 
@@ -22,14 +22,17 @@ milestone_name: milestone
 - Plano `04-08` registrou a certificacao focal da Fase 4, o harness de 11
   mutacoes negativas e o snapshot de hashes em `04-VALIDATION.md` e
   `04-VERIFICATION.md`.
+
 - Evidencias verdes: `OddsCertificationIT` 1/1, pricing/replay/taxonomia
   44/44, pricing/calibracao 24/24, mercado/lifecycle/public/privacy/override
   16/16, governanca 74/74, gerador Node 73/73, Angular focal 57/57,
   Playwright 6/6, harness estrutural 21/21 e mutacoes reais 11/11.
+
 - Bloqueios preservados sem contorno: `OddsMigrationIT` 1 falha em 2 por
   expectativa 27 versus 29 migrations; `generate-api.mjs --check` bloqueado
   por `ENGINE_MISSING`; agregados nao reexecutados nesta worktree nao sao
   promovidos por contagem historica.
+
 - O checkpoint humano `04-08/T3` continua bloqueante. O sinal esperado e
   `aprovar snapshot final da Fase 4`; qualquer divergencia invalida o snapshot.
 
@@ -235,14 +238,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Wave 3 concluida; o schema candidato e os oraculos independentes estao prontos para os planos posteriores, sem promover a captura LAUFU.
+**Current focus:** Iniciar discuss-phase da Fase 5: créditos virtuais e palpites protegidos.
 
 ## Current Position
 
-Phase: 4 of 8 — Mercados Pré-jogo e Odds Transparentes
-Plan: 19 planos documentados (46 tasks); 3 planos executados.
-Status: Planning - Waves 0 a 3 possuem entregas parciais; gates dos planos posteriores continuam independentes.
-Last activity: 2026-09-07 - Wave 3 concluiu 04-03 e 04-12; Node 699/699 e Maven 592/592 passaram, sem DDL, motor de pricing ou uso da LAUFU.
+Phase: 3 of 8 (Experiência Esportiva do Piloto)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-12 — Phase 4 complete, transitioned to Phase 3
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -479,9 +482,9 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 
 ## Session Continuity
 
-Last session: 2026-09-09T01:42:12.163Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-UI-SPEC.md
+Last session: 2026-09-12T15:53:01.867Z
+Stopped at: Phase 4 complete, ready to plan Phase 3
+Resume file: None
 
 ## Accumulated Context
 
@@ -493,6 +496,7 @@ Resume file: .planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-UI-SPE
 - Phase 3 gap closure added: seven bounded plans (03-21 through 03-27) must be implemented and certified before Phase 4.
 - Phase 3 gap closure recertified: 03-27 has fresh evidence for AUTH-01 and SPRT-01 through SPRT-16; integration and exact cleanup completed locally, push not performed.
 - Phase 4 snapshot approved: 19 plans and 46 tasks are documented; roadmap progress is 0/19, with execution gated by calibration, source/outcome, schema, migration, governance, roster, contract inventory and UI checkpoints.
+- Phase 4 reconciled: Fase 4 reconciliada no commit 1d72461; UAT aprovado, 21/21 registros documentados e planejamento da Fase 5 liberado.
 
 ## Performance Metrics
 

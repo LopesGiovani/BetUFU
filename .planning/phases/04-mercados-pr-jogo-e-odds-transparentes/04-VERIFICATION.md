@@ -2,10 +2,12 @@
 phase: 4
 plan: "04-08"
 wave: 17
-status: blocked_pending_uat_and_environment_gates
+status: passed
 base_commit: 1e190e601e87f3da341412b30e6f71af946dfaa6
 pre_git_head: 1e190e601e87f3da341412b30e6f71af946dfaa6
 technical_commit: a4cd613
+reconciled_commit: 1d72461
+verification_reconciled_at: "2026-09-12"
 branch: worktree-agent-04-08
 worktree: C:/Users/giova/Desktop/BetUFU-worktrees/worktree-agent-04-08
 ---
@@ -77,6 +79,24 @@ SHA-256 dos bytes presentes no checkout antes dos commits:
 | Fixture | `scripts/odds-state-machine-fixtures.json` | 27195 | `F648766A028CC55A49ECB8778A6A88896614E878FB1499B6A61CA3E6F7E1BB1A` |
 | Fixture | `scripts/odds-unresolved-quarantine.json` | 5830 | `C8B7FF57A16FDFD71063EC41B80BBA78A36B92BA6DE0665D3A6D0AF2DA64585B` |
 | Generated contract | `frontend/scripts/generate-api.mjs` approved digest | - | `51E5582AEA63F066EE6D80E552663C70269BB8385EB53EA2D31716E37DAC3B92` |
+
+## Reconciliacao final - 2026-09-12
+
+O checkpoint humano `04-08/T3` foi aprovado pelo responsavel com o sinal
+literal `aprovar snapshot final da Fase 4`. O snapshot original continua
+preservado acima como historico.
+
+A auditoria posterior na linha `1d72461` confirmou: `28` testes de backend,
+Angular `366/366`, seeder `7/7`, Playwright `6/6`, gerador Node `73/73`,
+mutacoes estruturais `21/21`, mutacoes negativas reais `11/11`, lint sem
+erros e smoke Chromium/Firefox em desktop e 320px para `/`, `/arena` e o
+deep link de odds. O endpoint publico de odds respondeu HTTP 200 anonimo e
+sem campos privados.
+
+Os bloqueios do snapshot original foram resolvidos no ambiente de certificacao
+e permanecem documentados sem apagar o historico. O unico alerta residual foi
+um `404` de `favicon.ico`, fora do escopo funcional. A verificacao esta
+`passed` e a Fase 4 pode ser usada como dependencia da Fase 5.
 
 ## UAT T3
 

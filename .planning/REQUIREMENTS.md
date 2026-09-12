@@ -71,19 +71,19 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Mercados e Odds
 
-- [ ] **ODDS-01**: Administrador pode criar mercados simples pré-jogo usando templates compatíveis com confronto direto e empate quando aplicável.
-- [ ] **ODDS-02**: O sistema calcula automaticamente probabilidades e odds por modalidade e categoria usando baseline Elo versionado.
-- [ ] **ODDS-03**: O cálculo pondera resultados recentes, aplica regressão entre edições e limita a influência de confrontos diretos com amostra pequena.
-- [ ] **ODDS-04**: Partida cancelada não altera o modelo; W.O. segue tratamento versionado separado e explicável.
-- [ ] **ODDS-05**: O volume e a distribuição das apostas dos usuários não alteram probabilidades nem odds no MVP.
-- [ ] **ODDS-06**: A margem é configurável, começa em 5% e é aplicada e arredondada de maneira versionada e reproduzível.
-- [ ] **ODDS-07**: Dados insuficientes produzem estimativa neutra com indicador de baixa confiança, nunca uma odd manual rotineira.
-- [ ] **ODDS-08**: Cada cálculo registra algoritmo, versão, entradas, probabilidades sem margem, margem, odds publicadas, confiança, arredondamento e horário.
-- [ ] **ODDS-09**: Pessoa pode consultar odd atual, histórico de versões e explicação legível da metodologia e do nível de confiança.
-- [ ] **ODDS-10**: Administrador tenta corrigir a fonte e recalcular antes de solicitar qualquer override; se a distorção persistir, precisa suspender o mercado.
-- [ ] **ODDS-11**: Override excepcional exige proposta com motivo e evidência, comparação entre odd do modelo e proposta, probabilidades e delta visível.
-- [ ] **ODDS-12**: Override exige aprovação por segundo administrador distinto e cria nova versão imutável e auditada. MFA é opcional no MVP e não condiciona a aprovação.
-- [ ] **ODDS-13**: Override pode ocorrer durante suspensão administrativa, mas não após o encerramento definitivo do mercado por prazo ou estado CLOSED/LOCKED, e nunca altera a odd de aposta já aceita.
+- [x] **ODDS-01**: Administrador pode criar mercados simples pré-jogo usando templates compatíveis com confronto direto e empate quando aplicável.
+- [x] **ODDS-02**: O sistema calcula automaticamente probabilidades e odds por modalidade e categoria usando baseline Elo versionado.
+- [x] **ODDS-03**: O cálculo pondera resultados recentes, aplica regressão entre edições e limita a influência de confrontos diretos com amostra pequena.
+- [x] **ODDS-04**: Partida cancelada não altera o modelo; W.O. segue tratamento versionado separado e explicável.
+- [x] **ODDS-05**: O volume e a distribuição das apostas dos usuários não alteram probabilidades nem odds no MVP.
+- [x] **ODDS-06**: A margem é configurável, começa em 5% e é aplicada e arredondada de maneira versionada e reproduzível.
+- [x] **ODDS-07**: Dados insuficientes produzem estimativa neutra com indicador de baixa confiança, nunca uma odd manual rotineira.
+- [x] **ODDS-08**: Cada cálculo registra algoritmo, versão, entradas, probabilidades sem margem, margem, odds publicadas, confiança, arredondamento e horário.
+- [x] **ODDS-09**: Pessoa pode consultar odd atual, histórico de versões e explicação legível da metodologia e do nível de confiança.
+- [x] **ODDS-10**: Administrador tenta corrigir a fonte e recalcular antes de solicitar qualquer override; se a distorção persistir, precisa suspender o mercado.
+- [x] **ODDS-11**: Override excepcional exige proposta com motivo e evidência, comparação entre odd do modelo e proposta, probabilidades e delta visível.
+- [x] **ODDS-12**: Override exige aprovação por segundo administrador distinto e cria nova versão imutável e auditada. MFA é opcional no MVP e não condiciona a aprovação.
+- [x] **ODDS-13**: Override pode ocorrer durante suspensão administrativa, mas não após o encerramento definitivo do mercado por prazo ou estado CLOSED/LOCKED, e nunca altera a odd de aposta já aceita.
 - [ ] **ODDS-14**: Mudança de versão antes do envio invalida o bilhete aberto e exige reconfirmação explícita do usuário.
 - [ ] **ODDS-15**: Somente resultado confirmado e vigente alimenta o rating; correção confirmada recompõe ratings e odds futuras de forma versionada sem alterar odds já aceitas.
 
@@ -291,19 +291,19 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | SPRT-14 | Phase 3 | Pending |
 | SPRT-15 | Phase 3 | Pending |
 | SPRT-16 | Phase 3 | Pending |
-| ODDS-01 | Phase 4 | Pending |
-| ODDS-02 | Phase 4 | Pending |
-| ODDS-03 | Phase 4 | Pending |
-| ODDS-04 | Phase 4 | Pending |
-| ODDS-05 | Phase 4 | Pending |
-| ODDS-06 | Phase 4 | Pending |
-| ODDS-07 | Phase 4 | Pending |
-| ODDS-08 | Phase 4 | Pending |
-| ODDS-09 | Phase 4 | Pending |
-| ODDS-10 | Phase 4 | Pending |
-| ODDS-11 | Phase 4 | Pending |
-| ODDS-12 | Phase 4 | Pending |
-| ODDS-13 | Phase 4 | Pending |
+| ODDS-01 | Phase 4 | Complete |
+| ODDS-02 | Phase 4 | Complete |
+| ODDS-03 | Phase 4 | Complete |
+| ODDS-04 | Phase 4 | Complete |
+| ODDS-05 | Phase 4 | Complete |
+| ODDS-06 | Phase 4 | Complete |
+| ODDS-07 | Phase 4 | Complete |
+| ODDS-08 | Phase 4 | Complete |
+| ODDS-09 | Phase 4 | Complete |
+| ODDS-10 | Phase 4 | Complete |
+| ODDS-11 | Phase 4 | Complete |
+| ODDS-12 | Phase 4 | Complete |
+| ODDS-13 | Phase 4 | Complete |
 | VERI-10 | Phase 5 | Pending |
 | CRED-01 | Phase 5 | Pending |
 | CRED-02 | Phase 5 | Pending |
@@ -379,6 +379,7 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | UX-02 | Phase 7 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 138 total
 - Mapped to phases: 138
 - Unmapped: 0 ✓

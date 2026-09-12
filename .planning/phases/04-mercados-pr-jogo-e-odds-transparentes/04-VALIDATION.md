@@ -1,18 +1,19 @@
 ---
 phase: 4
 slug: mercados-pr-jogo-e-odds-transparentes
-status: certification_pending_uat
-nyquist_compliant: false
-wave_0_complete: false
+status: certification_passed
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-09-04
 ---
 
 # Phase 4 - Validation Strategy
 
 > Contrato de validacao para mercados pre-jogo e odds transparentes. Este
-> arquivo foi reconciliado com 19 planos e 46 tasks; os comandos de produto
-> permanecem propostas futuras. A evidencia corrente do Plano 04-15/T1-T2 e
-> registrada abaixo, separada do historico documental anterior.
+> arquivo preserva os snapshots historicos e registra, ao final, a
+> reconciliacao da certificacao publicada em `1d72461`. Os 19 planos
+> originais da Fase 4 foram seguidos por dois planos de manutencao/tooling
+> (`04-20` e `04-21`), totalizando 21 registros de plano no diretorio.
 
 ## Scope and Authority
 
@@ -594,6 +595,28 @@ permaneceram bloqueados.
 | `node scripts/maven.mjs -f backend/pom.xml verify` | Nao executado nesta worktree de certificacao | NOT RUN/BLOCKED |
 | `node --test scripts/*.test.mjs` | Nao executado nesta worktree de certificacao | NOT RUN/BLOCKED |
 | `git diff --check` | exit 0 | PASS |
+
+## Reconciliacao final - 2026-09-12
+
+O relatorio de auditoria executado sobre a linha publicada em `1d72461`
+confirmou os dois ajustes funcionais remanescentes da Fase 4:
+
+- `scripts/seed-local.mjs` associa o override pendente ao mercado `SUSPENDED`,
+  e nao a um mercado `OPEN`.
+- A rota publica `/arena` e um alias explicito da Arena, coberto pelo teste de
+  rotas e pelo inventario do validador.
+
+Gates finais reportados: backend focal `28` testes; Angular `366/366`;
+seeder `7/7`; Playwright oficial `6/6`; gerador Node `73/73` com `--check`
+sem drift; mutacoes estruturais `21/21`; mutacoes negativas reais `11/11`;
+e `npm run lint` sem erros. O endpoint publico de odds retornou HTTP 200 sem
+autenticacao e sem PII. O smoke de navegador cobriu Chromium e Firefox,
+desktop e 320px, em `/`, `/arena` e no deep link de odds, sem erros de API.
+
+O unico alerta residual foi o `404` de `favicon.ico`, fora do escopo funcional
+da Fase 4. Com o UAT aprovado e os gates ambientais reconciliados, o status da
+validacao passa a `certification_passed`; nenhuma migration, contrato OpenAPI
+gerado ou regra de autorizacao foi alterada nesta reconciliacao.
 
 As falhas de migration e do engine ausente sao bloqueios de certificacao, nao
 foram corrigidas por alteracao fora da allowlist e nao autorizam editar

@@ -390,7 +390,29 @@ Plans:
   4. Um administrador precisa suspender o mercado e tentar corrigir a fonte ou recalcular antes de propor uma substituição, apresentando evidências e uma comparação visível com o modelo.
   5. Um segundo administrador, distinto, precisa aprovar a substituição excepcional, produzindo uma nova versão imutável e auditada que não altera odds já aceitas nem mercados definitivamente encerrados.
 
-**Plans**: 19/19 planos / 46 tasks concluídos; Wave 17 certificada com bloqueios explícitos e UAT humano `04-08/T3` pendente
+**Plans**: 21/21 registros de plano / 46 tasks do escopo original concluídos; Waves 0–17 certificadas e os planos posteriores de tooling/redirect reconciliados; UAT humano `04-08/T3` aprovado
+
+- [x] 04-01-PLAN.md
+- [x] 04-02-PLAN.md
+- [x] 04-03-PLAN.md
+- [x] 04-04-PLAN.md
+- [x] 04-05-PLAN.md
+- [x] 04-06-PLAN.md
+- [x] 04-07-PLAN.md
+- [x] 04-08-PLAN.md
+- [x] 04-09-PLAN.md
+- [x] 04-10-PLAN.md
+- [x] 04-11-PLAN.md
+- [x] 04-12-PLAN.md
+- [x] 04-13-PLAN.md
+- [x] 04-14-PLAN.md
+- [x] 04-15-PLAN.md
+- [x] 04-16-PLAN.md
+- [x] 04-17-PLAN.md
+- [x] 04-18-PLAN.md
+- [x] 04-19-PLAN.md
+- [x] 04-20-PLAN.md
+- [x] 04-21-PLAN.md
 
 **Planos e ondas**:
 
@@ -412,6 +434,7 @@ Plans:
 - [x] **Wave 15**: 04-13 — superfície pública de consulta e explicação.
 - [x] **Wave 16**: 04-14 — superfície operacional e jornadas de browser.
 - [x] **Wave 17**: 04-08 — certificação focal, mutações, snapshot e UAT preparado.
+- [x] **Manutenção pós-fechamento**: 04-20 — seeder local daily/full; 04-21 — redirect pós-login administrativo.
 
 Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-transparentes/04-*-PLAN.md` e a matriz de evidências em `04-VALIDATION.md`. Esta decomposição é planejamento, não autorização de código, migration, dependência, infraestrutura ou Git.
 **UI hint**: yes
@@ -480,7 +503,7 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 | 2. Contas, Verificação e Operações Governadas | 32/32 | Complete | 2026-08-26 |
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; integrated and cleaned locally; push not performed | 2026-09-04 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
-| 4. Mercados Pré-jogo e Odds Transparentes | 19/19 | Complete; evidências e snapshot registrados; UAT `04-08/T3` e dois gates ambientais pendentes | 2026-09-09 |
+| 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
 | 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
