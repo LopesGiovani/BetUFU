@@ -23,6 +23,13 @@ export const APP_ROUTES: Routes = [
           ),
       },
       {
+        path: 'arena',
+        loadComponent: () =>
+          import('./features/sports/public-agenda/public-agenda-page.component').then(
+            ({ PublicAgendaPageComponent }) => PublicAgendaPageComponent,
+          ),
+      },
+      {
         path: 'competicoes/:competitionId',
         loadComponent: () =>
           import('./features/sports/public-competition/public-competition-page.component').then(

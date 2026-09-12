@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { APP_ROUTES } from './app.routes';
+import { ArenaShellComponent } from './layout/arena-shell.component';
+import { PublicAgendaPageComponent } from './features/sports/public-agenda/public-agenda-page.component';
 import { PublicBracketPageComponent } from './features/sports/public-bracket/public-bracket-page.component';
 import { SportsBracketPageComponent } from './features/sports/operations/bracket/sports-bracket-page.component';
 import { PublicStandingsPageComponent } from './features/sports/public-standings/public-standings-page.component';
@@ -24,6 +26,15 @@ it('resolve o deep link publico de odds sem guard autenticado ou rotas operacion
   expect(route?.canActivate).toBeUndefined();
   expect(route?.loadComponent).toBeDefined();
   await expect(route?.loadComponent?.()).resolves.toBe(PublicMarketPageComponent);
+});
+
+it('mantem /arena como alias publico da agenda', async () => {
+  const arena = APP_ROUTES.find((route) => route.component === ArenaShellComponent);
+  const route = childrenOf(arena!).find((candidate) => candidate.path === 'arena');
+
+  expect(route).toBeDefined();
+  expect(route?.canActivate).toBeUndefined();
+  await expect(route?.loadComponent?.()).resolves.toBe(PublicAgendaPageComponent);
 });
 
 it('mantem a operacao de odds protegida e separada da Arena publica', async () => {

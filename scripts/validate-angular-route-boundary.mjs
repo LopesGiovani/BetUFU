@@ -62,6 +62,11 @@ const APPROVED_PUBLIC_ROUTES = Object.freeze([
     'full',
   ),
   approvedRoute(
+    'arena',
+    './features/sports/public-agenda/public-agenda-page.component',
+    'PublicAgendaPageComponent',
+  ),
+  approvedRoute(
     'competicoes/:competitionId',
     './features/sports/public-competition/public-competition-page.component',
     'PublicCompetitionPageComponent',

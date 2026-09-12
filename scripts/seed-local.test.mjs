@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSql, closeDeadlineFor, sanitizeSqlError, scheduledAtForMatch, seedLocal } from './seed-local.mjs';
+import { buildSql, closeDeadlineFor, sanitizeSqlError, scheduledAtForMatch, seedLocal, stableUuid } from './seed-local.mjs';
 
 const ENV = {
   KC_BOOTSTRAP_ADMIN_USERNAME: 'local-admin',
@@ -190,6 +190,8 @@ test('projeta partidas daily para hoje e dias futuros e recalcula close_deadline
   assert.match(sqlText, /WHERE NOT EXISTS \(SELECT 1 FROM public\.sports_event_publication WHERE publication_id=/u);
   assert.match(sqlText, /SELECT max\(version_no\) \+ 1 FROM public\.odds_market_version/u);
   assert.match(sqlText, /state,close_deadline,supersedes_version_id\) SELECT/u);
+  assert.match(sqlText, new RegExp(`odds_override\\([^\\n]+${stableUuid('market:2')}`));
+  assert.doesNotMatch(sqlText, new RegExp(`odds_override\\([^\\n]+${stableUuid('market:1')}`));
 });
 
 test('preserva datas do fixture somente com configuração explícita', () => {
