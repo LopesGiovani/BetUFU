@@ -17,6 +17,18 @@ progress:
 milestone_name: milestone
 ---
 
+## Phase 5 / Plan 05-01 closeout - 2026-09-13
+
+- Implemented V29 virtual credit ledger with numeric(20,2) accounts, idempotent
+  initial grant, append-only trigger, and runtime-role grants.
+- Added public CreditLedgerPort/CreditBalance and internal JDBC service/repository
+  with SELECT FOR UPDATE, fixed 1000.00 grant, closed source types, and safe
+  debit/compensation operations.
+- Added AFTER_COMMIT EnrollmentCreditGrantListener consuming only identityId.
+- Evidence: CreditLedgerIT 4/4, CreditLedgerConcurrencyIT 4/4,
+  ModulithArchitectureTests 6/6, git diff --check clean.
+- Technical commit: e91178f.
+
 ## Phase 5 planning — 2026-09-13
 
 - Pesquisa técnica registrada em `05-RESEARCH.md`, com as decisões D-122 a
