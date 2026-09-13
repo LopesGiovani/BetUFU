@@ -69,6 +69,15 @@ milestone_name: milestone
   manifest/version changes.
 - Technical commit: 2d453f0.
 
+## Phase 5 / Plan 05-05 closeout - 2026-09-13
+
+- Backend certification, negative harness, Angular full suite, and lint passed;
+  exact command counts are recorded in `05-VALIDATION.md`.
+- OpenAPI generator check is BLOCKED by `GENERATOR_FAILED`; Playwright is BLOCKED
+  by a missing Chromium executable and no running app server for Firefox.
+- Hashes and HEAD snapshot are recorded in `05-VERIFICATION.md`.
+- Human checkpoint `05-05/T3` remains pending; Phase 5 is not marked complete.
+
 ## Phase 5 planning — 2026-09-13
 
 - Pesquisa técnica registrada em `05-RESEARCH.md`, com as decisões D-122 a
