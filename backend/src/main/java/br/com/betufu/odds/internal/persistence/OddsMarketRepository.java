@@ -1,6 +1,7 @@
 package br.com.betufu.odds.internal.persistence;
 
 import br.com.betufu.odds.internal.market.OddsMarketModels.OddsMarketVersion;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
@@ -265,9 +266,24 @@ public class OddsMarketRepository {
         publicationId);
   }
 
+  public List<OddsPublicationSelectionRecord> findPublicationSelections(UUID publicationId) {
+    if (publicationId == null) return List.of();
+    return jdbcTemplate.query(
+        "SELECT publication_id, selection_no, selection_key, published_odds FROM public.odds_publication_selection WHERE publication_id = ? ORDER BY selection_no",
+        (rs, rowNum) ->
+            new OddsPublicationSelectionRecord(
+                rs.getObject("publication_id", UUID.class),
+                rs.getInt("selection_no"),
+                rs.getString("selection_key"),
+                rs.getBigDecimal("published_odds")),
+        publicationId);
+  }
+
   public OddsPublicationRecord savePublication(OddsPublicationRecord record) {
+    Objects.requireNonNull(record, "record must not be null");
     return transactions.execute(
         status -> {
+          List<OddsPublicationSelectionRecord> selections = publicationSelections(record);
           jdbcTemplate.update(
               "INSERT INTO public.odds_publication (publication_id, calculation_id, margin, rounding_mode, published_odds, supersedes_publication_id, base_lock_version, published_at) VALUES (?, ?, ?, ?, ?, ?, ?, COALESCE(?, CURRENT_TIMESTAMP(6)))",
               record.publicationId(),
@@ -278,6 +294,14 @@ public class OddsMarketRepository {
               record.supersedesPublicationId(),
               record.baseLockVersion(),
               record.publishedAt() == null ? null : Timestamp.from(record.publishedAt()));
+          for (OddsPublicationSelectionRecord selection : selections) {
+            jdbcTemplate.update(
+                "INSERT INTO public.odds_publication_selection (publication_id, selection_no, selection_key, published_odds) VALUES (?, ?, ?, ?)",
+                selection.publicationId(),
+                selection.selectionNo(),
+                selection.selectionKey(),
+                selection.publishedOdds());
+          }
           return findPublication(record.publicationId()).orElseThrow();
         });
   }
@@ -448,6 +472,32 @@ public class OddsMarketRepository {
 
   private record IdempotentOperation<T>(
       UUID resultReference, Supplier<T> create, Function<UUID, Optional<T>> find) {}
+
+  private List<OddsPublicationSelectionRecord> publicationSelections(
+      OddsPublicationRecord publication) {
+    List<BigDecimal> odds =
+        jdbcTemplate.query(
+            "SELECT published.value::text::numeric AS odds FROM public.odds_calculation c CROSS JOIN LATERAL jsonb_array_elements(c.input_snapshot -> 'publishedOdds') WITH ORDINALITY AS published(value, selection_no) WHERE c.calculation_id = ? ORDER BY published.selection_no",
+            (rs, rowNum) -> rs.getBigDecimal("odds"),
+            publication.calculationId());
+    if ((odds.size() != 2 && odds.size() != 3)
+        || publication.publishedOdds() == null
+        || publication.publishedOdds().signum() <= 0
+        || odds.stream().anyMatch(value -> value == null || value.signum() <= 0)) {
+      throw new IllegalStateException("calculation does not contain a complete odds vector");
+    }
+    if (odds.size() == 2) {
+      return List.of(
+          new OddsPublicationSelectionRecord(
+              publication.publicationId(), 1, "HOME", publication.publishedOdds()),
+          new OddsPublicationSelectionRecord(publication.publicationId(), 2, "AWAY", odds.get(1)));
+    }
+    return List.of(
+        new OddsPublicationSelectionRecord(
+            publication.publicationId(), 1, "HOME", publication.publishedOdds()),
+        new OddsPublicationSelectionRecord(publication.publicationId(), 2, "DRAW", odds.get(1)),
+        new OddsPublicationSelectionRecord(publication.publicationId(), 3, "AWAY", odds.get(2)));
+  }
 
   private static Instant instant(Timestamp timestamp) {
     return timestamp == null ? null : timestamp.toInstant();

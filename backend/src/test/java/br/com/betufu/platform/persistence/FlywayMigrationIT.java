@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(29);
+    assertThat(result.migrationsExecuted).isEqualTo(32);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(29);
+    assertThat(applied).hasSize(32);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -191,7 +191,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(29);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(32);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -200,7 +200,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(29);
+    assertThat(applied).hasSize(32);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -241,13 +241,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(29);
+      assertThat(totalExecuted).isEqualTo(32);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(29);
+      assertThat(applied).hasSize(32);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1552,7 +1552,7 @@ class FlywayMigrationIT {
   void v27CreatesOutcomeAuthorityTables() {
     Flyway flyway =
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(29);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(32);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('sports_outcome_fact','sports_outcome_sporting_payload','sports_outcome_administrative_payload','sports_outcome_head')",
@@ -1565,11 +1565,42 @@ class FlywayMigrationIT {
   void v28CreatesImmutableRosterBinding() {
     Flyway flyway =
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(29);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(32);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'odds_market_roster_binding'",
                 Integer.class))
         .isEqualTo(1);
+  }
+
+  @Test
+  @DisplayName("V31 concede ao runtime somente leitura e insercao das selecoes")
+  void v31RestrictsRuntimePublicationSelectionPrivileges() {
+    Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT has_table_privilege(?, 'public.odds_publication_selection', 'SELECT')",
+                Boolean.class,
+                RUNTIME_USER))
+        .isTrue();
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT has_table_privilege(?, 'public.odds_publication_selection', 'INSERT')",
+                Boolean.class,
+                RUNTIME_USER))
+        .isTrue();
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT has_table_privilege(?, 'public.odds_publication_selection', 'UPDATE')",
+                Boolean.class,
+                RUNTIME_USER))
+        .isFalse();
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT has_table_privilege(?, 'public.odds_publication_selection', 'DELETE')",
+                Boolean.class,
+                RUNTIME_USER))
+        .isFalse();
   }
 }

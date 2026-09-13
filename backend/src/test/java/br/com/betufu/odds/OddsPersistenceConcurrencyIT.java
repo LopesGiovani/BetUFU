@@ -10,6 +10,7 @@ import br.com.betufu.odds.internal.persistence.OddsMarketRecord;
 import br.com.betufu.odds.internal.persistence.OddsMarketRepository;
 import br.com.betufu.odds.internal.persistence.OddsOverrideRecord;
 import br.com.betufu.odds.internal.persistence.OddsPublicationRecord;
+import br.com.betufu.odds.internal.prediction.OddsForPredictionAdapter;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -124,7 +126,7 @@ class OddsPersistenceConcurrencyIT {
             versionId,
             "elo-v1",
             "digest",
-            "{}",
+            "{\"publishedOdds\":[2.10,1.90]}",
             null,
             new BigDecimal("0.5"),
             new BigDecimal("0.5"),
@@ -174,14 +176,126 @@ class OddsPersistenceConcurrencyIT {
         .hasMessageContaining("odds history is immutable");
   }
 
-  private OddsMarketRepository newRepository() {
+  @Test
+  @DisplayName("snapshot mantem lock pessimista ate a transacao terminar")
+  void snapshotLockSerializesMarketHeadChanges() throws Exception {
+    UUID eventId = createSportsEvent();
+    UUID marketId = UUID.randomUUID();
+    UUID publishedVersionId = UUID.randomUUID();
+    UUID nextVersionId = UUID.randomUUID();
+    UUID calculationId = UUID.randomUUID();
+    repository.saveMarket(
+        new OddsMarketRecord(marketId, eventId, "H2H", null, 0, null, null));
+    jdbcTemplate.update(
+        "INSERT INTO public.odds_market_version (market_version_id, market_id, version_no, state, close_deadline) VALUES (?, ?, 1, 'OPEN', CURRENT_TIMESTAMP + INTERVAL '1 hour')",
+        publishedVersionId,
+        marketId);
+    jdbcTemplate.update(
+        "INSERT INTO public.odds_market_version (market_version_id, market_id, version_no, state, close_deadline, supersedes_version_id) VALUES (?, ?, 2, 'SUSPENDED', CURRENT_TIMESTAMP + INTERVAL '1 hour', ?)",
+        nextVersionId,
+        marketId,
+        publishedVersionId);
+    assertThat(repository.advanceMarketHead(marketId, publishedVersionId, 0)).isTrue();
+    repository.saveCalculation(
+        new OddsCalculationRecord(
+            calculationId,
+            publishedVersionId,
+            "elo-lock-v1",
+            "sha256:lock",
+            "{\"publishedOdds\":[2.10,1.90]}",
+            null,
+            new BigDecimal("0.5000000000"),
+            new BigDecimal("0.8000000000"),
+            null,
+            null));
+    repository.savePublication(
+        new OddsPublicationRecord(
+            UUID.randomUUID(),
+            calculationId,
+            new BigDecimal("0.05"),
+            "HALF_UP",
+            new BigDecimal("2.10"),
+            null,
+            1,
+            null));
+
+    CountDownLatch snapshotRead = new CountDownLatch(1);
+    CountDownLatch releaseSnapshot = new CountDownLatch(1);
+    CountDownLatch writerStarted = new CountDownLatch(1);
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      Future<OddsForPredictionPort.MarketSnapshot> reader =
+          executor.submit(
+              () -> {
+                JdbcTemplate readerJdbc = jdbcTemplateForNewConnection();
+                TransactionTemplate transaction =
+                    new TransactionTemplate(new DataSourceTransactionManager(readerJdbc.getDataSource()));
+                return transaction.execute(
+                    status -> {
+                      OddsForPredictionPort.MarketSnapshot snapshot =
+                          new OddsForPredictionAdapter(readerJdbc).getSnapshot(marketId);
+                      snapshotRead.countDown();
+                      try {
+                        assertThat(releaseSnapshot.await(10, SECONDS)).isTrue();
+                      } catch (InterruptedException exception) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException(exception);
+                      }
+                      return snapshot;
+                    });
+              });
+      assertThat(snapshotRead.await(10, SECONDS)).isTrue();
+      Future<Boolean> writer =
+          executor.submit(
+              () -> {
+                writerStarted.countDown();
+                return newRepository().advanceMarketHead(marketId, nextVersionId, 1);
+              });
+      assertThat(writerStarted.await(10, SECONDS)).isTrue();
+      Thread.sleep(250);
+      assertThat(writer).isNotDone();
+
+      releaseSnapshot.countDown();
+      assertThat(reader.get(10, SECONDS).marketVersionId()).isEqualTo(publishedVersionId);
+      assertThat(writer.get(10, SECONDS)).isTrue();
+    } finally {
+      releaseSnapshot.countDown();
+      executor.shutdownNow();
+      assertThat(executor.awaitTermination(10, SECONDS)).isTrue();
+    }
+  }
+
+  private UUID createSportsEvent() {
+    UUID competitionId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_competition (name, slug) VALUES ('Odds Lock', ?) RETURNING competition_id",
+            UUID.class,
+            "odds-lock-" + UUID.randomUUID());
+    UUID editionId =
+        jdbcTemplate.queryForObject(
+            "INSERT INTO public.sports_edition (competition_id, name, slug) VALUES (?, 'Edition', ?) RETURNING edition_id",
+            UUID.class,
+            competitionId,
+            "edition-" + UUID.randomUUID());
+    return jdbcTemplate.queryForObject(
+        "INSERT INTO public.sports_event (competition_id, edition_id, title, event_format, scheduled_at, zone_id, venue_state, source_reference) VALUES (?, ?, 'Lock event', 'HEAD_TO_HEAD', CURRENT_TIMESTAMP + INTERVAL '1 day', 'America/Sao_Paulo', 'LOCAL_A_DEFINIR', 'https://example.invalid/lock') RETURNING event_id",
+        UUID.class,
+        competitionId,
+        editionId);
+  }
+
+  private JdbcTemplate jdbcTemplateForNewConnection() {
     DriverManagerDataSource connectionDataSource = new DriverManagerDataSource();
     connectionDataSource.setDriverClassName("org.postgresql.Driver");
     connectionDataSource.setUrl(POSTGRESQL.getJdbcUrl());
     connectionDataSource.setUsername(POSTGRESQL.getUsername());
     connectionDataSource.setPassword(POSTGRESQL.getPassword());
+    return new JdbcTemplate(connectionDataSource);
+  }
+
+  private OddsMarketRepository newRepository() {
+    JdbcTemplate connectionJdbc = jdbcTemplateForNewConnection();
     return new OddsMarketRepository(
-        new JdbcTemplate(connectionDataSource),
-        new DataSourceTransactionManager(connectionDataSource));
+        connectionJdbc, new DataSourceTransactionManager(connectionJdbc.getDataSource()));
   }
 }
