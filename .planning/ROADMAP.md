@@ -454,17 +454,20 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
   4. Um palpite enviado é imutável, seu débito e seus registros aceitos são gravados juntos, e palpites individuais ou agregados permanecem ocultos de outros usuários até o fechamento do mercado.
   5. Quando o preço muda antes do envio, o bilhete aberto é invalidado e o usuário precisa reconfirmar explicitamente a versão atualizada.
 
-**Plans**: 5 plans planned
+**Plans**: 7 plans planned
 
 - [x] 05-01-PLAN.md — Materializar ledger virtual imutável e concessão inicial idempotente.
 - [x] 05-02-PLAN.md — Registrar palpite pré-jogo com snapshot de odds, elegibilidade e débito atômico.
 - [x] 05-03-PLAN.md — Publicar contrato REST BFF e gerar cliente Angular anti-drift.
 - [x] 05-04-PLAN.md — Integrar bilhete próprio à página pública de odds conforme `05-UI-SPEC.md`.
 - [ ] 05-05-PLAN.md — Certificar concorrência, mutações negativas, privacidade, browsers e snapshot UAT.
+- [x] 05-06-PLAN.md — Preservar vetores completos de odds e resolver o snapshot autoritativo pela linhagem.
+- [ ] 05-07-PLAN.md — Corrigir concessão retroativa, idempotência canônica e aceite atômico do palpite.
 **UI hint**: yes
 
-Phase 5 execution update (2026-09-13): plan 05-01 completed and verified;
-remaining plans 05-02 through 05-05 are in progress.
+Phase 5 gap-closure update (2026-09-13): plans 05-01 through 05-04 and 05-06
+are complete. Plan 05-05 remains blocked on its final UAT checkpoint; Plan
+05-07 is the next corrective implementation.
 
 ### Phase 6: Resultados Confirmados, Rankings e Grupos
 
@@ -513,6 +516,6 @@ remaining plans 05-02 through 05-05 are in progress.
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; final post-gap snapshot approved | 2026-09-12 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
-| 5. Créditos Virtuais e Palpites Protegidos | 0/5 | Planning | - |
+| 5. Créditos Virtuais e Palpites Protegidos | 5/7 | Gap closure in progress | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |

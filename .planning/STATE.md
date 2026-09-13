@@ -4,18 +4,46 @@ milestone: v1.0
 current_phase: 5
 current_phase_name: Créditos Virtuais e Palpites Protegidos
 status: planning
-stopped_at: Phase 5 UI design contract approved
-last_updated: "2026-09-13T03:27:00.000Z"
+stopped_at: Phase 5 gap closure Plan 05-06 complete; Plan 05-07 awaiting execution review
+last_updated: "2026-09-13T16:26:57.176Z"
 last_activity: 2026-09-13
-last_activity_desc: Phase 5 UI design contract approved
-state_head: 4ebc61975e088e0c958ecebe087fabc06b30a707
+last_activity_desc: Plan 05-06 complete with V31 and authoritative odds snapshots
+state_head: 67f0aed8f70973b7169caf07b3e7f6a0f8e9bb32
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 117
-  completed_plans: 112
+  total_plans: 119
+  completed_plans: 113
 milestone_name: milestone
 ---
+
+## Phase 5 / Plan 05-06 closeout - 2026-09-13
+
+- Added V31 with immutable publication selections for exact two-way and
+  three-way odds vectors, fail-closed legacy backfill, deferred completeness
+  constraints, and least-privilege runtime grants.
+- Publication persistence now appends the complete vector atomically while the
+  legacy `odds_publication.published_odds` remains the authoritative HOME price.
+- Prediction snapshots lock the market row, resolve the nearest published
+  ancestor, and return persisted competition, head, publication, algorithm and
+  selection values through the public odds port.
+- Evidence: focal Maven/Testcontainers suite BUILD SUCCESS; Surefire 38/38,
+  Modulith 3/3, scoped Google Java Format check green, and independent review
+  PASS with no material findings.
+- V25, V29 and V30 remained byte-identical. Technical commit: `67f0aed`.
+- `05-07` is next. The technical and documentation commits were integrated
+  linearly into `master`; the plan worktree, branch and approved integration
+  stash were cleaned up. No push has been performed.
+
+## Phase 5 gap-closure reconciliation - 2026-09-13
+
+- Reconciled the planning authority with live HEAD
+  `a98364d0f06a43084ede8bf6b095151356509d09` before Plan 05-06 execution.
+- Corrective work is split into `05-06` for V31, complete odds publications and
+  the authoritative betting snapshot, followed by `05-07` for V32, canonical
+  prediction idempotency and atomic prediction/ledger acceptance.
+- Independent plan review returned PASS-CONDITIONAL; its blocking concerns were
+  incorporated into the approved 05-06 and 05-07 contracts.
 
 ## Phase 5 / Plan 05-01 closeout - 2026-09-13
 
