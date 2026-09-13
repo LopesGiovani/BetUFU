@@ -4,10 +4,10 @@ milestone: v1.0
 current_phase: 5
 current_phase_name: Créditos Virtuais e Palpites Protegidos
 status: planning
-stopped_at: Phase 5 research and five execution plans drafted
-last_updated: "2026-09-13T03:15:00.000Z"
+stopped_at: Phase 5 UI design contract approved
+last_updated: "2026-09-13T03:27:00.000Z"
 last_activity: 2026-09-13
-last_activity_desc: Phase 5 research and five execution plans drafted
+last_activity_desc: Phase 5 UI design contract approved
 state_head: 4ebc61975e088e0c958ecebe087fabc06b30a707
 progress:
   total_phases: 8
@@ -26,9 +26,12 @@ milestone_name: milestone
   `05-02` aceite atômico, `05-03` OpenAPI/cliente, `05-04` bilhete público e
   `05-05` certificação/snapshot. A fase permanece em `planning`; nenhum plano
   foi executado e nenhum requisito foi marcado como concluído.
-- `05-04` exige aprovação prévia do futuro `05-UI-SPEC.md`; a forma visual da
-  reconfirmação de odds continua deliberadamente fora destes planos até o
-  contrato de UI existir.
+- O contrato visual `05-UI-SPEC.md` foi criado e revisado em 2026-09-13. Ele
+  preserva os tokens e shells das Fases 1–4 e fecha a forma do bilhete próprio,
+  da reconfirmação de odd stale, dos estados de elegibilidade, da responsividade
+  e da privacidade exigidos por `05-04`/`05-05`.
+- `05-04` está liberado do bloqueio de contrato visual, mas continua dependente
+  da execução integrada de `05-03`; nenhum código de UI foi alterado nesta etapa.
 - Stage, commits, integração, push, migrations, código, dependências, banco e
   serviços permanecem separados e dependem de aprovações específicas.
 
