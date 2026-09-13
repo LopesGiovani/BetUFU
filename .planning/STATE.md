@@ -42,6 +42,19 @@ milestone_name: milestone
   ModulithArchitectureTests 6/6, git diff --check clean.
 - Technical commit: 2b94335.
 
+## Phase 5 / Plan 05-03 closeout - 2026-09-13
+
+- Added BFF paths for own credits and predictions, public DTOs, authenticated
+  controllers, and server-side identity resolution through OperationalIdentityLookup.
+- Added OpenAPI schemas/paths for balance, prediction submission, own-ticket GET,
+  and Idempotency-Key.
+- Evidence: CreditBalanceControllerIT and PredictionControllerIT 4/4; backend
+  compilation and Modulith checks remain green.
+- Known blocker: `node frontend/scripts/generate-api.mjs --check` returns
+  `GENERATOR_FAILED` because the approved OpenAPI engine does not complete; no
+  generated file was edited or fabricated.
+- Technical commit: bfa5dc0.
+
 ## Phase 5 planning — 2026-09-13
 
 - Pesquisa técnica registrada em `05-RESEARCH.md`, com as decisões D-122 a
