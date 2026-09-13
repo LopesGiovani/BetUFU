@@ -55,6 +55,20 @@ milestone_name: milestone
   generated file was edited or fabricated.
 - Technical commit: bfa5dc0.
 
+## Phase 5 / Plan 05-04 closeout - 2026-09-13
+
+- Integrated a standalone Signals-based prediction ticket into the existing
+  public odds page, preserving the Arena route and design tokens.
+- Added adapter/store/component states for visitor, no enrollment, eligible,
+  insufficient balance, stale confirmation, success, and sanitized errors.
+- Added accessible labels, fieldset/radio selection, all-in action, two-decimal
+  display, live status, and responsive styles without third-party data.
+- Evidence: Angular focal suite 6/6, `npm --prefix frontend run lint` green.
+- Dependency restoration: `npm --prefix frontend ci` used the approved lockfile;
+  npm reported 7 moderate audit findings and pending install scripts, with no
+  manifest/version changes.
+- Technical commit: 2d453f0.
+
 ## Phase 5 planning — 2026-09-13
 
 - Pesquisa técnica registrada em `05-RESEARCH.md`, com as decisões D-122 a
