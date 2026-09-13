@@ -7,11 +7,12 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PublicMarketStore } from './public-market.store';
+import { PublicMarketBetTicketComponent } from './public-market-bet-ticket.component';
 
 @Component({
   selector: 'app-public-market-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PublicMarketBetTicketComponent],
   templateUrl: './public-market-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [

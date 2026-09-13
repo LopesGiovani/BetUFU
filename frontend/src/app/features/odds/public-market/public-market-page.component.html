@@ -67,6 +67,14 @@
       </div>
     </section>
 
+    <app-public-market-bet-ticket
+      [marketId]="market.marketId"
+      [marketVersionId]="market.currentPublicationId"
+      [publicationId]="market.currentPublicationId"
+      [ruleVersion]="'odds-v1'"
+      [selections]="market.selections"
+    />
+
     @if (explanationOpen()) {
       <section id="odds-explanation" class="explanation" aria-labelledby="explanation-heading">
         <div class="explanation-head">

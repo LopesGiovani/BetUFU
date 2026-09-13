@@ -1,0 +1,16 @@
+<section class="bet-ticket" aria-labelledby="bet-ticket-heading" [attr.aria-busy]="store.status() === 'loading'">
+  <h2 id="bet-ticket-heading">Palpite neste mercado</h2>
+  @if (store.status() === 'visitor') { <p>Entre para palpitar e usar seus creditos virtuais.</p> }
+  @else if (store.status() === 'no-enrollment') { <p>Vinculo necessario. Registre sua matricula ativa para continuar.</p> }
+  @else if (store.status() === 'blocked') { <p>Sua conta nao pode enviar palpites neste momento.</p> }
+  @else if (store.status() === 'stale') { <div class="notice" role="alert"><strong>A odd mudou antes do envio</strong><p>Confira a nova odd publicada e confirme novamente antes de enviar.</p><label><input type="checkbox" [checked]="confirmed()" (change)="confirmed.set($any($event.target).checked)"> Confirmo a nova odd publicada</label></div> }
+  @else if (store.status() === 'success' && store.ownTicket(); as ticket) { <div role="status" aria-live="polite"><h3>Palpite registrado</h3><dl><dt>Selecao</dt><dd>{{ ticket.selection }}</dd><dt>Creditos</dt><dd>{{ ticket.stake | number:'1.2-2' }}</dd><dt>Retorno potencial</dt><dd>{{ ticket.potentialReturn | number:'1.2-2' }}</dd><dt>Lucro liquido</dt><dd>{{ ticket.netProfit | number:'1.2-2' }}</dd></dl><p>Seu comprovante permanece disponivel neste mercado.</p></div> }
+  @else if (store.status() === 'eligible' || store.status() === 'insufficient' || store.status() === 'loading') {
+    <p>Saldo disponivel: <strong>{{ store.balanceValue()?.balance | number:'1.2-2' }}</strong> creditos</p>
+    <fieldset><legend>Escolha do resultado</legend>@for (item of selections; track item.label) { <label><input type="radio" name="selection" [value]="item.label" [checked]="selection() === item.label" (change)="selection.set(item.label)"> {{ item.label }} ({{ item.odd | number:'1.2-2' }})</label> }</fieldset>
+    <label for="stake">Creditos do palpite</label><input id="stake" type="number" min="10" step="0.01" [value]="stake() ?? ''" (input)="stake.set($any($event.target).valueAsNumber)"><small>Minimo 10,00 creditos - maximo igual ao saldo disponivel - ate duas casas decimais</small>
+    <button type="button" class="quiet" (click)="useAllIn()">Usar saldo total</button><p>Retorno potencial (inclui os creditos do palpite): {{ potentialReturn() | number:'1.2-2' }}<br>Lucro liquido: {{ netProfit() | number:'1.2-2' }}</p>
+    @if (store.status() === 'insufficient') { <p role="alert">Voce precisa de pelo menos 10,00 creditos disponiveis para enviar este palpite.</p> }
+    <button type="button" [disabled]="!selection() || !stake() || store.status() !== 'eligible'" (click)="submit()">Enviar palpite</button>
+  } @else if (store.errorMessage()) { <p role="alert">{{ store.errorMessage() }}</p> }
+</section>
