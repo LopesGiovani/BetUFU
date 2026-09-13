@@ -29,6 +29,19 @@ milestone_name: milestone
   ModulithArchitectureTests 6/6, git diff --check clean.
 - Technical commit: e91178f.
 
+## Phase 5 / Plan 05-02 closeout - 2026-09-13
+
+- Added V30 immutable prediction and selection records with identity/market and
+  idempotency uniqueness, scale/state checks, and append-only triggers.
+- Added public odds snapshot and prediction ticket/command contracts; betting
+  consumes only public ledger/odds/verification contracts.
+- Implemented eligibility policy, JDBC repository, and transactional acceptance
+  service with stale/deadline/minimum validation, HALF_UP return calculation,
+  and ledger debit/replay behavior.
+- Evidence: PredictionAcceptanceIT 2/2, PredictionConflictIT 2/2,
+  ModulithArchitectureTests 6/6, git diff --check clean.
+- Technical commit: 2b94335.
+
 ## Phase 5 planning — 2026-09-13
 
 - Pesquisa técnica registrada em `05-RESEARCH.md`, com as decisões D-122 a

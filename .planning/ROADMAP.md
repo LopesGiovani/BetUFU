@@ -457,7 +457,7 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 **Plans**: 5 plans planned
 
 - [x] 05-01-PLAN.md — Materializar ledger virtual imutável e concessão inicial idempotente.
-- [ ] 05-02-PLAN.md — Registrar palpite pré-jogo com snapshot de odds, elegibilidade e débito atômico.
+- [x] 05-02-PLAN.md — Registrar palpite pré-jogo com snapshot de odds, elegibilidade e débito atômico.
 - [ ] 05-03-PLAN.md — Publicar contrato REST BFF e gerar cliente Angular anti-drift.
 - [ ] 05-04-PLAN.md — Integrar bilhete próprio à página pública de odds conforme `05-UI-SPEC.md`.
 - [ ] 05-05-PLAN.md — Certificar concorrência, mutações negativas, privacidade, browsers e snapshot UAT.
