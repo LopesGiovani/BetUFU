@@ -23,6 +23,10 @@ public class PredictionRepository {
         rs -> rs.next() ? Optional.of(ticket(rs)) : Optional.empty(), identityId, key);
   }
 
+  public Optional<PredictionTicket> findByMarket(UUID identityId, UUID marketId) {
+    return jdbc.query("SELECT prediction_id, market_id, market_version_id, publication_id, selection, stake, accepted_odds, potential_return, net_profit, rule_version, close_deadline, state, accepted_at FROM public.prediction WHERE identity_id = ? AND market_id = ? ORDER BY accepted_at DESC LIMIT 1", rs -> rs.next() ? Optional.of(ticket(rs)) : Optional.empty(), identityId, marketId);
+  }
+
   public PredictionTicket insert(UUID identityId, UUID marketId, UUID marketVersionId, UUID publicationId,
       String ruleVersion, String selection, BigDecimal stake, BigDecimal odds, BigDecimal potentialReturn,
       BigDecimal netProfit, Instant closeDeadline, String key, String digest) {

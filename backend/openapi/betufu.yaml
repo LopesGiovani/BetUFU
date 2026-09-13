@@ -8,6 +8,33 @@ servers:
   - url: /
 
 paths:
+  /api/v1/me/credits:
+    get:
+      tags: [CreditLedger]
+      security: [{cookieSession: []}]
+      responses:
+        '200': {description: Saldo proprio, content: {application/json: {schema: {$ref: '#/components/schemas/CreditBalanceResponse'}}}}
+        '401': {description: Nao autenticado}
+  /api/v1/me/predictions:
+    post:
+      tags: [Prediction]
+      security: [{cookieSession: []}]
+      parameters:
+        - {name: Idempotency-Key, in: header, required: true, schema: {type: string, minLength: 1}}
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PredictionSubmitRequest'}}}}
+      responses:
+        '201': {description: Ticket aceito, content: {application/json: {schema: {$ref: '#/components/schemas/PredictionTicketResponse'}}}}
+        '401': {description: Nao autenticado}
+        '409': {description: Conflito ou snapshot stale}
+    
+  /api/v1/me/predictions/markets/{marketId}:
+    get:
+      tags: [Prediction]
+      security: [{cookieSession: []}]
+      parameters: [{name: marketId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses:
+        '200': {description: Ticket proprio, content: {application/json: {schema: {$ref: '#/components/schemas/PredictionTicketResponse'}}}}
+        '404': {description: Ticket inexistente}
   /api/v1/tracer/identity/current:
     put:
       tags:
@@ -3832,6 +3859,27 @@ paths:
           description: Proposta já decidida ou lock obsoleto.
 
 components:
+  schemas:
+    CreditBalanceResponse:
+      type: object
+      required: [balance, scale, minimumStake, rulesVersion]
+      properties:
+        balance: {type: number, format: double}
+        scale: {type: integer, example: 2}
+        minimumStake: {type: number, format: double}
+        rulesVersion: {type: string}
+    PredictionSubmitRequest:
+      type: object
+      required: [marketId, marketVersionId, publicationId, ruleVersion, selection, stake]
+      properties:
+        marketId: {type: string, format: uuid}
+        marketVersionId: {type: string, format: uuid}
+        publicationId: {type: string, format: uuid}
+        ruleVersion: {type: string}
+        selection: {type: string}
+        stake: {type: number, format: double}
+    PredictionTicketResponse:
+      type: object
   parameters:
     IdempotencyKey:
       name: Idempotency-Key
@@ -3853,7 +3901,6 @@ components:
         maxLength: 200
       description: Chave opaca obrigatória para repetição segura do comando de override.
 
-  schemas:
     OddsLineageReferences:
       type: object
       additionalProperties: false
