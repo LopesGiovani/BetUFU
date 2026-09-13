@@ -4,18 +4,33 @@ milestone: v1.0
 current_phase: 5
 current_phase_name: Créditos Virtuais e Palpites Protegidos
 status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-09-13T02:40:22.086Z"
-last_activity: 2026-09-12
-last_activity_desc: Phase 5 context gathered
+stopped_at: Phase 5 research and five execution plans drafted
+last_updated: "2026-09-13T03:15:00.000Z"
+last_activity: 2026-09-13
+last_activity_desc: Phase 5 research and five execution plans drafted
 state_head: 4ebc61975e088e0c958ecebe087fabc06b30a707
 progress:
   total_phases: 8
   completed_phases: 5
-  total_plans: 112
+  total_plans: 117
   completed_plans: 112
 milestone_name: milestone
 ---
+
+## Phase 5 planning — 2026-09-13
+
+- Pesquisa técnica registrada em `05-RESEARCH.md`, com as decisões D-122 a
+  D-133 copiadas como restrições não negociáveis e as fronteiras públicas entre
+  `ledger`, `betting`, `verification`, `identity`, `sports` e `odds` verificadas.
+- Cinco planos sequenciais foram preparados: `05-01` ledger/concessão,
+  `05-02` aceite atômico, `05-03` OpenAPI/cliente, `05-04` bilhete público e
+  `05-05` certificação/snapshot. A fase permanece em `planning`; nenhum plano
+  foi executado e nenhum requisito foi marcado como concluído.
+- `05-04` exige aprovação prévia do futuro `05-UI-SPEC.md`; a forma visual da
+  reconfirmação de odds continua deliberadamente fora destes planos até o
+  contrato de UI existir.
+- Stage, commits, integração, push, migrations, código, dependências, banco e
+  serviços permanecem separados e dependem de aprovações específicas.
 
 ## Phase 3 final post-gap certification - 2026-09-12
 
@@ -253,9 +268,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 ## Current Position
 
 Phase: 5 of 8 (Créditos Virtuais e Palpites Protegidos)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-09-12 — Phase 5 context gathered
+Plan: 05-01 through 05-05 drafted; execution not started
+Status: Ready for plan review and execution approval
+Last activity: 2026-09-13 — Phase 5 research and five execution plans drafted
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -493,7 +508,7 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 ## Session Continuity
 
 Last session: 2026-09-13T02:32:02.741Z
-Stopped at: Phase 5 context gathered
+Stopped at: Phase 5 research and five execution plans drafted
 Resume file: .planning/phases/05-cr-ditos-virtuais-e-palpites-protegidos/05-CONTEXT.md
 
 ## Accumulated Context

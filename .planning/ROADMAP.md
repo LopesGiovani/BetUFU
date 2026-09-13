@@ -445,7 +445,7 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 **Mode:** mvp
 **Depends on**: Phase 2, Phase 4
 **Requirements**: VERI-10, CRED-01, CRED-02, CRED-03, CRED-04, CRED-05, CRED-06, CRED-08, CRED-10, ODDS-14, PRED-01, PRED-02, PRED-03, PRED-04, PRED-05, PRED-06, PRED-07, PRED-08, INTE-01, INTE-02, INTE-03, INTE-04, DATA-03, DATA-04, DATA-05, API-03
-**Decisão pendente**: Quantidade inicial de créditos; limites e precisão da aposta; fórmula de pagamento; inclusão ou não da aposta no retorno; arredondamento; e política para conflito administrativo identificado tardiamente continuam em aberto. Esta fase não pode escolhê-los implicitamente. Vínculo de atleta não bloqueia aposta no MVP, conforme `03-CONTEXT.md`.
+**Decisões ratificadas em `05-CONTEXT.md`**: concessão inicial única de 1.000,00 créditos; stake mínimo de 10,00 com all-in permitido até o saldo; escala de duas casas; retorno `stake × odd` incluindo o stake; arredondamento `HALF_UP` em escala 2; conflito administrativo tardio tratado por anulação e lançamento compensatório imutável quando o conflito já era vigente no aceite. Vínculo de atleta não bloqueia aposta no MVP, conforme `03-CONTEXT.md`.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
   1. Um aluno recém-elegível recebe a mesma concessão única e auditável de créditos virtuais, nunca a recebe novamente por revalidação e não consegue comprar, vender, transferir, sacar ou repor créditos por mecanismos não aprovados.
@@ -454,7 +454,13 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
   4. Um palpite enviado é imutável, seu débito e seus registros aceitos são gravados juntos, e palpites individuais ou agregados permanecem ocultos de outros usuários até o fechamento do mercado.
   5. Quando o preço muda antes do envio, o bilhete aberto é invalidado e o usuário precisa reconfirmar explicitamente a versão atualizada.
 
-**Plans**: TBD
+**Plans**: 5 plans planned
+
+- [ ] 05-01-PLAN.md — Materializar ledger virtual imutável e concessão inicial idempotente.
+- [ ] 05-02-PLAN.md — Registrar palpite pré-jogo com snapshot de odds, elegibilidade e débito atômico.
+- [ ] 05-03-PLAN.md — Publicar contrato REST BFF e gerar cliente Angular anti-drift.
+- [ ] 05-04-PLAN.md — Integrar bilhete próprio à página pública de odds conforme `05-UI-SPEC.md`.
+- [ ] 05-05-PLAN.md — Certificar concorrência, mutações negativas, privacidade, browsers e snapshot UAT.
 **UI hint**: yes
 
 ### Phase 6: Resultados Confirmados, Rankings e Grupos
@@ -504,6 +510,6 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; final post-gap snapshot approved | 2026-09-12 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
-| 5. Créditos Virtuais e Palpites Protegidos | 0/TBD | Pending | - |
+| 5. Créditos Virtuais e Palpites Protegidos | 0/5 | Planning | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
