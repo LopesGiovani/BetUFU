@@ -462,12 +462,12 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 - [x] 05-04-PLAN.md — Integrar bilhete próprio à página pública de odds conforme `05-UI-SPEC.md`.
 - [ ] 05-05-PLAN.md — Certificar concorrência, mutações negativas, privacidade, browsers e snapshot UAT.
 - [x] 05-06-PLAN.md — Preservar vetores completos de odds e resolver o snapshot autoritativo pela linhagem.
-- [ ] 05-07-PLAN.md — Corrigir concessão retroativa, idempotência canônica e aceite atômico do palpite.
+- [x] 05-07-PLAN.md — Corrigir concessão retroativa, idempotência canônica e aceite atômico do palpite.
 **UI hint**: yes
 
-Phase 5 gap-closure update (2026-09-13): plans 05-01 through 05-04 and 05-06
-are complete. Plan 05-05 remains blocked on its final UAT checkpoint; Plan
-05-07 is the next corrective implementation.
+Phase 5 gap-closure update (2026-09-13): plans 05-01 through 05-04, 05-06 and
+05-07 are complete. Plan 05-05 remains blocked on its final certification/UAT
+checkpoint and is the only outstanding Phase 5 plan.
 
 ### Phase 6: Resultados Confirmados, Rankings e Grupos
 
@@ -516,6 +516,6 @@ are complete. Plan 05-05 remains blocked on its final UAT checkpoint; Plan
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; final post-gap snapshot approved | 2026-09-12 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
-| 5. Créditos Virtuais e Palpites Protegidos | 5/7 | Gap closure in progress | - |
+| 5. Créditos Virtuais e Palpites Protegidos | 6/7 | Final certification/UAT pending | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |

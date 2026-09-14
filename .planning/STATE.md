@@ -4,18 +4,40 @@ milestone: v1.0
 current_phase: 5
 current_phase_name: Créditos Virtuais e Palpites Protegidos
 status: planning
-stopped_at: Phase 5 gap closure Plan 05-06 complete; Plan 05-07 awaiting execution review
-last_updated: "2026-09-13T16:26:57.176Z"
+stopped_at: Phase 5 gap closure Plan 05-07 complete; Plan 05-05 final certification/UAT remains pending
+last_updated: "2026-09-13T21:37:04.3150194-03:00"
 last_activity: 2026-09-13
-last_activity_desc: Plan 05-06 complete with V31 and authoritative odds snapshots
-state_head: 67f0aed8f70973b7169caf07b3e7f6a0f8e9bb32
+last_activity_desc: Plan 05-07 complete with retroactive grants and atomic prediction acceptance
+state_head: f8d9510e5af2c5dc43df9d5a732c94f4da9378ba
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 119
-  completed_plans: 113
+  completed_plans: 114
 milestone_name: milestone
 ---
+
+## Phase 5 / Plan 05-07 closeout - 2026-09-13
+
+- Added V32 to grant exactly `1000.00` credits to preexisting identities with
+  active enrollment, using the established opaque identity idempotency key and
+  updating balances only for ledger facts inserted by that execution.
+- Prediction acceptance now uses a canonical SHA-256 payload digest, serializes
+  retries with a transaction-scoped advisory lock, replays identical commands
+  before mutable authority checks, and rejects divergent payloads without effects.
+- New commands revalidate the locked market snapshot, competition scope,
+  eligibility, lineage, deadline, selection, stake and balance before persisting
+  the prediction and debit atomically with the same `predictionId`/`sourceId`.
+- Evidence: focal Maven/Testcontainers suite BUILD SUCCESS with authoritative
+  Surefire count 36/36; Modulith 3/3, Spotless check, Node scripts and
+  `git diff --check` passed.
+- Repository-wide Maven verify executed 327 tests and retained two preexisting
+  privacy guard failures in unchanged, out-of-allowlist
+  `PredictionEligibilityPolicy`; the same 2/15 failure reproduces on base
+  `ecf7cb7`, so it is not a Plan 05-07 regression.
+- V29 and V30 remained byte-identical. Technical commit: `f8d9510`.
+- Plan 05-05 final certification/UAT remains the outstanding Phase 5 gate. No
+  push has been performed.
 
 ## Phase 5 / Plan 05-06 closeout - 2026-09-13
 
@@ -355,14 +377,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Iniciar discuss-phase da Fase 5: créditos virtuais e palpites protegidos.
+**Current focus:** Concluir a certificação final e o UAT pendente do Plano 05-05.
 
 ## Current Position
 
 Phase: 5 of 8 (Créditos Virtuais e Palpites Protegidos)
-Plan: 05-01 through 05-05 drafted; execution not started
-Status: Ready for plan review and execution approval
-Last activity: 2026-09-13 — Phase 5 research and five execution plans drafted
+Plan: 6 of 7 complete; 05-05 final certification/UAT pending
+Status: Gap corrections complete; final Phase 5 gate pending
+Last activity: 2026-09-13 — Plan 05-07 completed with V32 and atomic prediction acceptance
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
