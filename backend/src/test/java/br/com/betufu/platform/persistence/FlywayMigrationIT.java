@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(32);
+    assertThat(result.migrationsExecuted).isEqualTo(33);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(32);
+    assertThat(applied).hasSize(33);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -176,6 +176,9 @@ class FlywayMigrationIT {
     assertThat(applied[26].getVersion().getVersion()).isEqualTo("26");
     assertThat(applied[27].getVersion().getVersion()).isEqualTo("27");
     assertThat(applied[26].getState()).isEqualTo(MigrationState.SUCCESS);
+    assertThat(applied[31].getVersion().getVersion()).isEqualTo("31");
+    assertThat(applied[32].getVersion().getVersion()).isEqualTo("32");
+    assertThat(applied[32].getState()).isEqualTo(MigrationState.SUCCESS);
 
     Integer guardCount =
         jdbcTemplate.queryForObject(
@@ -191,7 +194,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(32);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(33);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -200,7 +203,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(32);
+    assertThat(applied).hasSize(33);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -241,13 +244,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(32);
+      assertThat(totalExecuted).isEqualTo(33);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(32);
+      assertThat(applied).hasSize(33);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1552,7 +1555,7 @@ class FlywayMigrationIT {
   void v27CreatesOutcomeAuthorityTables() {
     Flyway flyway =
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(32);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(33);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('sports_outcome_fact','sports_outcome_sporting_payload','sports_outcome_administrative_payload','sports_outcome_head')",
@@ -1565,7 +1568,7 @@ class FlywayMigrationIT {
   void v28CreatesImmutableRosterBinding() {
     Flyway flyway =
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(32);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(33);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'odds_market_roster_binding'",
@@ -1602,5 +1605,89 @@ class FlywayMigrationIT {
                 Boolean.class,
                 RUNTIME_USER))
         .isFalse();
+  }
+
+  @Test
+  @DisplayName("V32 concede uma unica grant para matriculas ATIVO preexistentes")
+  void v32BackfillsEligibleInitialGrantsIdempotentlyWithoutPii() {
+    Flyway.configure()
+        .dataSource(dataSource)
+        .locations("classpath:db/migration")
+        .target("28")
+        .load()
+        .migrate();
+
+    UUID newlyGranted = createIdentity("v32-new");
+    UUID alreadyGranted = createIdentity("v32-existing");
+    UUID ineligible = createIdentity("v32-ineligible");
+    insertEnrollment(newlyGranted, "11", "ATIVO");
+    insertEnrollment(alreadyGranted, "22", "ATIVO");
+    insertEnrollment(ineligible, "33", "LIBERADO");
+
+    Flyway.configure()
+        .dataSource(dataSource)
+        .locations("classpath:db/migration")
+        .target("31")
+        .load()
+        .migrate();
+    jdbcTemplate.update(
+        "INSERT INTO public.credit_account (identity_id, balance) VALUES (?, 1000.00)",
+        alreadyGranted);
+    jdbcTemplate.update(
+        "INSERT INTO public.credit_ledger_entry (identity_id, entry_type, direction, amount, source_type, source_id, idempotency_key) VALUES (?, 'GRANT_INITIAL', 'CREDIT', 1000.00, 'SYSTEM', ?, ?)",
+        alreadyGranted,
+        alreadyGranted,
+        "credit:initial-grant:" + alreadyGranted);
+
+    MigrateResult firstV32 =
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+    assertThat(firstV32.migrationsExecuted).isEqualTo(1);
+    assertGrant(newlyGranted);
+    assertGrant(alreadyGranted);
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.credit_account WHERE identity_id = ?",
+                Integer.class,
+                ineligible))
+        .isZero();
+
+    jdbcTemplate.update("DELETE FROM public.flyway_schema_history WHERE version = '32'");
+    MigrateResult replayedV32 =
+        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+    assertThat(replayedV32.migrationsExecuted).isEqualTo(1);
+    assertGrant(newlyGranted);
+    assertGrant(alreadyGranted);
+  }
+
+  private UUID createIdentity(String subject) {
+    return jdbcTemplate.queryForObject(
+        "INSERT INTO public.local_identity (issuer, subject) VALUES ('https://idp.invalid', ?) RETURNING identity_id",
+        UUID.class,
+        subject);
+  }
+
+  private void insertEnrollment(UUID identityId, String hexByte, String status) {
+    jdbcTemplate.update(
+        "INSERT INTO public.ufu_enrollment (identity_id, matricula_hmac, hmac_version, status) VALUES (?, decode(repeat(?, 32), 'hex'), 1, ?)",
+        identityId,
+        hexByte,
+        status);
+  }
+
+  private void assertGrant(UUID identityId) {
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT balance FROM public.credit_account WHERE identity_id = ?",
+                java.math.BigDecimal.class,
+                identityId))
+        .isEqualByComparingTo("1000.00");
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM public.credit_ledger_entry WHERE identity_id = ? AND entry_type = 'GRANT_INITIAL' AND amount = 1000.00 AND source_type = 'SYSTEM' AND source_id = ? AND idempotency_key = ?",
+                Integer.class,
+                identityId,
+                identityId,
+                "credit:initial-grant:" + identityId))
+        .isEqualTo(1);
   }
 }
