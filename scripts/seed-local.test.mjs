@@ -154,6 +154,37 @@ test('propaga erro de execução do psql com diagnóstico mas sanitiza DETAIL, s
   );
 });
 
+test('gera publicacoes com vetores completos e selecoes HOME/AWAY coerentes', () => {
+  const sqlText = buildSql({
+    personas: PERSONA_ROWS,
+    matches: MATCHES,
+    env: ENV,
+    now: new Date('2026-09-09T12:00:00Z'),
+  });
+
+  assert.match(sqlText, /"publishedOdds":\[1\.9,1\.9\]/u);
+  assert.match(sqlText, /"publishedOdds":\[1\.73,2\.12\]/u);
+  assert.equal((sqlText.match(/INSERT INTO public\.odds_publication_selection/gu) ?? []).length, 5);
+  assert.match(sqlText, /selection_no,selection_key,published_odds\) VALUES \([^\n]+,1,'HOME',1\.9\),\([^\n]+,2,'AWAY',1\.9\) ON CONFLICT/u);
+  assert.match(sqlText, /selection_no,selection_key,published_odds\) VALUES \([^\n]+,1,'HOME',1\.73\),\([^\n]+,2,'AWAY',2\.12\) ON CONFLICT/u);
+});
+
+test('gera concessao inicial idempotente e atualiza somente grants realmente inseridas', () => {
+  const sqlText = buildSql({
+    personas: PERSONA_ROWS,
+    matches: MATCHES,
+    env: ENV,
+    now: new Date('2026-09-09T12:00:00Z'),
+  });
+
+  assert.match(sqlText, /INSERT INTO public\.credit_account \(identity_id, balance\)[\s\S]+ON CONFLICT \(identity_id\) DO NOTHING/u);
+  assert.match(sqlText, /WITH inserted_grants AS \([\s\S]+INSERT INTO public\.credit_ledger_entry/u);
+  assert.match(sqlText, /'GRANT_INITIAL',[\s\n ]*'CREDIT',[\s\n ]*1000\.00/u);
+  assert.match(sqlText, /'credit:initial-grant:' \|\| enrollment\.identity_id::text/u);
+  assert.match(sqlText, /ON CONFLICT DO NOTHING[\s\n ]+RETURNING identity_id/u);
+  assert.match(sqlText, /FROM inserted_grants grant_entry[\s\n ]+WHERE account\.identity_id = grant_entry\.identity_id/u);
+});
+
 test('sanitizeSqlError remove linhas DETAIL, mascara segredos do env e redige hashes SHA-256', () => {
   const input = [
     'psql:-:1: ERROR: relation "xyz" does not exist',

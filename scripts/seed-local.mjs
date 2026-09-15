@@ -48,6 +48,22 @@ function sqlJson(value) {
   return sql(JSON.stringify(value));
 }
 
+function oddsSelectionSql(publicationId, publishedOdds) {
+  if (!Array.isArray(publishedOdds) || ![2, 3].includes(publishedOdds.length)) {
+    throw new Error('vetor de odds deve possuir duas ou tres selecoes');
+  }
+  if (publishedOdds.some((odd) => !Number.isFinite(odd) || odd <= 0)) {
+    throw new Error('vetor de odds deve conter somente valores positivos');
+  }
+  const selectionKeys = publishedOdds.length === 2
+    ? ['HOME', 'AWAY']
+    : ['HOME', 'DRAW', 'AWAY'];
+  const values = publishedOdds
+    .map((odd, index) => `(${sql(publicationId)},${index + 1},${sql(selectionKeys[index])},${sql(odd)})`)
+    .join(',');
+  return `INSERT INTO public.odds_publication_selection(publication_id,selection_no,selection_key,published_odds) VALUES ${values} ON CONFLICT (publication_id,selection_no) DO NOTHING;`;
+}
+
 function envFileValues(text) {
   const result = {};
   for (const line of text.split(/\r?\n/u)) {
@@ -219,13 +235,18 @@ function buildSql({ personas, matches, env, now = new Date() }) {
     lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline,supersedes_version_id) SELECT ${sql(scheduledVersionId)},${sql(marketId)},COALESCE((SELECT max(version_no) + 1 FROM public.odds_market_version WHERE market_id=${sql(marketId)}),1),${sql(marketStates[index])},${sql(deadline)},current_version_id FROM public.odds_market WHERE market_id=${sql(marketId)} AND NOT EXISTS (SELECT 1 FROM public.odds_market_version WHERE market_version_id=${sql(scheduledVersionId)}) ON CONFLICT DO NOTHING;`);
     lines.push(`UPDATE public.odds_market SET current_version_id=${sql(scheduledVersionId)} WHERE market_id=${sql(marketId)};`);
     const calculationId = stableUuid(`calculation:${index}:1`);
-    lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) VALUES (${sql(calculationId)},${sql(versionId)},'elo-v1','seed-local',${sqlJson({ confidenceBand: 'MEDIUM', sampleSize: 8 })},0.5,0.75) ON CONFLICT (calculation_id) DO NOTHING;`);
-    lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) VALUES (${sql(stableUuid(`publication:${index}:1`))},${sql(calculationId)},0.05,'HALF_UP',2.1,NULL,0) ON CONFLICT (publication_id) DO NOTHING;`);
+    const publicationId = stableUuid(`publication:${index}:1`);
+    const publishedOdds = [1.90, 1.90];
+    lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) VALUES (${sql(calculationId)},${sql(versionId)},'elo-v1','seed-local',${sqlJson({ confidenceBand: 'MEDIUM', sampleSize: 8, publishedOdds })},0.5,0.75) ON CONFLICT (calculation_id) DO NOTHING;`);
+    lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) VALUES (${sql(publicationId)},${sql(calculationId)},0.05,'HALF_UP',${sql(publishedOdds[0])},NULL,0) ON CONFLICT (publication_id) DO NOTHING;`);
+    lines.push(oddsSelectionSql(publicationId, publishedOdds));
     if (index === 1) {
       const calculationV2 = stableUuid('calculation:1:2');
       const publicationV2 = stableUuid('publication:1:2');
-      lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) VALUES (${sql(calculationV2)},${sql(stableUuid('market-version:1:2'))},'elo-v1','seed-local',${sqlJson({ confidenceBand: 'HIGH', sampleSize: 12 })},0.55,0.82) ON CONFLICT (calculation_id) DO NOTHING;`);
-      lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) VALUES (${sql(publicationV2)},${sql(calculationV2)},0.05,'HALF_UP',1.95,${sql(stableUuid('publication:1:1'))},0) ON CONFLICT (publication_id) DO NOTHING;`);
+      const publishedOddsV2 = [1.73, 2.12];
+      lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) VALUES (${sql(calculationV2)},${sql(stableUuid('market-version:1:2'))},'elo-v1','seed-local',${sqlJson({ confidenceBand: 'HIGH', sampleSize: 12, publishedOdds: publishedOddsV2 })},0.55,0.82) ON CONFLICT (calculation_id) DO NOTHING;`);
+      lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) VALUES (${sql(publicationV2)},${sql(calculationV2)},0.05,'HALF_UP',${sql(publishedOddsV2[0])},${sql(stableUuid('publication:1:1'))},0) ON CONFLICT (publication_id) DO NOTHING;`);
+      lines.push(oddsSelectionSql(publicationV2, publishedOddsV2));
     }
     if (index === 2) lines.push(`INSERT INTO public.odds_override(override_id,market_id,calculation_id,proposer_id,reason,decision) VALUES (${sql(stableUuid('override:pending'))},${sql(marketId)},${sql(calculationId)},${sql(stableUuid('identity:maker'))},'Teste maker-checker local','PROPOSED') ON CONFLICT (override_id) DO NOTHING;`);
     lines.push(`INSERT INTO public.odds_lifecycle(lifecycle_fact_id,market_id,from_state,to_state,reason,actor_id) VALUES (${sql(stableUuid(`lifecycle:${index}`))},${sql(marketId)},NULL,${sql(marketStates[index])},'Seed local',${sql(stableUuid('identity:admin'))}) ON CONFLICT (lifecycle_fact_id) DO NOTHING;`);
@@ -236,6 +257,33 @@ function buildSql({ personas, matches, env, now = new Date() }) {
   lines.push(`INSERT INTO public.betufu_profile(profile_id,identity_id,nickname) VALUES (${sql(stableUuid('profile:athlete'))},${sql(athlete)},'atleta-ufu') ON CONFLICT (identity_id) DO NOTHING;`);
   lines.push(`INSERT INTO public.ufu_enrollment(enrollment_id,identity_id,matricula_hmac,hmac_version,status) VALUES (${sql(stableUuid('enrollment:student'))},${sql(student)},decode(${sql(studentHmac)},'hex'),1,'ATIVO') ON CONFLICT DO NOTHING;`);
   lines.push(`INSERT INTO public.ufu_enrollment(enrollment_id,identity_id,matricula_hmac,hmac_version,status) VALUES (${sql(stableUuid('enrollment:athlete'))},${sql(athlete)},decode(${sql(athleteHmac)},'hex'),1,'ATIVO') ON CONFLICT DO NOTHING;`);
+  lines.push(`INSERT INTO public.credit_account (identity_id, balance)
+SELECT DISTINCT enrollment.identity_id, 0.00
+FROM public.ufu_enrollment enrollment
+WHERE enrollment.status = 'ATIVO'
+ON CONFLICT (identity_id) DO NOTHING;`);
+  lines.push(`WITH inserted_grants AS (
+    INSERT INTO public.credit_ledger_entry (
+        identity_id, entry_type, direction, amount, source_type, source_id, idempotency_key
+    )
+    SELECT DISTINCT
+        enrollment.identity_id,
+        'GRANT_INITIAL',
+        'CREDIT',
+        1000.00,
+        'SYSTEM',
+        enrollment.identity_id,
+        'credit:initial-grant:' || enrollment.identity_id::text
+    FROM public.ufu_enrollment enrollment
+    WHERE enrollment.status = 'ATIVO'
+    ON CONFLICT DO NOTHING
+    RETURNING identity_id
+)
+UPDATE public.credit_account account
+SET balance = (account.balance + 1000.00)::numeric(20,2),
+    updated_at = CURRENT_TIMESTAMP(6)
+FROM inserted_grants grant_entry
+WHERE account.identity_id = grant_entry.identity_id;`);
   lines.push(`INSERT INTO public.sports_athlete_link_proposal(proposal_id,athlete_id,identity_id,status,decided_by_identity_id,decided_at) VALUES (${sql(stableUuid('athlete-link:accepted'))},${sql(athleteId)},${sql(athlete)},'ACEITA',${sql(stableUuid('identity:admin'))},CURRENT_TIMESTAMP(6)) ON CONFLICT (proposal_id) DO NOTHING;`);
   lines.push(`INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid('grant:admin'))},${sql(stableUuid('identity:admin'))},'ADMINISTRADOR_GERAL',NULL,'VIGENTE') ON CONFLICT DO NOTHING;`);
   lines.push(`INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid('grant:maker'))},${sql(stableUuid('identity:maker'))},'ADMINISTRADOR_COMPETICAO',${sql(competitionId)},'VIGENTE') ON CONFLICT DO NOTHING;`);
