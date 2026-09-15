@@ -23,6 +23,7 @@ frontend/target/api-candidate/*
 /frontend/bazel-out/
 /frontend/.angular/cache/
 /frontend/coverage/
+/frontend/test-results/
 /.angular/
 
 # --- Environment & Local Secrets ---
