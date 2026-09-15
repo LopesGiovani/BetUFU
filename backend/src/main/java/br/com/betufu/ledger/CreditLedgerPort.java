@@ -40,6 +40,5 @@ public interface CreditLedgerPort {
 
   LedgerOperation compensate(UUID identityId, BigDecimal amount, UUID sourceId);
 
-  LedgerOperation compensate(
-      UUID identityId, BigDecimal amount, String sourceType, UUID sourceId);
+  LedgerOperation compensate(UUID identityId, BigDecimal amount, String sourceType, UUID sourceId);
 }

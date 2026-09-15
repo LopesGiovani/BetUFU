@@ -2,11 +2,11 @@ package br.com.betufu.ledger.internal;
 
 import br.com.betufu.ledger.CreditLedgerPort.EntryType;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,14 +22,18 @@ public class CreditLedgerRepository {
   private final JdbcTemplate jdbcTemplate;
   private final TransactionTemplate transactions;
 
-  public CreditLedgerRepository(JdbcTemplate jdbcTemplate, PlatformTransactionManager transactionManager) {
+  @Autowired
+  public CreditLedgerRepository(
+      JdbcTemplate jdbcTemplate, PlatformTransactionManager transactionManager) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "jdbcTemplate must not be null");
     this.transactions = new TransactionTemplate(Objects.requireNonNull(transactionManager));
   }
 
   public CreditLedgerRepository(JdbcTemplate jdbcTemplate) {
-    this(jdbcTemplate, new org.springframework.jdbc.datasource.DataSourceTransactionManager(
-        Objects.requireNonNull(jdbcTemplate.getDataSource())));
+    this(
+        jdbcTemplate,
+        new org.springframework.jdbc.datasource.DataSourceTransactionManager(
+            Objects.requireNonNull(jdbcTemplate.getDataSource())));
   }
 
   public <T> T inTransaction(java.util.function.Supplier<T> action) {

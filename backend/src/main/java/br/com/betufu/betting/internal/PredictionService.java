@@ -4,7 +4,10 @@ import br.com.betufu.betting.PredictionAcceptancePort;
 import br.com.betufu.betting.PredictionTicket;
 import br.com.betufu.ledger.CreditBalance;
 import br.com.betufu.ledger.CreditLedgerPort;
+import br.com.betufu.ledger.InsufficientCreditException;
 import br.com.betufu.odds.OddsForPredictionPort;
+import br.com.betufu.platform.api.ApiErrorCode;
+import br.com.betufu.platform.api.ApiProblemException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -15,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -53,8 +57,7 @@ public class PredictionService implements PredictionAcceptancePort {
     String digest =
         PredictionCommandDigest.sha256(identityId, command, prepared.selection(), prepared.stake());
     return Objects.requireNonNull(
-        transactions.execute(
-            status -> acceptInTransaction(identityId, command, prepared, digest)));
+        transactions.execute(status -> acceptInTransaction(identityId, command, prepared, digest)));
   }
 
   private PredictionTicket acceptInTransaction(
@@ -63,7 +66,7 @@ public class PredictionService implements PredictionAcceptancePort {
     var existing = repository.findReceiptByKey(identityId, command.idempotencyKey());
     if (existing.isPresent()) {
       if (!existing.get().payloadDigest().equals(digest)) {
-        throw new IllegalStateException("idempotency key conflict");
+        throw conflict();
       }
       return existing.get().ticket();
     }
@@ -72,15 +75,15 @@ public class PredictionService implements PredictionAcceptancePort {
     Instant now = clock.instant();
     validateSnapshot(command, prepared, snapshot, now);
     if (!eligibility.isEligible(identityId, snapshot.competitionId())) {
-      throw new IllegalStateException("prediction not eligible");
+      throw forbidden();
     }
     if (repository.findByMarket(identityId, command.marketId()).isPresent()) {
-      throw new IllegalStateException("prediction conflict");
+      throw conflict();
     }
 
     CreditBalance balance = ledger.getBalance(identityId);
     if (balance.balance().compareTo(prepared.stake()) < 0) {
-      throw new IllegalStateException("insufficient credit balance");
+      throw conflict();
     }
 
     BigDecimal acceptedOdds =
@@ -90,7 +93,7 @@ public class PredictionService implements PredictionAcceptancePort {
             .orElseThrow(() -> new IllegalArgumentException("selection unavailable"))
             .odds();
     if (acceptedOdds == null || acceptedOdds.signum() <= 0) {
-      throw new IllegalStateException("odds snapshot is unavailable");
+      throw conflict();
     }
     BigDecimal potential =
         prepared.stake().multiply(acceptedOdds).setScale(2, RoundingMode.HALF_UP);
@@ -115,38 +118,46 @@ public class PredictionService implements PredictionAcceptancePort {
               command.idempotencyKey(),
               digest);
     } catch (DuplicateKeyException ex) {
-      throw new IllegalStateException("prediction conflict");
+      throw conflict();
     }
-    ledger.debit(identityId, prepared.stake(), predictionId);
+    try {
+      ledger.debit(identityId, prepared.stake(), predictionId);
+    } catch (InsufficientCreditException ex) {
+      throw conflict();
+    }
     return ticket;
   }
 
   private static PreparedCommand prepare(SubmitPrediction command) {
-    Objects.requireNonNull(command, "command must not be null");
-    Objects.requireNonNull(command.marketId(), "marketId must not be null");
-    Objects.requireNonNull(command.marketVersionId(), "marketVersionId must not be null");
-    Objects.requireNonNull(command.publicationId(), "publicationId must not be null");
+    if (command == null
+        || command.marketId() == null
+        || command.marketVersionId() == null
+        || command.publicationId() == null) {
+      throw validation();
+    }
     if (command.ruleVersion() == null
         || command.ruleVersion().isBlank()
         || command.ruleVersion().length() > 64) {
-      throw new IllegalArgumentException("rule version is invalid");
+      throw validation();
     }
     if (command.idempotencyKey() == null
         || command.idempotencyKey().isBlank()
         || command.idempotencyKey().length() > 255) {
-      throw new IllegalArgumentException("idempotency key is invalid");
+      throw validation();
     }
     if (command.selection() == null) {
-      throw new IllegalArgumentException("selection is invalid");
+      throw validation();
     }
     String selection = command.selection().trim().toUpperCase(Locale.ROOT);
     if (!SELECTION_KEYS.contains(selection)) {
-      throw new IllegalArgumentException("selection is invalid");
+      throw validation();
     }
-    Objects.requireNonNull(command.stake(), "stake must not be null");
+    if (command.stake() == null || command.stake().scale() > 2) {
+      throw validation();
+    }
     BigDecimal stake = command.stake().setScale(2, RoundingMode.HALF_UP);
     if (stake.compareTo(CreditLedgerPort.MINIMUM_STAKE) < 0) {
-      throw new IllegalArgumentException("stake below minimum");
+      throw validation();
     }
     return new PreparedCommand(selection, stake);
   }
@@ -160,20 +171,36 @@ public class PredictionService implements PredictionAcceptancePort {
         || !command.marketId().equals(snapshot.marketId())
         || snapshot.competitionId() == null
         || !"OPEN".equals(snapshot.state())) {
-      throw new IllegalStateException("market is unavailable");
+      throw conflict();
     }
     if (!snapshot.marketVersionId().equals(command.marketVersionId())
         || !snapshot.publicationId().equals(command.publicationId())
         || !snapshot.ruleVersion().equals(command.ruleVersion())) {
-      throw new IllegalStateException("odds snapshot is stale");
+      throw stale();
     }
     if (snapshot.closeDeadline() == null || !now.isBefore(snapshot.closeDeadline())) {
-      throw new IllegalStateException("market is closed");
+      throw conflict();
     }
     if (snapshot.selections().stream()
         .noneMatch(selection -> selection.key().equals(prepared.selection()))) {
-      throw new IllegalArgumentException("selection unavailable");
+      throw validation();
     }
+  }
+
+  private static ApiProblemException validation() {
+    return new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+  }
+
+  private static ApiProblemException forbidden() {
+    return new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
+  }
+
+  private static ApiProblemException stale() {
+    return new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.STALE_VERSION);
+  }
+
+  private static ApiProblemException conflict() {
+    return new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.PREDICTION_CONFLICT);
   }
 
   private record PreparedCommand(String selection, BigDecimal stake) {}

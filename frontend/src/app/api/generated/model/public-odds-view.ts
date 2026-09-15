@@ -15,9 +15,11 @@ import { PublicOddsExplanation } from './public-odds-explanation';
 
 export interface PublicOddsView { 
     marketId: string;
+    marketVersionId: string;
     eventId: string;
     marketType: PublicOddsView.MarketTypeEnum;
     state: OddsMarketState;
+    closeDeadline: string;
     current: PublicOddsSummary;
     history: Array<PublicOddsHistory>;
     explanation: PublicOddsExplanation;

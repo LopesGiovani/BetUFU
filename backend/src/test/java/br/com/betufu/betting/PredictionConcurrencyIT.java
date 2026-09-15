@@ -142,8 +142,13 @@ class PredictionConcurrencyIT {
     assertThat(attempts.stream().filter(Attempt::succeeded)).hasSize(1);
     assertThat(attempts.stream().filter(attempt -> !attempt.succeeded())).hasSize(1);
     BigDecimal expectedBalance =
-        attempts.stream().filter(Attempt::succeeded).findFirst().orElseThrow().ticket().stake()
-            .compareTo(new BigDecimal("100.00"))
+        attempts.stream()
+                    .filter(Attempt::succeeded)
+                    .findFirst()
+                    .orElseThrow()
+                    .ticket()
+                    .stake()
+                    .compareTo(new BigDecimal("100.00"))
                 == 0
             ? new BigDecimal("900.00")
             : new BigDecimal("800.00");
@@ -172,8 +177,7 @@ class PredictionConcurrencyIT {
     assertCountsAndBalance(1, 1, "400.00");
   }
 
-  private PredictionAcceptancePort.SubmitPrediction command(
-      UUID market, String key, String stake) {
+  private PredictionAcceptancePort.SubmitPrediction command(UUID market, String key, String stake) {
     return new PredictionAcceptancePort.SubmitPrediction(
         market, market, market, "rule-v1", "HOME", new BigDecimal(stake), key);
   }

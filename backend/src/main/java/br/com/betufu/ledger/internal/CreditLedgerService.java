@@ -3,6 +3,7 @@ package br.com.betufu.ledger.internal;
 import br.com.betufu.ledger.CreditBalance;
 import br.com.betufu.ledger.CreditLedgerPort;
 import br.com.betufu.ledger.CreditLedgerPort.EntryType;
+import br.com.betufu.ledger.InsufficientCreditException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -106,12 +107,13 @@ public class CreditLedgerService implements CreditLedgerPort {
             if (!entry.identityId().equals(identityId)
                 || entry.amount().compareTo(normalized) != 0
                 || !entry.sourceType().equals(source.name())) {
-              throw new IllegalStateException("ledger idempotency key was reused with a different payload");
+              throw new IllegalStateException(
+                  "ledger idempotency key was reused with a different payload");
             }
             return new LedgerOperation(entry.entryId(), balance(identityId, current), true);
           }
           if (entryType == EntryType.DEBIT && current.compareTo(normalized) < 0) {
-            throw new IllegalStateException("insufficient credit balance");
+            throw new InsufficientCreditException();
           }
           BigDecimal next =
               entryType == EntryType.DEBIT
@@ -142,7 +144,8 @@ public class CreditLedgerService implements CreditLedgerPort {
 
   private static BigDecimal normalizeAmount(BigDecimal value) {
     Objects.requireNonNull(value, "amount must not be null");
-    if (value.scale() > 2) throw new IllegalArgumentException("credit amount scale must be at most 2");
+    if (value.scale() > 2)
+      throw new IllegalArgumentException("credit amount scale must be at most 2");
     if (value.signum() <= 0) throw new IllegalArgumentException("credit amount must be positive");
     return value.setScale(2, RoundingMode.UNNECESSARY);
   }

@@ -21,28 +21,37 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class CreditLedgerIT {
 
-  private static final DockerImageName IMAGE = DockerImageName.parse(
-      "docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636")
-      .asCompatibleSubstituteFor("postgres");
+  private static final DockerImageName IMAGE =
+      DockerImageName.parse(
+              "docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636")
+          .asCompatibleSubstituteFor("postgres");
 
   @Container
-  static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer(IMAGE)
-      .withDatabaseName("betufu_credit_ledger_test")
-      .withUsername("betufu_credit_ledger")
-      .withPassword("betufu-credit-ledger-test");
+  static final PostgreSQLContainer POSTGRES =
+      new PostgreSQLContainer(IMAGE)
+          .withDatabaseName("betufu_credit_ledger_test")
+          .withUsername("betufu_credit_ledger")
+          .withPassword("betufu-credit-ledger-test");
 
   private JdbcTemplate jdbc;
   private CreditLedgerService service;
 
   @BeforeEach
   void setUp() {
-    DriverManagerDataSource dataSource = new DriverManagerDataSource(
-        POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+    DriverManagerDataSource dataSource =
+        new DriverManagerDataSource(
+            POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
     jdbc = new JdbcTemplate(dataSource);
     jdbc.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-    jdbc.execute("ALTER DATABASE " + POSTGRES.getDatabaseName() + " SET betufu.runtime_role TO '" + POSTGRES.getUsername() + "'");
+    jdbc.execute(
+        "ALTER DATABASE "
+            + POSTGRES.getDatabaseName()
+            + " SET betufu.runtime_role TO '"
+            + POSTGRES.getUsername()
+            + "'");
     Flyway.configure().dataSource(dataSource).load().migrate();
-    CreditLedgerRepository repository = new CreditLedgerRepository(jdbc, new DataSourceTransactionManager(dataSource));
+    CreditLedgerRepository repository =
+        new CreditLedgerRepository(jdbc, new DataSourceTransactionManager(dataSource));
     service = new CreditLedgerService(repository);
   }
 
@@ -51,8 +60,15 @@ class CreditLedgerIT {
     UUID identity = createIdentity();
     assertThat(service.ensureInitialGrant(identity).balance()).isEqualByComparingTo("1000.00");
     assertThat(service.ensureInitialGrant(identity).balance()).isEqualByComparingTo("1000.00");
-    assertThat(jdbc.queryForObject("SELECT count(*) FROM public.credit_ledger_entry WHERE identity_id = ?", Long.class, identity)).isEqualTo(1L);
-    assertThat(service.debit(identity, new BigDecimal("10.00"), UUID.randomUUID()).balance().balance()).isEqualByComparingTo("990.00");
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT count(*) FROM public.credit_ledger_entry WHERE identity_id = ?",
+                Long.class,
+                identity))
+        .isEqualTo(1L);
+    assertThat(
+            service.debit(identity, new BigDecimal("10.00"), UUID.randomUUID()).balance().balance())
+        .isEqualByComparingTo("990.00");
     assertThat(service.getBalance(identity).balance()).isEqualByComparingTo("990.00");
   }
 
@@ -61,7 +77,7 @@ class CreditLedgerIT {
     UUID identity = createIdentity();
     service.ensureInitialGrant(identity);
     assertThatThrownBy(() -> service.debit(identity, new BigDecimal("1000.01"), UUID.randomUUID()))
-        .isInstanceOf(IllegalStateException.class);
+        .isInstanceOf(InsufficientCreditException.class);
     assertThatThrownBy(() -> service.debit(identity, new BigDecimal("1.001"), UUID.randomUUID()))
         .isInstanceOf(IllegalArgumentException.class);
     assertThatThrownBy(() -> jdbc.update("DELETE FROM public.credit_ledger_entry"))
@@ -72,7 +88,10 @@ class CreditLedgerIT {
 
   private UUID createIdentity() {
     UUID id = UUID.randomUUID();
-    jdbc.update("INSERT INTO public.local_identity (identity_id, issuer, subject) VALUES (?, 'https://idp.invalid', ?)", id, id.toString());
+    jdbc.update(
+        "INSERT INTO public.local_identity (identity_id, issuer, subject) VALUES (?, 'https://idp.invalid', ?)",
+        id,
+        id.toString());
     return id;
   }
 }

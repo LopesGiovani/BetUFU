@@ -69,7 +69,7 @@ class OddsMigrationIT {
     MigrateResult result = flyway.migrate();
 
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(32);
+    assertThat(result.migrationsExecuted).isEqualTo(33);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('odds_market', 'odds_market_version', 'odds_calculation', 'odds_publication', 'odds_publication_selection', 'odds_lifecycle', 'odds_override', 'odds_audit_event', 'odds_idempotency_command')",
@@ -137,9 +137,7 @@ class OddsMigrationIT {
     SportsFixture twoWaySports = createSportsEvent("two-way");
     LegacyPublication twoWay =
         insertLegacyPublication(
-            twoWaySports.eventId(),
-            "{\"publishedOdds\":[2.10,1.90]}",
-            new BigDecimal("2.35"));
+            twoWaySports.eventId(), "{\"publishedOdds\":[2.10,1.90]}", new BigDecimal("2.35"));
     jdbcTemplate.update(
         "INSERT INTO public.odds_override (market_id, calculation_id, proposer_id, approver_id, reason, decision) VALUES (?, ?, ?, ?, 'legacy override', 'APPROVED')",
         twoWay.marketId(),
@@ -150,17 +148,21 @@ class OddsMigrationIT {
     LegacyPublication threeWay =
         insertLegacyPublication(
             threeWaySports.eventId(),
-            "{\"publishedOdds\":[1.95,3.40,2.75]}", new BigDecimal("1.95"));
+            "{\"publishedOdds\":[1.95,3.40,2.75]}",
+            new BigDecimal("1.95"));
 
-    assertThat(Flyway.configure().dataSource(dataSource).target("31").load().migrate().migrationsExecuted)
+    assertThat(
+            Flyway.configure()
+                .dataSource(dataSource)
+                .target("31")
+                .load()
+                .migrate()
+                .migrationsExecuted)
         .isEqualTo(1);
 
+    assertSelectionVector(twoWay.publicationId(), List.of("HOME", "AWAY"), List.of("2.35", "1.90"));
     assertSelectionVector(
-        twoWay.publicationId(), List.of("HOME", "AWAY"), List.of("2.35", "1.90"));
-    assertSelectionVector(
-        threeWay.publicationId(),
-        List.of("HOME", "DRAW", "AWAY"),
-        List.of("1.95", "3.40", "2.75"));
+        threeWay.publicationId(), List.of("HOME", "DRAW", "AWAY"), List.of("1.95", "3.40", "2.75"));
     OddsForPredictionPort.MarketSnapshot migrated =
         new OddsForPredictionAdapter(jdbcTemplate).getSnapshot(twoWay.marketId());
     assertThat(migrated.competitionId()).isEqualTo(twoWaySports.competitionId());
@@ -191,11 +193,11 @@ class OddsMigrationIT {
   }
 
   @Test
-  @DisplayName("V31 rejeita no commit vetores ausentes, parciais, excedentes, duplicados ou fora de ordem")
+  @DisplayName(
+      "V31 rejeita no commit vetores ausentes, parciais, excedentes, duplicados ou fora de ordem")
   void rejectsInvalidCommittedVectors() {
     Flyway.configure().dataSource(dataSource).load().migrate();
-    LegacyPublication fixture =
-        insertLegacyPublicationAfterV31("{\"publishedOdds\":[2.10,1.90]}");
+    LegacyPublication fixture = insertLegacyPublicationAfterV31("{\"publishedOdds\":[2.10,1.90]}");
 
     assertInvalidVector(fixture.calculationId(), List.of());
     assertInvalidVector(fixture.calculationId(), List.of(new SelectionRow(1, "HOME", "2.10")));
@@ -208,14 +210,10 @@ class OddsMigrationIT {
             new SelectionRow(4, "HOME", "2.10")));
     assertInvalidVector(
         fixture.calculationId(),
-        List.of(
-            new SelectionRow(1, "HOME", "2.10"),
-            new SelectionRow(2, "HOME", "1.90")));
+        List.of(new SelectionRow(1, "HOME", "2.10"), new SelectionRow(2, "HOME", "1.90")));
     assertInvalidVector(
         fixture.calculationId(),
-        List.of(
-            new SelectionRow(1, "AWAY", "1.90"),
-            new SelectionRow(2, "HOME", "2.10")));
+        List.of(new SelectionRow(1, "AWAY", "1.90"), new SelectionRow(2, "HOME", "2.10")));
   }
 
   private void migrateTo30() {
@@ -338,7 +336,9 @@ class OddsMigrationIT {
         jdbcTemplate.queryForList(
             "SELECT selection_key, published_odds FROM public.odds_publication_selection WHERE publication_id = ? ORDER BY selection_no",
             publicationId);
-    assertThat(rows).extracting(row -> row.get("selection_key")).containsExactlyElementsOf(expectedKeys);
+    assertThat(rows)
+        .extracting(row -> row.get("selection_key"))
+        .containsExactlyElementsOf(expectedKeys);
     assertThat(rows)
         .extracting(row -> (BigDecimal) row.get("published_odds"))
         .usingComparatorForType(BigDecimal::compareTo, BigDecimal.class)

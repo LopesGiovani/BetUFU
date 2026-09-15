@@ -80,13 +80,7 @@ class OddsForPredictionAdapterIT {
             publishedVersionId, marketId, 1, MarketState.SUSPENDED, deadline, null, null));
     repository.saveVersion(
         new OddsMarketVersion(
-            openHeadId,
-            marketId,
-            2,
-            MarketState.OPEN,
-            deadline,
-            publishedVersionId,
-            null));
+            openHeadId, marketId, 2, MarketState.OPEN, deadline, publishedVersionId, null));
     assertThat(repository.advanceMarketHead(marketId, openHeadId, 0)).isTrue();
     UUID calculationId = UUID.randomUUID();
     repository.saveCalculation(
@@ -128,10 +122,8 @@ class OddsForPredictionAdapterIT {
             OddsForPredictionPort.Selection::label,
             OddsForPredictionPort.Selection::odds)
         .containsExactly(
-            org.assertj.core.groups.Tuple.tuple(
-                "HOME", "Mandante", new BigDecimal("2.1500000000")),
-            org.assertj.core.groups.Tuple.tuple(
-                "DRAW", "Empate", new BigDecimal("3.4000000000")),
+            org.assertj.core.groups.Tuple.tuple("HOME", "Mandante", new BigDecimal("2.1500000000")),
+            org.assertj.core.groups.Tuple.tuple("DRAW", "Empate", new BigDecimal("3.4000000000")),
             org.assertj.core.groups.Tuple.tuple(
                 "AWAY", "Visitante", new BigDecimal("1.8500000000")));
   }

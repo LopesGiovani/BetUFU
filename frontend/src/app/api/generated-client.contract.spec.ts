@@ -663,9 +663,11 @@ describe('Generated BETUFU API client contract', () => {
     const marketId = 'm1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
     const response: PublicOddsView = {
       marketId,
+      marketVersionId: 'v1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
       eventId: 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
       marketType: PublicOddsView.MarketTypeEnum.HeadToHead,
       state: OddsMarketState.Open,
+      closeDeadline: '2026-09-09T12:00:00Z',
       current: {
         publicationId: 'p1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
         publishedOdds: [1.82, 2.05],

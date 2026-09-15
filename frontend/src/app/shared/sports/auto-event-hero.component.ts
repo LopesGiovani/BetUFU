@@ -171,7 +171,6 @@ const SWITCH_DURATION_MS = 780;
     }
     .event-hero__court {
       position: absolute;
-      z-index: 0;
       top: 118px;
       right: -8vw;
       width: min(76vw, 1080px);
@@ -200,7 +199,6 @@ const SWITCH_DURATION_MS = 780;
     }
     .hero-slide {
       grid-area: 1 / 1;
-      z-index: 0;
       display: grid;
       min-width: 0;
       opacity: 0;
@@ -362,14 +360,11 @@ const SWITCH_DURATION_MS = 780;
       letter-spacing: -0.025em;
       text-transform: uppercase;
     }
-    .direct-title span,
-    .direct-title strong {
+    .direct-title span {
       display: block;
     }
     .direct-title strong {
-      position: relative;
       display: inline-block;
-      width: fit-content;
       margin-top: var(--bt-space-2);
       padding: 0 var(--bt-space-2) var(--bt-space-2);
       background: var(--bt-signal-deep);
@@ -381,7 +376,6 @@ const SWITCH_DURATION_MS = 780;
       transform-origin: left center;
     }
     .direct-board {
-      align-self: end;
       min-width: 0;
       padding: var(--bt-space-6);
       border: 1px solid var(--bt-border-strong);
@@ -449,7 +443,7 @@ const SWITCH_DURATION_MS = 780;
         padding: var(--bt-space-2) var(--bt-space-4) var(--bt-space-1);
       }
       .manifesto-clock {
-        padding: var(--bt-space-2) var(--bt-space-4) var(--bt-space-2);
+        padding: var(--bt-space-2) var(--bt-space-4);
         border-top: 1px solid var(--bt-ink);
         border-left: 0;
       }

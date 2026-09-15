@@ -10,6 +10,20 @@ import org.junit.jupiter.api.Test;
 
 class OddsMarketLifecycleIT {
   @Test
+  void publishWithoutDeadlineIsRejected() {
+    assertThatThrownBy(
+            () ->
+                new MarketLifecyclePolicy()
+                    .next(
+                        MarketState.DRAFT,
+                        MarketTransition.Action.PUBLISH_MARKET,
+                        Instant.parse("2026-01-01T00:00:00Z"),
+                        null))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("CLOSE_DEADLINE_REQUIRED");
+  }
+
+  @Test
   void closeBeforeDeadlineIsRejectedWithoutAStateTransition() {
     assertThatThrownBy(
             () ->

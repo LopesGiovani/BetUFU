@@ -83,6 +83,12 @@ public enum ApiErrorCode {
       "O recurso foi alterado desde a sua última leitura.",
       "Atualize os dados antes de tentar novamente."),
 
+  PREDICTION_CONFLICT(
+      "BETUFU-409-PREDICTION_CONFLICT",
+      "Palpite em conflito",
+      "O palpite não pode ser confirmado no estado atual.",
+      "Atualize os dados e tente novamente."),
+
   UNSUPPORTED_MEDIA_TYPE(
       "BETUFU-415-MEDIA_TYPE",
       "Formato não aceito",
@@ -149,6 +155,7 @@ public enum ApiErrorCode {
       case 404 -> NOT_FOUND;
       case 405 -> METHOD_NOT_ALLOWED;
       case 406 -> NOT_ACCEPTABLE;
+      case 409 -> PREDICTION_CONFLICT;
       case 415 -> UNSUPPORTED_MEDIA_TYPE;
       case 422 -> NICKNAME_COOLDOWN_ACTIVE;
       case 429 -> TOO_MANY_ATTEMPTS;

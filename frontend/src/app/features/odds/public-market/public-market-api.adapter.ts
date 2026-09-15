@@ -7,9 +7,12 @@ import { PublicOddsHistory } from '../../../api/generated/model/public-odds-hist
 import { PublicOddsView } from '../../../api/generated/model/public-odds-view';
 
 export interface PublicMarketSelection {
+  code: PublicMarketSelectionCode;
   label: string;
   odd: number;
 }
+
+export type PublicMarketSelectionCode = 'HOME' | 'DRAW' | 'AWAY';
 
 export interface PublicMarketHistoryEntry {
   publicationId: string;
@@ -20,11 +23,15 @@ export interface PublicMarketHistoryEntry {
 
 export interface PublicMarketSnapshot {
   marketId: string;
+  marketVersionId: string;
   eventId: string;
   marketType: PublicOddsView.MarketTypeEnum;
   state: OddsMarketState;
   stateLabel: string;
   currentPublicationId: string;
+  ruleVersion: string;
+  closeDeadline: string;
+  closeDeadlineLabel: string;
   publishedAt: string;
   publishedAtLabel: string;
   selections: readonly PublicMarketSelection[];
@@ -50,8 +57,10 @@ export class PublicMarketApiAdapter {
     }
     if (
       !this.nonEmpty(response.marketId) ||
+      !this.nonEmpty(response.marketVersionId) ||
       !this.nonEmpty(response.eventId) ||
-      response.marketType !== PublicOddsView.MarketTypeEnum.HeadToHead
+      response.marketType !== PublicOddsView.MarketTypeEnum.HeadToHead ||
+      !this.validDate(response.closeDeadline)
     ) {
       throw new Error('CONTRATO_ODDS_PUBLICAS_INVALIDO: mercado publico incompleto.');
     }
@@ -64,9 +73,11 @@ export class PublicMarketApiAdapter {
     }
     this.validateExplanation(response.explanation);
 
+    const selectionCodes = this.selectionCodes(response.current.publishedOdds.length);
     const selections = Object.freeze(
       response.current.publishedOdds.map((odd, index) => ({
-        label: this.selectionLabel(index, response.current.publishedOdds.length),
+        code: selectionCodes[index],
+        label: this.selectionLabel(selectionCodes[index]),
         odd,
       })),
     );
@@ -78,11 +89,15 @@ export class PublicMarketApiAdapter {
 
     return Object.freeze({
       marketId: response.marketId,
+      marketVersionId: response.marketVersionId,
       eventId: response.eventId,
       marketType: response.marketType,
       state: response.state,
       stateLabel: this.stateLabel(response.state),
       currentPublicationId: response.current.publicationId,
+      ruleVersion: response.explanation.algorithmVersion,
+      closeDeadline: response.closeDeadline,
+      closeDeadlineLabel: this.dateLabel(response.closeDeadline),
       publishedAt: response.current.publishedAt,
       publishedAtLabel: this.dateLabel(response.current.publishedAt),
       selections,
@@ -98,7 +113,7 @@ export class PublicMarketApiAdapter {
       throw new Error('CONTRATO_ODDS_PUBLICAS_INVALIDO: resumo incompleto.');
     }
     if (
-      summary.publishedOdds.length < 1 ||
+      ![2, 3].includes(summary.publishedOdds.length) ||
       summary.publishedOdds.some((odd) => !Number.isFinite(odd) || odd <= 1) ||
       !this.validDate(summary.publishedAt)
     ) {
@@ -145,9 +160,14 @@ export class PublicMarketApiAdapter {
     });
   }
 
-  private selectionLabel(index: number, total: number): string {
-    if (total === 3 && index === 2) return 'Empate';
-    return `Selecao ${index + 1}`;
+  private selectionCodes(total: number): readonly PublicMarketSelectionCode[] {
+    if (total === 2) return ['HOME', 'AWAY'];
+    if (total === 3) return ['HOME', 'DRAW', 'AWAY'];
+    throw new Error('CONTRATO_ODDS_PUBLICAS_INVALIDO: vetor de selecoes invalido.');
+  }
+
+  private selectionLabel(code: PublicMarketSelectionCode): string {
+    return { HOME: 'Mandante', DRAW: 'Empate', AWAY: 'Visitante' }[code];
   }
 
   private stateLabel(state: OddsMarketState): string {

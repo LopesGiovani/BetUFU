@@ -11,6 +11,7 @@ paths:
   /api/v1/me/credits:
     get:
       tags: [CreditLedger]
+      operationId: getMyCreditBalance
       security: [{cookieSession: []}]
       responses:
         '200': {description: Saldo proprio, content: {application/json: {schema: {$ref: '#/components/schemas/CreditBalanceResponse'}}}}
@@ -18,6 +19,7 @@ paths:
   /api/v1/me/predictions:
     post:
       tags: [Prediction]
+      operationId: submitMyPrediction
       security: [{cookieSession: []}]
       parameters:
         - {name: Idempotency-Key, in: header, required: true, schema: {type: string, minLength: 1}}
@@ -30,6 +32,7 @@ paths:
   /api/v1/me/predictions/markets/{marketId}:
     get:
       tags: [Prediction]
+      operationId: getMyPredictionForMarket
       security: [{cookieSession: []}]
       parameters: [{name: marketId, in: path, required: true, schema: {type: string, format: uuid}}]
       responses:
@@ -3859,27 +3862,6 @@ paths:
           description: Proposta já decidida ou lock obsoleto.
 
 components:
-  schemas:
-    CreditBalanceResponse:
-      type: object
-      required: [balance, scale, minimumStake, rulesVersion]
-      properties:
-        balance: {type: number, format: double}
-        scale: {type: integer, example: 2}
-        minimumStake: {type: number, format: double}
-        rulesVersion: {type: string}
-    PredictionSubmitRequest:
-      type: object
-      required: [marketId, marketVersionId, publicationId, ruleVersion, selection, stake]
-      properties:
-        marketId: {type: string, format: uuid}
-        marketVersionId: {type: string, format: uuid}
-        publicationId: {type: string, format: uuid}
-        ruleVersion: {type: string}
-        selection: {type: string}
-        stake: {type: number, format: double}
-    PredictionTicketResponse:
-      type: object
   parameters:
     IdempotencyKey:
       name: Idempotency-Key
@@ -3900,6 +3882,61 @@ components:
         minLength: 1
         maxLength: 200
       description: Chave opaca obrigatória para repetição segura do comando de override.
+
+  schemas:
+    CreditBalanceResponse:
+      type: object
+      additionalProperties: false
+      required: [balance, scale, minimumStake, rulesVersion]
+      properties:
+        balance: {type: number, format: double}
+        scale: {type: integer, example: 2}
+        minimumStake: {type: number, format: double}
+        rulesVersion: {type: string}
+
+    PredictionSubmitRequest:
+      type: object
+      additionalProperties: false
+      required: [marketId, marketVersionId, publicationId, ruleVersion, selection, stake]
+      properties:
+        marketId: {type: string, format: uuid}
+        marketVersionId: {type: string, format: uuid}
+        publicationId: {type: string, format: uuid}
+        ruleVersion: {type: string}
+        selection: {type: string, enum: [HOME, DRAW, AWAY]}
+        stake: {type: number, format: double}
+
+    PredictionTicketResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - predictionId
+        - marketId
+        - marketVersionId
+        - publicationId
+        - selection
+        - stake
+        - acceptedOdds
+        - potentialReturn
+        - netProfit
+        - ruleVersion
+        - closeDeadline
+        - state
+        - acceptedAt
+      properties:
+        predictionId: {type: string, format: uuid}
+        marketId: {type: string, format: uuid}
+        marketVersionId: {type: string, format: uuid}
+        publicationId: {type: string, format: uuid}
+        selection: {type: string, enum: [HOME, DRAW, AWAY]}
+        stake: {type: number, format: double}
+        acceptedOdds: {type: number, format: double}
+        potentialReturn: {type: number, format: double}
+        netProfit: {type: number, format: double}
+        ruleVersion: {type: string}
+        closeDeadline: {type: string, format: date-time}
+        state: {type: string}
+        acceptedAt: {type: string, format: date-time}
 
     OddsLineageReferences:
       type: object
@@ -4015,14 +4052,19 @@ components:
       additionalProperties: false
       required:
         - marketId
+        - marketVersionId
         - eventId
         - marketType
         - state
+        - closeDeadline
         - current
         - history
         - explanation
       properties:
         marketId:
+          type: string
+          format: uuid
+        marketVersionId:
           type: string
           format: uuid
         eventId:
@@ -4033,6 +4075,9 @@ components:
           enum: [HEAD_TO_HEAD]
         state:
           $ref: "#/components/schemas/OddsMarketState"
+        closeDeadline:
+          type: string
+          format: date-time
         current:
           $ref: "#/components/schemas/PublicOddsSummary"
         history:

@@ -9,6 +9,9 @@ public final class MarketLifecyclePolicy {
       MarketState current, MarketTransition.Action action, Instant now, Instant closeDeadline) {
     Objects.requireNonNull(current, "current must not be null");
     Objects.requireNonNull(action, "action must not be null");
+    if (action == MarketTransition.Action.PUBLISH_MARKET && closeDeadline == null) {
+      throw new IllegalArgumentException("CLOSE_DEADLINE_REQUIRED");
+    }
     return MarketTransition.apply(
         current, action, now, closeDeadline == null ? now : closeDeadline);
   }

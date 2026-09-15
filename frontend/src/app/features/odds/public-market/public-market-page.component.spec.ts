@@ -7,7 +7,11 @@ import { OddsPublicService } from '../../../api/generated/api/odds-public.servic
 import { OddsMarketState } from '../../../api/generated/model/odds-market-state';
 import { PublicOddsExplanation } from '../../../api/generated/model/public-odds-explanation';
 import { PublicOddsView } from '../../../api/generated/model/public-odds-view';
+import { SessionStore } from '../../../core/session/session.store';
+import { EnrollmentStore } from '../../enrollment/enrollment.store';
 import { PublicMarketApiAdapter } from './public-market-api.adapter';
+import { PublicMarketBettingApiAdapter } from './public-market-betting-api.adapter';
+import { PublicMarketBettingStore } from './public-market-betting.store';
 import { PublicMarketPageComponent } from './public-market-page.component';
 import { PublicMarketStore } from './public-market.store';
 
@@ -16,9 +20,11 @@ const MARKET_ID = 'm1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
 function publicMarket(overrides: Partial<PublicOddsView> = {}): PublicOddsView {
   return {
     marketId: MARKET_ID,
+    marketVersionId: '55555555-5555-4555-8555-555555555555',
     eventId: 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
     marketType: PublicOddsView.MarketTypeEnum.HeadToHead,
     state: OddsMarketState.Open,
+    closeDeadline: '2026-09-15T12:00:00Z',
     current: {
       publicationId: 'pub-current',
       publishedOdds: [1.82, 2.05],
@@ -58,6 +64,27 @@ describe('PublicMarketPageComponent', () => {
       providers: [
         PublicMarketApiAdapter,
         PublicMarketStore,
+        PublicMarketBettingStore,
+        {
+          provide: SessionStore,
+          useValue: { loadSession: vi.fn().mockResolvedValue(undefined), isAuthenticated: () => false },
+        },
+        {
+          provide: EnrollmentStore,
+          useValue: {
+            loadEnrollment: vi.fn().mockResolvedValue(undefined),
+            isRegistered: () => false,
+            isError: () => false,
+          },
+        },
+        {
+          provide: PublicMarketBettingApiAdapter,
+          useValue: {
+            getBalance: vi.fn(),
+            getOwnTicket: vi.fn(),
+            submit: vi.fn(),
+          },
+        },
         { provide: OddsPublicService, useValue: service },
         provideRouter([]),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => MARKET_ID } } } },
@@ -151,16 +178,19 @@ describe('PublicMarketApiAdapter', () => {
     const adapter = TestBed.inject(PublicMarketApiAdapter);
     const snapshot = adapter.adapt(publicMarket({ current: { ...publicMarket().current, publishedOdds: [1.8, 2.1, 3.2] } }));
 
-    expect(snapshot.selections.map((selection) => selection.label)).toEqual([
-      'Selecao 1',
-      'Selecao 2',
-      'Empate',
+    expect(snapshot.selections).toEqual([
+      { code: 'HOME', label: 'Mandante', odd: 1.8 },
+      { code: 'DRAW', label: 'Empate', odd: 2.1 },
+      { code: 'AWAY', label: 'Visitante', odd: 3.2 },
     ]);
+    expect(snapshot.marketVersionId).toBe('55555555-5555-4555-8555-555555555555');
+    expect(snapshot.ruleVersion).toBe('ELO_V1');
+    expect(snapshot.closeDeadline).toBe('2026-09-15T12:00:00Z');
     expect(snapshot.history[0].publicationId).toBe('pub-previous');
     expect(() => adapter.adapt(null)).toThrow('CONTRATO_ODDS_PUBLICAS_INVALIDO');
   });
 
-  it('aceita uma unica odd publicada conforme o contrato OpenAPI', () => {
+  it('mapeia um mercado de duas selecoes como HOME e AWAY', () => {
     const service = { getPublicOddsMarket: vi.fn() };
     TestBed.configureTestingModule({
       providers: [PublicMarketApiAdapter, { provide: OddsPublicService, useValue: service }],
@@ -169,11 +199,11 @@ describe('PublicMarketApiAdapter', () => {
 
     const snapshot = adapter.adapt(
       publicMarket({
-        current: { ...publicMarket().current, publishedOdds: [2.1] },
+        current: { ...publicMarket().current, publishedOdds: [2.1, 1.72] },
       }),
     );
 
-    expect(snapshot.selections).toHaveLength(1);
+    expect(snapshot.selections.map((selection) => selection.code)).toEqual(['HOME', 'AWAY']);
     expect(snapshot.selections[0].odd).toBe(2.1);
   });
 });

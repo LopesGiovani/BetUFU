@@ -74,12 +74,14 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'AthleteLink',
   'AthleteMedia',
   'AthletePublicProfile',
+  'CreditLedger',
   'Diagnostic',
   'Enrollment',
   'Identity',
   'OperationalCapabilities',
   'OperationalPanel',
   'PasswordResetRecovery',
+  'Prediction',
   'Profile',
   'Role',
   'Session',
@@ -111,6 +113,7 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'CurrentDeviceLogoutResponse',
   'CurrentIdentityResponse',
   'CurrentProfileResponse',
+  'CreditBalanceResponse',
   'DiagnosticComponent',
   'DiagnosticResponse',
   'DiagnosticStatus',
@@ -126,6 +129,8 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'PasswordResetEventRecoveryPageResponse',
   'PasswordResetEventRecoveryResponse',
   'ProfileUpdateRequest',
+  'PredictionSubmitRequest',
+  'PredictionTicketResponse',
   'PublicAthleteStats',
   'PublicSportsEventPage',
   'PublicSportsEventResponse',
@@ -258,6 +263,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/athlete-link.service.ts',
   'api/athlete-media.service.ts',
   'api/athlete-public-profile.service.ts',
+  'api/credit-ledger.service.ts',
   'api/diagnostic.service.ts',
   'api/enrollment.service.ts',
   'api/identity.service.ts',
@@ -267,6 +273,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/operational-capabilities.service.ts',
   'api/operational-panel.service.ts',
   'api/password-reset-recovery.service.ts',
+  'api/prediction.service.ts',
   'api/profile.service.ts',
   'api/role.service.ts',
   'api/session.service.ts',
@@ -294,6 +301,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/betufu-field-violation.ts',
   'model/betufu-problem-details.ts',
   'model/create-odds-market-request.ts',
+  'model/credit-balance-response.ts',
   'model/current-device-logout-response.ts',
   'model/current-identity-response.ts',
   'model/current-profile-response.ts',
@@ -319,6 +327,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/operational-role.ts',
   'model/password-reset-event-recovery-page-response.ts',
   'model/password-reset-event-recovery-response.ts',
+  'model/prediction-submit-request.ts',
+  'model/prediction-ticket-response.ts',
   'model/profile-update-request.ts',
   'model/public-athlete-detail.ts',
   'model/public-athlete-stats.ts',
@@ -451,7 +461,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // singulares de modalidade pela colecao N:N sem alterar a allowlist de caminhos.
 // D8DD... foi aprovado literalmente pelo responsavel no 03-22; acrescenta GENERIC
 // ao contrato de eventos sem alterar a allowlist de caminhos.
-export const APPROVED_GENERATED_DIGEST = '51E5582AEA63F066EE6D80E552663C70269BB8385EB53EA2D31716E37DAC3B92';
+// C066... publica somente as APIs autenticadas de saldo/palpite e seus tres modelos
+// governados, a partir do candidato da recertificacao 05-05.
+export const APPROVED_GENERATED_DIGEST = 'C0669B03AE5EF1C86B897C4DFDEC4A8369AD8037BDECC0EEA9A1EDECB4B7A1BE';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

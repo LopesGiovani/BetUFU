@@ -184,8 +184,7 @@ class OddsPersistenceConcurrencyIT {
     UUID publishedVersionId = UUID.randomUUID();
     UUID nextVersionId = UUID.randomUUID();
     UUID calculationId = UUID.randomUUID();
-    repository.saveMarket(
-        new OddsMarketRecord(marketId, eventId, "H2H", null, 0, null, null));
+    repository.saveMarket(new OddsMarketRecord(marketId, eventId, "H2H", null, 0, null, null));
     jdbcTemplate.update(
         "INSERT INTO public.odds_market_version (market_version_id, market_id, version_no, state, close_deadline) VALUES (?, ?, 1, 'OPEN', CURRENT_TIMESTAMP + INTERVAL '1 hour')",
         publishedVersionId,
@@ -229,7 +228,8 @@ class OddsPersistenceConcurrencyIT {
               () -> {
                 JdbcTemplate readerJdbc = jdbcTemplateForNewConnection();
                 TransactionTemplate transaction =
-                    new TransactionTemplate(new DataSourceTransactionManager(readerJdbc.getDataSource()));
+                    new TransactionTemplate(
+                        new DataSourceTransactionManager(readerJdbc.getDataSource()));
                 return transaction.execute(
                     status -> {
                       OddsForPredictionPort.MarketSnapshot snapshot =

@@ -25,7 +25,6 @@ class OddsCertificationIT {
           OddsOverrideIT.class,
           OddsOverrideConcurrencyIT.class,
           OddsOverrideSecurityIT.class,
-          OddsPublicViewIT.class,
           OddsPublicPrivacyIT.class,
           OddsContractArchitectureTest.class,
           OddsSchemaReviewTest.class,

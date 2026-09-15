@@ -26,28 +26,38 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class CreditLedgerConcurrencyIT {
 
-  private static final DockerImageName IMAGE = DockerImageName.parse(
-      "docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636")
-      .asCompatibleSubstituteFor("postgres");
+  private static final DockerImageName IMAGE =
+      DockerImageName.parse(
+              "docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636")
+          .asCompatibleSubstituteFor("postgres");
 
   @Container
-  static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer(IMAGE)
-      .withDatabaseName("betufu_credit_ledger_concurrency_test")
-      .withUsername("betufu_credit_concurrency")
-      .withPassword("betufu-credit-concurrency-test");
+  static final PostgreSQLContainer POSTGRES =
+      new PostgreSQLContainer(IMAGE)
+          .withDatabaseName("betufu_credit_ledger_concurrency_test")
+          .withUsername("betufu_credit_concurrency")
+          .withPassword("betufu-credit-concurrency-test");
 
   private JdbcTemplate jdbc;
   private CreditLedgerService service;
 
   @BeforeEach
   void setUp() {
-    DriverManagerDataSource dataSource = new DriverManagerDataSource(
-        POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+    DriverManagerDataSource dataSource =
+        new DriverManagerDataSource(
+            POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
     jdbc = new JdbcTemplate(dataSource);
     jdbc.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-    jdbc.execute("ALTER DATABASE " + POSTGRES.getDatabaseName() + " SET betufu.runtime_role TO '" + POSTGRES.getUsername() + "'");
+    jdbc.execute(
+        "ALTER DATABASE "
+            + POSTGRES.getDatabaseName()
+            + " SET betufu.runtime_role TO '"
+            + POSTGRES.getUsername()
+            + "'");
     Flyway.configure().dataSource(dataSource).load().migrate();
-    service = new CreditLedgerService(new CreditLedgerRepository(jdbc, new DataSourceTransactionManager(dataSource)));
+    service =
+        new CreditLedgerService(
+            new CreditLedgerRepository(jdbc, new DataSourceTransactionManager(dataSource)));
   }
 
   @Test
@@ -60,11 +70,13 @@ class CreditLedgerConcurrencyIT {
     try {
       List<Future<CreditBalance>> futures = new ArrayList<>();
       for (int i = 0; i < workers; i++) {
-        futures.add(executor.submit(() -> {
-          ready.countDown();
-          start.await();
-          return service.ensureInitialGrant(identity);
-        }));
+        futures.add(
+            executor.submit(
+                () -> {
+                  ready.countDown();
+                  start.await();
+                  return service.ensureInitialGrant(identity);
+                }));
       }
       ready.await();
       start.countDown();
@@ -74,8 +86,18 @@ class CreditLedgerConcurrencyIT {
     } finally {
       executor.shutdownNow();
     }
-    assertThat(jdbc.queryForObject("SELECT count(*) FROM public.credit_ledger_entry WHERE identity_id = ?", Long.class, identity)).isEqualTo(1L);
-    assertThat(jdbc.queryForObject("SELECT balance FROM public.credit_account WHERE identity_id = ?", BigDecimal.class, identity)).isEqualByComparingTo("1000.00");
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT count(*) FROM public.credit_ledger_entry WHERE identity_id = ?",
+                Long.class,
+                identity))
+        .isEqualTo(1L);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT balance FROM public.credit_account WHERE identity_id = ?",
+                BigDecimal.class,
+                identity))
+        .isEqualByComparingTo("1000.00");
   }
 
   @Test
@@ -88,26 +110,40 @@ class CreditLedgerConcurrencyIT {
       List<Future<?>> futures = new ArrayList<>();
       for (int i = 0; i < workers; i++) {
         UUID source = UUID.randomUUID();
-        futures.add(executor.submit(() -> {
-          try {
-            service.debit(identity, new BigDecimal("100.00"), source);
-          } catch (IllegalStateException expected) {
-            // Overdraw is a normal, safe outcome for requests beyond the balance.
-          }
-        }));
+        futures.add(
+            executor.submit(
+                () -> {
+                  try {
+                    service.debit(identity, new BigDecimal("100.00"), source);
+                  } catch (InsufficientCreditException expected) {
+                    // Overdraw is a normal, safe outcome for requests beyond the balance.
+                  }
+                }));
       }
       for (Future<?> future : futures) future.get();
     } finally {
       executor.shutdownNow();
     }
-    BigDecimal balance = jdbc.queryForObject("SELECT balance FROM public.credit_account WHERE identity_id = ?", BigDecimal.class, identity);
+    BigDecimal balance =
+        jdbc.queryForObject(
+            "SELECT balance FROM public.credit_account WHERE identity_id = ?",
+            BigDecimal.class,
+            identity);
     assertThat(balance).isGreaterThanOrEqualTo(BigDecimal.ZERO).isEqualByComparingTo("0.00");
-    assertThat(jdbc.queryForObject("SELECT count(*) FROM public.credit_ledger_entry WHERE identity_id = ? AND entry_type = 'DEBIT'", Long.class, identity)).isEqualTo(10L);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT count(*) FROM public.credit_ledger_entry WHERE identity_id = ? AND entry_type = 'DEBIT'",
+                Long.class,
+                identity))
+        .isEqualTo(10L);
   }
 
   private UUID createIdentity() {
     UUID id = UUID.randomUUID();
-    jdbc.update("INSERT INTO public.local_identity (identity_id, issuer, subject) VALUES (?, 'https://idp.invalid', ?)", id, id.toString());
+    jdbc.update(
+        "INSERT INTO public.local_identity (identity_id, issuer, subject) VALUES (?, 'https://idp.invalid', ?)",
+        id,
+        id.toString());
     return id;
   }
 }

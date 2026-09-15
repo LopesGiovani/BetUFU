@@ -12,9 +12,11 @@ public final class OddsPublicViewModels {
 
   public record PublicOddsView(
       UUID marketId,
+      UUID marketVersionId,
       UUID eventId,
       String marketType,
       MarketState state,
+      Instant closeDeadline,
       PublicOddsSummary current,
       List<PublicOddsHistory> history,
       PublicOddsExplanation explanation) {

@@ -19,14 +19,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class CreditBalanceController {
   private final CreditLedgerPort ledger;
   private final OperationalIdentityLookup identities;
-  public CreditBalanceController(CreditLedgerPort ledger, OperationalIdentityLookup identities) { this.ledger = ledger; this.identities = identities; }
+
+  public CreditBalanceController(CreditLedgerPort ledger, OperationalIdentityLookup identities) {
+    this.ledger = ledger;
+    this.identities = identities;
+  }
+
   @GetMapping
-  public ResponseEntity<CreditBalanceResponse> get(@AuthenticationPrincipal(errorOnInvalidType = false) OidcUser user) {
+  public ResponseEntity<CreditBalanceResponse> get(
+      @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser user) {
     UUID id = resolve(user);
     if (id == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     var balance = ledger.getBalance(id);
-    return ResponseEntity.ok(new CreditBalanceResponse(balance.balance(), 2, CreditLedgerPort.MINIMUM_STAKE, "credits-v1"));
+    return ResponseEntity.ok(
+        new CreditBalanceResponse(
+            balance.balance(), 2, CreditLedgerPort.MINIMUM_STAKE, "credits-v1"));
   }
+
   private UUID resolve(OidcUser user) {
     if (user == null || user.getIssuer() == null || user.getSubject() == null) return null;
     return identities.findIdentityId(user.getIssuer().toString(), user.getSubject()).orElse(null);

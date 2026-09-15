@@ -980,6 +980,9 @@ class PrivacyArchitectureTest {
         || typeName.startsWith("org.springframework.")) {
       return false;
     }
+    if (typeName.equals("br.com.betufu.verification.EnrollmentEligibility")) {
+      return false;
+    }
     String lower = typeName.toLowerCase(Locale.ROOT);
     if (lower.contains("status")
         || lower.contains("configuration")

@@ -10,9 +10,12 @@ import br.com.betufu.betting.internal.PredictionRepository;
 import br.com.betufu.betting.internal.PredictionService;
 import br.com.betufu.ledger.CreditBalance;
 import br.com.betufu.ledger.CreditLedgerPort;
+import br.com.betufu.ledger.InsufficientCreditException;
 import br.com.betufu.ledger.internal.CreditLedgerRepository;
 import br.com.betufu.ledger.internal.CreditLedgerService;
 import br.com.betufu.odds.OddsForPredictionPort;
+import br.com.betufu.platform.api.ApiErrorCode;
+import br.com.betufu.platform.api.ApiProblemException;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -39,16 +42,11 @@ class PredictionAcceptanceIT {
       DockerImageName.parse(
               "docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636")
           .asCompatibleSubstituteFor("postgres");
-  private static final UUID IDENTITY =
-      UUID.fromString("11111111-1111-1111-1111-111111111111");
-  private static final UUID MARKET =
-      UUID.fromString("22222222-2222-2222-2222-222222222222");
-  private static final UUID VERSION =
-      UUID.fromString("33333333-3333-3333-3333-333333333333");
-  private static final UUID PUBLICATION =
-      UUID.fromString("44444444-4444-4444-4444-444444444444");
-  private static final UUID COMPETITION =
-      UUID.fromString("55555555-5555-5555-5555-555555555555");
+  private static final UUID IDENTITY = UUID.fromString("11111111-1111-1111-1111-111111111111");
+  private static final UUID MARKET = UUID.fromString("22222222-2222-2222-2222-222222222222");
+  private static final UUID VERSION = UUID.fromString("33333333-3333-3333-3333-333333333333");
+  private static final UUID PUBLICATION = UUID.fromString("44444444-4444-4444-4444-444444444444");
+  private static final UUID COMPETITION = UUID.fromString("55555555-5555-5555-5555-555555555555");
   private static final Instant NOW = Instant.parse("2026-09-13T12:00:00Z");
 
   @Container
@@ -127,8 +125,9 @@ class PredictionAcceptanceIT {
     service.accept(IDENTITY, command("10.00", "same-key"));
 
     assertThatThrownBy(() -> service.accept(IDENTITY, command("11.00", "same-key")))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessage("idempotency key conflict");
+        .isInstanceOfSatisfying(
+            ApiProblemException.class,
+            problem -> assertThat(problem.errorCode()).isEqualTo(ApiErrorCode.PREDICTION_CONFLICT));
     assertThat(count("prediction")).isEqualTo(1);
     assertThat(debitCount()).isEqualTo(1);
     assertThat(ledger.getBalance(IDENTITY).balance()).isEqualByComparingTo("990.00");
@@ -161,13 +160,7 @@ class PredictionAcceptanceIT {
     assertRejected(
         snapshot("OPEN", NOW.plusSeconds(3600)),
         new PredictionAcceptancePort.SubmitPrediction(
-            MARKET,
-            VERSION,
-            PUBLICATION,
-            "other-rule",
-            "HOME",
-            new BigDecimal("10.00"),
-            "rule"));
+            MARKET, VERSION, PUBLICATION, "other-rule", "HOME", new BigDecimal("10.00"), "rule"));
     assertRejected(
         snapshot("OPEN", NOW.plusSeconds(3600)),
         new PredictionAcceptancePort.SubmitPrediction(
@@ -205,10 +198,7 @@ class PredictionAcceptanceIT {
     Mockito.when(failingLedger.debit(eq(IDENTITY), any(BigDecimal.class), any(UUID.class)))
         .thenThrow(new IllegalStateException("simulated ledger failure"));
     PredictionService service =
-        service(
-            id -> snapshot("OPEN", NOW.plusSeconds(3600)),
-            eligiblePolicy(),
-            failingLedger);
+        service(id -> snapshot("OPEN", NOW.plusSeconds(3600)), eligiblePolicy(), failingLedger);
 
     assertThatThrownBy(() -> service.accept(IDENTITY, command("10.00", "rollback")))
         .isInstanceOf(IllegalStateException.class)
@@ -217,11 +207,31 @@ class PredictionAcceptanceIT {
     assertThat(count("prediction_selection")).isZero();
   }
 
+  @Test
+  void mapsOnlyTypedInsufficientCreditToPredictionConflictAndRollsBack() {
+    CreditLedgerPort insufficientLedger = Mockito.mock(CreditLedgerPort.class);
+    Mockito.when(insufficientLedger.getBalance(IDENTITY))
+        .thenReturn(new CreditBalance(IDENTITY, new BigDecimal("1000.00")));
+    Mockito.when(insufficientLedger.debit(eq(IDENTITY), any(BigDecimal.class), any(UUID.class)))
+        .thenThrow(new InsufficientCreditException());
+    PredictionService service =
+        service(
+            id -> snapshot("OPEN", NOW.plusSeconds(3600)), eligiblePolicy(), insufficientLedger);
+
+    assertThatThrownBy(() -> service.accept(IDENTITY, command("10.00", "insufficient")))
+        .isInstanceOfSatisfying(
+            ApiProblemException.class,
+            problem -> assertThat(problem.errorCode()).isEqualTo(ApiErrorCode.PREDICTION_CONFLICT));
+    assertThat(count("prediction")).isZero();
+    assertThat(count("prediction_selection")).isZero();
+  }
+
   private void assertRejected(
       OddsForPredictionPort.MarketSnapshot snapshot,
       PredictionAcceptancePort.SubmitPrediction command) {
     PredictionService service = service(id -> snapshot, eligiblePolicy(), ledger);
-    assertThatThrownBy(() -> service.accept(IDENTITY, command)).isInstanceOf(RuntimeException.class);
+    assertThatThrownBy(() -> service.accept(IDENTITY, command))
+        .isInstanceOf(RuntimeException.class);
   }
 
   private PredictionService service(
@@ -245,13 +255,7 @@ class PredictionAcceptanceIT {
 
   private static PredictionAcceptancePort.SubmitPrediction command(String stake, String key) {
     return new PredictionAcceptancePort.SubmitPrediction(
-        MARKET,
-        VERSION,
-        PUBLICATION,
-        "elo-davidson-v1",
-        "HOME",
-        new BigDecimal(stake),
-        key);
+        MARKET, VERSION, PUBLICATION, "elo-davidson-v1", "HOME", new BigDecimal(stake), key);
   }
 
   private static OddsForPredictionPort.MarketSnapshot snapshot(String state, Instant deadline) {

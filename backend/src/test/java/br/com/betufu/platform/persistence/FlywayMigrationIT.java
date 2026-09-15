@@ -1640,7 +1640,11 @@ class FlywayMigrationIT {
         "credit:initial-grant:" + alreadyGranted);
 
     MigrateResult firstV32 =
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+        Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .load()
+            .migrate();
     assertThat(firstV32.migrationsExecuted).isEqualTo(1);
     assertGrant(newlyGranted);
     assertGrant(alreadyGranted);
@@ -1653,7 +1657,11 @@ class FlywayMigrationIT {
 
     jdbcTemplate.update("DELETE FROM public.flyway_schema_history WHERE version = '32'");
     MigrateResult replayedV32 =
-        Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+        Flyway.configure()
+            .dataSource(dataSource)
+            .locations("classpath:db/migration")
+            .load()
+            .migrate();
     assertThat(replayedV32.migrationsExecuted).isEqualTo(1);
     assertGrant(newlyGranted);
     assertGrant(alreadyGranted);

@@ -4,5 +4,7 @@ import java.math.BigDecimal;
 
 public final class CreditBalanceModels {
   private CreditBalanceModels() {}
-  public record CreditBalanceResponse(BigDecimal balance, int scale, BigDecimal minimumStake, String rulesVersion) {}
+
+  public record CreditBalanceResponse(
+      BigDecimal balance, int scale, BigDecimal minimumStake, String rulesVersion) {}
 }

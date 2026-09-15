@@ -10,17 +10,19 @@ import org.springframework.stereotype.Component;
 @Component
 @Profile("runtime | integrated")
 public class PredictionEligibilityPolicy {
-  private final EnrollmentEligibility enrollment;
+  private final EnrollmentEligibility eligibility;
   private final OperationalRoleQuery roles;
 
-  public PredictionEligibilityPolicy(EnrollmentEligibility enrollment, OperationalRoleQuery roles) {
-    this.enrollment = enrollment;
+  public PredictionEligibilityPolicy(
+      EnrollmentEligibility eligibility, OperationalRoleQuery roles) {
+    this.eligibility = eligibility;
     this.roles = roles;
   }
 
   public boolean isEligible(UUID identityId, UUID competitionId) {
-    if (!enrollment.hasActiveEnrollment(identityId)) return false;
+    if (!eligibility.hasActiveEnrollment(identityId)) return false;
     if (roles.hasRole(identityId, OperationalRole.ADMINISTRADOR_GERAL)) return false;
-    return competitionId == null || !roles.hasRole(identityId, OperationalRole.ADMINISTRADOR_COMPETICAO, competitionId);
+    return competitionId == null
+        || !roles.hasRole(identityId, OperationalRole.ADMINISTRADOR_COMPETICAO, competitionId);
   }
 }

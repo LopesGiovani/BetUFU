@@ -272,12 +272,14 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'AthleteLink',
     'AthleteMedia',
     'AthletePublicProfile',
+    'CreditLedger',
     'Diagnostic',
     'Enrollment',
     'Identity',
     'OperationalCapabilities',
     'OperationalPanel',
     'PasswordResetRecovery',
+    'Prediction',
     'Profile',
     'Role',
     'Session',
@@ -295,6 +297,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'OddsPublic',
   ]);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('CreditBalanceResponse'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('AthleteMediaResponse'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('AthletePublicProfile'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('AthletePublicProfileUpdateRequest'), true);
@@ -347,6 +350,8 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicOddsHistory'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicOddsSummary'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('PublicOddsView'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('PredictionSubmitRequest'), true);
+  assert.equal(PUBLIC_GENERATOR_MODELS.includes('PredictionTicketResponse'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsRosterSnapshotForOdds'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('SportsCompetitionCreateRequest'), false);
   assert.equal(PUBLIC_GENERATOR_GLOBAL_PROPERTY.includes('SportsAthlete'), true);
@@ -371,14 +376,17 @@ test('manifesto aprovado identifica exatamente a arvore TypeScript versionada', 
   assert.equal(assertApprovedGeneratedManifest(manifest), true);
 });
 
-test('inventario ratificado inclui todos os outputs de odds e barrels atualizados', async () => {
+test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados', async () => {
   const generatedRoot = join(projectRoot, 'frontend', 'src', 'app', 'api', 'generated');
   const manifest = await readTreeManifest(generatedRoot);
   const oddsFiles = [
     'api/odds-market.service.ts',
     'api/odds-override.service.ts',
     'api/odds-public.service.ts',
+    'api/credit-ledger.service.ts',
+    'api/prediction.service.ts',
     'model/create-odds-market-request.ts',
+    'model/credit-balance-response.ts',
     'model/odds-lineage-references.ts',
     'model/odds-market-lifecycle-request.ts',
     'model/odds-market-state.ts',
@@ -390,10 +398,12 @@ test('inventario ratificado inclui todos os outputs de odds e barrels atualizado
     'model/public-odds-history.ts',
     'model/public-odds-summary.ts',
     'model/public-odds-view.ts',
+    'model/prediction-submit-request.ts',
+    'model/prediction-ticket-response.ts',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, '51E5582AEA63F066EE6D80E552663C70269BB8385EB53EA2D31716E37DAC3B92');
+  assert.equal(manifest.digest, 'C0669B03AE5EF1C86B897C4DFDEC4A8369AD8037BDECC0EEA9A1EDECB4B7A1BE');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,

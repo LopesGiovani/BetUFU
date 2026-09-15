@@ -49,10 +49,14 @@
       <div class="market-card__header">
         <p class="label">Publicacao vigente</p>
         <h2 id="current-heading">Odd atual</h2>
-        <p>Versao {{ market.currentPublicationId }} · publicada em <time [attr.datetime]="market.publishedAt">{{ market.publishedAtLabel }}</time></p>
+        <p>
+          Versao {{ market.marketVersionId }} · publicada em
+          <time [attr.datetime]="market.publishedAt">{{ market.publishedAtLabel }}</time> · fecha em
+          <time [attr.datetime]="market.closeDeadline">{{ market.closeDeadlineLabel }}</time>
+        </p>
       </div>
       <div class="selections">
-        @for (selection of market.selections; track selection.label) {
+        @for (selection of market.selections; track selection.code) {
           <article class="selection selection--current">
             <span class="selection__name">{{ selection.label }}</span>
             <strong class="selection__odd">{{ formatOdd(selection.odd) }}</strong>
@@ -69,9 +73,11 @@
 
     <app-public-market-bet-ticket
       [marketId]="market.marketId"
-      [marketVersionId]="market.currentPublicationId"
+      [marketVersionId]="market.marketVersionId"
       [publicationId]="market.currentPublicationId"
-      [ruleVersion]="'odds-v1'"
+      [ruleVersion]="market.ruleVersion"
+      [closeDeadline]="market.closeDeadline"
+      [marketState]="market.state"
       [selections]="market.selections"
     />
 

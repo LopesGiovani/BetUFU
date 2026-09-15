@@ -17,7 +17,9 @@ public class PredictionRepository {
       "prediction_id, market_id, market_version_id, publication_id, selection, stake, accepted_odds, potential_return, net_profit, rule_version, close_deadline, state, accepted_at";
   private final JdbcTemplate jdbc;
 
-  public PredictionRepository(JdbcTemplate jdbc) { this.jdbc = jdbc; }
+  public PredictionRepository(JdbcTemplate jdbc) {
+    this.jdbc = jdbc;
+  }
 
   public Optional<PredictionTicket> findByKey(UUID identityId, String key) {
     return findReceiptByKey(identityId, key).map(StoredPrediction::ticket);
@@ -98,7 +100,20 @@ public class PredictionRepository {
   }
 
   private static PredictionTicket ticket(java.sql.ResultSet rs) throws java.sql.SQLException {
-    return new PredictionTicket(rs.getObject("prediction_id", UUID.class), rs.getObject("market_id", UUID.class), rs.getObject("market_version_id", UUID.class), rs.getObject("publication_id", UUID.class), rs.getString("selection"), rs.getBigDecimal("stake"), rs.getBigDecimal("accepted_odds"), rs.getBigDecimal("potential_return"), rs.getBigDecimal("net_profit"), rs.getString("rule_version"), rs.getTimestamp("close_deadline").toInstant(), rs.getString("state"), rs.getTimestamp("accepted_at").toInstant());
+    return new PredictionTicket(
+        rs.getObject("prediction_id", UUID.class),
+        rs.getObject("market_id", UUID.class),
+        rs.getObject("market_version_id", UUID.class),
+        rs.getObject("publication_id", UUID.class),
+        rs.getString("selection"),
+        rs.getBigDecimal("stake"),
+        rs.getBigDecimal("accepted_odds"),
+        rs.getBigDecimal("potential_return"),
+        rs.getBigDecimal("net_profit"),
+        rs.getString("rule_version"),
+        rs.getTimestamp("close_deadline").toInstant(),
+        rs.getString("state"),
+        rs.getTimestamp("accepted_at").toInstant());
   }
 
   public record StoredPrediction(PredictionTicket ticket, String payloadDigest) {}

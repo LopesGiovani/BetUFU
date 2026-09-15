@@ -18,9 +18,11 @@ import { PublicMarketBetTicketComponent } from './public-market-bet-ticket.compo
   styles: [
     `
       :host { display: block; min-width: 0; background: var(--bt-canvas, #120b12); color: var(--bt-text, #fff7f4); }
-      .market-page { width: min(100% - 32px, 1120px); margin: 0 auto; padding: 48px 0 64px; }
+      .market-page { width: min(100% - 32px, 1120px); min-width: 0; margin: 0 auto; padding: 48px 0 64px; }
+      app-public-market-bet-ticket { display: block; min-width: 0; max-width: 100%; }
       .market-topline, .market-meta, .market-actions, .explanation-head, .history-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
       .market-topline { margin-bottom: 32px; flex-wrap: wrap; }
+      .market-topline > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
       .back-link { color: var(--bt-text-muted, #d8c4ca); text-decoration: underline; text-underline-offset: 4px; }
       .eyebrow, .label { color: var(--bt-signal-soft, #ff9ca0); font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
       h1, h2, h3, p { margin-top: 0; }

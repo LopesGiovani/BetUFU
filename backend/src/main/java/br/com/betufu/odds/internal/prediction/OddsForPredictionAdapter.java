@@ -93,9 +93,7 @@ public class OddsForPredictionAdapter implements OddsForPredictionPort {
                     rs.getBigDecimal("published_odds")),
             publicationId);
     boolean valid =
-        (stored.size() == 2
-                && stored.get(0).matches(1, "HOME")
-                && stored.get(1).matches(2, "AWAY"))
+        (stored.size() == 2 && stored.get(0).matches(1, "HOME") && stored.get(1).matches(2, "AWAY"))
             || (stored.size() == 3
                 && stored.get(0).matches(1, "HOME")
                 && stored.get(1).matches(2, "DRAW")
@@ -129,8 +127,7 @@ public class OddsForPredictionAdapter implements OddsForPredictionPort {
       String state,
       Instant closeDeadline) {}
 
-  private record PublicationCandidate(
-      UUID publicationId, String algorithmVersion, boolean cycle) {}
+  private record PublicationCandidate(UUID publicationId, String algorithmVersion, boolean cycle) {}
 
   private record StoredSelection(int selectionNo, String key, BigDecimal odds) {
     private boolean matches(int expectedNo, String expectedKey) {
