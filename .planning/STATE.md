@@ -1,21 +1,53 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: 5
-current_phase_name: Créditos Virtuais e Palpites Protegidos
+current_phase: 6
+current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: planning
-stopped_at: Phase 5 gap closure Plan 05-07 complete; Plan 05-05 final certification/UAT remains pending
-last_updated: "2026-09-13T21:37:04.3150194-03:00"
-last_activity: 2026-09-13
-last_activity_desc: Plan 05-07 complete with retroactive grants and atomic prediction acceptance
-state_head: f8d9510e5af2c5dc43df9d5a732c94f4da9378ba
+stopped_at: Phase 5 complete after approved checkpoint 05-05/T3; Phase 6 planning is next
+last_updated: "2026-09-14T22:07:57-03:00"
+last_activity: 2026-09-14
+last_activity_desc: Phase 5 final snapshot and human checkpoint 05-05/T3 approved
+state_head: 82afb96728c2a45d2c3f4232c080e3a122a46138
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 119
-  completed_plans: 114
+  completed_plans: 115
 milestone_name: milestone
 ---
+
+## Phase 5 final UAT approval - 2026-09-14
+
+- The responsible developer approved the frozen snapshot at human checkpoint
+  `05-05/T3` after the independent read-only review returned `PASS` with no
+  functional, architectural or documentary findings.
+- Phase 5 is complete at 7/7 plans. Its 26 assigned requirements are satisfied
+  by the evidence recorded in `05-VALIDATION.md` and `05-VERIFICATION.md`.
+- The next product step is interactive planning for Phase 6. No stage, commit,
+  integration, cleanup or push is authorized by this approval.
+
+## Phase 5 / Plan 05-05 automated recertification - 2026-09-14
+
+- Repository Maven lifecycle is green after applying the configured Google Java
+  Format rules to the 33 reported Java files: Surefire 327/327 and Failsafe
+  534/534, total 861/861, with no failures, errors or skipped tests.
+- The public odds projection now follows only the active version lineage from
+  `current_version_id`, ignores divergent branches and fails closed on cycles or
+  multiple publications at the nearest ancestral depth. The focused suite is
+  green at 88/88 after both new regression tests failed against the old query.
+- Angular is green with 384/384 tests across 62 files, lint and production build.
+  An initial unrelated timeout produced 383/384; the affected spec passed 3/3
+  alone and the clean aggregate repetition passed 384/384. The former fatal
+  8 kB style budgets remain below the error threshold.
+- Node aggregate is green at 747/747; OpenAPI generator tests are 73/73 and the
+  generated client anti-drift check passes.
+- Playwright is green at 14/14 across Chromium and Firefox, desktop and 320 px.
+- Seven discriminating negative mutations were rejected and the protected
+  migrations plus `PredictionService` were restored byte-for-byte.
+- All automated repository gates are satisfied, and human checkpoint
+  `05-05/T3` was approved after the corrected snapshot received independent
+  read-only review `PASS`.
 
 ## Phase 5 / Plan 05-07 closeout - 2026-09-13
 
@@ -121,12 +153,11 @@ milestone_name: milestone
 
 ## Phase 5 / Plan 05-05 closeout - 2026-09-13
 
-- Backend certification, negative harness, Angular full suite, and lint passed;
-  exact command counts are recorded in `05-VALIDATION.md`.
-- OpenAPI generator check is BLOCKED by `GENERATOR_FAILED`; Playwright is BLOCKED
-  by a missing Chromium executable and no running app server for Firefox.
-- Hashes and HEAD snapshot are recorded in `05-VERIFICATION.md`.
-- Human checkpoint `05-05/T3` remains pending; Phase 5 is not marked complete.
+- This initial closeout snapshot was superseded by the 2026-09-14
+  recertification, which resolved the OpenAPI, browser, formatting, build and
+  public-odds lineage blockers.
+- The corrected snapshot passed all automated gates and independent review;
+  human checkpoint `05-05/T3` was subsequently approved.
 
 ## Phase 5 planning — 2026-09-13
 
@@ -377,14 +408,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Concluir a certificação final e o UAT pendente do Plano 05-05.
+**Current focus:** Preparar interativamente a Fase 6 sem antecipar as políticas de liquidação ainda pendentes.
 
 ## Current Position
 
-Phase: 5 of 8 (Créditos Virtuais e Palpites Protegidos)
-Plan: 6 of 7 complete; 05-05 final certification/UAT pending
-Status: Gap corrections complete; final Phase 5 gate pending
-Last activity: 2026-09-13 — Plan 05-07 completed with V32 and atomic prediction acceptance
+Phase: 6 of 8 (Resultados Confirmados, Rankings e Grupos)
+Plan: TBD; planning not started
+Status: Phase 5 complete; Phase 6 planning is next
+Last activity: 2026-09-14 — Phase 5 snapshot and checkpoint 05-05/T3 approved
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -454,7 +485,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído localmente); Fase 4: 0/19 planos executados (snapshot aprovado)
+Progress: Fase 5: 7/7 planos (100%; snapshot e UAT aprovados); Fase 6: planejamento pendente
 
 ## Métricas de desempenho
 
@@ -597,12 +628,23 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 - `END_SESSION_UNAVAILABLE` conflacia principal inesperado, registro inexistente e discovery sem `end_session_endpoint`; fail-closed e sanitizado, mas um operador não distingue os três.
 - Snapshot de sessão corrompido faz `GET /api/v1/session` responder 500 em vez de contrato não autenticado. Deliberado: uma leitura pura não deve encerrar sessão como efeito colateral.
 
-### Bloqueios e pontos de atenção
+### Registro histórico de bloqueios e pontos de atenção
 
- - **Fase 3 encerrada localmente:** o 03-17 foi implementado, certificado, integrado, limpo e publicado. Os gaps 03-21 a 03-27 também foram concluídos, integrados e limpos localmente. A Fase 4 possui snapshot documental aprovado, mas a execução aguarda os 9 checkpoints humanos registrados em `04-VALIDATION.md`.
-  - **Fase 4 / 04-01:** o validador focal passou T1 em `20/20`; o T2 continua fail-closed em `3` verificacoes e `1` erro. O contrato v2 separa autoridade da fonte, elegibilidade do dataset para calibracao e elegibilidade do dataset para producao; a captura LAUFU permanece exploratoria, `calibrationEligible=false` nesta captura e `productionEligible=false` (D-120). O T2 valida invariantes compartilhadas, semantica/SHA-256 das sete fixtures e linhagem temporal derivavel, sem chamar as assercoes especificas do T1; aceita apenas fonte futura versionada em `scripts/data/`. `approval.digest` e um token humano de checkpoint, nao um hash; o digest canonico do bundle continua aberto.
+Os itens abaixo preservam contexto de sessões anteriores. Quando uma fase já
+consta como concluída no frontmatter e no roadmap atual, seu bloqueio histórico
+não é uma instrução operacional vigente.
 
-- Na execução da Phase 2, os checkpoints sobre validade, ciclo de vida da matrícula/HMAC e matrícula reemitida permanecem bloqueantes; nenhuma decisão foi tomada implicitamente no planejamento.
+ - **Fases 3 e 4 encerradas:** o 03-17 e os gaps 03-21 a 03-27 foram concluídos;
+   os nove checkpoints antes pendentes da Fase 4 foram posteriormente fechados,
+   e a fase terminou em 21/21 planos antes do início da Fase 5.
+  - **Fase 4 / 04-01 — registro histórico:** o resultado fail-closed inicial
+    preservou a separação entre fonte, calibração e produção. Os gates
+    posteriores da Fase 4 foram concluídos sem promover a captura exploratória
+    LAUFU como elegível para calibração ou produção.
+
+- **Fase 2 — registro histórico resolvido:** os checkpoints sobre validade,
+  ciclo de vida da matrícula/HMAC e matrícula reemitida foram fechados durante
+  a execução e certificação da fase; nenhuma decisão foi tomada implicitamente.
 - ~~Antes do planejamento da Phase 3: esportes e categorias exatos do piloto e tabelas de fontes confiáveis precisam ser confirmados.~~ **Resolvido em 2026-08-26:** a Fase 3 adotou catálogo esportivo genérico, registrou as modalidades conhecidas apenas como dados iniciais e definiu página oficial, regulamento e boletins oficiais como fontes autoritativas; detalhes de 2026 serão dados operacionais, não bloqueio arquitetural.
 - Durante a execução das Phases 4–6: políticas em aberto sobre odds, créditos, correções de liquidação e ranking com verificação expirada continuam exigindo decisão explícita ou configuração; na Fase 4, os gates estão discriminados em `04-VALIDATION.md`.
 - Antes do lançamento público: escolha de nuvem/CI e fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados.
@@ -621,9 +663,9 @@ Progress: [############] Fase 3: 27/27 planos (100%; gap-closure concluído loca
 
 ## Session Continuity
 
-Last session: 2026-09-13T02:32:02.741Z
-Stopped at: Phase 5 research and five execution plans drafted
-Resume file: .planning/phases/05-cr-ditos-virtuais-e-palpites-protegidos/05-CONTEXT.md
+Last session: 2026-09-14T22:07:57-03:00
+Stopped at: Phase 5 complete after approved checkpoint 05-05/T3; Phase 6 planning is next
+Resume file: .planning/ROADMAP.md
 
 ## Accumulated Context
 

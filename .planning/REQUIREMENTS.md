@@ -21,7 +21,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **VERI-06**: A matrícula normalizada gera um HMAC único para impedir duplicidade, sem armazenar o número original de forma consultável.
 - [ ] **VERI-07**: Uma matrícula pode estar associada a somente uma conta BETUFU; conflito ou colisão é bloqueado e auditado, sem criar segunda associação.
 - [ ] **VERI-09**: Somente conta com matrícula UFU registrada e única pode apostar em eventos internos e integrar o ranking UFU.
-- [ ] **VERI-10**: Revalidar o vínculo não concede novamente os créditos iniciais já concedidos à mesma conta elegível.
+- [x] **VERI-10**: Revalidar o vínculo não concede novamente os créditos iniciais já concedidos à mesma conta elegível.
 - [ ] **VERI-11**: Nenhuma etapa de cadastro ou verificação exige login, senha, conta ou SSO oficial da UFU.
 
 ### Competições, Equipes e Elencos
@@ -50,24 +50,24 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **OPER-03**: Administrador geral gerencia papéis e configurações da plataforma e não pode registrar apostas em nenhum evento.
 - [ ] **OPER-04**: Moderador pode atuar nos chats e denúncias sem receber acesso a comprovantes, saldos ou funções esportivas que não lhe pertençam.
 - [ ] **OPER-06**: Painel operacional apresenta pendências, falhas e estados necessários para manter a edição piloto.
-- [ ] **INTE-01**: No MVP, vínculo vigente de atleta não bloqueia apostas, inclusive em evento ou equipe de que participe; a relação atleta–equipe–evento permanece autoritativa para permitir reavaliação futura da política.
-- [ ] **INTE-02**: Administrador de competição não pode apostar em nenhum evento da competição atribuída, ainda que não tenha criado a partida específica.
-- [ ] **INTE-03**: Restrições vigentes de verificação, papel, escopo, estado do mercado e conflitos administrativos são validadas no servidor em toda tentativa de aposta; vínculo de atleta é permitido pela política do MVP.
-- [ ] **INTE-04**: Negação de elegibilidade informa motivo adequado ao usuário sem revelar dados privados ou regras exploráveis.
+- [x] **INTE-01**: No MVP, vínculo vigente de atleta não bloqueia apostas, inclusive em evento ou equipe de que participe; a relação atleta–equipe–evento permanece autoritativa para permitir reavaliação futura da política.
+- [x] **INTE-02**: Administrador de competição não pode apostar em nenhum evento da competição atribuída, ainda que não tenha criado a partida específica.
+- [x] **INTE-03**: Restrições vigentes de verificação, papel, escopo, estado do mercado e conflitos administrativos são validadas no servidor em toda tentativa de aposta; vínculo de atleta é permitido pela política do MVP.
+- [x] **INTE-04**: Negação de elegibilidade informa motivo adequado ao usuário sem revelar dados privados ou regras exploráveis.
 - [ ] **INTE-05**: Administrador autorizado pode suspender conta, partida, mercado ou canal sem apagar o histórico necessário à auditoria.
 
 ### Créditos Virtuais
 
-- [ ] **CRED-01**: Todo estudante que se torna elegível recebe exatamente a mesma concessão inicial de créditos, com valor configurável ainda a definir e lançamento auditável.
-- [ ] **CRED-02**: A concessão inicial ocorre no máximo uma vez por conta elegível, independentemente de expiração e revalidação posteriores.
-- [ ] **CRED-03**: O saldo persiste entre edições e competições e não sofre reset automático no MVP.
-- [ ] **CRED-04**: Créditos não possuem símbolo nem valor monetário e não podem ser comprados, vendidos, transferidos, sacados, convertidos ou trocados por prêmio econômico.
-- [ ] **CRED-05**: O MVP não oferece missões, recargas, bônus recorrentes, palpite de recuperação ou outra fonte de créditos além da concessão inicial, ganhos de apostas e correções legítimas.
-- [ ] **CRED-06**: Usuário com saldo abaixo do mínimo configurado, inclusive saldo zero, fica impedido de apostar e pode permanecer assim por tempo indeterminado no MVP.
+- [x] **CRED-01**: Todo estudante que se torna elegível recebe exatamente a mesma concessão inicial de créditos, com valor configurável ainda a definir e lançamento auditável.
+- [x] **CRED-02**: A concessão inicial ocorre no máximo uma vez por conta elegível, independentemente de expiração e revalidação posteriores.
+- [x] **CRED-03**: O saldo persiste entre edições e competições e não sofre reset automático no MVP.
+- [x] **CRED-04**: Créditos não possuem símbolo nem valor monetário e não podem ser comprados, vendidos, transferidos, sacados, convertidos ou trocados por prêmio econômico.
+- [x] **CRED-05**: O MVP não oferece missões, recargas, bônus recorrentes, palpite de recuperação ou outra fonte de créditos além da concessão inicial, ganhos de apostas e correções legítimas.
+- [x] **CRED-06**: Usuário com saldo abaixo do mínimo configurado, inclusive saldo zero, fica impedido de apostar e pode permanecer assim por tempo indeterminado no MVP.
 - [ ] **CRED-07**: Usuário pode consultar saldo e histórico explicável de concessões, débitos, pagamentos, devoluções, reversões e correções.
-- [ ] **CRED-08**: O sistema rejeita aposta acima do saldo disponível e nunca permite saldo negativo, inclusive sob requisições concorrentes e retries.
+- [x] **CRED-08**: O sistema rejeita aposta acima do saldo disponível e nunca permite saldo negativo, inclusive sob requisições concorrentes e retries.
 - [ ] **CRED-09**: Ajuste administrativo serve somente para correção compensatória, exige permissão, motivo e fluxo de aprovação ainda a definir e não pode funcionar como reposição discricionária de saldo.
-- [ ] **CRED-10**: Valor mínimo, valor máximo, precisão decimal, fórmula de pagamento, inclusão ou não da stake no retorno e arredondamento são regras determinísticas e versionadas que serão definidas antes da fase de implementação.
+- [x] **CRED-10**: Valor mínimo, valor máximo, precisão decimal, fórmula de pagamento, inclusão ou não da stake no retorno e arredondamento são regras determinísticas e versionadas que serão definidas antes da fase de implementação.
 
 ### Mercados e Odds
 
@@ -84,19 +84,19 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [x] **ODDS-11**: Override excepcional exige proposta com motivo e evidência, comparação entre odd do modelo e proposta, probabilidades e delta visível.
 - [x] **ODDS-12**: Override exige aprovação por segundo administrador distinto e cria nova versão imutável e auditada. MFA é opcional no MVP e não condiciona a aprovação.
 - [x] **ODDS-13**: Override pode ocorrer durante suspensão administrativa, mas não após o encerramento definitivo do mercado por prazo ou estado CLOSED/LOCKED, e nunca altera a odd de aposta já aceita.
-- [ ] **ODDS-14**: Mudança de versão antes do envio invalida o bilhete aberto e exige reconfirmação explícita do usuário.
+- [x] **ODDS-14**: Mudança de versão antes do envio invalida o bilhete aberto e exige reconfirmação explícita do usuário.
 - [ ] **ODDS-15**: Somente resultado confirmado e vigente alimenta o rating; correção confirmada recompõe ratings e odds futuras de forma versionada sem alterar odds já aceitas.
 
 ### Apostas Pré-jogo
 
-- [ ] **PRED-01**: Usuário verificado e elegível pode escolher um resultado de mercado e informar créditos dentro dos limites configurados antes do fechamento.
-- [ ] **PRED-02**: Cada usuário pode ter no máximo uma seleção aceita por mercado e não pode apostar em resultados opostos do mesmo mercado.
-- [ ] **PRED-03**: Bilhete mostra partida, seleção, créditos, versão da odd, versão da regra do mercado, retorno virtual potencial e horário de fechamento.
-- [ ] **PRED-04**: No envio, o servidor revalida vínculo UFU, conflitos, mercado, prazo, versão da odd, limites e saldo.
-- [ ] **PRED-05**: Aceitação registra aposta, débito no ledger e referências imutáveis às versões da odd e da regra do mercado em uma única operação atômica e idempotente.
-- [ ] **PRED-06**: Aposta aceita não pode ser editada nem cancelada pelo usuário e não é modificada por versões futuras da odd.
-- [ ] **PRED-07**: Seleções individuais e distribuições agregadas permanecem ocultas de outros usuários até o fechamento do mercado.
-- [ ] **PRED-08**: O servidor fecha o mercado pelo horário canônico configurado antes da partida e rejeita qualquer tentativa posterior.
+- [x] **PRED-01**: Usuário verificado e elegível pode escolher um resultado de mercado e informar créditos dentro dos limites configurados antes do fechamento.
+- [x] **PRED-02**: Cada usuário pode ter no máximo uma seleção aceita por mercado e não pode apostar em resultados opostos do mesmo mercado.
+- [x] **PRED-03**: Bilhete mostra partida, seleção, créditos, versão da odd, versão da regra do mercado, retorno virtual potencial e horário de fechamento.
+- [x] **PRED-04**: No envio, o servidor revalida vínculo UFU, conflitos, mercado, prazo, versão da odd, limites e saldo.
+- [x] **PRED-05**: Aceitação registra aposta, débito no ledger e referências imutáveis às versões da odd e da regra do mercado em uma única operação atômica e idempotente.
+- [x] **PRED-06**: Aposta aceita não pode ser editada nem cancelada pelo usuário e não é modificada por versões futuras da odd.
+- [x] **PRED-07**: Seleções individuais e distribuições agregadas permanecem ocultas de outros usuários até o fechamento do mercado.
+- [x] **PRED-08**: O servidor fecha o mercado pelo horário canônico configurado antes da partida e rejeita qualquer tentativa posterior.
 - [ ] **PRED-09**: Usuário pode consultar histórico com seleção, créditos, odd aceita, retorno potencial e estado pendente, ganho, perdido, devolvido ou anulado.
 
 ### Resultados e Liquidação
@@ -152,9 +152,9 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **IDEN-05**: Comando administrativo sensível exige papel vigente e fica auditado; concessão ou revogação de papel invalida as sessões da identidade afetada. MFA é opcional no MVP e não condiciona nenhum comando.
 - [ ] **DATA-01**: PostgreSQL 18 é a fonte oficial de saldo, elegibilidade, odds, aposta, resultado, liquidação, ranking e chat.
 - [ ] **DATA-02**: Toda alteração de schema ocorre por migration Flyway versionada e validada.
-- [ ] **DATA-03**: Comando crítico valida e bloqueia mercado, versão da odd, elegibilidade, conflito e saldo autoritativos dentro da mesma transação PostgreSQL.
-- [ ] **DATA-04**: Nenhuma alteração de saldo ocorre sem lançamento correspondente no ledger, e registros históricos não podem ser sobrescritos ou apagados.
-- [ ] **DATA-05**: Constraints e chaves de negócio impedem concessão inicial, seleção por usuário/mercado, lançamento de ledger, pagamento, devolução e liquidação duplicados, inclusive sob concorrência e retries.
+- [x] **DATA-03**: Comando crítico valida e bloqueia mercado, versão da odd, elegibilidade, conflito e saldo autoritativos dentro da mesma transação PostgreSQL.
+- [x] **DATA-04**: Nenhuma alteração de saldo ocorre sem lançamento correspondente no ledger, e registros históricos não podem ser sobrescritos ou apagados.
+- [x] **DATA-05**: Constraints e chaves de negócio impedem concessão inicial, seleção por usuário/mercado, lançamento de ledger, pagamento, devolução e liquidação duplicados, inclusive sob concorrência e retries.
 - [ ] **DATA-06**: Redis permanece auxiliar; a plataforma possui contrato S3 desacoplado para objetos que precisem de armazenamento, e BETUFU e Keycloak usam bancos e usuários separados. Comprovantes documentais, se reintroduzidos na v2, exigem uso privado conforme `PRIV-02`.
 - [ ] **PRIV-01**: Matrículas, HMACs, documentos, tokens, chaves e dados privados não aparecem em URLs, conteúdo público, telemetria ou logs operacionais comuns.
 - [ ] **PRIV-03**: Checklist de publicação verifica páginas, builds, imagens, documentos, metadados e histórico destinado a repositório público contra identificadores pessoais definidos e bloqueia exposição conhecida do fundador.
@@ -162,7 +162,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [ ] **PRIV-05**: Lançamento público depende de revisão jurídica e de fluxos testáveis para aviso, acesso, correção, oposição, exclusão ou pseudonimização e retenção por classe de dado, incluindo atleta sem conta, logs, ledger, auditoria e backups.
 - [ ] **API-01**: O backend publica REST JSON versionado em `/api/v1`, contrato OpenAPI e erros compatíveis com Problem Details.
 - [ ] **API-02**: O frontend consome cliente TypeScript gerado do OpenAPI e o pipeline detecta divergência de contrato.
-- [ ] **API-03**: Comando crítico usa idempotência persistente por ator, tipo e chave, vincula fingerprint do payload, repete a resposta original e rejeita reutilização concorrente com payload diferente.
+- [x] **API-03**: Comando crítico usa idempotência persistente por ator, tipo e chave, vincula fingerprint do payload, repete a resposta original e rejeita reutilização concorrente com payload diferente.
 - [ ] **RT-01**: WebSocket/STOMP respeita sessão, origem e autorização de domínio, e mensagens do chat são persistidas no PostgreSQL.
 - [ ] **AUDT-01**: Evento auditável registra ator, papel, alvo, ação, referências aos estados anterior e novo — incluindo o vínculo e a versão da chave quando aplicável, sem armazenar o HMAC da matrícula —, motivo, horário, correlation ID e chave de idempotência quando aplicável. No MVP, a trilha não registra MFA nem evidência documental, pois o MFA não governa autorização e a verificação documental não faz parte do escopo.
 - [ ] **AUDT-02**: Trilha de auditoria possui acesso restrito, proteção contra alteração e retenção definida sem armazenar segredos ou dados pessoais desnecessários.
@@ -304,32 +304,32 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | ODDS-11 | Phase 4 | Complete |
 | ODDS-12 | Phase 4 | Complete |
 | ODDS-13 | Phase 4 | Complete |
-| VERI-10 | Phase 5 | Pending |
-| CRED-01 | Phase 5 | Pending |
-| CRED-02 | Phase 5 | Pending |
-| CRED-03 | Phase 5 | Pending |
-| CRED-04 | Phase 5 | Pending |
-| CRED-05 | Phase 5 | Pending |
-| CRED-06 | Phase 5 | Pending |
-| CRED-08 | Phase 5 | Pending |
-| CRED-10 | Phase 5 | Pending |
-| ODDS-14 | Phase 5 | Pending |
-| PRED-01 | Phase 5 | Pending |
-| PRED-02 | Phase 5 | Pending |
-| PRED-03 | Phase 5 | Pending |
-| PRED-04 | Phase 5 | Pending |
-| PRED-05 | Phase 5 | Pending |
-| PRED-06 | Phase 5 | Pending |
-| PRED-07 | Phase 5 | Pending |
-| PRED-08 | Phase 5 | Pending |
-| INTE-01 | Phase 5 | Pending |
-| INTE-02 | Phase 5 | Pending |
-| INTE-03 | Phase 5 | Pending |
-| INTE-04 | Phase 5 | Pending |
-| DATA-03 | Phase 5 | Pending |
-| DATA-04 | Phase 5 | Pending |
-| DATA-05 | Phase 5 | Pending |
-| API-03 | Phase 5 | Pending |
+| VERI-10 | Phase 5 | Complete |
+| CRED-01 | Phase 5 | Complete |
+| CRED-02 | Phase 5 | Complete |
+| CRED-03 | Phase 5 | Complete |
+| CRED-04 | Phase 5 | Complete |
+| CRED-05 | Phase 5 | Complete |
+| CRED-06 | Phase 5 | Complete |
+| CRED-08 | Phase 5 | Complete |
+| CRED-10 | Phase 5 | Complete |
+| ODDS-14 | Phase 5 | Complete |
+| PRED-01 | Phase 5 | Complete |
+| PRED-02 | Phase 5 | Complete |
+| PRED-03 | Phase 5 | Complete |
+| PRED-04 | Phase 5 | Complete |
+| PRED-05 | Phase 5 | Complete |
+| PRED-06 | Phase 5 | Complete |
+| PRED-07 | Phase 5 | Complete |
+| PRED-08 | Phase 5 | Complete |
+| INTE-01 | Phase 5 | Complete |
+| INTE-02 | Phase 5 | Complete |
+| INTE-03 | Phase 5 | Complete |
+| INTE-04 | Phase 5 | Complete |
+| DATA-03 | Phase 5 | Complete |
+| DATA-04 | Phase 5 | Complete |
+| DATA-05 | Phase 5 | Complete |
+| API-03 | Phase 5 | Complete |
 | CRED-07 | Phase 6 | Pending |
 | CRED-09 | Phase 6 | Pending |
 | PRED-09 | Phase 6 | Pending |

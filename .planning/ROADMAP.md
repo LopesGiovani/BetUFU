@@ -15,7 +15,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - [x] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
 - [x] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar um catálogo genérico de competições e edições, começando pela Olimpíada Universitária UFU 2026 e detalhando inicialmente confrontos diretos.
 - [x] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
-- [ ] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
+- [x] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
 - [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
 - [ ] **Phase 7: Comunidade Moderada e Prontidão do Piloto** - Entregar chat seguro por partida e uma experiência responsiva, privada e operacionalmente pronta para o piloto público.
 
@@ -454,20 +454,21 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
   4. Um palpite enviado é imutável, seu débito e seus registros aceitos são gravados juntos, e palpites individuais ou agregados permanecem ocultos de outros usuários até o fechamento do mercado.
   5. Quando o preço muda antes do envio, o bilhete aberto é invalidado e o usuário precisa reconfirmar explicitamente a versão atualizada.
 
-**Plans**: 7 plans planned
+**Plans**: 7 plans complete
 
 - [x] 05-01-PLAN.md — Materializar ledger virtual imutável e concessão inicial idempotente.
 - [x] 05-02-PLAN.md — Registrar palpite pré-jogo com snapshot de odds, elegibilidade e débito atômico.
 - [x] 05-03-PLAN.md — Publicar contrato REST BFF e gerar cliente Angular anti-drift.
 - [x] 05-04-PLAN.md — Integrar bilhete próprio à página pública de odds conforme `05-UI-SPEC.md`.
-- [ ] 05-05-PLAN.md — Certificar concorrência, mutações negativas, privacidade, browsers e snapshot UAT.
+- [x] 05-05-PLAN.md — Certificar concorrência, mutações negativas, privacidade, browsers e snapshot UAT.
 - [x] 05-06-PLAN.md — Preservar vetores completos de odds e resolver o snapshot autoritativo pela linhagem.
 - [x] 05-07-PLAN.md — Corrigir concessão retroativa, idempotência canônica e aceite atômico do palpite.
 **UI hint**: yes
 
-Phase 5 gap-closure update (2026-09-13): plans 05-01 through 05-04, 05-06 and
-05-07 are complete. Plan 05-05 remains blocked on its final certification/UAT
-checkpoint and is the only outstanding Phase 5 plan.
+Phase 5 completion update (2026-09-14): all seven plans are complete. The final
+05-05 snapshot passed automated certification and independent read-only review;
+the responsible developer approved human checkpoint `05-05/T3`. Phase 6
+planning is the next step.
 
 ### Phase 6: Resultados Confirmados, Rankings e Grupos
 
@@ -516,6 +517,6 @@ checkpoint and is the only outstanding Phase 5 plan.
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; final post-gap snapshot approved | 2026-09-12 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
-| 5. Créditos Virtuais e Palpites Protegidos | 6/7 | Final certification/UAT pending | - |
+| 5. Créditos Virtuais e Palpites Protegidos | 7/7 | Complete; final snapshot approved | 2026-09-14 |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
