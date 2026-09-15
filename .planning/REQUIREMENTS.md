@@ -10,19 +10,19 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 ### Acesso e Perfis
 
 - [x] **AUTH-01**: Visitante pode consultar competições, agenda, partidas, equipes e resultados públicos sem criar conta.
-- [ ] **AUTH-02**: Pessoa pode criar uma conta pelo fluxo hospedado do Keycloak com e-mail e senha e completar o perfil BETUFU, sem que a aplicação receba ou persista a senha.
-- [ ] **AUTH-03**: Usuário pode confirmar o e-mail, entrar, permanecer autenticado entre acessos e encerrar a sessão.
-- [ ] **AUTH-04**: Usuário pode recuperar o acesso por um fluxo seguro de redefinição de senha.
-- [ ] **PROF-01**: Usuário pode editar o apelido dentro das regras públicas de perfil; a referência opcional reservada para favorito é completada pela Fase 3 em `SPRT-15`.
-- [ ] **PROF-02**: Perfil público básico exibe somente apelido, posição permitida e conquistas, sem revelar e-mail, matrícula, HMAC, comprovante ou identidade civil; favorito e extensão esportiva pertencem a `SPRT-15` e `SPRT-16`.
+- [x] **AUTH-02**: Pessoa pode criar uma conta pelo fluxo hospedado do Keycloak com e-mail e senha e completar o perfil BETUFU, sem que a aplicação receba ou persista a senha.
+- [x] **AUTH-03**: Usuário pode confirmar o e-mail, entrar, permanecer autenticado entre acessos e encerrar a sessão.
+- [x] **AUTH-04**: Usuário pode recuperar o acesso por um fluxo seguro de redefinição de senha.
+- [x] **PROF-01**: Usuário pode editar o apelido dentro das regras públicas de perfil; a referência opcional reservada para favorito é completada pela Fase 3 em `SPRT-15`.
+- [x] **PROF-02**: Perfil público básico exibe somente apelido, posição permitida e conquistas, sem revelar e-mail, matrícula, HMAC, comprovante ou identidade civil; favorito e extensão esportiva pertencem a `SPRT-15` e `SPRT-16`.
 
 ### Matrícula UFU
 
-- [ ] **VERI-06**: A matrícula normalizada gera um HMAC único para impedir duplicidade, sem armazenar o número original de forma consultável.
-- [ ] **VERI-07**: Uma matrícula pode estar associada a somente uma conta BETUFU; conflito ou colisão é bloqueado e auditado, sem criar segunda associação.
-- [ ] **VERI-09**: Somente conta com matrícula UFU registrada e única pode apostar em eventos internos e integrar o ranking UFU.
+- [x] **VERI-06**: A matrícula normalizada gera um HMAC único para impedir duplicidade, sem armazenar o número original de forma consultável.
+- [x] **VERI-07**: Uma matrícula pode estar associada a somente uma conta BETUFU; conflito ou colisão é bloqueado e auditado, sem criar segunda associação.
+- [x] **VERI-09**: Somente conta com matrícula UFU registrada e única pode apostar em eventos internos e integrar o ranking UFU.
 - [x] **VERI-10**: Revalidar o vínculo não concede novamente os créditos iniciais já concedidos à mesma conta elegível.
-- [ ] **VERI-11**: Nenhuma etapa de cadastro ou verificação exige login, senha, conta ou SSO oficial da UFU.
+- [x] **VERI-11**: Nenhuma etapa de cadastro ou verificação exige login, senha, conta ou SSO oficial da UFU.
 
 ### Competições, Equipes e Elencos
 
@@ -45,11 +45,11 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Papéis, Operação e Integridade
 
-- [ ] **OPER-01**: Administrador geral pode conceder e revogar separadamente os papéis de moderador e administrador de competição, sempre com escopo e auditoria. O papel de revisor de matrícula saiu do MVP junto com a verificação documental (ver `OPER-05` na v2).
-- [ ] **OPER-02**: Administrador de competição visualiza e opera somente competições atribuídas, salvo permissão superior explicitamente auditada.
-- [ ] **OPER-03**: Administrador geral gerencia papéis e configurações da plataforma e não pode registrar apostas em nenhum evento.
-- [ ] **OPER-04**: Moderador pode atuar nos chats e denúncias sem receber acesso a comprovantes, saldos ou funções esportivas que não lhe pertençam.
-- [ ] **OPER-06**: Painel operacional apresenta pendências, falhas e estados necessários para manter a edição piloto.
+- [x] **OPER-01**: Administrador geral pode conceder e revogar separadamente os papéis de moderador e administrador de competição, sempre com escopo e auditoria. O papel de revisor de matrícula saiu do MVP junto com a verificação documental (ver `OPER-05` na v2).
+- [x] **OPER-02**: Administrador de competição visualiza e opera somente competições atribuídas, salvo permissão superior explicitamente auditada.
+- [x] **OPER-03**: Administrador geral gerencia papéis e configurações da plataforma e não pode registrar apostas em nenhum evento.
+- [x] **OPER-04**: Moderador pode atuar nos chats e denúncias sem receber acesso a comprovantes, saldos ou funções esportivas que não lhe pertençam.
+- [x] **OPER-06**: Painel operacional apresenta pendências, falhas e estados necessários para manter a edição piloto.
 - [x] **INTE-01**: No MVP, vínculo vigente de atleta não bloqueia apostas, inclusive em evento ou equipe de que participe; a relação atleta–equipe–evento permanece autoritativa para permitir reavaliação futura da política.
 - [x] **INTE-02**: Administrador de competição não pode apostar em nenhum evento da competição atribuída, ainda que não tenha criado a partida específica.
 - [x] **INTE-03**: Restrições vigentes de verificação, papel, escopo, estado do mercado e conflitos administrativos são validadas no servidor em toda tentativa de aposta; vínculo de atleta é permitido pela política do MVP.
@@ -142,36 +142,37 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Arquitetura, Segurança e Qualidade
 
-- [ ] **ARCH-01**: O produto usa monorepo com `backend/`, `frontend/`, `infra/` e `docs/`, frontend Angular 22/TypeScript 6.0.x e backend Java 25/Spring Boot 4.1/Maven.
-- [ ] **ARCH-02**: O backend é um monólito modular Spring Modulith 2.1 com limites explícitos entre identidade, verificação, esportes, odds, apostas, ledger, liquidação, ranking, chat e auditoria.
-- [ ] **ARCH-03**: Testes automatizados impedem dependências não autorizadas entre módulos; microsserviços, Kafka e Kubernetes não integram o MVP.
-- [ ] **IDEN-01**: Keycloak administra autenticação, credenciais, recuperação, verificação de e-mail, sessões e MFA; a BETUFU administra perfil, papéis de domínio, vínculo UFU e elegibilidade.
-- [ ] **IDEN-02**: A aplicação correlaciona o par estável `(iss, sub)` do Keycloak ao usuário BETUFU e não usa e-mail como identificador imutável.
-- [ ] **IDEN-03**: Spring atua como BFF OIDC, mantém tokens e sessão no servidor e nunca exige que o frontend armazene access ou refresh token.
-- [ ] **IDEN-04**: Contrato de sessão BFF define TTL ocioso e absoluto, regeneração, logout e revogação, state, nonce, PKCE, política SameSite e CSRF inclusive no STOMP CONNECT.
-- [ ] **IDEN-05**: Comando administrativo sensível exige papel vigente e fica auditado; concessão ou revogação de papel invalida as sessões da identidade afetada. MFA é opcional no MVP e não condiciona nenhum comando.
-- [ ] **DATA-01**: PostgreSQL 18 é a fonte oficial de saldo, elegibilidade, odds, aposta, resultado, liquidação, ranking e chat.
-- [ ] **DATA-02**: Toda alteração de schema ocorre por migration Flyway versionada e validada.
+- [x] **ARCH-01**: O produto usa monorepo com `backend/`, `frontend/`, `infra/` e `docs/`, frontend Angular 22/TypeScript 6.0.x e backend Java 25/Spring Boot 4.1/Maven.
+- [x] **ARCH-02**: O backend é um monólito modular Spring Modulith 2.1 com limites explícitos entre identidade, verificação, esportes, odds, apostas, ledger, liquidação, ranking, chat e auditoria.
+- [x] **ARCH-03**: Testes automatizados impedem dependências não autorizadas entre módulos; microsserviços, Kafka e Kubernetes não integram o MVP.
+- [x] **IDEN-01**: Keycloak administra autenticação, credenciais, recuperação, verificação de e-mail, sessões e MFA; a BETUFU administra perfil, papéis de domínio, vínculo UFU e elegibilidade.
+- [x] **IDEN-02**: A aplicação correlaciona o par estável `(iss, sub)` do Keycloak ao usuário BETUFU e não usa e-mail como identificador imutável.
+- [x] **IDEN-03**: Spring atua como BFF OIDC, mantém tokens e sessão no servidor e nunca exige que o frontend armazene access ou refresh token.
+- [x] **IDEN-04**: Contrato de sessão BFF define TTL ocioso e absoluto, regeneração, logout e revogação, state, nonce, PKCE, política SameSite e CSRF inclusive no STOMP CONNECT.
+- [x] **IDEN-05**: Comando administrativo sensível exige papel vigente e fica auditado; concessão ou revogação de papel invalida as sessões da identidade afetada. MFA é opcional no MVP e não condiciona nenhum comando.
+- [x] **DATA-01**: PostgreSQL 18 é a fonte oficial de saldo, elegibilidade, odds, aposta, resultado, liquidação, ranking e chat.
+- [x] **DATA-02**: Toda alteração de schema ocorre por migration Flyway versionada e validada.
 - [x] **DATA-03**: Comando crítico valida e bloqueia mercado, versão da odd, elegibilidade, conflito e saldo autoritativos dentro da mesma transação PostgreSQL.
 - [x] **DATA-04**: Nenhuma alteração de saldo ocorre sem lançamento correspondente no ledger, e registros históricos não podem ser sobrescritos ou apagados.
 - [x] **DATA-05**: Constraints e chaves de negócio impedem concessão inicial, seleção por usuário/mercado, lançamento de ledger, pagamento, devolução e liquidação duplicados, inclusive sob concorrência e retries.
-- [ ] **DATA-06**: Redis permanece auxiliar; a plataforma possui contrato S3 desacoplado para objetos que precisem de armazenamento, e BETUFU e Keycloak usam bancos e usuários separados. Comprovantes documentais, se reintroduzidos na v2, exigem uso privado conforme `PRIV-02`.
-- [ ] **PRIV-01**: Matrículas, HMACs, documentos, tokens, chaves e dados privados não aparecem em URLs, conteúdo público, telemetria ou logs operacionais comuns.
+- [x] **DATA-06**: Redis permanece auxiliar; a plataforma possui contrato S3 desacoplado para objetos que precisem de armazenamento, e BETUFU e Keycloak usam bancos e usuários separados. Comprovantes documentais, se reintroduzidos na v2, exigem uso privado conforme `PRIV-02`.
+- [x] **PRIV-01**: Matrículas, HMACs, documentos, tokens, chaves e dados privados não aparecem em URLs, conteúdo público, telemetria ou logs operacionais comuns.
 - [ ] **PRIV-03**: Checklist de publicação verifica páginas, builds, imagens, documentos, metadados e histórico destinado a repositório público contra identificadores pessoais definidos e bloqueia exposição conhecida do fundador.
 - [ ] **PRIV-04**: Domínio, infraestrutura, e-mails e presença pública usam identidade institucional legítima, mantendo dados verdadeiros onde contratos e lei exigirem.
 - [ ] **PRIV-05**: Lançamento público depende de revisão jurídica e de fluxos testáveis para aviso, acesso, correção, oposição, exclusão ou pseudonimização e retenção por classe de dado, incluindo atleta sem conta, logs, ledger, auditoria e backups.
-- [ ] **API-01**: O backend publica REST JSON versionado em `/api/v1`, contrato OpenAPI e erros compatíveis com Problem Details.
-- [ ] **API-02**: O frontend consome cliente TypeScript gerado do OpenAPI e o pipeline detecta divergência de contrato.
+- [x] **API-01**: O backend publica REST JSON versionado em `/api/v1`, contrato OpenAPI e erros compatíveis com Problem Details.
+- [x] **API-02**: O frontend consome cliente TypeScript gerado do OpenAPI e o pipeline detecta divergência de contrato.
 - [x] **API-03**: Comando crítico usa idempotência persistente por ator, tipo e chave, vincula fingerprint do payload, repete a resposta original e rejeita reutilização concorrente com payload diferente.
 - [ ] **RT-01**: WebSocket/STOMP respeita sessão, origem e autorização de domínio, e mensagens do chat são persistidas no PostgreSQL.
-- [ ] **AUDT-01**: Evento auditável registra ator, papel, alvo, ação, referências aos estados anterior e novo — incluindo o vínculo e a versão da chave quando aplicável, sem armazenar o HMAC da matrícula —, motivo, horário, correlation ID e chave de idempotência quando aplicável. No MVP, a trilha não registra MFA nem evidência documental, pois o MFA não governa autorização e a verificação documental não faz parte do escopo.
-- [ ] **AUDT-02**: Trilha de auditoria possui acesso restrito, proteção contra alteração e retenção definida sem armazenar segredos ou dados pessoais desnecessários.
-- [ ] **OPS-01**: Desenvolvimento oferece dois modos reproduzíveis. No modo diário padrão, Docker Compose executa PostgreSQL, Redis, Keycloak, SeaweedFS como implementação S3 exclusivamente local e serviço de e-mail, enquanto Spring Boot e Angular rodam pelo terminal ou pela IDE. No perfil completo de validação, Spring também roda em contêiner e o Angular compilado é servido por Nginx. Ambos usam wrappers, versões de runtime e imagens aprovados e fixados antes da implementação ou implantação correspondente.
-- [ ] **OPS-02**: Desenvolvimento, homologação e produção possuem configurações separadas, e segredos nunca são versionados.
-- [ ] **OPS-03**: Aplicação fornece health checks, logs estruturados, correlation ID e métricas sem dados sensíveis.
+- [x] **AUDT-01**: Evento auditável registra ator, papel, alvo, ação, referências aos estados anterior e novo — incluindo o vínculo e a versão da chave quando aplicável, sem armazenar o HMAC da matrícula —, motivo, horário, correlation ID e chave de idempotência quando aplicável. No MVP, a trilha não registra MFA nem evidência documental, pois o MFA não governa autorização e a verificação documental não faz parte do escopo.
+- [x] **AUDT-02**: Trilha de auditoria possui acesso restrito, proteção contra alteração e retenção definida sem armazenar segredos ou dados pessoais desnecessários.
+- [x] **OPS-01**: Desenvolvimento oferece dois modos reproduzíveis. No modo diário padrão, Docker Compose executa PostgreSQL, Redis, Keycloak, SeaweedFS como implementação S3 exclusivamente local e serviço de e-mail, enquanto Spring Boot e Angular rodam pelo terminal ou pela IDE. No perfil completo de validação, Spring também roda em contêiner e o Angular compilado é servido por Nginx. Ambos usam wrappers, versões de runtime e imagens aprovados e fixados antes da implementação ou implantação correspondente.
+- [x] **OPS-02**: Desenvolvimento, homologação e produção possuem configurações separadas, e segredos nunca são versionados.
+- [x] **OPS-03**: Aplicação fornece health checks, logs estruturados, correlation ID e métricas sem dados sensíveis.
+- [x] **DIAG-01**: O diagnóstico do backend publica somente os estados `UP`, `DEGRADED` e `DOWN`, em paridade com o contrato público, preservando agregação, probes, componentes, ordem, autorização, profiles e rota existentes.
 - [ ] **OPS-04**: Backups de dados BETUFU, Keycloak e objetos privados são automáticos, com RPO e RTO definidos, e a restauração é testada antes do lançamento.
-- [ ] **TEST-01**: Regras de domínio possuem testes JUnit e transações integradas usam PostgreSQL e dependências reais via Testcontainers.
-- [ ] **TEST-02**: Spring Modulith Test e ArchUnit verificam limites modulares e dependências permitidas.
+- [x] **TEST-01**: Regras de domínio possuem testes JUnit e transações integradas usam PostgreSQL e dependências reais via Testcontainers.
+- [x] **TEST-02**: Spring Modulith Test e ArchUnit verificam limites modulares e dependências permitidas.
 - [ ] **TEST-03**: Contrato OpenAPI, componentes Angular e jornadas completas críticas possuem testes automatizados, incluindo Playwright.
 - [ ] **TEST-04**: Testes concorrentes cobrem aposta, saldo, liquidação e devolução; perfil de carga, SLO e taxa máxima de erro são definidos e verificados antes do lançamento.
 - [ ] **TEST-05**: Pipeline bloqueia entrega com falha em testes, migrations, contrato, arquitetura ou achado de segurança acima da severidade definida.
@@ -291,6 +292,7 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | SPRT-14 | Phase 3 | Complete |
 | SPRT-15 | Phase 3 | Complete |
 | SPRT-16 | Phase 3 | Complete |
+| DIAG-01 | Phase 03.1 | Complete |
 | ODDS-01 | Phase 4 | Complete |
 | ODDS-02 | Phase 4 | Complete |
 | ODDS-03 | Phase 4 | Complete |
@@ -380,10 +382,10 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 
 **Coverage:**
 
-- v1 requirements: 138 total
-- Mapped to phases: 138
+- v1 requirements: 139 total
+- Mapped to phases: 139
 - Unmapped: 0 ✓
 
 ---
 *Requisitos definidos em: 2026-08-01*
-*Última atualização: 2026-09-12 após aprovar a recertificação final da Fase 3; 138/138 requisitos v1 permanecem mapeados*
+*Última atualização: 2026-09-15 após reconciliar os contratos de verificação das Fases 03.1 e 05; 139/139 requisitos v1 permanecem mapeados*

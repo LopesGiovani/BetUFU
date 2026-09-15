@@ -1,3 +1,12 @@
+---
+phase: 05-cr-ditos-virtuais-e-palpites-protegidos
+verified: 2026-09-14T22:07:57-03:00
+status: passed
+score: "5/5 must-haves verified"
+behavior_unverified: 0
+overrides_applied: 0
+---
+
 # Phase 5 Verification Snapshot
 
 Snapshot date: 2026-09-14

@@ -14,6 +14,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - [x] **Phase 1: Fundação Segura da Plataforma** - Estabelecer a base modular, observável e segura da qual todas as capacidades do MVP dependem.
 - [x] **Phase 2: Contas, Verificação e Operações Governadas** - Permitir identidades BETUFU protegidas e oferecer controles estritamente delimitados aos operadores autorizados.
 - [x] **Phase 3: Experiência Esportiva do Piloto** - Publicar e operar um catálogo genérico de competições e edições, começando pela Olimpíada Universitária UFU 2026 e detalhando inicialmente confrontos diretos.
+- [x] **Phase 03.1: Convergência do Contrato de Diagnóstico** - Alinhar o diagnóstico do backend ao vocabulário público `UP`, `DEGRADED` e `DOWN` sem alterar suas fronteiras.
 - [x] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [x] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
 - [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
