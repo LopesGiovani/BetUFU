@@ -4,18 +4,37 @@ milestone: v1.0
 current_phase: 6
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: planning
-stopped_at: Phase 5 complete after approved checkpoint 05-05/T3; Phase 6 planning is next
-last_updated: "2026-09-14T22:07:57-03:00"
-last_activity: 2026-09-14
-last_activity_desc: Phase 5 final snapshot and human checkpoint 05-05/T3 approved
-state_head: 82afb96728c2a45d2c3f4232c080e3a122a46138
+stopped_at: Phase 5 corrective Plan 05-08 complete; Phase 6 planning is next
+last_updated: "2026-09-15T19:23:49-03:00"
+last_activity: 2026-09-15
+last_activity_desc: Plan 05-08 reconciled local seed with V31 odds vectors and V32 initial grants
+state_head: 9a3a016b9ea35b3820b8be45e9692ef2fcb27a83
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 119
-  completed_plans: 115
+  total_plans: 120
+  completed_plans: 116
 milestone_name: milestone
 ---
+
+## Phase 5 / Plan 05-08 local seed reconciliation - 2026-09-15
+
+- Reconciled the disposable local fixture with V31 by persisting the complete
+  `publishedOdds` vector and its ordered HOME/AWAY selection rows for every
+  odds publication in the seed transaction.
+- Reconciled identities enrolled after V32 with the established initial-credit
+  contract: one append-only `GRANT_INITIAL` of `1000.00` per eligible identity,
+  with the account balance updated only for ledger facts newly inserted by the
+  current execution.
+- Reset only the seven BETUFU containers and four BETUFU named volumes, applied
+  all 33 Flyway migrations through V32, and executed `seed full` twice. The
+  resulting database retained five complete publications, two unique grants
+  and two balances of `1000.00`.
+- Evidence is green: seeder focal 9/9, Node aggregate 749/749, Maven Surefire
+  327/327 plus Failsafe 534/534, frontend HTTP 200, and all seven local services
+  healthy. V31 and V32 remained byte-identical to their protected hashes.
+- Technical commit: `9a3a016`. Phase 6 interactive planning remains the next
+  product step; this corrective closeout does not add Phase 6 decisions.
 
 ## Phase 5 final UAT approval - 2026-09-14
 
@@ -663,8 +682,8 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-09-14T22:07:57-03:00
-Stopped at: Phase 5 complete after approved checkpoint 05-05/T3; Phase 6 planning is next
+Last session: 2026-09-15T19:23:49-03:00
+Stopped at: Phase 5 corrective Plan 05-08 complete; Phase 6 planning is next
 Resume file: .planning/ROADMAP.md
 
 ## Accumulated Context
