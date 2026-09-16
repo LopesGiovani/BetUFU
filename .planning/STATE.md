@@ -4,18 +4,35 @@ milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Convergência das Jornadas do Usuário
 status: executing
-stopped_at: Plan 05.1-04 complete; Wave 1 complete and Wave 2 pending separate approval
-last_updated: "2026-09-15T22:48:47-03:00"
+stopped_at: Plan 05.1-03 complete; Wave 2 continuing with Plan 05.1-05
+last_updated: "2026-09-15T23:14:07-03:00"
 last_activity: 2026-09-15
-last_activity_desc: Plan 05.1-04 replaced the static profile enrollment label with the authoritative active-link projection
-state_head: 7ff32d2e0b708d62e1349bd12b031408ec6457e8
+last_activity_desc: Plan 05.1-03 made the Arena shell reflect authentication, balance, account access and logout
+state_head: 3b03f18f0ecae3b4120050cc7d8fc28212a7d4fe
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 127
-  completed_plans: 119
+  completed_plans: 120
 milestone_name: milestone
 ---
+
+## Phase 05.1 / Plan 05.1-03 closeout - 2026-09-15
+
+- Added an Arena-owned session summary store that loads the current session
+  before requesting the authenticated user's credit balance.
+- The public shell now renders a neutral checking state, contextual login for
+  visitors, and name, balance, Minha conta and logout actions for authenticated
+  users on desktop and mobile.
+- Late balance responses cannot restore visible state after logout; balance
+  failures degrade to Saldo indisponível without exposing private errors.
+- Certification is green for the required focal specs (11/11), the route
+  regression (8/8), lint, production build and the Node aggregate suite
+  (749/749). The Angular aggregate reached 403/404 twice because an unrelated
+  athlete proposal spec timed out; that spec passed independently (3/3).
+- Technical commit: `3b03f18`. Plan 05.1-05 is next under the approved Wave 2
+  inline execution. No dependency, API, database, Docker, seed, infrastructure
+  or push action occurred.
 
 ## Phase 05.1 / Plan 05.1-04 closeout - 2026-09-15
 
