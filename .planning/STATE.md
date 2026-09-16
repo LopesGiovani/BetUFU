@@ -4,18 +4,34 @@ milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Convergência das Jornadas do Usuário
 status: executing
-stopped_at: Plan 05.1-02 complete; Plan 05.1-04 is next under the approved Wave 1 inline exception
-last_updated: "2026-09-15T22:23:48-03:00"
+stopped_at: Plan 05.1-04 complete; Wave 1 complete and Wave 2 pending separate approval
+last_updated: "2026-09-15T22:48:47-03:00"
 last_activity: 2026-09-15
-last_activity_desc: Plan 05.1-02 added safe one-time contextual return through the OIDC login flow
-state_head: 093b58459a2d9112755e63b574465ff604543103
+last_activity_desc: Plan 05.1-04 replaced the static profile enrollment label with the authoritative active-link projection
+state_head: 7ff32d2e0b708d62e1349bd12b031408ec6457e8
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 127
-  completed_plans: 118
+  completed_plans: 119
 milestone_name: milestone
 ---
+
+## Phase 05.1 / Plan 05.1-04 closeout - 2026-09-15
+
+- Added a consumer-owned `ProfileEnrollmentStatusLookup` boundary in identity
+  and a verification adapter that projects only `REGISTRADA` or
+  `NAO_REGISTRADA` from the real active enrollment state.
+- Removed the static status constant from `ProfileController`; all profile
+  response paths now resolve the status from the server-side identity UUID.
+- Preserved privacy and module direction: no matricula, HMAC, enrollment entity
+  or foreign `internal` package crosses the boundary, and the HTTP DTO shape is
+  unchanged.
+- Certification is green: profile/Modulith 28/28, adapter/privacy 36/36,
+  Angular profile 16/16, scoped Spotless and `git diff --check`.
+- Technical commit: `7ff32d2`. Wave 1 is complete. Wave 2 plans 05.1-03,
+  05.1-05 and 05.1-06 remain blocked pending separate approval. No dependency,
+  database, Docker, seed, infrastructure or push action occurred.
 
 ## Phase 05.1 / Plan 05.1-02 closeout - 2026-09-15
 
@@ -737,9 +753,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-09-15T22:23:48-03:00
-Stopped at: Plan 05.1-02 complete; Plan 05.1-04 is next under the approved Wave 1 inline exception
-Resume file: .planning/phases/05.1-convergencia-das-jornadas-do-usuario/05.1-04-PLAN.md
+Last session: 2026-09-15T22:48:47-03:00
+Stopped at: Plan 05.1-04 complete; Wave 1 complete and Wave 2 pending separate approval
+Resume file: .planning/phases/05.1-convergencia-das-jornadas-do-usuario/05.1-03-PLAN.md
 
 ## Accumulated Context
 
