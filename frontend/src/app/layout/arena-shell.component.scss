@@ -112,6 +112,65 @@
   display: none;
 }
 
+.arena-session-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: tokens.$space-2;
+}
+
+.arena-session-name,
+.arena-session-balance,
+.arena-session-status {
+  color: tokens.$color-text-muted;
+  font-size: var(--bt-type-label);
+}
+
+.arena-session-name {
+  max-width: 12rem;
+  overflow: hidden;
+  color: tokens.$color-text;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arena-session-balance {
+  white-space: nowrap;
+}
+
+.arena-nav__account,
+.arena-nav__logout {
+  display: inline-flex;
+  min-height: tokens.$min-touch-target;
+  padding-inline: tokens.$space-4;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid tokens.$color-border;
+  border-radius: tokens.$radius-full;
+  background: transparent;
+  color: tokens.$color-text;
+  font: inherit;
+  font-size: var(--bt-type-label);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    border-color: tokens.$color-accent;
+    color: tokens.$color-accent-soft;
+  }
+
+  &:focus-visible {
+    outline: 3px solid tokens.$color-focus;
+    outline-offset: 3px;
+  }
+}
+
+.arena-nav__logout {
+  border-color: transparent;
+}
+
 .arena-footer {
   display: flex;
   min-width: 0;
@@ -143,6 +202,26 @@
     display: flex;
     align-items: center;
     gap: tokens.$space-2;
+  }
+
+  .arena-session-actions--mobile {
+    max-width: min(15rem, 62vw);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: tokens.$space-1 tokens.$space-2;
+
+    .arena-session-name,
+    .arena-session-balance {
+      max-width: 100%;
+      flex: 1 1 100%;
+      text-align: right;
+    }
+
+    .arena-nav__account,
+    .arena-nav__logout {
+      min-height: tokens.$min-touch-target;
+      padding-inline: tokens.$space-2;
+    }
   }
 
   .arena-mobile-actions__link,

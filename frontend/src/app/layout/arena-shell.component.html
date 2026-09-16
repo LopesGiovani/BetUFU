@@ -9,12 +9,60 @@
 
     <nav class="arena-nav" aria-label="Navegação principal">
       <a routerLink="/" fragment="agenda">Competições</a>
-      <a class="arena-nav__login" href="/oauth2/authorization/keycloak">Entrar</a>
+      @if (sessionSummary.isChecking()) {
+        <span class="arena-session-status" role="status" aria-live="polite"
+          >Verificando sessão</span
+        >
+      } @else if (sessionSummary.isAuthenticated()) {
+        <div class="arena-session-actions">
+          <span class="arena-session-name">{{ sessionSummary.displayName() }}</span>
+          <span class="arena-session-balance" aria-live="polite">
+            @switch (sessionSummary.balanceStatus()) {
+              @case ('available') {
+                Saldo: {{ sessionSummary.balanceLabel() }}
+              }
+              @case ('loading') {
+                Consultando saldo
+              }
+              @default {
+                Saldo indisponível
+              }
+            }
+          </span>
+          <a class="arena-nav__account" routerLink="/conta/perfil">Minha conta</a>
+          <button class="arena-nav__logout" type="button" (click)="logout()">Sair</button>
+        </div>
+      } @else {
+        <a class="arena-nav__login" [href]="loginUrl()">Entrar</a>
+      }
     </nav>
 
     <div class="arena-mobile-actions">
       <a class="arena-mobile-actions__link" routerLink="/" fragment="agenda">Competições</a>
-      <a class="arena-nav__login" href="/oauth2/authorization/keycloak">Entrar</a>
+      @if (sessionSummary.isChecking()) {
+        <span class="arena-session-status" role="status" aria-live="polite">Verificando</span>
+      } @else if (sessionSummary.isAuthenticated()) {
+        <div class="arena-session-actions arena-session-actions--mobile">
+          <span class="arena-session-name">{{ sessionSummary.displayName() }}</span>
+          <span class="arena-session-balance" aria-live="polite">
+            @switch (sessionSummary.balanceStatus()) {
+              @case ('available') {
+                {{ sessionSummary.balanceLabel() }}
+              }
+              @case ('loading') {
+                Consultando saldo
+              }
+              @default {
+                Saldo indisponível
+              }
+            }
+          </span>
+          <a class="arena-nav__account" routerLink="/conta/perfil">Minha conta</a>
+          <button class="arena-nav__logout" type="button" (click)="logout()">Sair</button>
+        </div>
+      } @else {
+        <a class="arena-nav__login" [href]="loginUrl()">Entrar</a>
+      }
     </div>
   </div>
 </header>
