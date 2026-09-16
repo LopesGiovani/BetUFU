@@ -2,6 +2,7 @@ package br.com.betufu;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.betufu.identity.ProfileEnrollmentStatusLookup;
 import br.com.betufu.sports.CompetitionScopeCatalog;
 import br.com.betufu.sports.EnrollmentFingerprintPort;
 import br.com.betufu.sports.PublicEventMarketLookup;
@@ -59,9 +60,11 @@ class ModulithArchitectureTests {
       "Modulith preserva os contratos publicos de sports e as named interfaces declaradas de platform")
   void verifiesDeclaredModuleContracts() {
     ApplicationModules modules = ApplicationModules.of(BetufuApplication.class);
+    ApplicationModule identity = modules.getModuleByName("identity").orElseThrow();
     ApplicationModule sports = modules.getModuleByName("sports").orElseThrow();
     ApplicationModule platform = modules.getModuleByName("platform").orElseThrow();
 
+    assertThat(identity.isExposed(ProfileEnrollmentStatusLookup.class)).isTrue();
     assertThat(sports.isExposed(EnrollmentFingerprintPort.class)).isTrue();
     assertThat(sports.isExposed(PublicEventMarketLookup.class)).isTrue();
     assertThat(sports.isExposed(CompetitionScopeCatalog.class)).isTrue();

@@ -171,6 +171,45 @@ class ProfileControllerIT {
   }
 
   @Test
+  @DisplayName("PROF-01 / VERI-09: Perfil projeta REGISTRADA quando a conta possui vinculo ativo")
+  void profileProjectsRegisteredStatusFromActiveEnrollment() throws Exception {
+    String issuer = "https://idp.invalid";
+    String subject = "user-profile-active-enrollment";
+
+    mockMvc
+        .perform(
+            put(PROFILE_ME_PATH)
+                .with(oidcPrincipal(issuer, subject))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nickname\":\"enrolled_user\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.matriculaStatus").value("NAO_REGISTRADA"));
+
+    UUID identityId =
+        jdbcTemplate.queryForObject(
+            "SELECT identity_id FROM public.local_identity WHERE issuer = ? AND subject = ?",
+            UUID.class,
+            issuer,
+            subject);
+    jdbcTemplate.update(
+        """
+        INSERT INTO public.ufu_enrollment
+            (identity_id, matricula_hmac, hmac_version, status)
+        VALUES (?, decode(repeat('ab', 32), 'hex'), 1, 'ATIVO')
+        """,
+        identityId);
+
+    mockMvc
+        .perform(get(PROFILE_ME_PATH).with(oidcPrincipal(issuer, subject)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", aMapWithSize(5)))
+        .andExpect(jsonPath("$.matriculaStatus").value("REGISTRADA"))
+        .andExpect(jsonPath("$.matricula").doesNotExist())
+        .andExpect(jsonPath("$.hmac").doesNotExist());
+  }
+
+  @Test
   @DisplayName("PROF-01: Espaços externos são removidos antes da validação e persistência")
   void trimsOuterWhitespaceBeforeValidationAndPersistence() throws Exception {
     mockMvc

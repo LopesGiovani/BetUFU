@@ -1,5 +1,6 @@
 package br.com.betufu.identity.internal;
 
+import br.com.betufu.identity.ProfileEnrollmentStatusLookup;
 import jakarta.validation.Valid;
 import java.util.Objects;
 import java.util.Optional;
@@ -20,21 +21,24 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProfileController {
 
   private static final String PROFILE_ME_PATH = "/api/v1/profile/me";
-  private static final String DEFAULT_MATRICULA_STATUS = "NAO_REGISTRADA";
 
   private final BetufuProfileService profileService;
   private final LocalIdentityService localIdentityService;
   private final LocalIdentityRepository localIdentityRepository;
+  private final ProfileEnrollmentStatusLookup enrollmentStatusLookup;
 
   public ProfileController(
       BetufuProfileService profileService,
       LocalIdentityService localIdentityService,
-      LocalIdentityRepository localIdentityRepository) {
+      LocalIdentityRepository localIdentityRepository,
+      ProfileEnrollmentStatusLookup enrollmentStatusLookup) {
     this.profileService = Objects.requireNonNull(profileService, "profileService must not be null");
     this.localIdentityService =
         Objects.requireNonNull(localIdentityService, "localIdentityService must not be null");
     this.localIdentityRepository =
         Objects.requireNonNull(localIdentityRepository, "localIdentityRepository must not be null");
+    this.enrollmentStatusLookup =
+        Objects.requireNonNull(enrollmentStatusLookup, "enrollmentStatusLookup must not be null");
   }
 
   @GetMapping(path = PROFILE_ME_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -103,12 +107,12 @@ public class ProfileController {
     return toResponse(identity.getIdentityId(), profile);
   }
 
-  private static CurrentProfileResponse toResponse(UUID identityId, BetufuProfile profile) {
+  private CurrentProfileResponse toResponse(UUID identityId, BetufuProfile profile) {
     return new CurrentProfileResponse(
         identityId,
         profile.getNickname(),
         profile.getNicknameUpdatedAt(),
-        DEFAULT_MATRICULA_STATUS,
+        enrollmentStatusLookup.findStatus(identityId).name(),
         profile.getFavoriteOrganizationId());
   }
 }
