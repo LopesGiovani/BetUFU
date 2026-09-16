@@ -11,8 +11,9 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { OddsMarketState } from '../../../api/generated/model/odds-market-state';
+import { contextualLoginUrl } from '../../../core/session/contextual-login-url';
 import { PublicMarketSelection } from './public-market-api.adapter';
 import { BettingSelection } from './public-market-betting-api.adapter';
 import { PublicMarketBettingStore } from './public-market-betting.store';
@@ -27,6 +28,7 @@ import { PublicMarketBettingStore } from './public-market-betting.store';
 })
 export class PublicMarketBetTicketComponent implements OnInit, OnChanges {
   readonly store = inject(PublicMarketBettingStore);
+  private readonly router = inject(Router);
 
   @Input({ required: true }) marketId = '';
   @Input({ required: true }) marketVersionId = '';
@@ -112,6 +114,10 @@ export class PublicMarketBetTicketComponent implements OnInit, OnChanges {
 
   selectionLabel(selection: BettingSelection): string {
     return { HOME: 'Mandante', DRAW: 'Empate', AWAY: 'Visitante' }[selection];
+  }
+
+  loginUrl(): string {
+    return contextualLoginUrl(this.router.url);
   }
 
   async submit(): Promise<void> {

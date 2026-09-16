@@ -10,8 +10,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.betufu.platform.session.ContextualLoginController;
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.Cookie;
 import java.util.List;
@@ -51,6 +53,7 @@ import org.springframework.web.context.WebApplicationContext;
 @SpringBootTest(
     classes = {
       SecurityConfiguration.class,
+      ContextualLoginController.class,
       CsrfSecurityIT.TestApplication.class,
       CsrfSecurityIT.CsrfProbeController.class
     },
@@ -241,6 +244,19 @@ class CsrfSecurityIT {
         .perform(get(PROBE_PATH).with(oidcPrincipal()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("READ_OK"));
+  }
+
+  @Test
+  void allowsAnonymousContextualLoginStartOnlyAfterStoringTheValidatedTarget() throws Exception {
+    mockMvc
+        .perform(get("/login/start").queryParam("returnTo", "/odds/mercados/market-1"))
+        .andExpect(status().isFound())
+        .andExpect(header().string("Location", "/oauth2/authorization/keycloak"))
+        .andExpect(
+            request()
+                .sessionAttribute(
+                    "betufu.session.contextual-login-target",
+                    "/odds/mercados/market-1"));
   }
 
   @Test

@@ -215,6 +215,7 @@ public class SecurityConfiguration {
                 authorize
                     .requestMatchers(
                         "/login",
+                        "/login/start",
                         "/oauth2/authorization/**",
                         "/login/oauth2/code/**",
                         "/actuator/health/liveness",

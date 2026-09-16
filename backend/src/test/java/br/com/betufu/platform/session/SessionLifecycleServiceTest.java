@@ -1,6 +1,7 @@
 package br.com.betufu.platform.session;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -18,6 +19,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -147,6 +149,75 @@ class SessionLifecycleServiceTest {
         .onAuthenticationSuccess(request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
 
     assertThat(response.getRedirectedUrl()).startsWith("http://localhost/operacao/odds/mercados");
+  }
+
+  @Test
+  void consumesContextualTargetBeforeSavedRequestAndRoleFallback() throws Exception {
+    MockHttpServletRequest request = callbackRequest();
+    request
+        .getSession()
+        .setAttribute(
+            SessionLifecycleService.CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE,
+            "/odds/mercados/11111111-1111-4111-8111-111111111111?selection=AWAY#bilhete");
+    MockHttpServletRequest savedRequest =
+        new MockHttpServletRequest("GET", "/operacao/odds/mercados");
+    savedRequest.setSession(request.getSession());
+    new HttpSessionRequestCache().saveRequest(savedRequest, new MockHttpServletResponse());
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    newService()
+        .onAuthenticationSuccess(request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
+
+    assertThat(response.getRedirectedUrl())
+        .isEqualTo(
+            "/odds/mercados/11111111-1111-4111-8111-111111111111?selection=AWAY#bilhete");
+    assertThat(
+            request
+                .getSession()
+                .getAttribute(SessionLifecycleService.CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE))
+        .isNull();
+
+    MockHttpServletResponse secondResponse = new MockHttpServletResponse();
+    newService()
+        .onAuthenticationSuccess(request, secondResponse, authentication("ROLE_ADMINISTRADOR_GERAL"));
+    assertThat(secondResponse.getRedirectedUrl()).isEqualTo("/operacao/esportes");
+  }
+
+  @Test
+  void contextualTargetIsUsedOnlyOnce() throws Exception {
+    MockHttpServletRequest request = callbackRequest();
+    request
+        .getSession()
+        .setAttribute(
+            SessionLifecycleService.CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE,
+            "/odds/mercados/11111111-1111-4111-8111-111111111111");
+    SessionLifecycleService service = newService();
+    MockHttpServletResponse firstResponse = new MockHttpServletResponse();
+
+    service.onAuthenticationSuccess(request, firstResponse, authentication("ROLE_USER"));
+
+    MockHttpServletResponse secondResponse = new MockHttpServletResponse();
+    service.onAuthenticationSuccess(request, secondResponse, authentication("ROLE_USER"));
+    assertThat(firstResponse.getRedirectedUrl())
+        .isEqualTo("/odds/mercados/11111111-1111-4111-8111-111111111111");
+    assertThat(secondResponse.getRedirectedUrl()).isEqualTo("/");
+  }
+
+  @Test
+  void invalidContextualTargetFailsClosedAndInvalidatesSession() {
+    MockHttpServletRequest request = callbackRequest();
+    MockHttpSession session = (MockHttpSession) request.getSession();
+    session.setAttribute(
+        SessionLifecycleService.CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE, "https://evil.invalid/steal");
+
+    assertThatThrownBy(
+            () ->
+                newService()
+                    .onAuthenticationSuccess(
+                        request, new MockHttpServletResponse(), authentication("ROLE_USER")))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Unsafe contextual login target");
+    assertThat(session.isInvalid()).isTrue();
   }
 
   private static MockHttpServletRequest callbackRequest() {

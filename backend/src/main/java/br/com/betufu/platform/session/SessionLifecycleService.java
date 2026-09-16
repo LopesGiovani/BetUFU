@@ -23,11 +23,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 public final class SessionLifecycleService implements AuthenticationSuccessHandler {
 
   private static final String PUBLIC_DEFAULT_TARGET = "/";
   private static final String OPERATIONAL_DEFAULT_TARGET = "/operacao/esportes";
+  static final String CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE =
+      "betufu.session.contextual-login-target";
 
   private final SessionPolicy sessionPolicy;
   private final Clock clock;
@@ -66,6 +69,12 @@ public final class SessionLifecycleService implements AuthenticationSuccessHandl
           new SessionPolicy.SessionState(
               session.getId(), authenticatedAt, snapshot.acr(), snapshot.amr(), null));
       session.setAttribute(APPROVED_ACTIVITY_ATTRIBUTE, authenticatedAt);
+      String contextualTarget = consumeContextualTarget(session);
+      if (contextualTarget != null) {
+        new HttpSessionRequestCache().removeRequest(request, response);
+        response.sendRedirect(contextualTarget);
+        return;
+      }
       delegate.onAuthenticationSuccess(request, response, authentication);
     } catch (IOException | ServletException | RuntimeException | Error failure) {
       invalidateQuietly(session);
@@ -139,6 +148,16 @@ public final class SessionLifecycleService implements AuthenticationSuccessHandl
       return null;
     }
     return readState(session);
+  }
+
+  private static String consumeContextualTarget(HttpSession session) {
+    Object storedTarget = session.getAttribute(CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE);
+    if (storedTarget == null) return null;
+    session.removeAttribute(CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE);
+    if (!(storedTarget instanceof String target)) {
+      throw new IllegalArgumentException("Unsafe contextual login target");
+    }
+    return ContextualLoginTargetPolicy.requireSafeTarget(target);
   }
 
   private SessionPolicy.SessionState readState(HttpSession session) {

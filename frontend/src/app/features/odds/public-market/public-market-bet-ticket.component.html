@@ -9,7 +9,7 @@
     <div class="state-panel">
       <h3>Entre para palpitar</h3>
       <p>Entre para usar seus creditos virtuais neste mercado.</p>
-      <a class="button" href="/oauth2/authorization/keycloak">Entrar para palpitar</a>
+      <a class="button" [attr.href]="loginUrl()">Entrar para palpitar</a>
     </div>
   } @else if (store.status() === 'no-enrollment') {
     <div class="state-panel">

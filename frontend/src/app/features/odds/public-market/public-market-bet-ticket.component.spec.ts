@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { describe, expect, it, vi } from 'vitest';
@@ -19,7 +19,7 @@ const VERSION_1 = '22222222-2222-4222-8222-222222222222';
 const PUBLICATION_1 = '33333333-3333-4333-8333-333333333333';
 
 describe('PublicMarketBetTicketComponent', () => {
-  async function render() {
+  async function render(authenticated = true, currentUrl = `/odds/mercados/${MARKET_ID}`) {
     const publicSnapshot = signal<PublicMarketSnapshot | null>(null);
     const api = {
       getBalance: vi.fn().mockResolvedValue({
@@ -53,7 +53,10 @@ describe('PublicMarketBetTicketComponent', () => {
         { provide: PublicMarketBettingApiAdapter, useValue: api },
         {
           provide: SessionStore,
-          useValue: { loadSession: vi.fn().mockResolvedValue(undefined), isAuthenticated: () => true },
+          useValue: {
+            loadSession: vi.fn().mockResolvedValue(undefined),
+            isAuthenticated: () => authenticated,
+          },
         },
         {
           provide: EnrollmentStore,
@@ -67,6 +70,7 @@ describe('PublicMarketBetTicketComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
+    vi.spyOn(TestBed.inject(Router), 'url', 'get').mockReturnValue(currentUrl);
     const fixture = TestBed.createComponent(PublicMarketBetTicketComponent);
     fixture.componentRef.setInput('marketId', MARKET_ID);
     fixture.componentRef.setInput('marketVersionId', VERSION_1);
@@ -79,10 +83,24 @@ describe('PublicMarketBetTicketComponent', () => {
       { code: 'AWAY', label: 'Visitante', odd: 2.05 },
     ]);
     fixture.detectChanges();
-    await vi.waitFor(() => expect(fixture.componentInstance.store.status()).toBe('eligible'));
+    await vi.waitFor(() =>
+      expect(fixture.componentInstance.store.status()).toBe(authenticated ? 'eligible' : 'visitor'),
+    );
     fixture.detectChanges();
     return { fixture, api, publicMarket, publicSnapshot };
   }
+
+  it('inicia login preservando a rota atual do mercado', async () => {
+    const currentUrl = `/odds/mercados/${MARKET_ID}?selection=AWAY#bilhete`;
+    const { fixture } = await render(false, currentUrl);
+    const root = fixture.nativeElement as HTMLElement;
+    const link = root.querySelector<HTMLAnchorElement>('a.button');
+
+    expect(link?.textContent).toContain('Entrar para palpitar');
+    expect(link?.getAttribute('href')).toBe(
+      '/login/start?returnTo=' + encodeURIComponent(currentUrl),
+    );
+  });
 
   it('renderiza codigos de transporte separados dos rotulos acessiveis', async () => {
     const { fixture } = await render();
