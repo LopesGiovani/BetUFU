@@ -3,19 +3,37 @@ gsd_state_version: 1.0
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Convergência das Jornadas do Usuário
-status: planning
-stopped_at: Phase 05.1 Wave 1 approved for direct inline execution; initial planning commit pending
-last_updated: "2026-09-15T20:45:26-03:00"
+status: executing
+stopped_at: Plan 05.1-01 complete; Plan 05.1-02 is next under the approved Wave 1 inline exception
+last_updated: "2026-09-15T22:09:15-03:00"
 last_activity: 2026-09-15
-last_activity_desc: Phase 05.1 plans approved; Wave 1 authorized for direct inline execution
-state_head: c4cd2f2a105331fadcba443dff57d5322e12bf45
+last_activity_desc: Plan 05.1-01 connected public events to discoverable odds markets and completed focal certification
+state_head: 66663a7a5f1adc3c1aa8f661ba4bd16f2f99edd2
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 127
-  completed_plans: 116
+  completed_plans: 117
 milestone_name: milestone
 ---
+
+## Phase 05.1 / Plan 05.1-01 closeout - 2026-09-15
+
+- Published an optional `marketId` on the public event detail only when the
+  existing anonymous odds projection accepts exactly one market for that event.
+- Preserved Modulith direction with a consumer-owned `PublicEventMarketLookup`
+  port in `sports` and an adapter in `odds.internal.publicview`; no internal
+  odds type crosses the boundary and ambiguous lookup fails closed.
+- Added the event-page CTA `Ver odds da partida`, hidden when no market is
+  available, and regenerated the Angular client from the OpenAPI source.
+- Certification is green: backend focal 44/44, public-odds regression 10/10,
+  generator 73/73 plus drift check, and Angular focal 16/16.
+- The OpenAPI Generator JAR was restored with the approved size/hash. Candidate
+  certification preserved the path inventory and ratified digest `31B9391...`;
+  the mechanical digest-file allowlist omission is documented in the summary.
+- Technical commit: `66663a7`. Plan 05.1-02 is next under the already approved
+  direct-inline Wave 1 exception. No reset, seed, dependency change or push was
+  performed.
 
 ## Phase 05.1 planning proposal - 2026-09-15
 
@@ -446,14 +464,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Preparar interativamente a Fase 6 sem antecipar as políticas de liquidação ainda pendentes.
+**Current focus:** Executar a Fase 05.1 para convergir as jornadas das Fases 1–5 antes de iniciar a Fase 6.
 
 ## Current Position
 
-Phase: 6 of 8 (Resultados Confirmados, Rankings e Grupos)
-Plan: TBD; planning not started
-Status: Phase 5 complete; Phase 6 planning is next
-Last activity: 2026-09-14 — Phase 5 snapshot and checkpoint 05-05/T3 approved
+Phase: 05.1 of 9 (Convergência das Jornadas do Usuário)
+Plan: 05.1-02 — Retorno contextual OIDC seguro
+Status: Plan 05.1-01 complete; Wave 1 execution in progress
+Last activity: 2026-09-15 — event-to-market discovery and odds CTA certified
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -701,9 +719,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-09-15T20:45:26-03:00
-Stopped at: Phase 05.1 Wave 1 approved for direct inline execution; initial planning commit pending
-Resume file: .planning/ROADMAP.md
+Last session: 2026-09-15T22:09:15-03:00
+Stopped at: Plan 05.1-01 complete; Plan 05.1-02 is next under the approved Wave 1 inline exception
+Resume file: .planning/phases/05.1-convergencia-das-jornadas-do-usuario/05.1-02-PLAN.md
 
 ## Accumulated Context
 
