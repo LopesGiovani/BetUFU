@@ -1,21 +1,40 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: 6
-current_phase_name: Resultados Confirmados, Rankings e Grupos
+current_phase: "05.1"
+current_phase_name: Convergência das Jornadas do Usuário
 status: planning
-stopped_at: Phase 5 corrective Plan 05-08 complete; Phase 6 planning is next
-last_updated: "2026-09-15T19:23:49-03:00"
+stopped_at: Phase 05.1 Wave 1 approved for direct inline execution; initial planning commit pending
+last_updated: "2026-09-15T20:45:26-03:00"
 last_activity: 2026-09-15
-last_activity_desc: Plan 05-08 reconciled local seed with V31 odds vectors and V32 initial grants
-state_head: 9a3a016b9ea35b3820b8be45e9692ef2fcb27a83
+last_activity_desc: Phase 05.1 plans approved; Wave 1 authorized for direct inline execution
+state_head: c4cd2f2a105331fadcba443dff57d5322e12bf45
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 6
-  total_plans: 120
+  total_plans: 127
   completed_plans: 116
 milestone_name: milestone
 ---
+
+## Phase 05.1 planning proposal - 2026-09-15
+
+- Inserted `05.1 — Convergência das Jornadas do Usuário` between Phases 5 and
+  6 after the responsible developer approved the audit diagnosis.
+- Proposed seven single-task plans in three waves: event-to-market discovery,
+  contextual OIDC return, session-aware Arena shell, real enrollment status,
+  deadline-aware betting UI, protected-route/404 robustness and real integrated
+  Playwright certification.
+- The proposal reuses existing requirements and does not change
+  `REQUIREMENTS.md`; Phase 6 now depends on Phase 05.1.
+- No implementation, tests, service mutation, reset, seed or Git mutation was
+  authorized by this planning block. Execution remains pending plan-by-plan
+  review and explicit approval.
+- The responsible developer subsequently approved all seven plans and the
+  technical decisions. Wave 1 plans 05.1-01, 05.1-02 and 05.1-04 received an
+  explicit direct-inline exception with focal tests and separate technical and
+  documentary commits; Docker, reset, seed, dependencies and push remain out
+  of scope.
 
 ## Phase 5 / Plan 05-08 local seed reconciliation - 2026-09-15
 
@@ -682,8 +701,8 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-09-15T19:23:49-03:00
-Stopped at: Phase 5 corrective Plan 05-08 complete; Phase 6 planning is next
+Last session: 2026-09-15T20:45:26-03:00
+Stopped at: Phase 05.1 Wave 1 approved for direct inline execution; initial planning commit pending
 Resume file: .planning/ROADMAP.md
 
 ## Accumulated Context

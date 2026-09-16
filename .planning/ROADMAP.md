@@ -17,6 +17,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - [x] **Phase 03.1: Convergência do Contrato de Diagnóstico** - Alinhar o diagnóstico do backend ao vocabulário público `UP`, `DEGRADED` e `DOWN` sem alterar suas fronteiras.
 - [x] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [x] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
+- [ ] **Phase 05.1: Convergência das Jornadas do Usuário** - Conectar sessão, conta, evento, mercado e palpite em jornadas descobríveis, coerentes e verificadas no navegador real.
 - [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
 - [ ] **Phase 7: Comunidade Moderada e Prontidão do Piloto** - Entregar chat seguro por partida e uma experiência responsiva, privada e operacionalmente pronta para o piloto público.
 
@@ -468,14 +469,50 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 
 Phase 5 completion update (2026-09-14): all seven plans are complete. The final
 05-05 snapshot passed automated certification and independent read-only review;
-the responsible developer approved human checkpoint `05-05/T3`. Phase 6
-planning is the next step.
+the responsible developer approved human checkpoint `05-05/T3`. A auditoria
+manual posterior encontrou lacunas de integração entre capacidades já
+implementadas; por decisão do responsável, a Fase 05.1 precede a Fase 6.
+
+### Phase 05.1: Convergência das Jornadas do Usuário (INSERTED)
+
+**Goal**: Visitantes, participantes e operadores percorrem as capacidades entregues nas Fases 1–5 por caminhos visíveis e coerentes, preservando contexto de autenticação, privacidade, autorização e estado após navegação e refresh.
+**Mode:** mvp
+**Depends on**: Phase 1, Phase 2, Phase 3, Phase 4, Phase 5
+**Requirements**: AUTH-01, AUTH-03, PROF-01, VERI-09, SPRT-12, IDEN-03, IDEN-04, CRED-03, ODDS-09, ODDS-13, PRED-01, PRED-03, PRED-04, PRED-08, API-03, TEST-02
+**Success Criteria** (o que deve ser VERDADEIRO):
+
+  1. Um visitante parte da agenda, abre um evento publicado e encontra um CTA de odds somente quando o evento possui um mercado público consultável, sem conhecer UUIDs nem criar dependência cíclica entre `sports` e `odds`.
+  2. Ao iniciar o login de um contexto público ou protegido, o sistema preserva e restaura apenas uma URL interna validada, com consumo único e sem permitir open redirect, rota técnica ou vazamento de token.
+  3. O shell da Arena representa os estados visitante, carregando, autenticado e expirado de forma coerente, oferecendo “Minha Conta”, saldo próprio e logout quando aplicável, inclusive em 320 px e por teclado.
+  4. Perfil e matrícula exibem o mesmo estado real do vínculo institucional sem expor matrícula, HMAC ou detalhes internos entre módulos.
+  5. O bilhete bloqueia interação quando o prazo canônico já venceu e prioriza corretamente os estados aberto, suspenso e encerrado; o servidor permanece a autoridade final para rejeitar o palpite.
+  6. Rotas protegidas tratam sessão anônima/expirada de forma compreensível e preservam retorno seguro, enquanto URLs inexistentes terminam em uma página 404 acessível sem capturar callbacks técnicos.
+  7. Playwright comprova a jornada integrada real, sem interceptar APIs de negócio, cobrindo agenda → evento → mercado → login → retorno → palpite, refresh, duplicidade, logout, 401/404, deadline, navegação do browser, sessões separadas e largura móvel.
+
+**Plans**: 7 plans
+
+- [ ] 05.1-01-PLAN.md — Publicar a referência evento→mercado sem ciclo modular e exibir o CTA de odds no evento.
+- [ ] 05.1-02-PLAN.md — Preservar e consumir com segurança o destino contextual durante o login OIDC.
+- [ ] 05.1-03-PLAN.md — Tornar o shell da Arena consciente de sessão, saldo próprio e logout.
+- [ ] 05.1-04-PLAN.md — Substituir o estado estático de matrícula do perfil por consulta real e privada.
+- [ ] 05.1-05-PLAN.md — Bloquear o bilhete após o deadline e ordenar corretamente os estados de disponibilidade.
+- [ ] 05.1-06-PLAN.md — Tratar acesso anônimo/expirado a rotas protegidas e oferecer wildcard 404 acessível.
+- [ ] 05.1-07-PLAN.md — Certificar as jornadas integradas com Playwright real e gates agregados.
+
+**Ondas propostas**:
+
+- **Wave 1**: 05.1-01, 05.1-02 e 05.1-04, independentes entre si.
+- **Wave 2**: 05.1-03 após 05.1-02; 05.1-05 após 05.1-01; 05.1-06 após 05.1-02.
+- **Wave 3**: 05.1-07 após todos os planos anteriores.
+
+Esta inserção e seus planos são proposta documental para revisão. Não autorizam implementação, alteração de banco/infraestrutura, reset/seed, testes materiais, stage, commit, integração ou push.
+**UI hint**: yes
 
 ### Phase 6: Resultados Confirmados, Rankings e Grupos
 
 **Goal**: Resultados esportivos confirmados se transformam em liquidações explicáveis e recuperáveis e em uma competição universitária vitalícia e justa entre participantes verificados.
 **Mode:** mvp
-**Depends on**: Phase 5
+**Depends on**: Phase 05.1
 **Requirements**: CRED-07, CRED-09, PRED-09, ODDS-15, SETL-01, SETL-02, SETL-03, SETL-04, SETL-05, SETL-06, SETL-07, SETL-08, SETL-09, SETL-10, SETL-11, RANK-01, RANK-02, RANK-03, RANK-04, RANK-05, RANK-06, RANK-07, RANK-08, POOL-01, POOL-02, POOL-03, POOL-04, ACHV-01, ACHV-02, ACHV-03, TEST-04
 **Decisão pendente**: O tratamento de correções após o gasto de créditos pagos incorretamente, a aprovação de ajustes compensatórios diretos no livro-razão e a visibilidade no ranking durante uma verificação expirada continuam em aberto e exigem uma política explícita antes da implementação dos fluxos correspondentes.
 **Success Criteria** (o que deve ser VERDADEIRO):
@@ -509,7 +546,7 @@ planning is the next step.
 
 ## Progress
 
-**Ordem de execução:** Phase 1 → Phase 2 → Phase 3 → Phase 03.1 → Phase 4 → Phase 5 → Phase 6 → Phase 7
+**Ordem de execução:** Phase 1 → Phase 2 → Phase 3 → Phase 03.1 → Phase 4 → Phase 5 → Phase 05.1 → Phase 6 → Phase 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -519,5 +556,6 @@ planning is the next step.
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
 | 5. Créditos Virtuais e Palpites Protegidos | 7/7 | Complete; final snapshot approved | 2026-09-14 |
+| 05.1. Convergência das Jornadas do Usuário | 0/7 | Planned; awaiting plan review | - |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
