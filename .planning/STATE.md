@@ -4,18 +4,36 @@ milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Convergência das Jornadas do Usuário
 status: executing
-stopped_at: Plan 05.1-01 complete; Plan 05.1-02 is next under the approved Wave 1 inline exception
-last_updated: "2026-09-15T22:09:15-03:00"
+stopped_at: Plan 05.1-02 complete; Plan 05.1-04 is next under the approved Wave 1 inline exception
+last_updated: "2026-09-15T22:23:48-03:00"
 last_activity: 2026-09-15
-last_activity_desc: Plan 05.1-01 connected public events to discoverable odds markets and completed focal certification
-state_head: 66663a7a5f1adc3c1aa8f661ba4bd16f2f99edd2
+last_activity_desc: Plan 05.1-02 added safe one-time contextual return through the OIDC login flow
+state_head: 093b58459a2d9112755e63b574465ff604543103
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 127
-  completed_plans: 117
+  completed_plans: 118
 milestone_name: milestone
 ---
+
+## Phase 05.1 / Plan 05.1-02 closeout - 2026-09-15
+
+- Added the anonymous `GET /login/start` entry, which validates and stores only
+  a canonical internal path before redirecting to the fixed Keycloak
+  authorization endpoint.
+- The success handler consumes and removes the target before redirect, gives it
+  precedence over saved requests, clears the superseded saved request and then
+  preserves the existing role fallback behavior for later logins.
+- The market ticket derives a single encoded `returnTo` value from `Router.url`;
+  no token, destination or OIDC state is written to browser storage.
+- Security coverage rejects external, ambiguous, encoded-control and technical
+  paths and proves tampered session state fails closed.
+- Certification is green: backend/session 124/124, Angular 12/12, route boundary
+  175/175, lint, production build and scoped Spotless apply/check.
+- Technical commit: `093b584`. Plan 05.1-04 is next under the approved Wave 1
+  inline exception. No realm, dependency, database, Docker, seed or push action
+  occurred.
 
 ## Phase 05.1 / Plan 05.1-01 closeout - 2026-09-15
 
@@ -469,9 +487,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 ## Current Position
 
 Phase: 05.1 of 9 (Convergência das Jornadas do Usuário)
-Plan: 05.1-02 — Retorno contextual OIDC seguro
-Status: Plan 05.1-01 complete; Wave 1 execution in progress
-Last activity: 2026-09-15 — event-to-market discovery and odds CTA certified
+Plan: 05.1-04 — Status real de matrícula no perfil
+Status: Plans 05.1-01 and 05.1-02 complete; Wave 1 execution in progress
+Last activity: 2026-09-15 — contextual OIDC return certified
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -719,9 +737,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-09-15T22:09:15-03:00
-Stopped at: Plan 05.1-01 complete; Plan 05.1-02 is next under the approved Wave 1 inline exception
-Resume file: .planning/phases/05.1-convergencia-das-jornadas-do-usuario/05.1-02-PLAN.md
+Last session: 2026-09-15T22:23:48-03:00
+Stopped at: Plan 05.1-02 complete; Plan 05.1-04 is next under the approved Wave 1 inline exception
+Resume file: .planning/phases/05.1-convergencia-das-jornadas-do-usuario/05.1-04-PLAN.md
 
 ## Accumulated Context
 
