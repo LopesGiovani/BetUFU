@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.betufu.sports.CompetitionScopeCatalog;
 import br.com.betufu.sports.EnrollmentFingerprintPort;
+import br.com.betufu.sports.PublicEventMarketLookup;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -62,6 +63,7 @@ class ModulithArchitectureTests {
     ApplicationModule platform = modules.getModuleByName("platform").orElseThrow();
 
     assertThat(sports.isExposed(EnrollmentFingerprintPort.class)).isTrue();
+    assertThat(sports.isExposed(PublicEventMarketLookup.class)).isTrue();
     assertThat(sports.isExposed(CompetitionScopeCatalog.class)).isTrue();
 
     Set<String> namedInterfaces =

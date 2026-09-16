@@ -91,6 +91,19 @@ public class OddsPublicViewRepository {
     this.jdbc = jdbc;
   }
 
+  public Optional<UUID> findPublicMarketIdByEvent(UUID eventId) {
+    if (eventId == null) return Optional.empty();
+    List<UUID> publicMarketIds =
+        jdbc.queryForList(
+                "SELECT market_id FROM public.odds_market WHERE event_id = ? ORDER BY market_id",
+                UUID.class,
+                eventId)
+            .stream()
+            .filter(marketId -> find(marketId).isPresent())
+            .toList();
+    return publicMarketIds.size() == 1 ? Optional.of(publicMarketIds.getFirst()) : Optional.empty();
+  }
+
   public Optional<PublicOddsView> find(UUID marketId) {
     if (marketId == null) return Optional.empty();
     List<Header> headers =

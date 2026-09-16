@@ -6200,6 +6200,10 @@ components:
         eventId:
           type: string
           format: uuid
+        marketId:
+          type: [string, "null"]
+          format: uuid
+          description: Mercado de odds publicamente consultável associado ao evento, quando existir.
         competitionId:
           type: string
           format: uuid

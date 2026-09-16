@@ -393,6 +393,7 @@ class SportsPublicViewRepository {
     return Optional.of(
         new PublicEventDetail(
             row.eventId(),
+            null,
             row.competitionId(),
             row.editionId(),
             row.versionNo(),

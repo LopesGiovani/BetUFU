@@ -132,6 +132,9 @@ class SportsPublicViewIT {
                 TRUNCATE TABLE public.sports_result_version_slot, public.sports_result_version,
                 public.sports_event_publication_slot, public.sports_event_publication,
                 public.sports_event_slot, public.sports_event,
+                public.odds_publication_selection, public.odds_publication,
+                public.odds_calculation, public.odds_lifecycle, public.odds_override,
+                public.odds_idempotency_command, public.odds_market_version, public.odds_market,
                 public.sports_roster_publication_member, public.sports_roster_publication,
                 public.sports_roster_member, public.sports_roster,
                 public.sports_team, public.sports_organization,
@@ -676,6 +679,7 @@ class SportsPublicViewIT {
 
     assertThat(detail).isNotNull();
     assertThat(detail.eventId()).isEqualTo(eventId);
+    assertThat(detail.marketId()).isNull();
     assertThat(detail.title()).isEqualTo("Computação x Engenharia");
     assertThat(detail.venueName()).isEqualTo("Ginásio Campus Santa Mônica");
     assertThat(detail.venueAddress()).isEqualTo("Av. João Naves de Ávila, 2121");
@@ -697,6 +701,20 @@ class SportsPublicViewIT {
         .isEqualTo("https://oficial.ufu.br/sumula-v1");
     assertThat(detail.sourceHistory().get(1).versionNo()).isEqualTo(2);
     assertThat(detail.sourceHistory().get(1).reason()).isEqualTo("Correção de placar da mesa");
+  }
+
+  @Test
+  @DisplayName("P3/05.1: detalhe do evento publica somente mercado consultavel")
+  void getEventDetail_exposesOnlyPubliclyQueryableMarket() throws Exception {
+    UUID marketId = createPublicOddsMarket(eventId);
+
+    PublicEventDetail detail = publicViewService.getEventDetail(eventId);
+
+    assertThat(detail.marketId()).isEqualTo(marketId);
+    mockMvc
+        .perform(get("/api/v1/public/sports/events/" + eventId).accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.marketId").value(marketId.toString()));
   }
 
   @Test
@@ -800,6 +818,49 @@ class SportsPublicViewIT {
     jdbcTemplate.update(
         "INSERT INTO public.betufu_profile (identity_id, nickname) VALUES (?, ?)", id, nickname);
     return id;
+  }
+
+  private UUID createPublicOddsMarket(UUID sportsEventId) {
+    return transactionTemplate.execute(
+        status -> {
+          UUID marketId = UUID.randomUUID();
+          UUID versionId = UUID.randomUUID();
+          UUID calculationId = UUID.randomUUID();
+          UUID publicationId = UUID.randomUUID();
+          Timestamp deadline = Timestamp.from(Instant.parse("2030-09-30T18:00:00Z"));
+          Timestamp publishedAt = Timestamp.from(Instant.parse("2026-09-15T12:00:00Z"));
+
+          jdbcTemplate.update(
+              "INSERT INTO public.odds_market (market_id, event_id, market_type) VALUES (?, ?, 'H2H')",
+              marketId,
+              sportsEventId);
+          jdbcTemplate.update(
+              "INSERT INTO public.odds_market_version (market_version_id, market_id, version_no, state, close_deadline) VALUES (?, ?, 1, 'OPEN', ?)",
+              versionId,
+              marketId,
+              deadline);
+          jdbcTemplate.update(
+              "UPDATE public.odds_market SET current_version_id = ? WHERE market_id = ?",
+              versionId,
+              marketId);
+          jdbcTemplate.update(
+              "INSERT INTO public.odds_calculation (calculation_id, market_version_id, algorithm_version, configuration_digest, input_snapshot, fair_probability, confidence, created_at, known_at) VALUES (?, ?, 'elo-davidson-v1', 'sha256:05.1-event-market', CAST(? AS jsonb), 0.5000000000, 0.8000000000, ?, ?)",
+              calculationId,
+              versionId,
+              "{\"publishedOdds\":[1.90,1.90],\"confidenceBand\":\"HIGH\",\"sampleSize\":12}",
+              publishedAt,
+              publishedAt);
+          jdbcTemplate.update(
+              "INSERT INTO public.odds_publication (publication_id, calculation_id, margin, rounding_mode, published_odds, base_lock_version, published_at) VALUES (?, ?, 0.050000, 'HALF_UP', 1.9000000000, 0, ?)",
+              publicationId,
+              calculationId,
+              publishedAt);
+          jdbcTemplate.update(
+              "INSERT INTO public.odds_publication_selection (publication_id, selection_no, selection_key, published_odds) VALUES (?, 1, 'HOME', 1.9000000000), (?, 2, 'AWAY', 1.9000000000)",
+              publicationId,
+              publicationId);
+          return marketId;
+        });
   }
 
   @TestConfiguration(proxyBeanMethods = false)

@@ -2,6 +2,7 @@ package br.com.betufu.sports.internal.publicview;
 
 import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
+import br.com.betufu.sports.PublicEventMarketLookup;
 import br.com.betufu.sports.internal.publicview.SportsPublicViewModels.PublicAthleteDetail;
 import br.com.betufu.sports.internal.publicview.SportsPublicViewModels.PublicCompetitionDetail;
 import br.com.betufu.sports.internal.publicview.SportsPublicViewModels.PublicEventDetail;
@@ -18,9 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class SportsPublicViewService {
 
   private final SportsPublicViewRepository repository;
+  private final PublicEventMarketLookup marketLookup;
 
-  SportsPublicViewService(SportsPublicViewRepository repository) {
+  SportsPublicViewService(
+      SportsPublicViewRepository repository, PublicEventMarketLookup marketLookup) {
     this.repository = repository;
+    this.marketLookup = marketLookup;
   }
 
   @Transactional(readOnly = true)
@@ -38,7 +42,9 @@ public class SportsPublicViewService {
     if (eventId == null) {
       throw notFound();
     }
-    return repository.findEventDetail(eventId).orElseThrow(SportsPublicViewService::notFound);
+    PublicEventDetail detail =
+        repository.findEventDetail(eventId).orElseThrow(SportsPublicViewService::notFound);
+    return new PublicEventDetail(detail, marketLookup.findPublicMarketId(eventId).orElse(null));
   }
 
   @Transactional(readOnly = true)

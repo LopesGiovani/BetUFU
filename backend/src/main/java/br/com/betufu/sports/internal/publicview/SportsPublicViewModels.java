@@ -164,6 +164,7 @@ public final class SportsPublicViewModels {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   public record PublicEventDetail(
       UUID eventId,
+      UUID marketId,
       UUID competitionId,
       UUID editionId,
       long versionNo,
@@ -199,6 +200,43 @@ public final class SportsPublicViewModels {
     public PublicEventDetail {
       slots = slots == null ? List.of() : List.copyOf(slots);
       sourceHistory = sourceHistory == null ? List.of() : List.copyOf(sourceHistory);
+    }
+
+    public PublicEventDetail(PublicEventDetail source, UUID marketId) {
+      this(
+          source.eventId(),
+          marketId,
+          source.competitionId(),
+          source.editionId(),
+          source.versionNo(),
+          source.competitionName(),
+          source.editionName(),
+          source.title(),
+          source.format(),
+          source.status(),
+          source.statusReason(),
+          source.scheduledAt(),
+          source.zoneId(),
+          source.venueState(),
+          source.sourceReference(),
+          source.publishedAt(),
+          source.slots(),
+          source.sportId(),
+          source.sportName(),
+          source.categoryId(),
+          source.categoryName(),
+          source.phaseId(),
+          source.phaseName(),
+          source.venueId(),
+          source.venueName(),
+          source.venueAddress(),
+          source.venueMapUrl(),
+          source.venueNotes(),
+          source.venueSpaceId(),
+          source.venueSpaceName(),
+          source.venueSpaceNotes(),
+          source.result(),
+          source.sourceHistory());
     }
   }
 

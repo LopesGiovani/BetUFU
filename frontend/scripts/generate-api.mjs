@@ -463,7 +463,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // ao contrato de eventos sem alterar a allowlist de caminhos.
 // C066... publica somente as APIs autenticadas de saldo/palpite e seus tres modelos
 // governados, a partir do candidato da recertificacao 05-05.
-export const APPROVED_GENERATED_DIGEST = 'C0669B03AE5EF1C86B897C4DFDEC4A8369AD8037BDECC0EEA9A1EDECB4B7A1BE';
+// 31B9... acrescenta marketId opcional ao detalhe publico do evento sem alterar
+// a allowlist de caminhos, a partir do candidato certificado do plano 05.1-01.
+export const APPROVED_GENERATED_DIGEST = '31B9391A4390DFE1EBCB180D41C21DE9672B9E6EA7B314140C651C2C06B86EA8';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

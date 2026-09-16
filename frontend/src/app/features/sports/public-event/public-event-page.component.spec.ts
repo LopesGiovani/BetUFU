@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { signal } from '@angular/core';
 import { describe, expect, it, vi } from 'vitest';
+import { PublicEventDetail } from '../../../api/generated/model/public-event-detail';
 import { PublicEventPageComponent } from './public-event-page.component';
 import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
 
@@ -12,9 +13,9 @@ describe('PublicEventPageComponent', () => {
       isNotFound: signal(false),
       isError: signal(false),
       errorMessage: signal(null),
-      data: signal({
+      data: signal<PublicEventDetail>({
         eventId: 'e1',
-        publicationId: 'p1',
+        marketId: 'm1',
         competitionId: 'c1',
         editionId: 'ed1',
         versionNo: 1,
@@ -48,5 +49,11 @@ describe('PublicEventPageComponent', () => {
     expect(store.load).toHaveBeenCalledWith('event', 'e1');
     expect(fixture.nativeElement.textContent).toContain('A × B');
     expect(fixture.nativeElement.textContent).toContain('Resultado ainda não publicado');
+    const oddsLink = fixture.nativeElement.querySelector('a[href="/odds/mercados/m1"]');
+    expect(oddsLink?.textContent).toContain('Ver odds da partida');
+
+    store.data.update((event) => ({ ...event, marketId: null }));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('a[href^="/odds/mercados/"]')).toBeNull();
   });
 });

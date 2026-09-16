@@ -18,6 +18,7 @@ import {
   OddsPublicService,
   ProfileService,
   PublicCompetitionDetail,
+  PublicEventDetail,
   PublicOddsExplanation,
   PublicOddsView,
   PublicSportsEventPage,
@@ -88,8 +89,31 @@ describe('Generated BETUFU API client contract', () => {
   }
 
   afterEach(() => {
-    httpTesting.verify();
+    httpTesting?.verify();
     document.cookie = 'XSRF-TOKEN=; Max-Age=0; path=/';
+  });
+
+  it('tipa a referência opcional do evento para o mercado público', () => {
+    const event = {
+      eventId: 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      marketId: 'm1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      competitionId: 'c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      editionId: 'd1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c',
+      versionNo: 1,
+      competitionName: 'Olimpíada UFU',
+      editionName: '2026',
+      title: 'Computação x Engenharia',
+      format: 'HEAD_TO_HEAD',
+      scheduledAt: '2026-09-20T18:00:00Z',
+      zoneId: 'America/Sao_Paulo',
+      venueState: 'LOCAL_A_DEFINIR',
+      sourceReference: 'https://example.invalid/evento',
+      publishedAt: '2026-09-15T12:00:00Z',
+      slots: [],
+      sourceHistory: [],
+    } satisfies PublicEventDetail;
+
+    expect(event.marketId).toBe('m1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c');
   });
 
   async function expectRelativePutContract(): Promise<void> {

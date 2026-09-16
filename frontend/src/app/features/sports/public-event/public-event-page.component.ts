@@ -60,6 +60,18 @@ import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
             }
           </article>
         </section>
+        @if (event.marketId) {
+          <section class="market-cta" aria-labelledby="market-cta-title">
+            <div>
+              <p class="eyebrow">Mercado disponível</p>
+              <h2 id="market-cta-title">Odds desta partida</h2>
+              <p>Consulte as cotações publicadas e a metodologia usada no mercado.</p>
+            </div>
+            <a class="action" [routerLink]="['/odds/mercados', event.marketId]">
+              Ver odds da partida
+            </a>
+          </section>
+        }
         <section class="section" aria-labelledby="slots-title">
           <div class="section-head">
             <h2 id="slots-title">Participantes</h2>
@@ -220,6 +232,25 @@ import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
     .section {
       margin-top: var(--bt-space-8);
     }
+    .market-cta {
+      display: flex;
+      margin-top: var(--bt-space-4);
+      padding: var(--bt-space-4);
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--bt-space-4);
+      border: 1px solid var(--bt-signal);
+      border-radius: var(--bt-radius-card);
+      background: var(--bt-surface-raised);
+    }
+    .market-cta h2,
+    .market-cta p {
+      margin: 0;
+    }
+    .market-cta p:not(.eyebrow) {
+      margin-top: var(--bt-space-2);
+      color: var(--bt-text-muted);
+    }
     .section-head {
       display: flex;
       justify-content: space-between;
@@ -359,6 +390,10 @@ import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
       }
       .detail-head {
         padding: var(--bt-space-6) var(--bt-space-4);
+      }
+      .market-cta {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
   `,

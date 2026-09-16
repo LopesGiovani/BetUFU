@@ -16,6 +16,10 @@ import { SportsVenueState } from './sports-venue-state';
 
 export interface PublicEventDetail { 
     eventId: string;
+    /**
+     * Mercado de odds publicamente consultável associado ao evento, quando existir.
+     */
+    marketId?: string | null;
     competitionId: string;
     editionId: string;
     versionNo: number;

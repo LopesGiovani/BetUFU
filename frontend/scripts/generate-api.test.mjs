@@ -403,7 +403,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, 'C0669B03AE5EF1C86B897C4DFDEC4A8369AD8037BDECC0EEA9A1EDECB4B7A1BE');
+  assert.equal(manifest.digest, '31B9391A4390DFE1EBCB180D41C21DE9672B9E6EA7B314140C651C2C06B86EA8');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,
