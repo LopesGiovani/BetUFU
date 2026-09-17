@@ -1,21 +1,37 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: "05.1"
-current_phase_name: Convergência das Jornadas do Usuário
-status: executing
-stopped_at: Plan 05.1-06 complete; Wave 2 complete and Plan 05.1-07 pending separate approval
-last_updated: "2026-09-17T16:18:54-03:00"
+current_phase: "6"
+current_phase_name: Resultados Confirmados, Rankings e Grupos
+status: ready_for_planning
+stopped_at: Phase 05.1 complete; Phase 6 pending interactive discussion and planning
+last_updated: "2026-09-17T18:40:25-03:00"
 last_activity: 2026-09-17
-last_activity_desc: Plan 05.1-06 added ordered authentication guards and distinct accessible 401 and 404 routes
-state_head: d1c4c93bd9503c34a1952b8b57eb75d81af12c11
+last_activity_desc: Phase 05.1 passed integrated real-browser and aggregate repository certification
+state_head: b086901174791ee0d14a79b97c0f5be28b46bb6f
 progress:
   total_phases: 9
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 127
-  completed_plans: 122
+  completed_plans: 123
 milestone_name: milestone
 ---
+
+## Phase 05.1 / Plan 05.1-07 closeout - 2026-09-17
+
+- Added real Playwright journeys from known URLs through event/market
+  discovery, contextual Keycloak login, session-aware Arena, real balance and
+  enrollment, deadline precedence, route protection, 404, browser history,
+  refresh, session isolation and 320 px layouts.
+- Added an anti-mock validator that rejects business API interception, injected
+  authentication, literal credentials, literal UUIDs and missing journey
+  coverage.
+- Final certification is green: Maven 714/714, Angular 424/424, Node 757/757,
+  Playwright 12/12, OpenAPI anti-drift, production build, Prettier and diff
+  check.
+- Technical commit: `b086901`. Phase 05.1 is complete at 7/7 plans and Phase 6
+  is next for interactive planning. No reset, seed, prediction, administrative
+  operation, dependency download or push occurred.
 
 ## Phase 05.1 / Plan 05.1-06 closeout - 2026-09-17
 
@@ -802,9 +818,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-09-15T22:48:47-03:00
-Stopped at: Plan 05.1-04 complete; Wave 1 complete and Wave 2 pending separate approval
-Resume file: .planning/phases/05.1-convergencia-das-jornadas-do-usuario/05.1-03-PLAN.md
+Last session: 2026-09-17T18:40:25-03:00
+Stopped at: Phase 05.1 complete; Phase 6 pending interactive discussion and planning
+Resume file: .planning/ROADMAP.md
 
 ## Accumulated Context
 

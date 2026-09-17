@@ -489,23 +489,27 @@ implementadas; por decisão do responsável, a Fase 05.1 precede a Fase 6.
   6. Rotas protegidas tratam sessão anônima/expirada de forma compreensível e preservam retorno seguro, enquanto URLs inexistentes terminam em uma página 404 acessível sem capturar callbacks técnicos.
   7. Playwright comprova a jornada integrada real, sem interceptar APIs de negócio, cobrindo agenda → evento → mercado → login → retorno → palpite, refresh, duplicidade, logout, 401/404, deadline, navegação do browser, sessões separadas e largura móvel.
 
-**Plans**: 7 plans
+**Plans**: 7/7 plans complete
 
-- [ ] 05.1-01-PLAN.md — Publicar a referência evento→mercado sem ciclo modular e exibir o CTA de odds no evento.
-- [ ] 05.1-02-PLAN.md — Preservar e consumir com segurança o destino contextual durante o login OIDC.
-- [ ] 05.1-03-PLAN.md — Tornar o shell da Arena consciente de sessão, saldo próprio e logout.
-- [ ] 05.1-04-PLAN.md — Substituir o estado estático de matrícula do perfil por consulta real e privada.
-- [ ] 05.1-05-PLAN.md — Bloquear o bilhete após o deadline e ordenar corretamente os estados de disponibilidade.
-- [ ] 05.1-06-PLAN.md — Tratar acesso anônimo/expirado a rotas protegidas e oferecer wildcard 404 acessível.
-- [ ] 05.1-07-PLAN.md — Certificar as jornadas integradas com Playwright real e gates agregados.
+- [x] 05.1-01-PLAN.md — Publicar a referência evento→mercado sem ciclo modular e exibir o CTA de odds no evento.
+- [x] 05.1-02-PLAN.md — Preservar e consumir com segurança o destino contextual durante o login OIDC.
+- [x] 05.1-03-PLAN.md — Tornar o shell da Arena consciente de sessão, saldo próprio e logout.
+- [x] 05.1-04-PLAN.md — Substituir o estado estático de matrícula do perfil por consulta real e privada.
+- [x] 05.1-05-PLAN.md — Bloquear o bilhete após o deadline e ordenar corretamente os estados de disponibilidade.
+- [x] 05.1-06-PLAN.md — Tratar acesso anônimo/expirado a rotas protegidas e oferecer wildcard 404 acessível.
+- [x] 05.1-07-PLAN.md — Certificar as jornadas integradas com Playwright real e gates agregados.
 
-**Ondas propostas**:
+**Ondas concluídas**:
 
-- **Wave 1**: 05.1-01, 05.1-02 e 05.1-04, independentes entre si.
-- **Wave 2**: 05.1-03 após 05.1-02; 05.1-05 após 05.1-01; 05.1-06 após 05.1-02.
-- **Wave 3**: 05.1-07 após todos os planos anteriores.
+- [x] **Wave 1**: 05.1-01, 05.1-02 e 05.1-04.
+- [x] **Wave 2**: 05.1-03, 05.1-05 e 05.1-06.
+- [x] **Wave 3**: 05.1-07 e certificação final da fase.
 
-Esta inserção e seus planos são proposta documental para revisão. Não autorizam implementação, alteração de banco/infraestrutura, reset/seed, testes materiais, stage, commit, integração ou push.
+Completion update (2026-09-17): all seven plans are complete. Real Playwright
+journeys passed 12/12 across Chromium and Firefox at desktop and 320 px, and
+the aggregate repository gates passed at Maven 714/714, Angular 424/424 and
+Node 757/757. Phase 6 remains subject to its own interactive planning and
+approval cycle; no push was performed.
 **UI hint**: yes
 
 ### Phase 6: Resultados Confirmados, Rankings e Grupos
@@ -556,6 +560,6 @@ Esta inserção e seus planos são proposta documental para revisão. Não autor
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
 | 5. Créditos Virtuais e Palpites Protegidos | 7/7 | Complete; final snapshot approved | 2026-09-14 |
-| 05.1. Convergência das Jornadas do Usuário | 0/7 | Planned; awaiting plan review | - |
+| 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
