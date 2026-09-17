@@ -117,6 +117,11 @@ class IdentityModuleTest {
     }
 
     @Bean
+    ProfileEnrollmentStatusLookup profileEnrollmentStatusLookup() {
+      return mock(ProfileEnrollmentStatusLookup.class);
+    }
+
+    @Bean
     ClientRegistrationRepository clientRegistrationRepository() {
       ClientRegistration registration =
           ClientRegistration.withRegistrationId("keycloak")
