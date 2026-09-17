@@ -29,8 +29,7 @@ public final class SessionLifecycleService implements AuthenticationSuccessHandl
 
   private static final String PUBLIC_DEFAULT_TARGET = "/";
   private static final String OPERATIONAL_DEFAULT_TARGET = "/operacao/esportes";
-  static final String CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE =
-      "betufu.session.contextual-login-target";
+  static final String CONTEXTUAL_LOGIN_TARGET_ATTRIBUTE = "betufu.session.contextual-login-target";
 
   private final SessionPolicy sessionPolicy;
   private final Clock clock;

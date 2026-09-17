@@ -169,8 +169,7 @@ class SessionLifecycleServiceTest {
         .onAuthenticationSuccess(request, response, authentication("ROLE_ADMINISTRADOR_GERAL"));
 
     assertThat(response.getRedirectedUrl())
-        .isEqualTo(
-            "/odds/mercados/11111111-1111-4111-8111-111111111111?selection=AWAY#bilhete");
+        .isEqualTo("/odds/mercados/11111111-1111-4111-8111-111111111111?selection=AWAY#bilhete");
     assertThat(
             request
                 .getSession()
@@ -179,7 +178,8 @@ class SessionLifecycleServiceTest {
 
     MockHttpServletResponse secondResponse = new MockHttpServletResponse();
     newService()
-        .onAuthenticationSuccess(request, secondResponse, authentication("ROLE_ADMINISTRADOR_GERAL"));
+        .onAuthenticationSuccess(
+            request, secondResponse, authentication("ROLE_ADMINISTRADOR_GERAL"));
     assertThat(secondResponse.getRedirectedUrl()).isEqualTo("/operacao/esportes");
   }
 

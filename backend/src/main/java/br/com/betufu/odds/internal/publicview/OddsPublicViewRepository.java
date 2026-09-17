@@ -94,7 +94,8 @@ public class OddsPublicViewRepository {
   public Optional<UUID> findPublicMarketIdByEvent(UUID eventId) {
     if (eventId == null) return Optional.empty();
     List<UUID> publicMarketIds =
-        jdbc.queryForList(
+        jdbc
+            .queryForList(
                 "SELECT market_id FROM public.odds_market WHERE event_id = ? ORDER BY market_id",
                 UUID.class,
                 eventId)

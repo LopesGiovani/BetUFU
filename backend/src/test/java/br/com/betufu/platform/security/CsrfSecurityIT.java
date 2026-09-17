@@ -255,8 +255,7 @@ class CsrfSecurityIT {
         .andExpect(
             request()
                 .sessionAttribute(
-                    "betufu.session.contextual-login-target",
-                    "/odds/mercados/market-1"));
+                    "betufu.session.contextual-login-target", "/odds/mercados/market-1"));
   }
 
   @Test
