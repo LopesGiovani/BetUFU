@@ -1,6 +1,7 @@
 import type { Routes } from '@angular/router';
 
 import { profileCompletionGuard } from './core/profile/profile-completion.guard';
+import { authenticationGuard } from './core/session/authentication.guard';
 import { BUILD_SPECIFIC_ROUTES, PUBLIC_MARKET_ROUTES } from './app.routes.development';
 import { ArenaShellComponent } from './layout/arena-shell.component';
 import { ConsoleShellComponent } from './layout/console-shell.component';
@@ -81,8 +82,15 @@ export const APP_ROUTES: Routes = [
     ],
   },
   {
+    path: 'entrar',
+    loadComponent: () =>
+      import('./features/session/login-required-page.component').then(
+        ({ LoginRequiredPageComponent }) => LoginRequiredPageComponent,
+      ),
+  },
+  {
     path: '',
-    canActivateChild: [profileCompletionGuard],
+    canActivateChild: [authenticationGuard, profileCompletionGuard],
     children: [
       ...sportsOperationsRoutes,
       ...BUILD_SPECIFIC_ROUTES,
@@ -108,5 +116,12 @@ export const APP_ROUTES: Routes = [
         ],
       },
     ],
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./features/errors/not-found-page.component').then(
+        ({ NotFoundPageComponent }) => NotFoundPageComponent,
+      ),
   },
 ];

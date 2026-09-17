@@ -1,0 +1,107 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.route-state {
+  position: relative;
+  display: grid;
+  width: var(--bt-container);
+  min-height: min(680px, calc(100vh - 112px));
+  margin-inline: auto;
+  padding: var(--bt-space-12) 0 var(--bt-space-16);
+  grid-template-columns: minmax(0, 0.9fr) minmax(300px, 1.1fr);
+  align-items: center;
+  gap: var(--bt-space-8);
+  overflow: hidden;
+}
+
+.route-state::after {
+  position: absolute;
+  right: 0;
+  bottom: 8%;
+  width: min(52vw, 680px);
+  height: 180px;
+  border-block: 1px solid var(--bt-border);
+  content: '';
+  opacity: 0.7;
+  transform: skewY(-8deg);
+}
+
+.route-state__marker {
+  position: relative;
+  z-index: 1;
+  color: var(--bt-wine);
+  font:
+    700 clamp(8rem, 28vw, 22rem) / 0.7 'Barlow Condensed',
+    sans-serif;
+  letter-spacing: -0.06em;
+  text-shadow: 1px 1px 0 var(--bt-border-strong);
+  user-select: none;
+}
+
+.route-state__content {
+  position: relative;
+  z-index: 2;
+  max-width: 620px;
+  padding: var(--bt-space-8);
+  border-top: 4px solid var(--bt-danger);
+  background: rgba(20, 20, 23, 0.94);
+  box-shadow: var(--bt-shadow-raised);
+}
+
+.route-state__eyebrow {
+  margin: 0 0 var(--bt-space-2);
+  color: var(--bt-danger);
+  font-size: var(--bt-type-label);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  color: var(--bt-display);
+  font:
+    600 var(--bt-type-heading) / 0.92 'Barlow Condensed',
+    sans-serif;
+  text-transform: uppercase;
+}
+
+.route-state__description {
+  max-width: 52ch;
+  margin: var(--bt-space-4) 0 0;
+  color: var(--bt-text-muted);
+}
+
+.primary-action {
+  display: inline-flex;
+  min-height: var(--bt-min-touch-target);
+  margin-top: var(--bt-space-6);
+  padding: 0 var(--bt-space-4);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--bt-signal);
+  border-radius: var(--bt-radius-field);
+  background: var(--bt-signal);
+  color: var(--bt-ink);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .route-state {
+    min-height: calc(100vh - 88px);
+    padding: var(--bt-space-8) 0 var(--bt-space-12);
+    grid-template-columns: 1fr;
+    gap: var(--bt-space-4);
+  }
+
+  .route-state__marker {
+    font-size: clamp(7rem, 44vw, 11rem);
+  }
+
+  .route-state__content {
+    padding: var(--bt-space-6) var(--bt-space-4);
+  }
+}

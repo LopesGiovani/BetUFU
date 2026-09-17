@@ -19,6 +19,7 @@ const CANONICAL_GUARDED_APP_ROUTES = [
   "import type { Routes } from '@angular/router';",
   '',
   "import { profileCompletionGuard } from './core/profile/profile-completion.guard';",
+  "import { authenticationGuard } from './core/session/authentication.guard';",
   "import { BUILD_SPECIFIC_ROUTES, PUBLIC_MARKET_ROUTES } from './app.routes.development';",
   "import { ArenaShellComponent } from './layout/arena-shell.component';",
   "import { ConsoleShellComponent } from './layout/console-shell.component';",
@@ -97,8 +98,15 @@ const CANONICAL_GUARDED_APP_ROUTES = [
   '    ],',
   '  },',
   '  {',
+  "    path: 'entrar',",
+  '    loadComponent: () =>',
+  "      import('./features/session/login-required-page.component').then(",
+  '        ({ LoginRequiredPageComponent }) => LoginRequiredPageComponent,',
+  '      ),',
+  '  },',
+  '  {',
   "    path: '',",
-  '    canActivateChild: [profileCompletionGuard],',
+  '    canActivateChild: [authenticationGuard, profileCompletionGuard],',
   '    children: [',
   '      ...sportsOperationsRoutes,',
   '      ...BUILD_SPECIFIC_ROUTES,',
@@ -124,6 +132,13 @@ const CANONICAL_GUARDED_APP_ROUTES = [
   '        ],',
   '      },',
   '    ],',
+  '  },',
+  '  {',
+  "    path: '**',",
+  '    loadComponent: () =>',
+  "      import('./features/errors/not-found-page.component').then(",
+  '        ({ NotFoundPageComponent }) => NotFoundPageComponent,',
+  '      ),',
   '  },',
   '];',
   '',
@@ -531,10 +546,28 @@ test('recusa import nao literal na rota operacional de odds', async () => {
 
 const globalGuardMutations = [
   {
-    name: 'seam global sem a guarda de perfil',
+    name: 'seam global sem as guardas ordenadas',
     path: appRoutesPath,
     rule: 'PROFILE_GUARD_COMPOSITION',
-    mutate: (source) => source.replace('    canActivateChild: [profileCompletionGuard],\n', ''),
+    mutate: (source) => source.replace(
+      '    canActivateChild: [authenticationGuard, profileCompletionGuard],\n',
+      '',
+    ),
+  },
+  {
+    name: 'guarda de perfil executada antes da autenticacao',
+    path: appRoutesPath,
+    rule: 'PROFILE_GUARD_COMPOSITION',
+    mutate: (source) => source.replace(
+      '[authenticationGuard, profileCompletionGuard]',
+      '[profileCompletionGuard, authenticationGuard]',
+    ),
+  },
+  {
+    name: 'simbolo divergente da guarda de autenticacao',
+    path: appRoutesPath,
+    rule: 'AUTHENTICATION_GUARD_IMPORT',
+    mutate: (source) => source.replaceAll('authenticationGuard', 'otherAuthenticationGuard'),
   },
   {
     name: 'simbolo divergente da guarda global',
@@ -573,6 +606,15 @@ const globalGuardMutations = [
     mutate: (source) => source.replace(
       '  },\n];',
       "  },\n  { path: 'unguarded', redirectTo: '' },\n];",
+    ),
+  },
+  {
+    name: 'wildcard deixa de ser a ultima rota',
+    path: appRoutesPath,
+    rule: 'PROFILE_GUARD_COMPOSITION',
+    mutate: (source) => source.replace(
+      "  {\n    path: '**',",
+      "  { path: 'depois-do-wildcard', redirectTo: '' },\n  {\n    path: '**',",
     ),
   },
 ];

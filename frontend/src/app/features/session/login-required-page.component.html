@@ -1,0 +1,16 @@
+<main class="route-state route-state--login" aria-labelledby="login-required-title">
+  <div class="route-state__marker" aria-hidden="true">401</div>
+
+  <section class="route-state__content">
+    <p class="route-state__eyebrow">Acesso protegido</p>
+    <h1 #pageTitle id="login-required-title" tabindex="-1">Entre para continuar</h1>
+    <p class="route-state__description">
+      Esta área pertence à sua conta. Depois da autenticação, você volta ao ponto em que estava.
+    </p>
+
+    <div class="route-state__actions" aria-label="Opções de navegação">
+      <a class="primary-action" [href]="loginUrl">Entrar com a conta UFU</a>
+      <a class="secondary-action" routerLink="/">Voltar para a Arena</a>
+    </div>
+  </section>
+</main>
