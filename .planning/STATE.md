@@ -4,18 +4,34 @@ milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Convergência das Jornadas do Usuário
 status: executing
-stopped_at: Plan 05.1-03 complete; Wave 2 continuing with Plan 05.1-05
-last_updated: "2026-09-15T23:14:07-03:00"
-last_activity: 2026-09-15
-last_activity_desc: Plan 05.1-03 made the Arena shell reflect authentication, balance, account access and logout
-state_head: 3b03f18f0ecae3b4120050cc7d8fc28212a7d4fe
+stopped_at: Plan 05.1-05 complete; Wave 2 continuing with Plan 05.1-06
+last_updated: "2026-09-17T15:58:31-03:00"
+last_activity: 2026-09-17
+last_activity_desc: Plan 05.1-05 made betting availability deadline-aware with deterministic time control
+state_head: 1f639ea898a4050e7124b5195fb8bde4137c1ce6
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 127
-  completed_plans: 120
+  completed_plans: 121
 milestone_name: milestone
 ---
+
+## Phase 05.1 / Plan 05.1-05 closeout - 2026-09-17
+
+- Added an injectable application clock with cancellable deadline scheduling
+  and deterministic fake-time coverage.
+- The betting store now gives accepted receipts first precedence, then market
+  state/deadline, and only then session, enrollment, balance and submission.
+- OPEN markets close reactively at `closeDeadline`; expired, suspended, locked
+  or otherwise unavailable markets never render login or a new-bet form.
+- Existing receipts remain visible after the deadline and are recovered on
+  refresh without loading enrollment or balance for an unavailable market.
+- Certification is green: focal and consumer specs 31/31, Angular 414/414,
+  Node 749/749, lint, production build, scoped Prettier and `git diff --check`.
+- Technical commit: `1f639ea`. Plan 05.1-06 is next under the approved Wave 2
+  inline execution. No dependency, API, backend, database, Docker, seed,
+  infrastructure or push action occurred.
 
 ## Phase 05.1 / Plan 05.1-03 closeout - 2026-09-15
 
