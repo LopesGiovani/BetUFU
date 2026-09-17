@@ -4,18 +4,34 @@ milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Convergência das Jornadas do Usuário
 status: executing
-stopped_at: Plan 05.1-05 complete; Wave 2 continuing with Plan 05.1-06
-last_updated: "2026-09-17T15:58:31-03:00"
+stopped_at: Plan 05.1-06 complete; Wave 2 complete and Plan 05.1-07 pending separate approval
+last_updated: "2026-09-17T16:18:54-03:00"
 last_activity: 2026-09-17
-last_activity_desc: Plan 05.1-05 made betting availability deadline-aware with deterministic time control
-state_head: 1f639ea898a4050e7124b5195fb8bde4137c1ce6
+last_activity_desc: Plan 05.1-06 added ordered authentication guards and distinct accessible 401 and 404 routes
+state_head: d1c4c93bd9503c34a1952b8b57eb75d81af12c11
 progress:
   total_phases: 9
   completed_phases: 6
   total_plans: 127
-  completed_plans: 121
+  completed_plans: 122
 milestone_name: milestone
 ---
+
+## Phase 05.1 / Plan 05.1-06 closeout - 2026-09-17
+
+- Added a fail-closed authentication guard before profile completion on every
+  protected account and operation route.
+- Anonymous, expired and logged-out sessions now reach a public `/entrar`
+  state with safe contextual return instead of a blank/private page.
+- Added a final wildcard with a distinct accessible 404 and Arena action;
+  both new states move focus to their title after navigation.
+- Extended the route-boundary validator and mutations to enforce guard order,
+  approved lazy imports and wildcard finality.
+- Certification is green: focal 18/18, Angular 424/424, Node 752/752, lint,
+  production build, scoped Prettier, route-boundary validation and diff check.
+- Technical commit: `d1c4c93`. Wave 2 is complete; Plan 05.1-07 requires a
+  separate approval. No dependency, API, backend, database, Docker, seed,
+  infrastructure or push action occurred.
 
 ## Phase 05.1 / Plan 05.1-05 closeout - 2026-09-17
 
