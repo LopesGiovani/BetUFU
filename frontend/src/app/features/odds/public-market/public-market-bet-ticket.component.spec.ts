@@ -8,6 +8,7 @@ import { OddsMarketState } from '../../../api/generated/model/odds-market-state'
 import { PublicOddsExplanation } from '../../../api/generated/model/public-odds-explanation';
 import { PublicOddsView } from '../../../api/generated/model/public-odds-view';
 import { SessionStore } from '../../../core/session/session.store';
+import { AppClock } from '../../../core/time/app-clock';
 import { EnrollmentStore } from '../../enrollment/enrollment.store';
 import { PublicMarketApiAdapter, PublicMarketSnapshot } from './public-market-api.adapter';
 import { PublicMarketBetTicketComponent } from './public-market-bet-ticket.component';
@@ -19,7 +20,15 @@ const VERSION_1 = '22222222-2222-4222-8222-222222222222';
 const PUBLICATION_1 = '33333333-3333-4333-8333-333333333333';
 
 describe('PublicMarketBetTicketComponent', () => {
-  async function render(authenticated = true, currentUrl = `/odds/mercados/${MARKET_ID}`) {
+  async function render(
+    authenticated = true,
+    currentUrl = `/odds/mercados/${MARKET_ID}`,
+    options: {
+      now?: string;
+      marketState?: OddsMarketState;
+      ownTicket?: object | null;
+    } = {},
+  ) {
     const publicSnapshot = signal<PublicMarketSnapshot | null>(null);
     const api = {
       getBalance: vi.fn().mockResolvedValue({
@@ -28,7 +37,7 @@ describe('PublicMarketBetTicketComponent', () => {
         minimumStake: 10,
         rulesVersion: 'credits-v1',
       }),
-      getOwnTicket: vi.fn().mockResolvedValue(null),
+      getOwnTicket: vi.fn().mockResolvedValue(options.ownTicket ?? null),
       submit: vi.fn().mockResolvedValue({
         predictionId: '44444444-4444-4444-8444-444444444444',
         marketId: MARKET_ID,
@@ -67,6 +76,13 @@ describe('PublicMarketBetTicketComponent', () => {
           },
         },
         { provide: PublicMarketApiAdapter, useValue: publicMarket },
+        {
+          provide: AppClock,
+          useValue: {
+            now: () => Date.parse(options.now ?? '2026-09-15T11:00:00Z'),
+            scheduleAt: vi.fn(() => vi.fn()),
+          },
+        },
         provideRouter([]),
       ],
     }).compileComponents();
@@ -77,18 +93,78 @@ describe('PublicMarketBetTicketComponent', () => {
     fixture.componentRef.setInput('publicationId', PUBLICATION_1);
     fixture.componentRef.setInput('ruleVersion', 'elo-v1');
     fixture.componentRef.setInput('closeDeadline', '2026-09-15T12:00:00Z');
-    fixture.componentRef.setInput('marketState', OddsMarketState.Open);
+    fixture.componentRef.setInput('marketState', options.marketState ?? OddsMarketState.Open);
     fixture.componentRef.setInput('selections', [
       { code: 'HOME', label: 'Mandante', odd: 1.82 },
       { code: 'AWAY', label: 'Visitante', odd: 2.05 },
     ]);
     fixture.detectChanges();
-    await vi.waitFor(() =>
-      expect(fixture.componentInstance.store.status()).toBe(authenticated ? 'eligible' : 'visitor'),
-    );
+    const unavailable =
+      options.marketState && options.marketState !== OddsMarketState.Open
+        ? options.marketState === OddsMarketState.Suspended
+          ? 'suspended'
+          : 'closed'
+        : Date.parse(options.now ?? '2026-09-15T11:00:00Z') >= Date.parse('2026-09-15T12:00:00Z')
+          ? options.ownTicket
+            ? 'success'
+            : 'closed'
+          : authenticated
+            ? 'eligible'
+            : 'visitor';
+    await vi.waitFor(() => expect(fixture.componentInstance.store.status()).toBe(unavailable));
     fixture.detectChanges();
     return { fixture, api, publicMarket, publicSnapshot };
   }
+
+  it('mostra mercado encerrado antes do login quando o deadline venceu', async () => {
+    const { fixture, api } = await render(false, `/odds/mercados/${MARKET_ID}`, {
+      now: '2026-09-15T12:00:00Z',
+    });
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.textContent).toContain('Mercado encerrado');
+    expect(root.textContent).not.toContain('Entrar para palpitar');
+    expect(root.querySelector('form')).toBeNull();
+    expect(api.getBalance).not.toHaveBeenCalled();
+  });
+
+  it('mostra suspensao antes do login para visitante', async () => {
+    const { fixture } = await render(false, `/odds/mercados/${MARKET_ID}`, {
+      marketState: OddsMarketState.Suspended,
+    });
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.textContent).toContain('Mercado suspenso');
+    expect(root.textContent).not.toContain('Entrar para palpitar');
+    expect(root.querySelector('form')).toBeNull();
+  });
+
+  it('mantem comprovante no refresh depois do deadline', async () => {
+    const ticket = {
+      predictionId: '44444444-4444-4444-8444-444444444444',
+      marketId: MARKET_ID,
+      marketVersionId: VERSION_1,
+      publicationId: PUBLICATION_1,
+      selection: 'HOME',
+      stake: 10,
+      acceptedOdds: 1.82,
+      potentialReturn: 18.2,
+      netProfit: 8.2,
+      ruleVersion: 'elo-v1',
+      closeDeadline: '2026-09-15T12:00:00Z',
+      state: 'PENDING',
+      acceptedAt: '2026-09-14T12:01:00Z',
+    };
+    const { fixture } = await render(true, `/odds/mercados/${MARKET_ID}`, {
+      now: '2026-09-15T12:00:00Z',
+      ownTicket: ticket,
+    });
+    const root = fixture.nativeElement as HTMLElement;
+
+    expect(root.textContent).toContain('Palpite registrado');
+    expect(root.textContent).toContain('Seu comprovante permanece disponivel');
+    expect(root.querySelector('form')).toBeNull();
+  });
 
   it('inicia login preservando a rota atual do mercado', async () => {
     const currentUrl = `/odds/mercados/${MARKET_ID}?selection=AWAY#bilhete`;

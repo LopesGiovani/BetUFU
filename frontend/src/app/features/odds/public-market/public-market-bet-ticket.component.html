@@ -1,11 +1,67 @@
 <section
   class="bet-ticket"
   aria-labelledby="bet-ticket-heading"
-  [attr.aria-busy]="store.status() === 'loading'"
->
+  [attr.aria-busy]="store.status() === 'loading'">
   <h2 id="bet-ticket-heading">Palpite neste mercado</h2>
 
-  @if (store.status() === 'visitor') {
+  @if (store.status() === 'success' && store.ownTicket(); as ticket) {
+    <div class="receipt" role="status" aria-live="polite">
+      <h3>Palpite registrado</h3>
+      <dl>
+        <div>
+          <dt>Selecao</dt>
+          <dd>{{ selectionLabel(ticket.selection) }}</dd>
+        </div>
+        <div>
+          <dt>Creditos</dt>
+          <dd>{{ ticket.stake | number: '1.2-2' }}</dd>
+        </div>
+        <div>
+          <dt>Odd aceita</dt>
+          <dd>{{ ticket.acceptedOdds | number: '1.2-2' }}</dd>
+        </div>
+        <div>
+          <dt>Versao da regra</dt>
+          <dd>{{ ticket.ruleVersion }}</dd>
+        </div>
+        <div>
+          <dt>Retorno potencial</dt>
+          <dd>{{ ticket.potentialReturn | number: '1.2-2' }}</dd>
+        </div>
+        <div>
+          <dt>Lucro liquido</dt>
+          <dd>{{ ticket.netProfit | number: '1.2-2' }}</dd>
+        </div>
+        <div>
+          <dt>Fecha em</dt>
+          <dd>
+            <time [attr.datetime]="ticket.closeDeadline">{{ ticket.closeDeadline }}</time>
+          </dd>
+        </div>
+        <div>
+          <dt>Estado</dt>
+          <dd>Pendente</dd>
+        </div>
+      </dl>
+      <p>Seu comprovante permanece disponivel neste mercado.</p>
+    </div>
+  } @else if (store.status() === 'suspended') {
+    <div class="state-panel notice" role="status">
+      <h3>Mercado suspenso</h3>
+      <p>
+        Mercado suspenso para verificacao. A versao publica continua disponivel, mas novos palpites
+        estao bloqueados.
+      </p>
+    </div>
+  } @else if (store.status() === 'closed') {
+    <div class="state-panel" role="status" aria-live="polite">
+      <h3>Mercado encerrado</h3>
+      <p>
+        Este mercado nao aceita novos palpites. A versao registrada permanece disponivel para
+        consulta.
+      </p>
+    </div>
+  } @else if (store.status() === 'visitor') {
     <div class="state-panel">
       <h3>Entre para palpitar</h3>
       <p>Entre para usar seus creditos virtuais neste mercado.</p>
@@ -22,40 +78,6 @@
       <h3>Palpite indisponivel</h3>
       <p>Sua conta nao pode enviar palpites neste momento.</p>
     </div>
-  } @else if (store.status() === 'suspended') {
-    <div class="state-panel notice" role="status">
-      <h3>Mercado suspenso</h3>
-      <p>
-        Mercado suspenso para verificacao. A versao publica continua disponivel, mas novos
-        palpites estao bloqueados.
-      </p>
-    </div>
-  } @else if (store.status() === 'closed') {
-    <div class="state-panel" role="status">
-      <h3>Mercado encerrado</h3>
-      <p>
-        Este mercado nao aceita novos palpites. A versao registrada permanece disponivel para
-        consulta.
-      </p>
-    </div>
-  } @else if (store.status() === 'success' && store.ownTicket(); as ticket) {
-    <div class="receipt" role="status" aria-live="polite">
-      <h3>Palpite registrado</h3>
-      <dl>
-        <div><dt>Selecao</dt><dd>{{ selectionLabel(ticket.selection) }}</dd></div>
-        <div><dt>Creditos</dt><dd>{{ ticket.stake | number:'1.2-2' }}</dd></div>
-        <div><dt>Odd aceita</dt><dd>{{ ticket.acceptedOdds | number:'1.2-2' }}</dd></div>
-        <div><dt>Versao da regra</dt><dd>{{ ticket.ruleVersion }}</dd></div>
-        <div><dt>Retorno potencial</dt><dd>{{ ticket.potentialReturn | number:'1.2-2' }}</dd></div>
-        <div><dt>Lucro liquido</dt><dd>{{ ticket.netProfit | number:'1.2-2' }}</dd></div>
-        <div>
-          <dt>Fecha em</dt>
-          <dd><time [attr.datetime]="ticket.closeDeadline">{{ ticket.closeDeadline }}</time></dd>
-        </div>
-        <div><dt>Estado</dt><dd>Pendente</dd></div>
-      </dl>
-      <p>Seu comprovante permanece disponivel neste mercado.</p>
-    </div>
   } @else {
     @if (store.status() === 'stale') {
       <div class="notice" role="alert">
@@ -69,8 +91,7 @@
           <input
             type="checkbox"
             [checked]="confirmed()"
-            (change)="confirmed.set($any($event.target).checked)"
-          />
+            (change)="confirmed.set($any($event.target).checked)" />
           Confirmo a nova odd publicada
         </label>
       </div>
@@ -84,7 +105,7 @@
       <form (submit)="$event.preventDefault(); submit()">
         <p>
           Saldo disponivel:
-          <strong class="numeric">{{ balance.balance | number:'1.2-2' }}</strong> creditos
+          <strong class="numeric">{{ balance.balance | number: '1.2-2' }}</strong> creditos
         </p>
 
         <fieldset>
@@ -97,10 +118,9 @@
                   name="selection"
                   [value]="item.code"
                   [checked]="selection() === item.code"
-                  (change)="chooseSelection(item.code)"
-                />
+                  (change)="chooseSelection(item.code)" />
                 <span>{{ item.label }}</span>
-                <strong class="numeric">{{ item.odd | number:'1.2-2' }}</strong>
+                <strong class="numeric">{{ item.odd | number: '1.2-2' }}</strong>
               </label>
             }
           </div>
@@ -117,10 +137,9 @@
           aria-describedby="stake-help stake-error"
           [attr.aria-invalid]="stakeError() ? 'true' : null"
           [value]="stake() ?? ''"
-          (input)="updateStake($any($event.target).valueAsNumber)"
-        />
+          (input)="updateStake($any($event.target).valueAsNumber)" />
         <small id="stake-help">
-          Minimo {{ balance.minimumStake | number:'1.2-2' }} creditos · maximo igual ao saldo
+          Minimo {{ balance.minimumStake | number: '1.2-2' }} creditos · maximo igual ao saldo
           disponivel · ate duas casas decimais
         </small>
         @if (stakeError(); as message) {
@@ -132,13 +151,16 @@
         <dl class="calculation">
           <div>
             <dt>Retorno potencial (inclui os creditos do palpite)</dt>
-            <dd class="numeric">{{ potentialReturn() | number:'1.2-2' }}</dd>
+            <dd class="numeric">{{ potentialReturn() | number: '1.2-2' }}</dd>
           </div>
           <div>
             <dt>Lucro liquido</dt>
-            <dd class="numeric">{{ netProfit() | number:'1.2-2' }}</dd>
+            <dd class="numeric">{{ netProfit() | number: '1.2-2' }}</dd>
           </div>
-          <div><dt>Versao da regra</dt><dd>{{ store.marketSnapshot()?.ruleVersion }}</dd></div>
+          <div>
+            <dt>Versao da regra</dt>
+            <dd>{{ store.marketSnapshot()?.ruleVersion }}</dd>
+          </div>
           <div>
             <dt>Fecha em</dt>
             <dd>

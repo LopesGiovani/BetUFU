@@ -7,12 +7,10 @@ import { OddsMarketState } from '../../../api/generated/model/odds-market-state'
 import { PublicOddsExplanation } from '../../../api/generated/model/public-odds-explanation';
 import { PublicOddsView } from '../../../api/generated/model/public-odds-view';
 import { SessionStore } from '../../../core/session/session.store';
+import { AppClock } from '../../../core/time/app-clock';
 import { EnrollmentStore } from '../../enrollment/enrollment.store';
 import { PublicMarketApiAdapter, PublicMarketSnapshot } from './public-market-api.adapter';
-import {
-  BettingTicket,
-  PublicMarketBettingApiAdapter,
-} from './public-market-betting-api.adapter';
+import { BettingTicket, PublicMarketBettingApiAdapter } from './public-market-betting-api.adapter';
 import { PublicMarketBettingStore } from './public-market-betting.store';
 
 const MARKET_ID = '11111111-1111-4111-8111-111111111111';
@@ -76,11 +74,28 @@ function refreshedSnapshot(overrides: Partial<PublicMarketSnapshot> = {}): Publi
 }
 
 describe('PublicMarketBettingStore', () => {
-  function setup(options: { authenticated?: boolean; registered?: boolean } = {}) {
+  function setup(
+    options: {
+      authenticated?: boolean;
+      registered?: boolean;
+      now?: string;
+      deadline?: string;
+      marketState?: OddsMarketState;
+    } = {},
+  ) {
     const authenticated = signal(options.authenticated ?? true);
     const registered = signal(options.registered ?? true);
     const enrollmentError = signal(false);
     const publicSnapshot = signal<PublicMarketSnapshot | null>(null);
+    let now = Date.parse(options.now ?? '2026-09-15T11:00:00Z');
+    let deadlineTask: (() => void) | null = null;
+    const clock = {
+      now: vi.fn(() => now),
+      scheduleAt: vi.fn((_instant: number, task: () => void) => {
+        deadlineTask = task;
+        return vi.fn();
+      }),
+    };
     const api = {
       getBalance: vi.fn().mockResolvedValue({
         balance: 1000,
@@ -109,6 +124,7 @@ describe('PublicMarketBettingStore', () => {
         { provide: SessionStore, useValue: session },
         { provide: EnrollmentStore, useValue: enrollment },
         { provide: PublicMarketApiAdapter, useValue: publicMarket },
+        { provide: AppClock, useValue: clock },
       ],
     });
     const store = TestBed.inject(PublicMarketBettingStore);
@@ -116,15 +132,99 @@ describe('PublicMarketBettingStore', () => {
       marketVersionId: VERSION_1,
       publicationId: PUBLICATION_1,
       ruleVersion: 'elo-v1',
-      closeDeadline: '2026-09-15T12:00:00Z',
-      state: OddsMarketState.Open,
+      closeDeadline: options.deadline ?? '2026-09-15T12:00:00Z',
+      state: options.marketState ?? OddsMarketState.Open,
       selections: [
         { code: 'HOME', label: 'Mandante', odd: 1.82 },
         { code: 'AWAY', label: 'Visitante', odd: 2.05 },
       ],
     });
-    return { store, api, session, enrollment, publicMarket, publicSnapshot };
+    return {
+      store,
+      api,
+      session,
+      enrollment,
+      publicMarket,
+      publicSnapshot,
+      advanceTo(instant: string): void {
+        now = Date.parse(instant);
+        deadlineTask?.();
+      },
+    };
   }
+
+  it('aplica deadline no instante exato antes de sessao e elegibilidade', async () => {
+    const before = setup({ authenticated: false, now: '2026-09-15T11:59:59.999Z' });
+    expect(before.store.status()).toBe('visitor');
+    await before.store.load();
+    expect(before.store.status()).toBe('visitor');
+
+    TestBed.resetTestingModule();
+    const atDeadline = setup({ authenticated: false, now: '2026-09-15T12:00:00Z' });
+    expect(atDeadline.store.status()).toBe('closed');
+    await atDeadline.store.load();
+    expect(atDeadline.store.status()).toBe('closed');
+    expect(atDeadline.enrollment.loadEnrollment).not.toHaveBeenCalled();
+    expect(atDeadline.api.getBalance).not.toHaveBeenCalled();
+
+    TestBed.resetTestingModule();
+    const after = setup({ authenticated: false, now: '2026-09-15T12:00:00.001Z' });
+    expect(after.store.status()).toBe('closed');
+  });
+
+  it('faz indisponibilidade do mercado prevalecer sobre login e matricula', async () => {
+    const suspended = setup({
+      authenticated: false,
+      registered: false,
+      marketState: OddsMarketState.Suspended,
+    });
+
+    expect(suspended.store.status()).toBe('suspended');
+    await suspended.store.load();
+
+    expect(suspended.store.status()).toBe('suspended');
+    expect(suspended.enrollment.loadEnrollment).not.toHaveBeenCalled();
+    expect(suspended.api.getBalance).not.toHaveBeenCalled();
+
+    TestBed.resetTestingModule();
+    const locked = setup({ marketState: OddsMarketState.Locked });
+    expect(locked.store.status()).toBe('closed');
+  });
+
+  it('fecha de forma reativa quando o prazo passa com a pagina aberta', async () => {
+    const { store, advanceTo } = setup();
+    await store.load();
+    expect(store.status()).toBe('eligible');
+
+    advanceTo('2026-09-15T12:00:00Z');
+
+    expect(store.status()).toBe('closed');
+    expect(store.canSubmit()).toBe(false);
+  });
+
+  it('mantem comprovante aceito visivel quando o prazo passa', async () => {
+    const { store, api, advanceTo } = setup();
+    api.getOwnTicket.mockResolvedValue(acceptedTicket());
+    await store.load();
+    expect(store.status()).toBe('success');
+
+    advanceTo('2026-09-15T12:00:00Z');
+
+    expect(store.status()).toBe('success');
+    expect(store.ownTicket()?.predictionId).toBe('44444444-4444-4444-8444-444444444444');
+  });
+
+  it('recupera comprovante proprio mesmo ao recarregar mercado ja encerrado', async () => {
+    const { store, api, enrollment } = setup({ now: '2026-09-15T12:00:00Z' });
+    api.getOwnTicket.mockResolvedValue(acceptedTicket());
+
+    await store.load();
+
+    expect(store.status()).toBe('success');
+    expect(store.ownTicket()?.predictionId).toBe('44444444-4444-4444-8444-444444444444');
+    expect(enrollment.loadEnrollment).not.toHaveBeenCalled();
+    expect(api.getBalance).not.toHaveBeenCalled();
+  });
 
   it('orienta visitante e conta sem vinculo sem consultar saldo', async () => {
     const visitor = setup({ authenticated: false });
@@ -255,9 +355,7 @@ describe('PublicMarketBettingStore', () => {
         error: { code: 'BETUFU-409-STALE_VERSION' },
       }),
     );
-    publicSnapshot.set(
-      refreshedSnapshot({ marketId: '88888888-8888-4888-8888-888888888888' }),
-    );
+    publicSnapshot.set(refreshedSnapshot({ marketId: '88888888-8888-4888-8888-888888888888' }));
 
     await expect(store.submit('HOME', 10, false)).resolves.toBe('error');
 

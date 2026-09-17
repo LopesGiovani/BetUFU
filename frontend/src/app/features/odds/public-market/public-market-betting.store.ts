@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { OddsMarketState } from '../../../api/generated/model/odds-market-state';
 import { SessionStore } from '../../../core/session/session.store';
+import { AppClock } from '../../../core/time/app-clock';
 import { EnrollmentStore } from '../../enrollment/enrollment.store';
 import { PublicMarketApiAdapter, PublicMarketSelection } from './public-market-api.adapter';
 import {
@@ -42,6 +43,8 @@ export class PublicMarketBettingStore {
   private readonly session = inject(SessionStore);
   private readonly enrollment = inject(EnrollmentStore);
   private readonly publicMarket = inject(PublicMarketApiAdapter);
+  private readonly clock = inject(AppClock);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly state = signal<BettingState>('visitor');
   private readonly balance = signal<BettingBalance | null>(null);
   private readonly ticket = signal<BettingTicket | null>(null);
@@ -51,6 +54,7 @@ export class PublicMarketBettingStore {
   private requestSequence = 0;
   private activeLoadMarketId: string | null = null;
   private loadedMarketId: string | null = null;
+  private cancelDeadlineTransition: (() => void) | null = null;
 
   readonly status = computed(() => this.state());
   readonly balanceValue = computed(() => this.balance());
@@ -63,28 +67,37 @@ export class PublicMarketBettingStore {
   );
   readonly requiresReconfirmation = computed(() => this.state() === 'stale');
 
+  constructor() {
+    this.destroyRef.onDestroy(() => this.cancelDeadlineTransition?.());
+  }
+
   configure(marketId: string, snapshot: BettingMarketSnapshot): void {
     const changedMarket = this.marketId !== '' && this.marketId !== marketId;
     this.marketId = marketId;
-    this.market.set(Object.freeze({ ...snapshot, selections: Object.freeze([...snapshot.selections]) }));
+    this.market.set(
+      Object.freeze({ ...snapshot, selections: Object.freeze([...snapshot.selections]) }),
+    );
+    this.scheduleDeadline();
     if (changedMarket) {
       this.balance.set(null);
       this.ticket.set(null);
       this.message.set(null);
       this.state.set('loading');
     }
+    const unavailable = this.marketUnavailableState();
+    if (!this.ticket() && unavailable) this.state.set(unavailable);
   }
 
   setVisitor(): void {
-    this.state.set('visitor');
+    this.state.set(this.marketUnavailableState() ?? 'visitor');
   }
 
   setNoEnrollment(): void {
-    this.state.set('no-enrollment');
+    this.state.set(this.marketUnavailableState() ?? 'no-enrollment');
   }
 
   setBlocked(): void {
-    this.state.set('blocked');
+    this.state.set(this.marketUnavailableState() ?? 'blocked');
   }
 
   shouldLoad(marketId: string): boolean {
@@ -95,36 +108,24 @@ export class PublicMarketBettingStore {
     const requestId = ++this.requestSequence;
     const loadingMarketId = this.marketId;
     this.activeLoadMarketId = loadingMarketId;
-    this.state.set('loading');
+    this.state.set(this.marketUnavailableState() ?? 'loading');
     this.message.set(null);
     try {
       await this.session.loadSession();
       if (requestId !== this.requestSequence) return;
       if (!this.session.isAuthenticated()) {
-        this.state.set('visitor');
+        this.setVisitor();
         return;
       }
-
-      await this.enrollment.loadEnrollment();
-      if (requestId !== this.requestSequence) return;
-      if (!this.enrollment.isRegistered()) {
-        this.state.set(this.enrollment.isError() ? 'error' : 'no-enrollment');
-        this.message.set(
-          this.enrollment.isError() ? 'Nao foi possivel confirmar seu vinculo agora.' : null,
-        );
-        return;
-      }
-
-      const [balance, ticket] = await Promise.all([
-        this.api.getBalance(),
-        this.api.getOwnTicket(this.marketId),
-      ]);
-      if (requestId !== this.requestSequence) return;
-      this.balance.set(balance);
-      this.ticket.set(ticket);
-      this.state.set(ticket ? 'success' : this.availableState(balance));
+      await this.loadAuthenticatedState(requestId);
     } catch (error: unknown) {
       if (requestId !== this.requestSequence) return;
+      const unavailable = this.marketUnavailableState();
+      if (unavailable) {
+        this.state.set(unavailable);
+        this.message.set(null);
+        return;
+      }
       this.applyError(error, 'Nao foi possivel carregar os creditos agora.');
     } finally {
       if (requestId === this.requestSequence) {
@@ -140,6 +141,7 @@ export class PublicMarketBettingStore {
     confirmed: boolean,
   ): Promise<BettingSubmitOutcome> {
     const snapshot = this.market();
+    if (this.preventUnavailableSubmission()) return 'ignored';
     if (
       !snapshot ||
       !this.canSubmit() ||
@@ -207,10 +209,89 @@ export class PublicMarketBettingStore {
   }
 
   private availableState(balance: BettingBalance): BettingState {
-    const market = this.market();
-    if (market?.state === OddsMarketState.Suspended) return 'suspended';
-    if (market && market.state !== OddsMarketState.Open) return 'closed';
+    const unavailable = this.marketUnavailableState();
+    if (unavailable) return unavailable;
     return balance.balance < balance.minimumStake ? 'insufficient' : 'eligible';
+  }
+
+  private marketUnavailableState(): 'suspended' | 'closed' | null {
+    const market = this.market();
+    if (!market) return null;
+    if (market.state === OddsMarketState.Suspended) return 'suspended';
+    if (market.state !== OddsMarketState.Open) return 'closed';
+    const deadline = Date.parse(market.closeDeadline);
+    return !Number.isFinite(deadline) || deadline <= this.clock.now() ? 'closed' : null;
+  }
+
+  private scheduleDeadline(): void {
+    this.cancelDeadlineTransition?.();
+    this.cancelDeadlineTransition = null;
+    const market = this.market();
+    if (!market || market.state !== OddsMarketState.Open) return;
+    const deadline = Date.parse(market.closeDeadline);
+    if (!Number.isFinite(deadline) || deadline <= this.clock.now()) return;
+    const scheduledMarketId = this.marketId;
+    const scheduledDeadline = market.closeDeadline;
+    this.cancelDeadlineTransition = this.clock.scheduleAt(deadline, () => {
+      const current = this.market();
+      if (
+        this.marketId !== scheduledMarketId ||
+        current?.closeDeadline !== scheduledDeadline ||
+        this.ticket()
+      ) {
+        return;
+      }
+      this.state.set('closed');
+      this.message.set(null);
+    });
+  }
+
+  private async loadOwnTicketForUnavailableMarket(requestId: number): Promise<void> {
+    const ticket = await this.api.getOwnTicket(this.marketId);
+    if (requestId !== this.requestSequence) return;
+    this.ticket.set(ticket);
+    this.balance.set(null);
+    this.message.set(null);
+    this.state.set(ticket ? 'success' : (this.marketUnavailableState() ?? 'closed'));
+  }
+
+  private async loadAuthenticatedState(requestId: number): Promise<void> {
+    if (this.marketUnavailableState()) {
+      await this.loadOwnTicketForUnavailableMarket(requestId);
+      return;
+    }
+
+    await this.enrollment.loadEnrollment();
+    if (requestId !== this.requestSequence) return;
+    if (this.marketUnavailableState()) {
+      await this.loadOwnTicketForUnavailableMarket(requestId);
+      return;
+    }
+    if (!this.enrollment.isRegistered()) {
+      if (this.enrollment.isError()) this.state.set('error');
+      else this.setNoEnrollment();
+      this.message.set(
+        this.enrollment.isError() ? 'Nao foi possivel confirmar seu vinculo agora.' : null,
+      );
+      return;
+    }
+
+    const [balance, ticket] = await Promise.all([
+      this.api.getBalance(),
+      this.api.getOwnTicket(this.marketId),
+    ]);
+    if (requestId !== this.requestSequence) return;
+    this.balance.set(balance);
+    this.ticket.set(ticket);
+    this.state.set(ticket ? 'success' : this.availableState(balance));
+  }
+
+  private preventUnavailableSubmission(): boolean {
+    const unavailable = this.marketUnavailableState();
+    if (!unavailable || this.ticket()) return false;
+    this.state.set(unavailable);
+    this.message.set(null);
+    return true;
   }
 
   private validStake(stake: number): boolean {
@@ -248,6 +329,7 @@ export class PublicMarketBettingStore {
         selections: Object.freeze([...refreshed.selections]),
       }),
     );
+    this.scheduleDeadline();
     return true;
   }
 
