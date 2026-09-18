@@ -28,7 +28,7 @@ const REDIRECT_URI = 'http://localhost:4200/login/oauth2/code/keycloak';
 const MAX_REDIRECTS = 3;
 const REQUEST_TIMEOUT_MS = 10_000;
 const EXPECTED_LOGIN_CSS_SHA256 =
-  'fc8b6f01f74814aeff0d6baed8714328abad6ff030562d9977ab7dc5b3912656';
+  '39379d0cc38363ef33f8f6e6ea4354280cbc2bff4fd32cc92dab3e76f25f2b72';
 const EXPECTED_VALIDATION_SCRIPT_SHA256 =
   '25f7138b8204487302b8a86f888c89080eede8326da73098df50f6775f027eae';
 
@@ -360,13 +360,13 @@ function assertCssColors(css) {
     'Função de cor fora do contrato aprovado',
   );
 
-  const colorLikeProperty = /^(?:color|background(?:-color|-image)?|border(?:-(?:top|right|bottom|left))?(?:-color)?|outline|box-shadow|text-shadow|fill|stroke|caret-color|accent-color|text-decoration-color|filter)$/;
+  const colorLikeProperty = /^(?:-webkit-(?:box-shadow|text-fill-color)|color|background(?:-color|-image)?|border(?:-(?:top|right|bottom|left))?(?:-color)?|outline|box-shadow|text-shadow|fill|stroke|caret-color|accent-color|text-decoration-color|filter)$/;
   for (const { property, value } of declarations.filter(({ property }) => colorLikeProperty.test(property))) {
     const remainder = value
       .replace(approvedShadowPattern, '')
       .replace(/var\(--betufu-[a-z-]+\)/gi, '')
       .replace(/-?(?:\d*\.)?\d+(?:px|%|rem|em)?/gi, '')
-      .replace(/\b(?:none|solid)\b/gi, '')
+      .replace(/\b(?:none|solid|inset)\b/gi, '')
       .replace(/[\s,./()-]/g, '');
     invariant(remainder === '', `Valor de cor não aprovado em ${property}`);
   }
@@ -450,6 +450,18 @@ function assertCss(css) {
   invariant(
     /:focus-visible\s*\{[\s\S]*?outline\s*:\s*3px\s+solid\s+var\(--betufu-focus\)\s*;[\s\S]*?outline-offset\s*:\s*3px\s*;[\s\S]*?\}/i.test(normalized),
     'Foco visível não corresponde ao contrato aprovado',
+  );
+  invariant(
+    /\.pf-v5-c-form-control\s*>\s*:is\(input,\s*select,\s*textarea\)\s*\{[\s\S]*?color\s*:\s*var\(--betufu-text\)\s*;[\s\S]*?caret-color\s*:\s*var\(--betufu-text\)\s*;[\s\S]*?\}/i.test(normalized),
+    'Campos internos do PatternFly nao preservam texto e cursor legiveis',
+  );
+  invariant(
+    /\.pf-v5-c-form-control\s*>\s*:is\(input,\s*textarea\)::placeholder\s*\{[\s\S]*?color\s*:\s*var\(--betufu-text-muted\)\s*;[\s\S]*?\}/i.test(normalized),
+    'Placeholder interno do PatternFly nao usa o texto secundario aprovado',
+  );
+  invariant(
+    /\.pf-v5-c-form-control\s*>\s*:is\(input,\s*textarea\):-webkit-autofill\s*\{[\s\S]*?-webkit-box-shadow\s*:\s*0\s+0\s+0\s+1000px\s+var\(--betufu-surface-raised\)\s+inset\s*;[\s\S]*?-webkit-text-fill-color\s*:\s*var\(--betufu-text\)\s*;[\s\S]*?caret-color\s*:\s*var\(--betufu-text\)\s*;[\s\S]*?\}/i.test(normalized),
+    'Autofill do Chromium nao preserva a superficie e o texto aprovados',
   );
   invariant(/\.betufu-independence-notice\s*\{/i.test(normalized), 'Classe do footer ausente no CSS');
 }

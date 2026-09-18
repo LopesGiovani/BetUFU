@@ -112,6 +112,21 @@ textarea,
   color: var(--betufu-text);
 }
 
+.pf-v5-c-form-control > :is(input, select, textarea) {
+  color: var(--betufu-text);
+  caret-color: var(--betufu-text);
+}
+
+.pf-v5-c-form-control > :is(input, textarea)::placeholder {
+  color: var(--betufu-text-muted);
+}
+
+.pf-v5-c-form-control > :is(input, textarea):-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--betufu-surface-raised) inset;
+  -webkit-text-fill-color: var(--betufu-text);
+  caret-color: var(--betufu-text);
+}
+
 input::placeholder,
 textarea::placeholder,
 .pf-v5-c-helper-text__item-text {
