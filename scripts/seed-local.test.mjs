@@ -164,9 +164,42 @@ test('gera publicacoes com vetores completos e selecoes HOME/AWAY coerentes', ()
 
   assert.match(sqlText, /"publishedOdds":\[1\.9,1\.9\]/u);
   assert.match(sqlText, /"publishedOdds":\[1\.73,2\.12\]/u);
-  assert.equal((sqlText.match(/INSERT INTO public\.odds_publication_selection/gu) ?? []).length, 5);
-  assert.match(sqlText, /selection_no,selection_key,published_odds\) VALUES \([^\n]+,1,'HOME',1\.9\),\([^\n]+,2,'AWAY',1\.9\) ON CONFLICT/u);
-  assert.match(sqlText, /selection_no,selection_key,published_odds\) VALUES \([^\n]+,1,'HOME',1\.73\),\([^\n]+,2,'AWAY',2\.12\) ON CONFLICT/u);
+  assert.equal((sqlText.match(/INSERT INTO public\.odds_publication_selection/gu) ?? []).length, 9);
+  assert.match(sqlText, /FROM \(VALUES \(1,'HOME',1\.9\),\(2,'AWAY',1\.9\)\) AS seeded/u);
+  assert.match(sqlText, /FROM \(VALUES \(1,'HOME',1\.73\),\(2,'AWAY',2\.12\)\) AS seeded/u);
+});
+
+test('gera um mercado de odds para cada partida projetada na Arena', () => {
+  const sqlText = buildSql({
+    personas: PERSONA_ROWS,
+    matches: MATCHES,
+    env: ENV,
+    now: new Date('2026-09-09T12:00:00Z'),
+  });
+
+  assert.equal((sqlText.match(/INSERT INTO public\.odds_market\(/gu) ?? []).length, MATCHES.length);
+  assert.match(sqlText, /seed local sem mercado publico aberto e futuro/u);
+});
+
+test('mantem a identidade do mercado estavel quando a partida muda de posicao no perfil', () => {
+  const target = MATCHES[4];
+  const eventId = stableUuid(`event:${target.origem_id}`);
+  const marketId = stableUuid(`market:${eventId}`);
+  const firstPositionSql = buildSql({
+    personas: PERSONA_ROWS,
+    matches: [target],
+    env: ENV,
+    now: new Date('2026-09-09T12:00:00Z'),
+  });
+  const laterPositionSql = buildSql({
+    personas: PERSONA_ROWS,
+    matches: [MATCHES[0], MATCHES[1], target],
+    env: ENV,
+    now: new Date('2026-09-09T12:00:00Z'),
+  });
+
+  assert.match(firstPositionSql, new RegExp(`odds_market\\([^\\n]+${marketId}`));
+  assert.match(laterPositionSql, new RegExp(`odds_market\\([^\\n]+${marketId}`));
 });
 
 test('gera concessao inicial idempotente e atualiza somente grants realmente inseridas', () => {
@@ -221,8 +254,8 @@ test('projeta partidas daily para hoje e dias futuros e recalcula close_deadline
   assert.match(sqlText, /WHERE NOT EXISTS \(SELECT 1 FROM public\.sports_event_publication WHERE publication_id=/u);
   assert.match(sqlText, /SELECT max\(version_no\) \+ 1 FROM public\.odds_market_version/u);
   assert.match(sqlText, /state,close_deadline,supersedes_version_id\) SELECT/u);
-  assert.match(sqlText, new RegExp(`odds_override\\([^\\n]+${stableUuid('market:2')}`));
-  assert.doesNotMatch(sqlText, new RegExp(`odds_override\\([^\\n]+${stableUuid('market:1')}`));
+  assert.match(sqlText, new RegExp(`odds_override\\([^\\n]+${stableUuid(`event:${MATCHES[2].origem_id}`)}`));
+  assert.doesNotMatch(sqlText, new RegExp(`odds_override\\([^\\n]+${stableUuid(`event:${MATCHES[1].origem_id}`)}`));
 });
 
 test('preserva datas do fixture somente com configuração explícita', () => {

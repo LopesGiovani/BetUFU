@@ -59,9 +59,9 @@ function oddsSelectionSql(publicationId, publishedOdds) {
     ? ['HOME', 'AWAY']
     : ['HOME', 'DRAW', 'AWAY'];
   const values = publishedOdds
-    .map((odd, index) => `(${sql(publicationId)},${index + 1},${sql(selectionKeys[index])},${sql(odd)})`)
+    .map((odd, index) => `(${index + 1},${sql(selectionKeys[index])},${sql(odd)})`)
     .join(',');
-  return `INSERT INTO public.odds_publication_selection(publication_id,selection_no,selection_key,published_odds) VALUES ${values} ON CONFLICT (publication_id,selection_no) DO NOTHING;`;
+  return `INSERT INTO public.odds_publication_selection(publication_id,selection_no,selection_key,published_odds) SELECT ${sql(publicationId)},seeded.selection_no,seeded.selection_key,seeded.published_odds FROM (VALUES ${values}) AS seeded(selection_no,selection_key,published_odds) WHERE EXISTS (SELECT 1 FROM public.odds_publication WHERE publication_id=${sql(publicationId)}) ON CONFLICT (publication_id,selection_no) DO NOTHING;`;
 }
 
 function envFileValues(text) {
@@ -172,6 +172,62 @@ function closeDeadlineFor(scheduledAt) {
   return new Date(parsed.getTime() - 30 * 60 * 1000).toISOString();
 }
 
+function marketSqlForMatch(match, index, { now, preserveFixtureDates }) {
+  const lines = [];
+  const when = scheduledAtForMatch(match, index, { now, preserveFixtureDates });
+  const eventId = stableUuid(`event:${match.origem_id}`);
+  const marketId = stableUuid(`market:${eventId}`);
+  const initialVersionId = stableUuid(`market-version:${eventId}:initial`);
+  const scheduledVersionId = stableUuid(`market-version:${eventId}:scheduled:${when}`);
+  const scheduledCalculationId = stableUuid(`calculation:${eventId}:scheduled:${when}`);
+  const scheduledPublicationId = stableUuid(`publication:${eventId}:scheduled:${when}`);
+  const marketState = index === 2 ? 'SUSPENDED' : index === 3 ? 'LOCKED' : 'OPEN';
+  const deadline = closeDeadlineFor(when);
+  const publishedOdds = index === 1 ? [1.73, 2.12] : [1.90, 1.90];
+  // Resolve pelo evento para preservar mercados e palpites criados antes da identidade estável.
+  lines.push(`INSERT INTO public.odds_market(market_id,event_id,market_type,current_version_id,lock_version) VALUES (${sql(marketId)},${sql(eventId)},'HEAD_TO_HEAD',NULL,0) ON CONFLICT (event_id,market_type) DO NOTHING;`);
+  lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline) SELECT ${sql(initialVersionId)},m.market_id,1,${sql(marketState)},${sql(deadline)} FROM public.odds_market m WHERE m.event_id=${sql(eventId)} AND m.market_type='HEAD_TO_HEAD' AND NOT EXISTS (SELECT 1 FROM public.odds_market_version existing WHERE existing.market_id=m.market_id) ON CONFLICT DO NOTHING;`);
+  lines.push(`UPDATE public.odds_market m SET current_version_id=${sql(initialVersionId)} WHERE m.event_id=${sql(eventId)} AND m.market_type='HEAD_TO_HEAD' AND m.current_version_id IS NULL AND EXISTS (SELECT 1 FROM public.odds_market_version v WHERE v.market_id=m.market_id AND v.market_version_id=${sql(initialVersionId)});`);
+  if (index === 1) {
+    const historyCalculationId = stableUuid(`calculation:${eventId}:history:1`);
+    const historyPublicationId = stableUuid(`publication:${eventId}:history:1`);
+    const historyOdds = [1.90, 1.90];
+    lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) SELECT ${sql(historyCalculationId)},v.market_version_id,'elo-v1','seed-local',${sqlJson({ confidenceBand: 'MEDIUM', sampleSize: 8, publishedOdds: historyOdds })},0.5,0.75 FROM public.odds_market m JOIN public.odds_market_version v ON v.market_id=m.market_id AND v.version_no=1 WHERE m.event_id=${sql(eventId)} AND m.market_type='HEAD_TO_HEAD' AND NOT EXISTS (SELECT 1 FROM public.odds_calculation existing_calculation JOIN public.odds_publication existing_publication ON existing_publication.calculation_id=existing_calculation.calculation_id WHERE existing_calculation.market_version_id=v.market_version_id) ON CONFLICT (calculation_id) DO NOTHING;`);
+    lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) SELECT ${sql(historyPublicationId)},${sql(historyCalculationId)},0.05,'HALF_UP',${sql(historyOdds[0])},NULL,0 WHERE EXISTS (SELECT 1 FROM public.odds_calculation WHERE calculation_id=${sql(historyCalculationId)}) ON CONFLICT (publication_id) DO NOTHING;`);
+    lines.push(oddsSelectionSql(historyPublicationId, historyOdds));
+  }
+  lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline,supersedes_version_id) SELECT ${sql(scheduledVersionId)},m.market_id,COALESCE((SELECT max(version_no) + 1 FROM public.odds_market_version WHERE market_id=m.market_id),1),${sql(marketState)},${sql(deadline)},m.current_version_id FROM public.odds_market m WHERE m.event_id=${sql(eventId)} AND m.market_type='HEAD_TO_HEAD' AND NOT EXISTS (SELECT 1 FROM public.odds_market_version WHERE market_version_id=${sql(scheduledVersionId)}) ON CONFLICT DO NOTHING;`);
+  lines.push(`UPDATE public.odds_market m SET current_version_id=${sql(scheduledVersionId)} WHERE m.event_id=${sql(eventId)} AND m.market_type='HEAD_TO_HEAD' AND EXISTS (SELECT 1 FROM public.odds_market_version v WHERE v.market_id=m.market_id AND v.market_version_id=${sql(scheduledVersionId)});`);
+  lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) SELECT ${sql(scheduledCalculationId)},${sql(scheduledVersionId)},'elo-v1','seed-local',${sqlJson({ confidenceBand: index === 1 ? 'HIGH' : 'MEDIUM', sampleSize: index === 1 ? 12 : 8, publishedOdds })},${index === 1 ? 0.55 : 0.5},${index === 1 ? 0.82 : 0.75} WHERE EXISTS (SELECT 1 FROM public.odds_market_version WHERE market_version_id=${sql(scheduledVersionId)}) ON CONFLICT (calculation_id) DO NOTHING;`);
+  lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) SELECT ${sql(scheduledPublicationId)},${sql(scheduledCalculationId)},0.05,'HALF_UP',${sql(publishedOdds[0])},NULL,0 WHERE EXISTS (SELECT 1 FROM public.odds_calculation WHERE calculation_id=${sql(scheduledCalculationId)}) ON CONFLICT (publication_id) DO NOTHING;`);
+  lines.push(oddsSelectionSql(scheduledPublicationId, publishedOdds));
+  if (index === 2) lines.push(`INSERT INTO public.odds_override(override_id,market_id,calculation_id,proposer_id,reason,decision) SELECT ${sql(stableUuid('override:pending'))},m.market_id,${sql(scheduledCalculationId)},${sql(stableUuid('identity:maker'))},'Teste maker-checker local','PROPOSED' FROM public.odds_market m WHERE m.event_id=${sql(eventId)} AND m.market_type='HEAD_TO_HEAD' AND EXISTS (SELECT 1 FROM public.odds_calculation WHERE calculation_id=${sql(scheduledCalculationId)}) ON CONFLICT (override_id) DO NOTHING;`);
+  lines.push(`INSERT INTO public.odds_lifecycle(lifecycle_fact_id,market_id,from_state,to_state,reason,actor_id) SELECT ${sql(stableUuid(`lifecycle:${scheduledVersionId}`))},m.market_id,NULL,${sql(marketState)},'Seed local',${sql(stableUuid('identity:admin'))} FROM public.odds_market m WHERE m.event_id=${sql(eventId)} AND m.market_type='HEAD_TO_HEAD' ON CONFLICT (lifecycle_fact_id) DO NOTHING;`);
+  return lines;
+}
+
+function openMarketPostconditionSql() {
+  return `DO $betufu$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.sports_event event
+    JOIN public.sports_event_publication event_publication ON event_publication.event_id=event.event_id
+    JOIN public.odds_market market ON market.event_id=event.event_id
+    JOIN public.odds_market_version version ON version.market_version_id=market.current_version_id
+    JOIN public.odds_calculation calculation ON calculation.market_version_id=version.market_version_id
+    JOIN public.odds_publication publication ON publication.calculation_id=calculation.calculation_id
+    WHERE event.status='PUBLICADO'
+      AND version.state='OPEN'
+      AND version.close_deadline > CURRENT_TIMESTAMP
+      AND (SELECT count(*) FROM public.odds_publication_selection selection WHERE selection.publication_id=publication.publication_id) >= 2
+  ) THEN
+    RAISE EXCEPTION 'seed local sem mercado publico aberto e futuro';
+  END IF;
+END
+$betufu$;`;
+}
+
 function buildSql({ personas, matches, env, now = new Date() }) {
   const competitionId = stableUuid('competition:laufu-2026-futsal-masculino');
   const editionId = stableUuid('edition:laufu-2026-futsal-masculino');
@@ -217,40 +273,10 @@ function buildSql({ personas, matches, env, now = new Date() }) {
     lines.push(`INSERT INTO public.sports_event_publication(publication_id,event_id,competition_id,edition_id,version_no,competition_name,edition_name,title,event_format,scheduled_at,zone_id,venue_state,source_reference,published_by_identity_id,base_lock_version,sport_id,sport_name,category_id,category_name,phase_id,phase_name) SELECT ${sql(pubId)},${sql(eventId)},${sql(competitionId)},${sql(editionId)},COALESCE((SELECT max(version_no) + 1 FROM public.sports_event_publication WHERE event_id=${sql(eventId)}),1),'LAUFU 2026 - Futsal Masculino','2026',${sql(`${match.time_mandante_nome} x ${match.time_visitante_nome}`)},'HEAD_TO_HEAD',${sql(when)},'America/Sao_Paulo','LOCAL_A_DEFINIR',${sql(match.origem_url)},${sql(stableUuid('identity:admin'))},0,${sql(sportId)},'Futsal',${sql(categoryId)},'Masculino',${sql(phaseId)},'Fase de grupos' WHERE NOT EXISTS (SELECT 1 FROM public.sports_event_publication WHERE publication_id=${sql(pubId)}) ON CONFLICT DO NOTHING;`);
     lines.push(`INSERT INTO public.sports_event_publication_slot(publication_id,slot_no,display_label,team_id,team_name) VALUES (${sql(pubId)},1,${sql(match.time_mandante_nome)},${sql(homeId)},${sql(match.time_mandante_nome)}),(${sql(pubId)},2,${sql(match.time_visitante_nome)},${sql(awayId)},${sql(match.time_visitante_nome)}) ON CONFLICT (publication_id,slot_no) DO NOTHING;`);
   }
-  const marketStates = ['OPEN', 'OPEN', 'SUSPENDED', 'LOCKED'];
-  for (let index = 0; index < Math.min(4, matches.length); index += 1) {
-    const match = matches[index];
-    const when = scheduledAtForMatch(match, index, { now, preserveFixtureDates });
-    const eventId = stableUuid(`event:${match.origem_id}`);
-    const marketId = stableUuid(`market:${index}`);
-    const versionId = stableUuid(`market-version:${index}:1`);
-    const historyVersionId = index === 1 ? stableUuid('market-version:1:2') : versionId;
-    const scheduledVersionId = stableUuid(`market-version:${index}:scheduled:${when}`);
-    const deadline = closeDeadlineFor(when);
-    // O contrato público usa o mesmo formato canônico dos eventos: HEAD_TO_HEAD.
-    lines.push(`INSERT INTO public.odds_market(market_id,event_id,market_type,current_version_id,lock_version) VALUES (${sql(marketId)},${sql(eventId)},'HEAD_TO_HEAD',NULL,0) ON CONFLICT (event_id,market_type) DO NOTHING;`);
-    lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline) VALUES (${sql(versionId)},${sql(marketId)},1,${sql(marketStates[index])},${sql(deadline)}) ON CONFLICT (market_id,version_no) DO NOTHING;`);
-    if (index === 1) lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline,supersedes_version_id) VALUES (${sql(historyVersionId)},${sql(marketId)},2,'OPEN',${sql(deadline)},${sql(versionId)}) ON CONFLICT (market_id,version_no) DO NOTHING;`);
-    lines.push(`UPDATE public.odds_market SET current_version_id=COALESCE(current_version_id,${sql(historyVersionId)}) WHERE market_id=${sql(marketId)};`);
-    lines.push(`INSERT INTO public.odds_market_version(market_version_id,market_id,version_no,state,close_deadline,supersedes_version_id) SELECT ${sql(scheduledVersionId)},${sql(marketId)},COALESCE((SELECT max(version_no) + 1 FROM public.odds_market_version WHERE market_id=${sql(marketId)}),1),${sql(marketStates[index])},${sql(deadline)},current_version_id FROM public.odds_market WHERE market_id=${sql(marketId)} AND NOT EXISTS (SELECT 1 FROM public.odds_market_version WHERE market_version_id=${sql(scheduledVersionId)}) ON CONFLICT DO NOTHING;`);
-    lines.push(`UPDATE public.odds_market SET current_version_id=${sql(scheduledVersionId)} WHERE market_id=${sql(marketId)};`);
-    const calculationId = stableUuid(`calculation:${index}:1`);
-    const publicationId = stableUuid(`publication:${index}:1`);
-    const publishedOdds = [1.90, 1.90];
-    lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) VALUES (${sql(calculationId)},${sql(versionId)},'elo-v1','seed-local',${sqlJson({ confidenceBand: 'MEDIUM', sampleSize: 8, publishedOdds })},0.5,0.75) ON CONFLICT (calculation_id) DO NOTHING;`);
-    lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) VALUES (${sql(publicationId)},${sql(calculationId)},0.05,'HALF_UP',${sql(publishedOdds[0])},NULL,0) ON CONFLICT (publication_id) DO NOTHING;`);
-    lines.push(oddsSelectionSql(publicationId, publishedOdds));
-    if (index === 1) {
-      const calculationV2 = stableUuid('calculation:1:2');
-      const publicationV2 = stableUuid('publication:1:2');
-      const publishedOddsV2 = [1.73, 2.12];
-      lines.push(`INSERT INTO public.odds_calculation(calculation_id,market_version_id,algorithm_version,configuration_digest,input_snapshot,fair_probability,confidence) VALUES (${sql(calculationV2)},${sql(stableUuid('market-version:1:2'))},'elo-v1','seed-local',${sqlJson({ confidenceBand: 'HIGH', sampleSize: 12, publishedOdds: publishedOddsV2 })},0.55,0.82) ON CONFLICT (calculation_id) DO NOTHING;`);
-      lines.push(`INSERT INTO public.odds_publication(publication_id,calculation_id,margin,rounding_mode,published_odds,supersedes_publication_id,base_lock_version) VALUES (${sql(publicationV2)},${sql(calculationV2)},0.05,'HALF_UP',${sql(publishedOddsV2[0])},${sql(stableUuid('publication:1:1'))},0) ON CONFLICT (publication_id) DO NOTHING;`);
-      lines.push(oddsSelectionSql(publicationV2, publishedOddsV2));
-    }
-    if (index === 2) lines.push(`INSERT INTO public.odds_override(override_id,market_id,calculation_id,proposer_id,reason,decision) VALUES (${sql(stableUuid('override:pending'))},${sql(marketId)},${sql(calculationId)},${sql(stableUuid('identity:maker'))},'Teste maker-checker local','PROPOSED') ON CONFLICT (override_id) DO NOTHING;`);
-    lines.push(`INSERT INTO public.odds_lifecycle(lifecycle_fact_id,market_id,from_state,to_state,reason,actor_id) VALUES (${sql(stableUuid(`lifecycle:${index}`))},${sql(marketId)},NULL,${sql(marketStates[index])},'Seed local',${sql(stableUuid('identity:admin'))}) ON CONFLICT (lifecycle_fact_id) DO NOTHING;`);
+  for (const [index, match] of matches.entries()) {
+    lines.push(...marketSqlForMatch(match, index, { now, preserveFixtureDates }));
   }
+  if (!preserveFixtureDates) lines.push(openMarketPostconditionSql());
   const student = stableUuid('identity:student');
   const athlete = stableUuid('identity:athlete');
   lines.push(`INSERT INTO public.betufu_profile(profile_id,identity_id,nickname) VALUES (${sql(stableUuid('profile:student'))},${sql(student)},'aluno-ufu') ON CONFLICT (identity_id) DO NOTHING;`);
