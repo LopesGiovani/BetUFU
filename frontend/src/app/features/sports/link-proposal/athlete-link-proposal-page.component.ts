@@ -106,14 +106,14 @@ type PendingDecision = 'accept' | 'reject' | 'contest' | null;
         max-width: 42rem;
         margin: 0 auto;
         padding: 2rem 1rem;
-        color: #251d1d;
+        color: var(--bt-text);
       }
       header {
         margin-bottom: 1.5rem;
       }
       .eyebrow,
       .card-code {
-        color: #910008;
+        color: var(--bt-signal-soft);
         font-size: 0.75rem;
         font-weight: 700;
         letter-spacing: 0.12em;
@@ -121,45 +121,58 @@ type PendingDecision = 'accept' | 'reject' | 'contest' | null;
       }
       h1 {
         margin: 0.35rem 0;
+        color: var(--bt-text);
       }
       h2 {
         margin: 0.35rem 0;
+        color: var(--bt-text);
       }
-      p {
+      header p,
+      .state-card p,
+      .proposal-slug,
+      .notice,
+      .proposal-status {
+        color: var(--bt-text-muted);
         line-height: 1.55;
       }
       .state-card,
       .proposal-card {
-        border: 1px solid #e7caca;
+        border: 1px solid var(--bt-border);
         border-radius: 1rem;
-        background: #fffaf5;
+        background: var(--bt-surface);
         padding: 1.5rem;
-        box-shadow: 0 1rem 2rem #91000812;
+        box-shadow: var(--bt-shadow-raised);
       }
       .state-card--error,
       .alert--warning {
-        border-color: #ff626b;
+        border-color: var(--bt-danger);
       }
       .alert {
         margin-bottom: 1rem;
+        border: 1px solid transparent;
         border-radius: 0.75rem;
         padding: 0.8rem 1rem;
+        color: var(--bt-text);
       }
       .alert--success {
-        background: #e8f4e8;
+        border-color: var(--bt-success);
+        background: rgba(114, 214, 160, 0.12);
       }
       .alert--warning {
-        background: #fff0e8;
+        background: rgba(255, 122, 130, 0.12);
       }
       .proposal-slug {
-        color: #675858;
+        margin-top: 0;
       }
       .notice {
-        border-left: 3px solid #ff626b;
+        border-left: 3px solid var(--bt-warning);
         padding-left: 1rem;
       }
       .proposal-status {
         margin-top: 1.5rem;
+      }
+      .proposal-status strong {
+        color: var(--bt-text);
       }
       .actions {
         display: flex;
@@ -176,22 +189,29 @@ type PendingDecision = 'accept' | 'reject' | 'contest' | null;
         font: inherit;
         font-weight: 700;
       }
+      .button:focus-visible {
+        outline: 3px solid var(--bt-focus);
+        outline-offset: 3px;
+      }
       .button:disabled {
         cursor: wait;
         opacity: 0.6;
       }
       .button--primary {
-        background: #910008;
-        color: #fff;
+        background: var(--bt-signal);
+        color: var(--bt-ink);
       }
       .button--danger {
-        background: #5f0005;
-        color: #fff;
+        background: var(--bt-danger);
+        color: var(--bt-ink);
       }
       .button--secondary {
-        border: 1px solid #910008;
+        border: 1px solid var(--bt-border-strong);
         background: transparent;
-        color: #910008;
+        color: var(--bt-text);
+      }
+      .button--secondary:hover:not(:disabled) {
+        background: var(--bt-surface-raised);
       }
       @media (max-width: 599px) {
         .actions {
