@@ -3,19 +3,28 @@ gsd_state_version: 1.0
 milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
-status: planning
-stopped_at: Phase 6 UI contract approved by independent checker; generated-client inventory gate and execution approval pending
-last_updated: "2026-10-01T11:00:03-03:00"
+status: executing
+stopped_at: Plan 06-01 completed and verified; Plan 06-02 is next
+last_updated: "2026-10-01T12:21:37-03:00"
 last_activity: 2026-10-01
-last_activity_desc: Independent UI checker approved Phase 6 contract with five PASS and one non-blocking FLAG
-state_head: 2dcbb5d48f06688bbc61c6c7a9cf5f5058f9f978
+last_activity_desc: Plan 06-01 settlement foundation completed with migration V33 and verified boundary ports
+state_head: 942461533d5f2c2488614d2ffe93ebeda4097faf
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 135
-  completed_plans: 123
+  completed_plans: 124
 milestone_name: milestone
 ---
+
+## Phase 6 / Plan 06-01 closeout - 2026-10-01
+
+- Recreated the settlement foundation after an interrupted execution lost the in-flight files; the technical baseline remained `f20b32a` on `master`.
+- Added V33 with append-only authorization, case and prediction-settlement facts, exact current sporting-version validation, idempotency constraints, runtime read/insert grants and immutable-history triggers.
+- Added consumer-owned settlement ports and minimal producer adapters for current sports outcomes and accepted predictions, including the `ANNULLED` state. No production code imports another module's `internal` package.
+- Reconciled migration-count and V32-replay expectations in existing test fixtures without changing V27, V29, V30 or V32.
+- Verified 38/38 focal Surefire tests, 392/392 aggregate Surefire tests, 542/542 Failsafe tests, 759/759 Node tests, Spotless and `git diff --check`. Maven wrapper summary duplicates test-count lines; XML reports are authoritative.
+- Technical commit: `942461533d5f2c2488614d2ffe93ebeda4097faf`. Plan 06-02 is next. Owner changes in `docs/development.md`, `docs/local-seed.md` and `docs/manual-testing.md` remain untouched; no push, local Docker reset, seed or real prediction occurred.
 
 ## Phase 6 structural review - 2026-10-01
 

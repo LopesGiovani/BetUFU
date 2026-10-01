@@ -529,10 +529,11 @@ approval cycle; no push was performed.
 
 **Plans**: 8 plans in 6 waves (`06-01` through `06-08`)
 **Planning artifacts**: `06-CONTEXT.md`, `06-RESEARCH.md`, `06-DISCUSSION-LOG.md`, `06-UI-SPEC.md`
-**Planning review**: structural allowlists reconciled on 2026-10-01; revised UI contract accepted by owner after 6/6 inline review and independently APPROVED by the UI checker (5 PASS, 1 non-blocking FLAG). Exact OpenAPI generated-client inventory/digest remains a gate for `06-07`. No Phase 6 execution or Git formalization is implied.
+**Planning review**: structural allowlists reconciled on 2026-10-01; revised UI contract accepted by owner after 6/6 inline review and independently APPROVED by the UI checker (5 PASS, 1 non-blocking FLAG). Exact OpenAPI generated-client inventory/digest remains a gate for `06-07`.
+**Execution progress**: `06-01` completed and verified on 2026-10-01; V33 and public settlement boundaries are in place. The remaining seven plans are pending.
 **Execution order**:
 
-  - Wave 1: `06-01` - fundacao de contratos e schema de liquidacao.
+  - Wave 1: `06-01` - fundacao de contratos e schema de liquidacao (complete).
   - Wave 2: `06-02` - motor de liquidacao idempotente e retomavel.
   - Wave 3: `06-03` correcoes de ledger; `06-04` ranking reconstruivel.
   - Wave 4: `06-05` grupos privados; `06-06` conquistas derivadas.
@@ -571,5 +572,5 @@ approval cycle; no push was performed.
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
 | 5. Créditos Virtuais e Palpites Protegidos | 7/7 | Complete; final snapshot approved | 2026-09-14 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
-| 6. Resultados Confirmados, Rankings e Grupos | 0/TBD | Pending | - |
+| 6. Resultados Confirmados, Rankings e Grupos | 1/8 | In progress | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
