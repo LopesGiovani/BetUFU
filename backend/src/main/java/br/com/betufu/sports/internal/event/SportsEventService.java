@@ -377,6 +377,7 @@ public class SportsEventService {
           if (updated == 0) {
             throw staleVersion();
           }
+          repository.insertCancellationOutcome(locked, actor.identityId(), request.reason().trim());
           repository.insertLifecycle(
               eventId,
               locked.competitionId(),

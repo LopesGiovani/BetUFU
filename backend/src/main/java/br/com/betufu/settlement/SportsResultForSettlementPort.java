@@ -4,14 +4,15 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Consumer-owned snapshot of a published, current sports outcome. */
+/** Consumer-owned snapshot of a current sporting, administrative, or cancellation outcome. */
 public interface SportsResultForSettlementPort {
   Optional<ResultSnapshot> findCurrent(UUID eventId);
 
   enum OutcomeKind {
     SPORTING_RESULT,
     ADMINISTRATIVE_WALKOVER,
-    ABANDONED_NO_VALID_RESULT
+    ABANDONED_NO_VALID_RESULT,
+    EVENT_CANCELLED
   }
 
   record ResultSnapshot(

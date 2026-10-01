@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -82,20 +81,16 @@ public class CreditLedgerRepository {
       UUID sourceId,
       String idempotencyKey) {
     UUID entryId = UUID.randomUUID();
-    try {
-      jdbcTemplate.update(
-          "INSERT INTO public.credit_ledger_entry (entry_id, identity_id, entry_type, direction, amount, source_type, source_id, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-          entryId,
-          identityId,
-          entryType.name(),
-          direction,
-          amount,
-          sourceType,
-          sourceId,
-          idempotencyKey);
-    } catch (DuplicateKeyException ex) {
-      return findByIdempotencyKey(idempotencyKey).orElseThrow(() -> ex);
-    }
+    jdbcTemplate.update(
+        "INSERT INTO public.credit_ledger_entry (entry_id, identity_id, entry_type, direction, amount, source_type, source_id, idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (idempotency_key) DO NOTHING",
+        entryId,
+        identityId,
+        entryType.name(),
+        direction,
+        amount,
+        sourceType,
+        sourceId,
+        idempotencyKey);
     return findByIdempotencyKey(idempotencyKey).orElseThrow();
   }
 

@@ -82,6 +82,18 @@ public class CreditLedgerService implements CreditLedgerPort {
     return mutate(identityId, amount, EntryType.COMPENSATION, "CREDIT", sourceType, sourceId);
   }
 
+  @Override
+  public LedgerOperation payout(UUID identityId, BigDecimal amount, UUID settlementId) {
+    return mutate(
+        identityId, amount, EntryType.PAYOUT, "CREDIT", SourceType.SETTLEMENT.name(), settlementId);
+  }
+
+  @Override
+  public LedgerOperation refund(UUID identityId, BigDecimal amount, UUID settlementId) {
+    return mutate(
+        identityId, amount, EntryType.REFUND, "CREDIT", SourceType.SETTLEMENT.name(), settlementId);
+  }
+
   private LedgerOperation mutate(
       UUID identityId,
       BigDecimal amount,
@@ -90,7 +102,7 @@ public class CreditLedgerService implements CreditLedgerPort {
       String sourceType,
       UUID sourceId) {
     requireIdentity(identityId);
-    BigDecimal normalized = normalizeAmount(amount);
+    BigDecimal normalized = normalizeAmount(amount, entryType);
     SourceType source = parseSource(sourceType, entryType);
     if (sourceId == null) {
       throw new IllegalArgumentException("sourceId must not be null");
@@ -105,8 +117,11 @@ public class CreditLedgerService implements CreditLedgerPort {
           if (existing.isPresent()) {
             CreditLedgerRepository.CreditLedgerEntry entry = existing.get();
             if (!entry.identityId().equals(identityId)
+                || entry.entryType() != entryType
+                || !entry.direction().equals(direction)
                 || entry.amount().compareTo(normalized) != 0
-                || !entry.sourceType().equals(source.name())) {
+                || !entry.sourceType().equals(source.name())
+                || !entry.sourceId().equals(sourceId)) {
               throw new IllegalStateException(
                   "ledger idempotency key was reused with a different payload");
             }
@@ -122,6 +137,14 @@ public class CreditLedgerService implements CreditLedgerPort {
           CreditLedgerRepository.CreditLedgerEntry entry =
               repository.insertEntry(
                   identityId, entryType, direction, normalized, source.name(), sourceId, key);
+          if (!entry.identityId().equals(identityId)
+              || entry.entryType() != entryType
+              || entry.amount().compareTo(normalized) != 0
+              || !entry.sourceType().equals(source.name())
+              || !sourceId.equals(entry.sourceId())) {
+            throw new IllegalStateException(
+                "ledger idempotency key was reused with a different payload");
+          }
           repository.updateBalance(identityId, next);
           return new LedgerOperation(entry.entryId(), balance(identityId, next), false);
         });
@@ -136,18 +159,27 @@ public class CreditLedgerService implements CreditLedgerPort {
       throw new IllegalArgumentException("unsupported ledger source type", ex);
     }
     if ((entryType == EntryType.DEBIT && source != SourceType.PREDICTION)
-        || (entryType == EntryType.COMPENSATION && source != SourceType.COMPENSATION)) {
+        || (entryType == EntryType.COMPENSATION && source != SourceType.COMPENSATION)
+        || ((entryType == EntryType.PAYOUT || entryType == EntryType.REFUND)
+            && source != SourceType.SETTLEMENT)) {
       throw new IllegalArgumentException("source type is not permitted for ledger operation");
     }
     return source;
   }
 
-  private static BigDecimal normalizeAmount(BigDecimal value) {
+  private static BigDecimal normalizeAmount(BigDecimal value, EntryType entryType) {
     Objects.requireNonNull(value, "amount must not be null");
-    if (value.scale() > 2)
+    if (value.scale() > 2 && entryType != EntryType.PAYOUT && entryType != EntryType.REFUND)
       throw new IllegalArgumentException("credit amount scale must be at most 2");
-    if (value.signum() <= 0) throw new IllegalArgumentException("credit amount must be positive");
-    return value.setScale(2, RoundingMode.UNNECESSARY);
+    BigDecimal normalized =
+        value.setScale(
+            2,
+            entryType == EntryType.PAYOUT || entryType == EntryType.REFUND
+                ? RoundingMode.HALF_UP
+                : RoundingMode.UNNECESSARY);
+    if (normalized.signum() <= 0)
+      throw new IllegalArgumentException("credit amount must be positive");
+    return normalized;
   }
 
   private static BigDecimal normalize(BigDecimal value) {

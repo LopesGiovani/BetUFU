@@ -13,14 +13,17 @@ public interface CreditLedgerPort {
   enum EntryType {
     GRANT_INITIAL,
     DEBIT,
-    COMPENSATION
+    COMPENSATION,
+    PAYOUT,
+    REFUND
   }
 
   /** Opaque source categories accepted by the ledger. */
   enum SourceType {
     SYSTEM,
     PREDICTION,
-    COMPENSATION
+    COMPENSATION,
+    SETTLEMENT
   }
 
   record LedgerOperation(UUID entryId, CreditBalance balance, boolean replayed) {
@@ -41,4 +44,8 @@ public interface CreditLedgerPort {
   LedgerOperation compensate(UUID identityId, BigDecimal amount, UUID sourceId);
 
   LedgerOperation compensate(UUID identityId, BigDecimal amount, String sourceType, UUID sourceId);
+
+  LedgerOperation payout(UUID identityId, BigDecimal amount, UUID settlementId);
+
+  LedgerOperation refund(UUID identityId, BigDecimal amount, UUID settlementId);
 }

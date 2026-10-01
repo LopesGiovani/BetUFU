@@ -331,6 +331,31 @@ class RoleScopeTest {
     verify(localIdentityRepository, never()).findByNaturalKey(any(), any());
   }
 
+  @Test
+  @DisplayName("Consulta neutra por identidade aceita somente administrador geral global vigente")
+  void globalRoleLookupRejectsScopedAndUnknownGrants() {
+    UUID identityId = UUID.randomUUID();
+    LocalIdentityRepository repository = mock(LocalIdentityRepository.class);
+    OperationalRoleQuery scoped =
+        ignored ->
+            Set.of(
+                new OperationalRoleQuery.GrantedRole(
+                    OperationalRole.ADMINISTRADOR_GERAL, UUID.randomUUID()));
+    OperationalIdentityLookup scopedLookup =
+        new OperationalIdentityLookupService(repository, scoped);
+    assertThat(scopedLookup.hasGlobalRole(identityId, "ADMINISTRADOR_GERAL")).isFalse();
+    assertThat(scopedLookup.hasGlobalRole(identityId, "UNKNOWN")).isFalse();
+    assertThat(scopedLookup.hasGlobalRole(null, "ADMINISTRADOR_GERAL")).isFalse();
+
+    OperationalRoleQuery global =
+        ignored ->
+            Set.of(new OperationalRoleQuery.GrantedRole(OperationalRole.ADMINISTRADOR_GERAL));
+    OperationalIdentityLookup globalLookup =
+        new OperationalIdentityLookupService(repository, global);
+    assertThat(globalLookup.hasGlobalRole(identityId, "ADMINISTRADOR_GERAL")).isTrue();
+    assertThat(globalLookup.hasGlobalRole(identityId, "MODERADOR")).isFalse();
+  }
+
   // -----------------------------------------------------------------------
   // OperationalRole scope contract invariants
   // -----------------------------------------------------------------------

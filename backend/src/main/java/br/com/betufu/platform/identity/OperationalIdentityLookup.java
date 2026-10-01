@@ -61,4 +61,9 @@ public interface OperationalIdentityLookup {
   default Set<GrantedRole> findActiveRoles(String issuer, String subject) {
     return lookupIdentity(issuer, subject).map(OperationalIdentity::roles).orElseGet(Set::of);
   }
+
+  /** Fails closed unless the identity adapter confirms a current, unscoped global grant. */
+  default boolean hasGlobalRole(UUID identityId, String roleName) {
+    return false;
+  }
 }

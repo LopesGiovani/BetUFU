@@ -1,5 +1,6 @@
 package br.com.betufu.identity.internal;
 
+import br.com.betufu.identity.OperationalRole;
 import br.com.betufu.identity.OperationalRoleQuery;
 import br.com.betufu.platform.identity.OperationalIdentityLookup;
 import java.util.Collections;
@@ -63,5 +64,18 @@ public class OperationalIdentityLookupService implements OperationalIdentityLook
 
     return Optional.of(
         new OperationalIdentity(identityId, Collections.unmodifiableSet(mappedRoles)));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean hasGlobalRole(UUID identityId, String roleName) {
+    if (identityId == null || roleName == null) return false;
+    OperationalRole role;
+    try {
+      role = OperationalRole.valueOf(roleName);
+    } catch (IllegalArgumentException invalidRole) {
+      return false;
+    }
+    return role.isGlobal() && operationalRoleQuery.hasRole(identityId, role);
   }
 }

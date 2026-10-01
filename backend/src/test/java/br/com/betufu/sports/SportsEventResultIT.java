@@ -401,6 +401,25 @@ class SportsEventResultIT {
                 .value("Cancelamento oficial determinado pela comissão disciplinar"))
         .andExpect(jsonPath("$.lockVersion").value(6));
 
+    Map<String, Object> cancellationFact =
+        jdbcTemplate.queryForMap(
+            """
+                SELECT f.fact_id, f.outcome_kind, f.supersedes_fact_id, a.winner_slot_no
+                FROM public.sports_outcome_head h
+                JOIN public.sports_outcome_fact f ON f.fact_id = h.fact_id
+                JOIN public.sports_outcome_administrative_payload a ON a.fact_id = f.fact_id
+                WHERE h.event_id = ?
+                """,
+            eventId);
+    assertThat(cancellationFact.get("outcome_kind")).isEqualTo("EVENT_CANCELLED");
+    assertThat(cancellationFact.get("winner_slot_no")).isNull();
+    assertThatThrownBy(
+            () ->
+                jdbcTemplate.update(
+                    "UPDATE public.sports_outcome_fact SET reason = 'changed' WHERE fact_id = ?",
+                    cancellationFact.get("fact_id")))
+        .hasMessageContaining("immutable");
+
     // 8. Estado CANCELADO é terminal e rejeita novas transições
     mockMvc
         .perform(

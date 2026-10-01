@@ -35,11 +35,14 @@ public class SportsResultForSettlementAdapter implements SportsResultForSettleme
               ON rv.event_id = sp.event_id AND rv.version_id = sp.confirmed_version_id
             LEFT JOIN public.sports_outcome_administrative_payload ap
               ON ap.event_id = f.event_id AND ap.fact_id = f.fact_id
-            WHERE h.event_id = ? AND e.status = 'PUBLICADO'
-              AND ((f.outcome_kind = 'SPORTING_RESULT'
+            WHERE h.event_id = ?
+              AND ((e.status = 'CANCELADO' AND f.outcome_kind = 'EVENT_CANCELLED'
+                    AND ap.fact_id IS NOT NULL AND ap.winner_slot_no IS NULL)
+                OR (e.status = 'PUBLICADO' AND f.outcome_kind = 'SPORTING_RESULT'
                     AND sp.confirmed_version_id = e.confirmed_version_id
                     AND rv.status IN ('CONFIRMADO', 'CORRIGIDO'))
-                OR (f.outcome_kind IN ('ADMINISTRATIVE_WALKOVER', 'ABANDONED_NO_VALID_RESULT')
+                OR (e.status = 'PUBLICADO'
+                    AND f.outcome_kind IN ('ADMINISTRATIVE_WALKOVER', 'ABANDONED_NO_VALID_RESULT')
                     AND ap.fact_id IS NOT NULL))
             """,
         rs -> rs.next() ? Optional.of(map(eventId, rs)) : Optional.empty(),

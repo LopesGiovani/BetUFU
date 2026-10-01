@@ -571,6 +571,46 @@ class SportsEventRepository {
         expectedLockVersion);
   }
 
+  void insertCancellationOutcome(EventScope event, UUID actorId, String reason) {
+    Long versionNo =
+        jdbcTemplate.queryForObject(
+            "SELECT coalesce(max(version_no), 0) + 1 FROM public.sports_outcome_fact WHERE event_id = ?",
+            Long.class,
+            event.eventId());
+    UUID supersedes =
+        jdbcTemplate.query(
+            "SELECT fact_id FROM public.sports_outcome_head WHERE event_id = ?",
+            rs -> rs.next() ? rs.getObject("fact_id", UUID.class) : null,
+            event.eventId());
+    UUID factId = UUID.randomUUID();
+    jdbcTemplate.update(
+        """
+            INSERT INTO public.sports_outcome_fact
+              (fact_id, event_id, competition_id, edition_id, version_no, outcome_kind,
+               source_reference, reason, recorded_by_identity_id, sport_time, known_at,
+               supersedes_fact_id)
+            SELECT ?, event_id, competition_id, edition_id, ?, 'EVENT_CANCELLED',
+                   source_reference, ?, ?, scheduled_at, CURRENT_TIMESTAMP(6), ?
+            FROM public.sports_event WHERE event_id = ? AND status = 'CANCELADO'
+            """,
+        factId,
+        versionNo,
+        reason,
+        actorId,
+        supersedes,
+        event.eventId());
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_outcome_administrative_payload (fact_id, event_id, administrative_reason) VALUES (?, ?, ?)",
+        factId,
+        event.eventId(),
+        reason);
+    jdbcTemplate.update(
+        "INSERT INTO public.sports_outcome_head (event_id, fact_id, lock_version) VALUES (?, ?, ?) ON CONFLICT (event_id) DO UPDATE SET fact_id = EXCLUDED.fact_id, lock_version = EXCLUDED.lock_version, updated_at = CURRENT_TIMESTAMP(6)",
+        event.eventId(),
+        factId,
+        event.lockVersion() + 1);
+  }
+
   long nextPublicationVersion(UUID eventId) {
     Long max =
         jdbcTemplate.queryForObject(
