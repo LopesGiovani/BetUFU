@@ -4,18 +4,26 @@ milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: executing
-stopped_at: Plan 06-01 completed and verified; Plan 06-02 is next
-last_updated: "2026-10-01T12:21:37-03:00"
+stopped_at: Plan 06-02 technical work completed and verified; Plan 06-03 awaits separate preflight and approval
+last_updated: "2026-10-01T14:59:10-03:00"
 last_activity: 2026-10-01
-last_activity_desc: Plan 06-01 settlement foundation completed with migration V33 and verified boundary ports
-state_head: 942461533d5f2c2488614d2ffe93ebeda4097faf
+last_activity_desc: Plan 06-02 first settlement pass, idempotent ledger effects and durable recovery verified
+state_head: 2afd6d9f5a27433b5f316f676de10a5536795f60
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 135
-  completed_plans: 124
+  completed_plans: 125
 milestone_name: milestone
 ---
+
+## Phase 6 / Plan 06-02 closeout - 2026-10-01
+
+- Added V34 processing leases/progress and immutable calculation details, explicit settlement payout/refund ledger operations, current cancellation outcomes, authorization revalidation and recovery without changing historical betting or sports facts.
+- The first settlement pass is idempotent under retry and concurrent processors. A corrected result after a prior payout or refund fails closed without another unit or credit; financial recovery and full reliquidation are assigned to 06-03.
+- Ratified twelve necessary boundary and test paths into the 06-02 plan. Its technical commit `2afd6d9f5a27433b5f316f676de10a5536795f60` contains exactly 25 backend files; `06-03` implementation has not started.
+- `clean verify` passed 360/360 Surefire and 554/554 Failsafe XML test cases, Node passed 759/759, and Spotless and diff checks passed. V34 ran only in isolated Testcontainers PostgreSQL. No local Docker reset, seed, real prediction or push occurred.
+- Owner changes in `docs/development.md`, `docs/local-seed.md` and `docs/manual-testing.md` remain untouched. Plan 06-03 needs its own allowlist/Modulith preflight and approval before implementation.
 
 ## Phase 6 / Plan 06-01 closeout - 2026-10-01
 
@@ -592,14 +600,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Revisar e formalizar o planejamento executável da Fase 6 antes de qualquer implementação.
+**Current focus:** Preparar o preflight separado do 06-03 apos o fechamento documental do 06-02; a Fase 6 continua em execucao.
 
 ## Current Position
 
 Phase: 6 of 9 (Resultados Confirmados, Rankings e Grupos)
-Plan: planejamento 06-01 a 06-08
-Status: contrato visual aprovado pelo checker independente; inventário do cliente gerado e aprovação de execução pendentes
-Last activity: 2026-10-01 — checker independente aprovou o UI-SPEC (5 PASS, 1 FLAG)
+Plan: 06-02 concluido tecnicamente; 06-03 e o proximo plano, ainda sem aprovacao de execucao
+Status: 2/8 planos da Fase 6 concluidos; reliquidacao financeira e correcoes permanecem no 06-03
+Last activity: 2026-10-01 — 06-02 verificado e commit tecnico `2afd6d9` criado
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -669,7 +677,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 7/7 planos (100%; snapshot e UAT aprovados); Fase 6: planejamento pendente
+Progress: Fase 5: 7/7 planos (100%; snapshot e UAT aprovados); Fase 6: 2/8 planos concluidos
 
 ## Métricas de desempenho
 
@@ -847,9 +855,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-01T11:00:03-03:00
-Stopped at: Phase 6 UI contract approved by independent checker; generated-client inventory gate and execution approval pending
-Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-UI-SPEC.md
+Last session: 2026-10-01T14:59:10-03:00
+Stopped at: Plan 06-02 verified and technically committed; Plan 06-03 requires separate preflight and execution approval
+Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-03-PLAN.md
 
 ## Accumulated Context
 
