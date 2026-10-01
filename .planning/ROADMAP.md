@@ -518,7 +518,7 @@ approval cycle; no push was performed.
 **Mode:** mvp
 **Depends on**: Phase 05.1
 **Requirements**: CRED-07, CRED-09, PRED-09, ODDS-15, SETL-01, SETL-02, SETL-03, SETL-04, SETL-05, SETL-06, SETL-07, SETL-08, SETL-09, SETL-10, SETL-11, RANK-01, RANK-02, RANK-03, RANK-04, RANK-05, RANK-06, RANK-07, RANK-08, POOL-01, POOL-02, POOL-03, POOL-04, ACHV-01, ACHV-02, ACHV-03, TEST-04
-**Decisão pendente**: O tratamento de correções após o gasto de créditos pagos incorretamente, a aprovação de ajustes compensatórios diretos no livro-razão e a visibilidade no ranking durante uma verificação expirada continuam em aberto e exigem uma política explícita antes da implementação dos fluxos correspondentes.
+**Decisões fechadas em `06-DISCUSS-CHECKPOINT.json`**: recuperação FIFO de pagamentos incorretos, bloqueio apenas de novas apostas enquanto houver pendência, maker-checker para ajustes administrativos, motivos fechados, visibilidade sanitizada e preservação/recomposição do ranking durante matrícula expirada ou correções de liquidação.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
   1. A liquidação consome a versão esportiva vigente já publicada e confirmada na Fase 3; um administrador autoriza a versão exata e, no MVP, pode ser a mesma pessoa que registrou ou confirmou o resultado, com atores persistidos separadamente para futura política de duas pessoas.
@@ -527,7 +527,17 @@ approval cycle; no push was performed.
   4. Uma pessoa consegue visualizar um único ranking vitalício da UFU, ordenado primeiro por palpites definitivamente corretos e depois pela taxa de acerto, com posições compartilhadas nos empates restantes e sem multiplicação dos acertos por créditos ou odds.
   5. Usuários cadastrados conseguem administrar grupos privados que exibem as mesmas métricas do ranking vitalício e conquistar feitos concedidos uma única vez, com regras e edição conquistada exibidas no perfil.
 
-**Plans**: TBD
+**Plans**: 8 plans in 6 waves (`06-01` through `06-08`)
+**Planning artifacts**: `06-CONTEXT.md`, `06-RESEARCH.md`, `06-DISCUSSION-LOG.md`, `06-UI-SPEC.md`
+**Planning review**: structural allowlists reconciled on 2026-10-01; revised UI contract accepted by owner after 6/6 inline review and independently APPROVED by the UI checker (5 PASS, 1 non-blocking FLAG). Exact OpenAPI generated-client inventory/digest remains a gate for `06-07`. No Phase 6 execution or Git formalization is implied.
+**Execution order**:
+
+  - Wave 1: `06-01` - fundacao de contratos e schema de liquidacao.
+  - Wave 2: `06-02` - motor de liquidacao idempotente e retomavel.
+  - Wave 3: `06-03` correcoes de ledger; `06-04` ranking reconstruivel.
+  - Wave 4: `06-05` grupos privados; `06-06` conquistas derivadas.
+  - Wave 5: `06-07` contratos HTTP, cliente Angular e UI integrada.
+  - Wave 6: `06-08` concorrencia, Playwright e certificacao agregada.
 **UI hint**: yes
 
 ### Phase 7: Comunidade Moderada e Prontidão do Piloto

@@ -1,0 +1,114 @@
+{
+  "phase": "06",
+  "phase_name": "Resultados Confirmados, Rankings e Grupos",
+  "discussion_area": "correcoes",
+  "status": "closed",
+  "closed_at": "2026-09-18",
+  "source_head": "2dcbb5d",
+  "scope": "Correcao de pagamentos incorretos e ajustes administrativos no ledger",
+  "decisions": {
+    "incorrect_payment_already_spent": {
+      "recovery_order": [
+        "recuperar primeiro do saldo disponivel",
+        "registrar o restante como correcao pendente",
+        "aplicar creditos futuros a pendencia antes de disponibiliza-los"
+      ],
+      "new_bets_blocked_while_pending": true,
+      "negative_balance_allowed": false
+    },
+    "pending_correction_scope": {
+      "blocked": ["novas apostas"],
+      "available": [
+        "perfil",
+        "saldo",
+        "historico",
+        "ranking",
+        "grupos",
+        "liquidacoes",
+        "correcoes"
+      ]
+    },
+    "pending_correction_lifetime": {
+      "persists_until_full_settlement": true,
+      "expires_automatically": false,
+      "automatic_forgiveness": false,
+      "discretionary_review": false
+    },
+    "multiple_pending_corrections": {
+      "credit_allocation": "FIFO",
+      "oldest_first": true,
+      "individual_auditability": true
+    },
+    "administrative_adjustment": {
+      "requires_maker_checker": true,
+      "proposer_role": "ADMINISTRADOR_GERAL",
+      "approver_role": "ADMINISTRADOR_GERAL",
+      "approver_must_be_distinct": true,
+      "self_approval_allowed": false
+    },
+    "allowed_adjustment_reasons": [
+      "correcao de liquidacao",
+      "lancamento duplicado ou ausente",
+      "falha tecnica comprovada",
+      "correcao de elegibilidade"
+    ],
+    "adjustment_evidence": {
+      "description_required": true,
+      "reproducible_calculation_required": true,
+      "affected_internal_records_reference_required": true,
+      "bonus_or_courtesy_adjustments_allowed": false,
+      "top_up_allowed": false
+    },
+    "user_visibility": {
+      "show": [
+        "lancamento original",
+        "correcao",
+        "valor recuperado",
+        "valor pendente",
+        "motivo compreensivel",
+        "registros relacionados",
+        "codigo de referencia"
+      ],
+      "hide": [
+        "nomes de administradores",
+        "URLs internas",
+        "evidencias operacionais sensiveis"
+      ],
+      "sanitized": true
+    },
+    "correction_of_correction": {
+      "creates_new_fact": true,
+      "creates_compensating_ledger_entry": true,
+      "requires_new_maker_checker": true,
+      "original_fact_editable": false,
+      "original_fact_deletable": false
+    }
+  },
+  "ranking_and_expired_enrollment": {
+    "ranking_lifetime": true,
+    "eligible_prediction_history_only": true,
+    "expired_or_revoked_enrollment": {
+      "blocks_new_bets": true,
+      "removes_historical_statistics": false,
+      "removes_ranking_position": false,
+      "ranking_visibility": "visible with current inactive-enrollment indication",
+      "private_enrollment_details_exposed": false
+    },
+    "correction_and_reliquidation": {
+      "recompute_from_current_valid_facts": true,
+      "invalidated_hits_stop_counting": true,
+      "newly_valid_hits_start_counting": true,
+      "original_facts_preserved": true,
+      "audit_explanation_required": true,
+      "invalidated_achievements": "marked revoked instead of silently deleted"
+    }
+  },
+  "out_of_scope_for_this_checkpoint": [
+    "liquidacao detalhada",
+    "grupos",
+    "conquistas",
+    "planos de execucao",
+    "alteracoes de codigo"
+  ],
+  "next_discussion": "planejamento executavel da Fase 6"
+}

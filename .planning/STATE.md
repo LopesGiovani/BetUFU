@@ -3,19 +3,39 @@ gsd_state_version: 1.0
 milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
-status: ready_for_planning
-stopped_at: Phase 05.1 complete; Phase 6 pending interactive discussion and planning
-last_updated: "2026-09-17T18:40:25-03:00"
-last_activity: 2026-09-17
-last_activity_desc: Phase 05.1 passed integrated real-browser and aggregate repository certification
-state_head: b086901174791ee0d14a79b97c0f5be28b46bb6f
+status: planning
+stopped_at: Phase 6 UI contract approved by independent checker; generated-client inventory gate and execution approval pending
+last_updated: "2026-10-01T11:00:03-03:00"
+last_activity: 2026-10-01
+last_activity_desc: Independent UI checker approved Phase 6 contract with five PASS and one non-blocking FLAG
+state_head: 2dcbb5d48f06688bbc61c6c7a9cf5f5058f9f978
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 127
+  total_plans: 135
   completed_plans: 123
 milestone_name: milestone
 ---
+
+## Phase 6 structural review - 2026-10-01
+
+- The owner accepted the revised `06-UI-SPEC.md` on 2026-10-01. Inline review passed 6/6 dimensions; the independent GSD UI checker returned APPROVED with five PASS and one non-blocking FLAG about explicitly declaring the absence of third-party registries. The UI contract gate is complete, but no execution is approved.
+- Reconciled all eight plan allowlists with their task `<files>` declarations.
+- `06-02` proposes V34 ledger constraints, payment/refund operations and authorization of the exact confirmed result version; `06-03` proposes an internal FIFO allocator to avoid the planned Spring bean cycle. These designs require the owner's execution approval.
+- `06-06` includes producer-owned favorite-organization adapters. `06-07` lists shell, profile, console, UI state, controller tests and expected generated barrels/services, with a fail-closed candidate inventory/digest gate; `06-08` covers future odds-model inputs from corrected results.
+- The owner's Arena visual and explicit sanitized correction/revocation choices are recorded. The generated client path inventory is still predictive and must be ratified before generation. This is not an execution PASS.
+- No Phase 6 code, migration, service, dependency, test run, stage, commit or push is authorized by this review.
+
+## Phase 6 planning - 2026-09-18
+
+- Interactive discussion closed the Correcoes and Ranking/Matricula Expirada areas.
+- Created `06-DISCUSS-CHECKPOINT.json`, `06-CONTEXT.md`, `06-DISCUSSION-LOG.md` and `06-RESEARCH.md`.
+- Recorded the approved visual choices in `06-UI-SPEC.md`; full UI-contract review remains pending.
+- Created eight executable plans in six waves: `06-01` through `06-08`.
+- Structural review corrected the pending-credit betting gate and FIFO credit path, favorite-organization achievement boundaries, existing source paths, module-owned DTOs and fail-fast verification commands.
+- Plans cover settlement foundation, idempotent processing, credit corrections, ranking, private groups, achievements, HTTP/Angular journeys and aggregate certification.
+- No code, migration, dependency, database, Docker, service, stage, commit or push was performed during planning.
+- Git formalization and execution remain pending separate approvals; `commit_docs` is false and `auto_advance` remains disabled.
 
 ## Phase 05.1 / Plan 05.1-07 closeout - 2026-09-17
 
@@ -563,14 +583,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Executar a Fase 05.1 para convergir as jornadas das Fases 1–5 antes de iniciar a Fase 6.
+**Current focus:** Revisar e formalizar o planejamento executável da Fase 6 antes de qualquer implementação.
 
 ## Current Position
 
-Phase: 05.1 of 9 (Convergência das Jornadas do Usuário)
-Plan: 05.1-04 — Status real de matrícula no perfil
-Status: Plans 05.1-01 and 05.1-02 complete; Wave 1 execution in progress
-Last activity: 2026-09-15 — contextual OIDC return certified
+Phase: 6 of 9 (Resultados Confirmados, Rankings e Grupos)
+Plan: planejamento 06-01 a 06-08
+Status: contrato visual aprovado pelo checker independente; inventário do cliente gerado e aprovação de execução pendentes
+Last activity: 2026-10-01 — checker independente aprovou o UI-SPEC (5 PASS, 1 FLAG)
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -818,9 +838,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-09-17T18:40:25-03:00
-Stopped at: Phase 05.1 complete; Phase 6 pending interactive discussion and planning
-Resume file: .planning/ROADMAP.md
+Last session: 2026-10-01T11:00:03-03:00
+Stopped at: Phase 6 UI contract approved by independent checker; generated-client inventory gate and execution approval pending
+Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-UI-SPEC.md
 
 ## Accumulated Context
 
