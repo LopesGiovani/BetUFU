@@ -75,12 +75,12 @@ class Phase5CertificationIT {
     insertEnrollment(active, "11", "ATIVO");
     insertEnrollment(inactive, "22", "LIBERADO");
 
-    migrateLatest();
+    migrateTo("32");
     assertInitialGrant(active);
     assertThat(accountCount(inactive)).isZero();
 
     jdbc.update("DELETE FROM public.flyway_schema_history WHERE version = '32'");
-    migrateLatest();
+    migrateTo("32");
 
     assertInitialGrant(active);
     assertThat(accountCount(inactive)).isZero();

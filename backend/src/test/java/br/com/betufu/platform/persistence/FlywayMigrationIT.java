@@ -97,10 +97,10 @@ class FlywayMigrationIT {
 
     MigrateResult result = flyway.migrate();
     assertThat(result.success).isTrue();
-    assertThat(result.migrationsExecuted).isEqualTo(33);
+    assertThat(result.migrationsExecuted).isEqualTo(34);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(33);
+    assertThat(applied).hasSize(34);
 
     assertThat(applied[0].getVersion().getVersion()).isEqualTo("1");
     assertThat(applied[0].getState()).isEqualTo(MigrationState.SUCCESS);
@@ -179,6 +179,8 @@ class FlywayMigrationIT {
     assertThat(applied[31].getVersion().getVersion()).isEqualTo("31");
     assertThat(applied[32].getVersion().getVersion()).isEqualTo("32");
     assertThat(applied[32].getState()).isEqualTo(MigrationState.SUCCESS);
+    assertThat(applied[33].getVersion().getVersion()).isEqualTo("33");
+    assertThat(applied[33].getState()).isEqualTo(MigrationState.SUCCESS);
 
     Integer guardCount =
         jdbcTemplate.queryForObject(
@@ -194,7 +196,7 @@ class FlywayMigrationIT {
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
     MigrateResult firstRun = flyway.migrate();
-    assertThat(firstRun.migrationsExecuted).isEqualTo(33);
+    assertThat(firstRun.migrationsExecuted).isEqualTo(34);
 
     MigrateResult secondRun = flyway.migrate();
     assertThat(secondRun.migrationsExecuted).isEqualTo(0);
@@ -203,7 +205,7 @@ class FlywayMigrationIT {
     assertThat(thirdRun.migrationsExecuted).isEqualTo(0);
 
     MigrationInfo[] applied = flyway.info().applied();
-    assertThat(applied).hasSize(33);
+    assertThat(applied).hasSize(34);
     assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
   }
 
@@ -244,13 +246,13 @@ class FlywayMigrationIT {
       assertThat(results).allSatisfy(r -> assertThat(r.success).isTrue());
 
       int totalExecuted = results.stream().mapToInt(r -> r.migrationsExecuted).sum();
-      assertThat(totalExecuted).isEqualTo(33);
+      assertThat(totalExecuted).isEqualTo(34);
 
       Flyway verificationFlyway =
           Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
 
       MigrationInfo[] applied = verificationFlyway.info().applied();
-      assertThat(applied).hasSize(33);
+      assertThat(applied).hasSize(34);
       assertThat(applied).allMatch(info -> info.getState() == MigrationState.SUCCESS);
     } finally {
       start.countDown();
@@ -1555,7 +1557,7 @@ class FlywayMigrationIT {
   void v27CreatesOutcomeAuthorityTables() {
     Flyway flyway =
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(33);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(34);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('sports_outcome_fact','sports_outcome_sporting_payload','sports_outcome_administrative_payload','sports_outcome_head')",
@@ -1568,7 +1570,7 @@ class FlywayMigrationIT {
   void v28CreatesImmutableRosterBinding() {
     Flyway flyway =
         Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load();
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(33);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(34);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'odds_market_roster_binding'",
@@ -1643,6 +1645,7 @@ class FlywayMigrationIT {
         Flyway.configure()
             .dataSource(dataSource)
             .locations("classpath:db/migration")
+            .target("32")
             .load()
             .migrate();
     assertThat(firstV32.migrationsExecuted).isEqualTo(1);
@@ -1660,6 +1663,7 @@ class FlywayMigrationIT {
         Flyway.configure()
             .dataSource(dataSource)
             .locations("classpath:db/migration")
+            .target("32")
             .load()
             .migrate();
     assertThat(replayedV32.migrationsExecuted).isEqualTo(1);
