@@ -4,6 +4,7 @@ import br.com.betufu.platform.identity.OperationalIdentityLookup;
 import br.com.betufu.settlement.PredictionForSettlementPort;
 import br.com.betufu.settlement.PredictionForSettlementPort.PredictionSnapshot;
 import br.com.betufu.settlement.PredictionForSettlementPort.PredictionState;
+import br.com.betufu.settlement.SettlementCorrectionPort;
 import br.com.betufu.settlement.SettlementCreditPort;
 import br.com.betufu.settlement.SettlementModels.Authorization;
 import br.com.betufu.settlement.SettlementModels.AuthorizationDecision;
@@ -38,6 +39,7 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
   private static final String RULE_VERSION = "h2h-settlement-v1";
   private final SettlementRepository repository;
   private final SettlementCreditPort credits;
+  private final SettlementCorrectionPort corrections;
   private final SportsResultForSettlementPort sports;
   private final PredictionForSettlementPort predictions;
   private final OperationalIdentityLookup identities;
@@ -53,7 +55,8 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
       PredictionForSettlementPort predictions,
       OperationalIdentityLookup identities,
       PlatformTransactionManager transactionManager,
-      @Value("${betufu.settlement.lease-duration:PT2M}") Duration leaseDuration) {
+      @Value("${betufu.settlement.lease-duration:PT2M}") Duration leaseDuration,
+      SettlementCorrectionPort corrections) {
     this(
         repository,
         credits,
@@ -62,7 +65,8 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
         identities,
         transactionManager,
         Clock.systemUTC(),
-        leaseDuration);
+        leaseDuration,
+        corrections);
   }
 
   public SettlementService(
@@ -74,8 +78,34 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
       PlatformTransactionManager transactionManager,
       Clock clock,
       Duration leaseDuration) {
+    this(
+        repository,
+        credits,
+        sports,
+        predictions,
+        identities,
+        transactionManager,
+        clock,
+        leaseDuration,
+        (identityId, previousId, replacementId, amount) -> {
+          throw new IllegalStateException(
+              "prior financial settlement requires correction processing");
+        });
+  }
+
+  public SettlementService(
+      SettlementRepository repository,
+      SettlementCreditPort credits,
+      SportsResultForSettlementPort sports,
+      PredictionForSettlementPort predictions,
+      OperationalIdentityLookup identities,
+      PlatformTransactionManager transactionManager,
+      Clock clock,
+      Duration leaseDuration,
+      SettlementCorrectionPort corrections) {
     this.repository = Objects.requireNonNull(repository);
     this.credits = Objects.requireNonNull(credits);
+    this.corrections = Objects.requireNonNull(corrections);
     this.sports = Objects.requireNonNull(sports);
     this.predictions = Objects.requireNonNull(predictions);
     this.identities = Objects.requireNonNull(identities);
@@ -199,9 +229,6 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
     if (repository.findUnitByKey(key).isPresent()) return;
     Unit previous = repository.findLatestUnit(prediction.predictionId()).orElse(null);
     Decision decision = decide(prediction, result, settlementCase.processingVersion());
-    if (previous != null && previous.amount().signum() > 0) {
-      throw new IllegalStateException("prior financial settlement requires correction processing");
-    }
     UUID unitId = UUID.nameUUIDFromBytes(key.getBytes(StandardCharsets.UTF_8));
     Unit unit =
         new Unit(
@@ -216,6 +243,10 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
             key,
             now);
     repository.insertUnit(unit);
+    if (previous != null && previous.amount().signum() > 0) {
+      corrections.recoverPreviousCredit(
+          prediction.identityId(), previous.settlementId(), unitId, previous.amount());
+    }
     UUID ledgerEntryId = null;
     if (decision.state() == SettlementState.WON) {
       ledgerEntryId = credits.payout(prediction.identityId(), decision.amount(), unitId);

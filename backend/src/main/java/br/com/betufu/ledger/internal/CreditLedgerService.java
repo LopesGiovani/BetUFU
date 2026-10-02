@@ -9,6 +9,7 @@ import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +20,19 @@ public class CreditLedgerService implements CreditLedgerPort {
 
   private static final String INITIAL_GRANT_PREFIX = "credit:initial-grant:";
   private final CreditLedgerRepository repository;
+  private final CreditAllocationService allocator;
 
   public CreditLedgerService(CreditLedgerRepository repository) {
+    this(
+        repository,
+        new CreditAllocationService(
+            new CreditCorrectionRepository(repository.jdbcTemplate()), repository));
+  }
+
+  @Autowired
+  public CreditLedgerService(CreditLedgerRepository repository, CreditAllocationService allocator) {
     this.repository = Objects.requireNonNull(repository, "repository must not be null");
+    this.allocator = Objects.requireNonNull(allocator, "allocator must not be null");
   }
 
   @Override
@@ -45,15 +56,18 @@ public class CreditLedgerService implements CreditLedgerPort {
           Optional<CreditLedgerRepository.CreditLedgerEntry> existing =
               repository.findByIdempotencyKey(key);
           if (existing.isEmpty()) {
-            repository.insertEntry(
-                identityId,
-                EntryType.GRANT_INITIAL,
-                "CREDIT",
-                INITIAL_GRANT,
-                "SYSTEM",
-                identityId,
-                key);
-            current = normalize(current.add(INITIAL_GRANT));
+            CreditLedgerRepository.CreditLedgerEntry grant =
+                repository.insertEntry(
+                    identityId,
+                    EntryType.GRANT_INITIAL,
+                    "CREDIT",
+                    INITIAL_GRANT,
+                    "SYSTEM",
+                    identityId,
+                    key);
+            current =
+                allocator.allocate(
+                    identityId, normalize(current.add(INITIAL_GRANT)), grant.entryId());
             repository.updateBalance(identityId, current);
           }
           return balance(identityId, current);
@@ -94,6 +108,31 @@ public class CreditLedgerService implements CreditLedgerPort {
         identityId, amount, EntryType.REFUND, "CREDIT", SourceType.SETTLEMENT.name(), settlementId);
   }
 
+  @Override
+  public LedgerOperation correctionCredit(
+      UUID identityId, BigDecimal amount, UUID correctionCaseId) {
+    return mutate(
+        identityId,
+        amount,
+        EntryType.CORRECTION_CREDIT,
+        "CREDIT",
+        SourceType.CORRECTION.name(),
+        correctionCaseId);
+  }
+
+  @Override
+  public CreditBalance recoverPending(UUID identityId) {
+    requireIdentity(identityId);
+    return repository.inTransaction(
+        () -> {
+          repository.ensureAccount(identityId);
+          BigDecimal current = repository.lockBalance(identityId);
+          BigDecimal next = allocator.allocate(identityId, current, null);
+          if (next.compareTo(current) != 0) repository.updateBalance(identityId, next);
+          return balance(identityId, next);
+        });
+  }
+
   private LedgerOperation mutate(
       UUID identityId,
       BigDecimal amount,
@@ -130,6 +169,9 @@ public class CreditLedgerService implements CreditLedgerPort {
           if (entryType == EntryType.DEBIT && current.compareTo(normalized) < 0) {
             throw new InsufficientCreditException();
           }
+          if (entryType == EntryType.DEBIT && allocator.hasPending(identityId)) {
+            throw new InsufficientCreditException();
+          }
           BigDecimal next =
               entryType == EntryType.DEBIT
                   ? normalize(current.subtract(normalized))
@@ -144,6 +186,9 @@ public class CreditLedgerService implements CreditLedgerPort {
               || !sourceId.equals(entry.sourceId())) {
             throw new IllegalStateException(
                 "ledger idempotency key was reused with a different payload");
+          }
+          if ("CREDIT".equals(direction)) {
+            next = allocator.allocate(identityId, next, entry.entryId());
           }
           repository.updateBalance(identityId, next);
           return new LedgerOperation(entry.entryId(), balance(identityId, next), false);
@@ -161,7 +206,8 @@ public class CreditLedgerService implements CreditLedgerPort {
     if ((entryType == EntryType.DEBIT && source != SourceType.PREDICTION)
         || (entryType == EntryType.COMPENSATION && source != SourceType.COMPENSATION)
         || ((entryType == EntryType.PAYOUT || entryType == EntryType.REFUND)
-            && source != SourceType.SETTLEMENT)) {
+            && source != SourceType.SETTLEMENT)
+        || (entryType == EntryType.CORRECTION_CREDIT && source != SourceType.CORRECTION)) {
       throw new IllegalArgumentException("source type is not permitted for ledger operation");
     }
     return source;
@@ -169,12 +215,17 @@ public class CreditLedgerService implements CreditLedgerPort {
 
   private static BigDecimal normalizeAmount(BigDecimal value, EntryType entryType) {
     Objects.requireNonNull(value, "amount must not be null");
-    if (value.scale() > 2 && entryType != EntryType.PAYOUT && entryType != EntryType.REFUND)
+    if (value.scale() > 2
+        && entryType != EntryType.PAYOUT
+        && entryType != EntryType.REFUND
+        && entryType != EntryType.CORRECTION_CREDIT)
       throw new IllegalArgumentException("credit amount scale must be at most 2");
     BigDecimal normalized =
         value.setScale(
             2,
-            entryType == EntryType.PAYOUT || entryType == EntryType.REFUND
+            entryType == EntryType.PAYOUT
+                    || entryType == EntryType.REFUND
+                    || entryType == EntryType.CORRECTION_CREDIT
                 ? RoundingMode.HALF_UP
                 : RoundingMode.UNNECESSARY);
     if (normalized.signum() <= 0)

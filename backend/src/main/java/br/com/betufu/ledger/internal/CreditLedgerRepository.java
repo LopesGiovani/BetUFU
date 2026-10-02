@@ -39,6 +39,10 @@ public class CreditLedgerRepository {
     return transactions.execute(status -> action.get());
   }
 
+  JdbcTemplate jdbcTemplate() {
+    return jdbcTemplate;
+  }
+
   public void ensureAccount(UUID identityId) {
     jdbcTemplate.update(
         "INSERT INTO public.credit_account (identity_id, balance) VALUES (?, 0.00) ON CONFLICT (identity_id) DO NOTHING",

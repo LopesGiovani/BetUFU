@@ -3,18 +3,26 @@ package br.com.betufu.settlement;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.com.betufu.betting.internal.PredictionCorrectionEvidenceAdapter;
 import br.com.betufu.betting.internal.PredictionForSettlementAdapter;
 import br.com.betufu.ledger.CreditLedgerPort;
+import br.com.betufu.ledger.internal.CreditCorrectionRepository;
+import br.com.betufu.ledger.internal.CreditCorrectionService;
 import br.com.betufu.ledger.internal.CreditLedgerRepository;
 import br.com.betufu.ledger.internal.CreditLedgerService;
+import br.com.betufu.ledger.internal.LedgerCorrectionEvidenceAdapter;
+import br.com.betufu.ledger.internal.SettlementCorrectionAdapter;
 import br.com.betufu.ledger.internal.SettlementCreditAdapter;
 import br.com.betufu.platform.identity.OperationalIdentityLookup;
+import br.com.betufu.settlement.internal.SettlementCorrectionEvidenceAdapter;
 import br.com.betufu.settlement.internal.SettlementRepository;
 import br.com.betufu.settlement.internal.SettlementService;
 import br.com.betufu.sports.internal.settlement.SportsResultForSettlementAdapter;
+import br.com.betufu.verification.internal.EnrollmentCorrectionEvidenceAdapter;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -54,6 +62,22 @@ class SettlementExecutionIT extends SettlementFixture {
   }
 
   @Test
+  void producerAdaptersExposeOnlyOwnedMonetaryEvidence() {
+    var predictionEvidence = new PredictionCorrectionEvidenceAdapter(jdbc).find(predictionId);
+    assertThat(predictionEvidence).isPresent();
+    assertThat(predictionEvidence.orElseThrow().identityId()).isEqualTo(bettorId);
+    assertThat(predictionEvidence.orElseThrow().amount()).isEqualByComparingTo("50.00");
+
+    UUID authorization = service.authorize(eventId, administratorId, "auth-evidence");
+    service.process(authorization);
+    UUID settlementId = service.findLatestByPrediction(predictionId).orElseThrow().settlementId();
+    var settlementEvidence = new SettlementCorrectionEvidenceAdapter(jdbc).find(settlementId);
+    assertThat(settlementEvidence).isPresent();
+    assertThat(settlementEvidence.orElseThrow().identityId()).isEqualTo(bettorId);
+    assertThat(settlementEvidence.orElseThrow().amount()).isEqualByComparingTo("106.00");
+  }
+
+  @Test
   void rejectsMissingRoleAndStaleResultBeforeCredit() {
     administrators.clear();
     assertThatThrownBy(() -> service.authorize(eventId, administratorId, "auth-denied"))
@@ -88,7 +112,7 @@ class SettlementExecutionIT extends SettlementFixture {
   }
 
   @Test
-  void correctedResultAfterPayoutFailsClosedWithoutAnotherUnitOrCredit() {
+  void correctedResultAfterPayoutRecoversCreditAndCreatesSupersedingUnit() {
     UUID originalAuthorization =
         service.authorize(eventId, administratorId, "auth-before-correction");
     service.process(originalAuthorization);
@@ -138,17 +162,21 @@ class SettlementExecutionIT extends SettlementFixture {
             });
 
     UUID correctedAuthorization = service.authorize(eventId, administratorId, "auth-corrected");
-    assertThatThrownBy(() -> service.process(correctedAuthorization))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("prior financial settlement requires correction processing");
-    assertThat(service.findLatestByPrediction(predictionId).orElseThrow().settlementId())
-        .isEqualTo(originalSettlementId);
+    UUID correctedCaseId = service.process(correctedAuthorization);
+    SettlementReadPort.PredictionOutcome corrected =
+        service.findLatestByPrediction(predictionId).orElseThrow();
+    assertThat(corrected.settlementId()).isNotEqualTo(originalSettlementId);
+    assertThat(corrected.state()).isEqualTo(SettlementState.LOST);
+    assertThat(service.findCase(correctedCaseId).orElseThrow().status())
+        .isEqualTo(SettlementReadPort.ProcessingStatus.COMPLETE);
     assertThat(
             jdbc.queryForObject("SELECT count(*) FROM public.prediction_settlement", Integer.class))
-        .isEqualTo(1);
+        .isEqualTo(2);
     assertThat(ledgerEntries("PAYOUT")).isEqualTo(1);
     assertThat(ledgerEntries("REFUND")).isZero();
-    assertThat(ledger.getBalance(bettorId).balance()).isEqualByComparingTo("1056.00");
+    assertThat(ledgerEntries("CORRECTION_RECOVERY")).isEqualTo(1);
+    assertThat(ledger.getBalance(bettorId).balance()).isEqualByComparingTo("950.00");
+    assertThat(service.process(correctedAuthorization)).isEqualTo(correctedCaseId);
   }
 
   @Test
@@ -165,6 +193,35 @@ class SettlementExecutionIT extends SettlementFixture {
     assertThat(ledger.getBalance(bettorId).balance()).isEqualByComparingTo("1000.00");
     assertThat(ledgerEntries("REFUND")).isEqualTo(1);
     assertThat(service.process(authorization)).isEqualTo(caseId);
+  }
+
+  @Test
+  void spentPayoutBecomesPendingAndNewRefundPaysDownTheOldDebt() {
+    UUID original = service.authorize(eventId, administratorId, "auth-spent-original");
+    service.process(original);
+    ledger.debit(bettorId, new BigDecimal("1050.00"), UUID.randomUUID());
+    cancelEvent();
+    UUID corrected = service.authorize(eventId, administratorId, "auth-spent-cancel");
+    UUID correctedCase = service.process(corrected);
+
+    assertThat(service.findLatestByPrediction(predictionId).orElseThrow().state())
+        .isEqualTo(SettlementState.REFUNDED);
+    assertThat(ledger.getBalance(bettorId).balance()).isEqualByComparingTo("0.00");
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT amount FROM public.credit_correction_case WHERE replacement_settlement_id = ?",
+                BigDecimal.class,
+                service.findLatestByPrediction(predictionId).orElseThrow().settlementId()))
+        .isEqualByComparingTo("106.00");
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT coalesce(sum(amount), 0.00) FROM public.credit_correction_allocation",
+                BigDecimal.class))
+        .isEqualByComparingTo("56.00");
+    ledger.payout(bettorId, new BigDecimal("100.00"), UUID.randomUUID());
+    assertThat(ledger.getBalance(bettorId).balance()).isEqualByComparingTo("50.00");
+    assertThat(service.process(corrected)).isEqualTo(correctedCase);
+    assertThat(ledgerEntries("CORRECTION_RECOVERY")).isEqualTo(3);
   }
 
   @Test
@@ -198,6 +255,7 @@ abstract class SettlementFixture {
   protected SettlementRepository repository;
   protected CreditLedgerPort ledger;
   protected SettlementCreditPort credits;
+  protected SettlementCorrectionPort corrections;
   protected SettlementService service;
   protected SportsResultForSettlementPort sports;
   protected PredictionForSettlementPort predictions;
@@ -241,6 +299,19 @@ abstract class SettlementFixture {
             return "ADMINISTRADOR_GERAL".equals(roleName) && administrators.contains(identityId);
           }
         };
+    CreditCorrectionService correctionService =
+        new CreditCorrectionService(
+            new CreditCorrectionRepository(jdbc),
+            ledger,
+            identities,
+            entry -> {},
+            List.of(
+                new LedgerCorrectionEvidenceAdapter(jdbc),
+                new PredictionCorrectionEvidenceAdapter(jdbc),
+                new SettlementCorrectionEvidenceAdapter(jdbc)),
+            new EnrollmentCorrectionEvidenceAdapter(jdbc),
+            manager);
+    corrections = new SettlementCorrectionAdapter(correctionService);
     service = settlementService(credits, Clock.systemUTC(), Duration.ofMinutes(2));
     createScenario();
   }
@@ -248,7 +319,15 @@ abstract class SettlementFixture {
   protected SettlementService settlementService(
       SettlementCreditPort creditPort, Clock clock, Duration lease) {
     return new SettlementService(
-        repository, creditPort, sports, predictions, identities, manager, clock, lease);
+        repository,
+        creditPort,
+        sports,
+        predictions,
+        identities,
+        manager,
+        clock,
+        lease,
+        corrections);
   }
 
   protected int ledgerEntries(String entryType) {

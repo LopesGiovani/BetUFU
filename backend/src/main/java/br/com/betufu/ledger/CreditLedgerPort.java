@@ -15,7 +15,9 @@ public interface CreditLedgerPort {
     DEBIT,
     COMPENSATION,
     PAYOUT,
-    REFUND
+    REFUND,
+    CORRECTION_CREDIT,
+    CORRECTION_RECOVERY
   }
 
   /** Opaque source categories accepted by the ledger. */
@@ -23,7 +25,8 @@ public interface CreditLedgerPort {
     SYSTEM,
     PREDICTION,
     COMPENSATION,
-    SETTLEMENT
+    SETTLEMENT,
+    CORRECTION
   }
 
   record LedgerOperation(UUID entryId, CreditBalance balance, boolean replayed) {
@@ -48,4 +51,8 @@ public interface CreditLedgerPort {
   LedgerOperation payout(UUID identityId, BigDecimal amount, UUID settlementId);
 
   LedgerOperation refund(UUID identityId, BigDecimal amount, UUID settlementId);
+
+  LedgerOperation correctionCredit(UUID identityId, BigDecimal amount, UUID correctionCaseId);
+
+  CreditBalance recoverPending(UUID identityId);
 }
