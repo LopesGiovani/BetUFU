@@ -56,8 +56,9 @@ class IdentityModuleTest {
   // auditoria de concessões e recusas de papel exigida por D-30 e D-48.
   // O Plano 03-02 autoriza identity -> sports somente pelo contrato publico
   // CompetitionScopeCatalog; ApplicationModules.verify() continua vedando sports.internal.
+  // O 06-04 autoriza identity -> ranking somente pela porta publica de apelido.
   private static final List<String> FUTURE_BUSINESS_MODULES =
-      List.of("verification", "odds", "betting", "ledger", "settlement", "ranking", "chat");
+      List.of("verification", "odds", "betting", "ledger", "settlement", "chat");
 
   @Autowired private ApplicationContext applicationContext;
 

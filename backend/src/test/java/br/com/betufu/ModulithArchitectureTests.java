@@ -3,6 +3,10 @@ package br.com.betufu;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.betufu.identity.ProfileEnrollmentStatusLookup;
+import br.com.betufu.ranking.RankingEnrollmentSource;
+import br.com.betufu.ranking.RankingNicknameSource;
+import br.com.betufu.ranking.RankingQueryPort;
+import br.com.betufu.ranking.RankingSettlementSource;
 import br.com.betufu.settlement.PredictionForSettlementPort;
 import br.com.betufu.settlement.SportsResultForSettlementPort;
 import br.com.betufu.sports.CompetitionScopeCatalog;
@@ -65,6 +69,7 @@ class ModulithArchitectureTests {
     ApplicationModule identity = modules.getModuleByName("identity").orElseThrow();
     ApplicationModule sports = modules.getModuleByName("sports").orElseThrow();
     ApplicationModule settlement = modules.getModuleByName("settlement").orElseThrow();
+    ApplicationModule ranking = modules.getModuleByName("ranking").orElseThrow();
     ApplicationModule platform = modules.getModuleByName("platform").orElseThrow();
 
     assertThat(identity.isExposed(ProfileEnrollmentStatusLookup.class)).isTrue();
@@ -73,6 +78,10 @@ class ModulithArchitectureTests {
     assertThat(sports.isExposed(CompetitionScopeCatalog.class)).isTrue();
     assertThat(settlement.isExposed(SportsResultForSettlementPort.class)).isTrue();
     assertThat(settlement.isExposed(PredictionForSettlementPort.class)).isTrue();
+    assertThat(ranking.isExposed(RankingQueryPort.class)).isTrue();
+    assertThat(ranking.isExposed(RankingSettlementSource.class)).isTrue();
+    assertThat(ranking.isExposed(RankingEnrollmentSource.class)).isTrue();
+    assertThat(ranking.isExposed(RankingNicknameSource.class)).isTrue();
 
     Set<String> namedInterfaces =
         platform.getNamedInterfaces().stream()
