@@ -4,18 +4,25 @@ milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: executing
-stopped_at: Plan 06-05 complete; Plan 06-06 awaits separate execution approval
-last_updated: "2026-10-02T17:37:55-03:00"
+stopped_at: Plan 06-06 complete; Plan 06-07 awaits separate execution approval
+last_updated: "2026-10-02T19:27:52-03:00"
 last_activity: 2026-10-02
-last_activity_desc: Plan 06-05 private groups and aggregate verification complete
-state_head: 25f88f1d5955d5ee7a74dfbcfa793a01cde7d31d
+last_activity_desc: Plan 06-06 derived achievements and aggregate verification complete
+state_head: 5345c73eec65c3e53be7256e6ca7a2d63aeed388
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 135
-  completed_plans: 132
+  completed_plans: 133
 milestone_name: milestone
 ---
+
+## Phase 6 / Plan 06-06 closeout - 2026-10-02
+
+- Added V38 achievement catalog, fact-lineage awards and audited REVOKED transitions. Streak, underdog, phase and favorite-organization rules derive from current complete settlements and accepted odds; retries do not duplicate awards or touch credits.
+- The ranking-owned lookup ports have producer adapters in identity, sports and settlement. This reconciles the original producer-owned port paths with the existing Modulith dependency direction. Revoked grants remain historical; a later qualifying correction gets a new origin lineage.
+- Technical commit `5345c73eec65c3e53be7256e6ca7a2d63aeed388` includes the necessary settlement read extension and V38 migration-count test updates. Focal 16/16, final Maven verify 372/372 Surefire and 590/590 Failsafe, Node 759/759, Spotless and diff checks passed. V38 ran only in Testcontainers PostgreSQL.
+- Profile HTTP/OpenAPI/Angular presentation remains in 06-07. The owner's three documentation files remain excluded; no push, local Docker reset, seed or real prediction occurred. Phase 6 is 6/8.
 
 ## Phase 6 / Plan 06-05 closeout - 2026-10-02
 
