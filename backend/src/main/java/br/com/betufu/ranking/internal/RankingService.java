@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -70,9 +71,53 @@ public class RankingService implements RankingQueryPort {
     return Optional.empty();
   }
 
+  @Override
+  public List<RankingQueryPort.ScopedMember> rankMembers(Set<UUID> identityIds) {
+    Objects.requireNonNull(identityIds);
+    if (identityIds.isEmpty()) return List.of();
+    List<RankingQueryPort.ScopedMember> members = new ArrayList<>();
+    for (PositionedCounts rankedRow : rankedRows(identityIds)) {
+      RankingRepository.Counts row = rankedRow.counts();
+      members.add(
+          new RankingQueryPort.ScopedMember(
+              row.identityId(),
+              nicknames.findNickname(row.identityId()).orElse("Participante"),
+              new RankingModels.MemberMetrics(
+                  rankedRow.position(),
+                  row.wins(),
+                  row.losses(),
+                  rate(row),
+                  verification.isActiveNow(row.identityId()))));
+    }
+    for (UUID identityId : identityIds) {
+      if (members.stream().noneMatch(member -> member.identityId().equals(identityId))) {
+        members.add(
+            new RankingQueryPort.ScopedMember(
+                identityId,
+                nicknames.findNickname(identityId).orElse("Participante"),
+                new RankingModels.MemberMetrics(
+                    0, 0, 0, BigDecimal.ZERO.setScale(6), verification.isActiveNow(identityId))));
+      }
+    }
+    members.sort(
+        Comparator.comparingInt(
+                (RankingQueryPort.ScopedMember member) ->
+                    member.metrics().position() == 0
+                        ? Integer.MAX_VALUE
+                        : member.metrics().position())
+            .thenComparing(RankingQueryPort.ScopedMember::nickname)
+            .thenComparing(RankingQueryPort.ScopedMember::identityId));
+    return List.copyOf(members);
+  }
+
   private List<PositionedCounts> rankedRows() {
+    return rankedRows(null);
+  }
+
+  private List<PositionedCounts> rankedRows(Set<UUID> identityIds) {
     rebuild.rebuild();
     List<RankingRepository.Counts> counts = new ArrayList<>(repository.findAll());
+    if (identityIds != null) counts.removeIf(row -> !identityIds.contains(row.identityId()));
     counts.sort(
         Comparator.comparingLong(RankingRepository.Counts::wins)
             .reversed()

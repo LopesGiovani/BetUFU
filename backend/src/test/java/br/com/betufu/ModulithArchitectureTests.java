@@ -3,6 +3,8 @@ package br.com.betufu;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.betufu.identity.ProfileEnrollmentStatusLookup;
+import br.com.betufu.ranking.GroupQueryPort;
+import br.com.betufu.ranking.PrivateGroupPort;
 import br.com.betufu.ranking.RankingEnrollmentSource;
 import br.com.betufu.ranking.RankingNicknameSource;
 import br.com.betufu.ranking.RankingQueryPort;
@@ -82,6 +84,8 @@ class ModulithArchitectureTests {
     assertThat(ranking.isExposed(RankingSettlementSource.class)).isTrue();
     assertThat(ranking.isExposed(RankingEnrollmentSource.class)).isTrue();
     assertThat(ranking.isExposed(RankingNicknameSource.class)).isTrue();
+    assertThat(ranking.isExposed(GroupQueryPort.class)).isTrue();
+    assertThat(ranking.isExposed(PrivateGroupPort.class)).isTrue();
 
     Set<String> namedInterfaces =
         platform.getNamedInterfaces().stream()
