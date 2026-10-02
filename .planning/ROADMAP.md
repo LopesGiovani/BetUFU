@@ -17,7 +17,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - [x] **Phase 03.1: Convergência do Contrato de Diagnóstico** - Alinhar o diagnóstico do backend ao vocabulário público `UP`, `DEGRADED` e `DOWN` sem alterar suas fronteiras.
 - [x] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [x] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
-- [ ] **Phase 05.1: Convergência das Jornadas do Usuário** - Conectar sessão, conta, evento, mercado e palpite em jornadas descobríveis, coerentes e verificadas no navegador real.
+- [x] **Phase 05.1: Convergência das Jornadas do Usuário** - Conectar sessão, conta, evento, mercado e palpite em jornadas descobríveis, coerentes e verificadas no navegador real.
 - [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
 - [ ] **Phase 7: Comunidade Moderada e Prontidão do Piloto** - Entregar chat seguro por partida e uma experiência responsiva, privada e operacionalmente pronta para o piloto público.
 
@@ -456,7 +456,7 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
   4. Um palpite enviado é imutável, seu débito e seus registros aceitos são gravados juntos, e palpites individuais ou agregados permanecem ocultos de outros usuários até o fechamento do mercado.
   5. Quando o preço muda antes do envio, o bilhete aberto é invalidado e o usuário precisa reconfirmar explicitamente a versão atualizada.
 
-**Plans**: 7 plans complete
+**Plans**: 8 plans complete
 
 - [x] 05-01-PLAN.md — Materializar ledger virtual imutável e concessão inicial idempotente.
 - [x] 05-02-PLAN.md — Registrar palpite pré-jogo com snapshot de odds, elegibilidade e débito atômico.
@@ -465,13 +465,15 @@ Os planos estão descritos em `.planning/phases/04-mercados-pr-jogo-e-odds-trans
 - [x] 05-05-PLAN.md — Certificar concorrência, mutações negativas, privacidade, browsers e snapshot UAT.
 - [x] 05-06-PLAN.md — Preservar vetores completos de odds e resolver o snapshot autoritativo pela linhagem.
 - [x] 05-07-PLAN.md — Corrigir concessão retroativa, idempotência canônica e aceite atômico do palpite.
+- [x] 05-08-PLAN.md — Reconciliar o seed local com publicações de odds completas e concessão inicial idempotente.
 **UI hint**: yes
 
-Phase 5 completion update (2026-09-14): all seven plans are complete. The final
+Phase 5 completion update (2026-09-14): all seven original plans are complete. The final
 05-05 snapshot passed automated certification and independent read-only review;
 the responsible developer approved human checkpoint `05-05/T3`. A auditoria
 manual posterior encontrou lacunas de integração entre capacidades já
-implementadas; por decisão do responsável, a Fase 05.1 precede a Fase 6.
+implementadas; por decisão do responsável, a Fase 05.1 precede a Fase 6. The
+additional local-seed reconciliation, 05-08, was completed on 2026-09-15.
 
 ### Phase 05.1: Convergência das Jornadas do Usuário (INSERTED)
 
@@ -530,12 +532,12 @@ approval cycle; no push was performed.
 **Plans**: 8 plans in 6 waves (`06-01` through `06-08`)
 **Planning artifacts**: `06-CONTEXT.md`, `06-RESEARCH.md`, `06-DISCUSSION-LOG.md`, `06-UI-SPEC.md`
 **Planning review**: structural allowlists reconciled on 2026-10-01; revised UI contract accepted by owner after 6/6 inline review and independently APPROVED by the UI checker (5 PASS, 1 non-blocking FLAG). Exact OpenAPI generated-client inventory/digest remains a gate for `06-07`.
-**Execution progress**: `06-01` and `06-02` completed and verified on 2026-10-01; `06-03` technically committed and verified on 2026-10-02, with documentary formalization pending separate Git approval. V33 provides the settlement foundation, V34 the first idempotent pass, and V35 audited credit corrections, FIFO recovery and reliquidation after prior credit. Five plans remain pending.
+**Execution progress**: `06-01` and `06-02` completed and verified on 2026-10-01; `06-03` technically verified and documentally committed on 2026-10-02 (`9351f04`, `098d721`). V33 provides the settlement foundation, V34 the first idempotent pass, and V35 audited credit corrections, FIFO recovery and reliquidation after prior credit. Five plans remain pending, starting with `06-04`.
 **Execution order**:
 
   - Wave 1: `06-01` - fundacao de contratos e schema de liquidacao (complete).
   - Wave 2: `06-02` - motor de liquidacao idempotente e retomavel (complete; correcao financeira posterior no 06-03).
-  - Wave 3: `06-03` correcoes de ledger (technical work verified; documentary commit pending); `06-04` ranking reconstruivel (pending).
+  - Wave 3: `06-03` correcoes de ledger (complete); `06-04` ranking reconstruivel (pending).
   - Wave 4: `06-05` grupos privados; `06-06` conquistas derivadas.
   - Wave 5: `06-07` contratos HTTP, cliente Angular e UI integrada.
   - Wave 6: `06-08` concorrencia, Playwright e certificacao agregada.
@@ -570,7 +572,7 @@ approval cycle; no push was performed.
 | 3. Experiência Esportiva do Piloto | 27/27 | Complete; final post-gap snapshot approved | 2026-09-12 |
 | 03.1. Convergência do Contrato de Diagnóstico | 1/1 | Complete | 2026-09-03 |
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
-| 5. Créditos Virtuais e Palpites Protegidos | 7/7 | Complete; final snapshot approved | 2026-09-14 |
+| 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
-| 6. Resultados Confirmados, Rankings e Grupos | 3/8 | In progress; 06-03 documentary commit pending | - |
+| 6. Resultados Confirmados, Rankings e Grupos | 3/8 | In progress; 06-04 awaits separate execution approval | - |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |

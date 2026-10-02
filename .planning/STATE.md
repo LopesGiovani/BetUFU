@@ -4,16 +4,16 @@ milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: executing
-stopped_at: Plan 06-03 technically committed and verified; documentary formalization awaits separate Git approval
-last_updated: "2026-10-02T10:57:14-03:00"
+stopped_at: Plan 06-03 complete; Plan 06-04 awaits separate execution approval
+last_updated: "2026-10-02T12:15:34-03:00"
 last_activity: 2026-10-02
-last_activity_desc: Plan 06-03 audited credit corrections, FIFO recovery and financial reliquidation verified
-state_head: 9351f04eb3b1df21afcb82229e51dce81916c8b4
+last_activity_desc: Plan 06-03 documentary commit finalized; roadmap and state reconciled
+state_head: 098d7215c87bfafab68c689fc8ff91dbe0dda234
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 134
-  completed_plans: 129
+  total_plans: 135
+  completed_plans: 130
 milestone_name: milestone
 ---
 
@@ -24,8 +24,8 @@ milestone_name: milestone
 - Public ports in `platform.operations` and `settlement` preserve Modulith direction; private owner views omit administrators and enrollment details. V35 extends the closed audit vocabulary without changing historical migrations.
 - Technical commit `9351f04eb3b1df21afcb82229e51dce81916c8b4` contains 30 backend paths and the ratified 06-03 plan. Final `clean verify` passed 360/360 Surefire and 573/573 Failsafe XML cases; Node passed 759/759; Spotless and diff checks passed. V35 ran only in isolated Testcontainers PostgreSQL.
 - An initial aggregate run exposed the missing V35 audit constraint; a later non-clean run encountered stale compiled test classes. Both were corrected or cleared and the final clean run passed. HTTP/OpenAPI/Angular owner journeys remain in 06-07; 06-04 ranking needs separate approval.
-- Owner changes in `docs/development.md`, `docs/local-seed.md` and `docs/manual-testing.md` remain excluded. No push, local Docker reset, seed or real prediction occurred. Documentary stage and commit remain pending separate approvals.
-- Reconciled the previously stale milestone counters with the explicit ROADMAP rows: 134 known plans through Phase 6 and 129 completed after 06-03; Phase 7 plans remain TBD.
+- Owner changes in `docs/development.md`, `docs/local-seed.md` and `docs/manual-testing.md` remain excluded. No push, local Docker reset, seed or real prediction occurred. Documentary commit `098d7215c87bfafab68c689fc8ff91dbe0dda234` finalized 06-03.
+- Reconciled the milestone counters with all plan/summary files, including the additional 05-08 local-seed plan: 135 known plans through Phase 6 and 130 completed after 06-03; Phase 7 plans remain TBD.
 
 ## Phase 6 / Plan 06-02 closeout - 2026-10-01
 
@@ -865,9 +865,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-02T10:57:14-03:00
-Stopped at: Plan 06-03 technically committed and verified; documentary Git formalization awaits separate approval
-Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-03-SUMMARY.md
+Last session: 2026-10-02T12:15:34-03:00
+Stopped at: Plan 06-03 complete; Plan 06-04 awaits separate execution approval
+Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-04-PLAN.md
 
 ## Accumulated Context
 
