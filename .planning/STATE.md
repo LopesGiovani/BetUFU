@@ -4,18 +4,25 @@ milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: executing
-stopped_at: Plan 06-04 complete; Plan 06-05 awaits separate execution approval
-last_updated: "2026-10-02T16:28:44-03:00"
+stopped_at: Plan 06-05 complete; Plan 06-06 awaits separate execution approval
+last_updated: "2026-10-02T17:37:55-03:00"
 last_activity: 2026-10-02
-last_activity_desc: Plan 06-04 ranking implementation and aggregate verification complete
-state_head: 452993a6831b58d726be7d0565f08fb96f31574c
+last_activity_desc: Plan 06-05 private groups and aggregate verification complete
+state_head: 25f88f1d5955d5ee7a74dfbcfa793a01cde7d31d
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 135
-  completed_plans: 131
+  completed_plans: 132
 milestone_name: milestone
 ---
+
+## Phase 6 / Plan 06-05 closeout - 2026-10-02
+
+- Added V37 private groups, membership history, one-use hashed invitations and append-only group audit. Owner, admin and member operations enforce distinct rights; nonmembers cannot read a group roster or metrics. Group creation never touches credits, odds or predictions.
+- Group standings delegate filtering, ordering and competition positions to `RankingQueryPort`/`RankingService`. Decisive results retain the lifetime ranking rules; members without results are shown unranked with position 0. The public group view omits account and identity-provider IDs.
+- Technical commit `25f88f1d5955d5ee7a74dfbcfa793a01cde7d31d` contains the reconciled 06-05 allowlist. Final focal tests passed 20/20; Maven `verify` passed 367/367 Surefire and 585/585 Failsafe XML cases; Node passed 759/759. Spotless and diff checks passed. V37 ran only in isolated Testcontainers PostgreSQL.
+- Owner changes in `docs/development.md`, `docs/local-seed.md` and `docs/manual-testing.md` remain excluded. No push, persistent database migration, Docker reset, seed or real prediction occurred. Phase 6 is 5/8; 06-06 requires separate approval.
 
 ## Phase 6 / Plan 06-04 closeout - 2026-10-02
 
