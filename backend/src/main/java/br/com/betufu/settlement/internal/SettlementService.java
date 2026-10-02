@@ -329,5 +329,10 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
     return repository.findLatestOutcome(predictionId);
   }
 
+  @Override
+  public List<CurrentFact> findCurrentFacts() {
+    return repository.findCurrentFacts();
+  }
+
   private record Decision(SettlementState state, SettlementReason reason, BigDecimal amount) {}
 }

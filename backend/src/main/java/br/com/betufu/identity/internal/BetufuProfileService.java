@@ -2,6 +2,7 @@ package br.com.betufu.identity.internal;
 
 import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
+import br.com.betufu.ranking.FavoriteOrganizationLookup;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Profile("runtime | integrated")
-public class BetufuProfileService {
+public class BetufuProfileService implements FavoriteOrganizationLookup {
 
   private static final Duration MINIMUM_CHANGE_INTERVAL = Duration.ofDays(30);
 
@@ -35,6 +36,12 @@ public class BetufuProfileService {
   public Optional<BetufuProfile> findProfile(UUID identityId) {
     Objects.requireNonNull(identityId, "identityId must not be null");
     return requireRepository().findByIdentityId(identityId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<UUID> findFavoriteOrganization(UUID identityId) {
+    return findProfile(identityId).map(BetufuProfile::getFavoriteOrganizationId);
   }
 
   @Transactional(isolation = Isolation.READ_COMMITTED)

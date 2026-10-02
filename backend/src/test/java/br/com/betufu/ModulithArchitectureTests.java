@@ -3,12 +3,16 @@ package br.com.betufu;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.betufu.identity.ProfileEnrollmentStatusLookup;
+import br.com.betufu.ranking.AchievementQueryPort;
+import br.com.betufu.ranking.AchievementSettlementSource;
+import br.com.betufu.ranking.FavoriteOrganizationLookup;
 import br.com.betufu.ranking.GroupQueryPort;
 import br.com.betufu.ranking.PrivateGroupPort;
 import br.com.betufu.ranking.RankingEnrollmentSource;
 import br.com.betufu.ranking.RankingNicknameSource;
 import br.com.betufu.ranking.RankingQueryPort;
 import br.com.betufu.ranking.RankingSettlementSource;
+import br.com.betufu.ranking.SportsEventOrganizationLookup;
 import br.com.betufu.settlement.PredictionForSettlementPort;
 import br.com.betufu.settlement.SportsResultForSettlementPort;
 import br.com.betufu.sports.CompetitionScopeCatalog;
@@ -81,6 +85,10 @@ class ModulithArchitectureTests {
     assertThat(settlement.isExposed(SportsResultForSettlementPort.class)).isTrue();
     assertThat(settlement.isExposed(PredictionForSettlementPort.class)).isTrue();
     assertThat(ranking.isExposed(RankingQueryPort.class)).isTrue();
+    assertThat(ranking.isExposed(AchievementQueryPort.class)).isTrue();
+    assertThat(ranking.isExposed(AchievementSettlementSource.class)).isTrue();
+    assertThat(ranking.isExposed(FavoriteOrganizationLookup.class)).isTrue();
+    assertThat(ranking.isExposed(SportsEventOrganizationLookup.class)).isTrue();
     assertThat(ranking.isExposed(RankingSettlementSource.class)).isTrue();
     assertThat(ranking.isExposed(RankingEnrollmentSource.class)).isTrue();
     assertThat(ranking.isExposed(RankingNicknameSource.class)).isTrue();

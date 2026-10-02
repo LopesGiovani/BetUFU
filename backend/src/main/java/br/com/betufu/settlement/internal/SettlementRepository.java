@@ -7,6 +7,7 @@ import br.com.betufu.settlement.SettlementModels.SettlementCase;
 import br.com.betufu.settlement.SettlementModels.SettlementReason;
 import br.com.betufu.settlement.SettlementModels.Unit;
 import br.com.betufu.settlement.SettlementReadPort.CaseProgress;
+import br.com.betufu.settlement.SettlementReadPort.CurrentFact;
 import br.com.betufu.settlement.SettlementReadPort.PredictionOutcome;
 import br.com.betufu.settlement.SettlementReadPort.ProcessingStatus;
 import br.com.betufu.settlement.SettlementState;
@@ -366,5 +367,37 @@ public class SettlementRepository {
                         rs.getObject("ledger_entry_id", UUID.class)))
                 : Optional.empty(),
         predictionId);
+  }
+
+  public List<CurrentFact> findCurrentFacts() {
+    return jdbc.query(
+        """
+            SELECT u.settlement_id, u.prediction_id, u.identity_id, c.event_id,
+                   p.market_id, p.accepted_at, u.state, x.selection, x.accepted_odds
+            FROM public.prediction_settlement u
+            JOIN public.settlement_case c ON c.case_id = u.case_id
+            JOIN public.settlement_processing progress
+              ON progress.case_id = c.case_id AND progress.status = 'COMPLETE'
+            JOIN public.prediction p ON p.prediction_id = u.prediction_id
+            JOIN public.settlement_calculation x ON x.settlement_id = u.settlement_id
+            WHERE u.state IN ('WON', 'LOST')
+              AND NOT EXISTS (
+                SELECT 1 FROM public.settlement_case newer
+                WHERE newer.event_id = c.event_id
+                  AND newer.processing_version > c.processing_version
+              )
+            ORDER BY p.accepted_at, u.prediction_id
+            """,
+        (rs, row) ->
+            new CurrentFact(
+                rs.getObject("settlement_id", UUID.class),
+                rs.getObject("prediction_id", UUID.class),
+                rs.getObject("identity_id", UUID.class),
+                rs.getObject("event_id", UUID.class),
+                rs.getObject("market_id", UUID.class),
+                rs.getTimestamp("accepted_at").toInstant(),
+                SettlementState.valueOf(rs.getString("state")),
+                rs.getString("selection"),
+                rs.getBigDecimal("accepted_odds")));
   }
 }

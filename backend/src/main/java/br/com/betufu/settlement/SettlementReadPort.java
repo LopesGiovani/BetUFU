@@ -1,6 +1,8 @@
 package br.com.betufu.settlement;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,7 +34,21 @@ public interface SettlementReadPort {
       Integer winnerSlotNo,
       UUID ledgerEntryId) {}
 
+  /** Current complete settlement facts; a newer incomplete correction suppresses older facts. */
+  record CurrentFact(
+      UUID settlementId,
+      UUID predictionId,
+      UUID identityId,
+      UUID eventId,
+      UUID marketId,
+      Instant acceptedAt,
+      SettlementState state,
+      String selection,
+      BigDecimal acceptedOdds) {}
+
   Optional<CaseProgress> findCase(UUID caseId);
 
   Optional<PredictionOutcome> findLatestByPrediction(UUID predictionId);
+
+  List<CurrentFact> findCurrentFacts();
 }
