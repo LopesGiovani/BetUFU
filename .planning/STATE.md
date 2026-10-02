@@ -4,18 +4,28 @@ milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: executing
-stopped_at: Plan 06-02 technical work completed and verified; Plan 06-03 awaits separate preflight and approval
-last_updated: "2026-10-01T14:59:10-03:00"
-last_activity: 2026-10-01
-last_activity_desc: Plan 06-02 first settlement pass, idempotent ledger effects and durable recovery verified
-state_head: 2afd6d9f5a27433b5f316f676de10a5536795f60
+stopped_at: Plan 06-03 technically committed and verified; documentary formalization awaits separate Git approval
+last_updated: "2026-10-02T10:57:14-03:00"
+last_activity: 2026-10-02
+last_activity_desc: Plan 06-03 audited credit corrections, FIFO recovery and financial reliquidation verified
+state_head: 9351f04eb3b1df21afcb82229e51dce81916c8b4
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 135
-  completed_plans: 125
+  total_plans: 134
+  completed_plans: 129
 milestone_name: milestone
 ---
+
+## Phase 6 / Plan 06-03 closeout - 2026-10-02
+
+- Added V35 append-only correction cases, maker-checker decisions, FIFO allocations and constrained correction ledger entries. Approved administrative corrections require a typed existing monetary fact with matching owner and amount; enrollment is only additional context for eligibility corrections.
+- Available balance is recovered first, future credits settle pending cases in FIFO order, and only new predictions are blocked while debt remains. Corrected outcomes after payout/refund now create a compensating recovery and a superseding settlement without changing prior facts.
+- Public ports in `platform.operations` and `settlement` preserve Modulith direction; private owner views omit administrators and enrollment details. V35 extends the closed audit vocabulary without changing historical migrations.
+- Technical commit `9351f04eb3b1df21afcb82229e51dce81916c8b4` contains 30 backend paths and the ratified 06-03 plan. Final `clean verify` passed 360/360 Surefire and 573/573 Failsafe XML cases; Node passed 759/759; Spotless and diff checks passed. V35 ran only in isolated Testcontainers PostgreSQL.
+- An initial aggregate run exposed the missing V35 audit constraint; a later non-clean run encountered stale compiled test classes. Both were corrected or cleared and the final clean run passed. HTTP/OpenAPI/Angular owner journeys remain in 06-07; 06-04 ranking needs separate approval.
+- Owner changes in `docs/development.md`, `docs/local-seed.md` and `docs/manual-testing.md` remain excluded. No push, local Docker reset, seed or real prediction occurred. Documentary stage and commit remain pending separate approvals.
+- Reconciled the previously stale milestone counters with the explicit ROADMAP rows: 134 known plans through Phase 6 and 129 completed after 06-03; Phase 7 plans remain TBD.
 
 ## Phase 6 / Plan 06-02 closeout - 2026-10-01
 
@@ -600,14 +610,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Preparar o preflight separado do 06-03 apos o fechamento documental do 06-02; a Fase 6 continua em execucao.
+**Current focus:** Formalizar documentalmente o 06-03 e preparar o preflight separado do 06-04; a Fase 6 continua em execucao.
 
 ## Current Position
 
 Phase: 6 of 9 (Resultados Confirmados, Rankings e Grupos)
-Plan: 06-02 concluido tecnicamente; 06-03 e o proximo plano, ainda sem aprovacao de execucao
-Status: 2/8 planos da Fase 6 concluidos; reliquidacao financeira e correcoes permanecem no 06-03
-Last activity: 2026-10-01 — 06-02 verificado e commit tecnico `2afd6d9` criado
+Plan: 06-03 concluido tecnicamente e verificado; formalizacao documental ainda sem stage ou commit
+Status: 3/8 planos da Fase 6 concluidos; ranking reconstruivel permanece no 06-04
+Last activity: 2026-10-02 - 06-03 verificado e commit tecnico `9351f04` criado
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -677,13 +687,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 7/7 planos (100%; snapshot e UAT aprovados); Fase 6: 2/8 planos concluidos
+Progress: Fase 5: 7/7 planos (100%; snapshot e UAT aprovados); Fase 6: 3/8 planos concluidos
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 78
+- Total de planos concluídos: 129
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -855,9 +865,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-01T14:59:10-03:00
-Stopped at: Plan 06-02 verified and technically committed; Plan 06-03 requires separate preflight and execution approval
-Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-03-PLAN.md
+Last session: 2026-10-02T10:57:14-03:00
+Stopped at: Plan 06-03 technically committed and verified; documentary Git formalization awaits separate approval
+Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-03-SUMMARY.md
 
 ## Accumulated Context
 
