@@ -77,3 +77,19 @@ The first combined Playwright attempt used a conventional Mozilla installation
 path that was absent, so Chromium passed 7/7 while Firefox could not launch.
 No product test failed. The local Playwright cache contained Firefox 155; a
 Firefox-only run passed 7/7 and the final clean combined run passed 14/14.
+
+## Post-05-08 Validation Supplement - 2026-10-02
+
+Plan 05-08 added a local-fixture reconciliation after this validation's
+2026-09-14 snapshot. Its summary records a fresh local environment migrated
+through V32, two successful full seeds, five complete odds publications and
+one `1000.00` initial grant per eligible identity after replay. That historical
+Docker/seed proof was not repeated in this supplement.
+
+At HEAD `573ba71c3115592ee12068d02aac18e4bf0ec696`, the current
+`scripts/seed-local.test.mjs` passed 11/11, the Node aggregate passed 759/759,
+and backend `clean verify` passed 360/360 Surefire plus 573/573 Failsafe XML
+cases, with zero failures, errors or skips. `git diff --check` passed. The seed
+and test script hashes are recorded in `05-VERIFICATION.md`; V31 and V32 remain
+byte-identical to the approved hashes. This recertifies the 05-08 seed contract
+without replacing the original Angular, Playwright or human-checkpoint evidence.

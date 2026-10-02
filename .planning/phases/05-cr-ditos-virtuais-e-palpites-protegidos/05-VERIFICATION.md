@@ -1,8 +1,8 @@
 ---
 phase: 05-cr-ditos-virtuais-e-palpites-protegidos
-verified: 2026-09-14T22:07:57-03:00
+verified: 2026-10-02T15:08:38-03:00
 status: passed
-score: "5/5 must-haves verified"
+score: "5/5 original must-haves verified; 05-08 seed reconciliation recertified"
 behavior_unverified: 0
 overrides_applied: 0
 ---
@@ -76,3 +76,33 @@ The responsible developer approved checkpoint `05-05/T3` on 2026-09-14 after
 the corrected snapshot received independent read-only review `PASS`. Phase 5
 is complete. No stage, commit, integration, worktree cleanup or push is
 authorized by this checkpoint.
+
+## Post-05-08 Supplement - 2026-10-02
+
+This supplement addresses the additional 05-08 local-seed plan completed after
+the original 2026-09-14 snapshot. The original integrity anchors and human
+checkpoint above remain historical evidence, not hashes of the current checkout.
+The 05-08 summary records a disposable local reset, full seed twice, five
+complete publications and one `1000.00` initial grant per eligible identity on
+2026-09-15. Those persistent-environment actions were not repeated today.
+
+At HEAD `573ba71c3115592ee12068d02aac18e4bf0ec696` on `master`, fresh
+commands passed:
+
+- `node --test scripts/seed-local.test.mjs`: 11/11.
+- `node --test scripts/*.test.mjs`: 759/759.
+- `node scripts/maven.mjs -f backend/pom.xml clean verify`: 360/360 Surefire
+  cases across 37 classes and 573/573 Failsafe cases across 105 classes.
+- `git diff --check`: passed with only LF-to-CRLF checkout warnings.
+
+All tests reported zero failures, errors and skips. The Maven wrapper's
+1,866 count duplicates summary lines; the 933 XML cases are authoritative.
+
+Current SHA-256 anchors: `scripts/seed-local.mjs`
+`CEA2BDA49E6111FC7EB90409880E8EC9ED13DA05A8F9E4F4DF28D0721F22197D`;
+`scripts/seed-local.test.mjs`
+`CB567277A89970028D3D87ED83654771E183E99F8B6D620212F85418D0D50764`.
+V31 and V32 retain their recorded migration hashes. Angular and Playwright were
+not rerun in this targeted supplement; their original snapshot and the later
+05.1 integrated verification remain separate evidence. No current full
+70-path manifest or new independent review is claimed.

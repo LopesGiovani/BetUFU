@@ -5,10 +5,10 @@ current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: executing
 stopped_at: Plan 06-03 complete; Plan 06-04 awaits separate execution approval
-last_updated: "2026-10-02T12:15:34-03:00"
+last_updated: "2026-10-02T15:08:38-03:00"
 last_activity: 2026-10-02
-last_activity_desc: Plan 06-03 documentary commit finalized; roadmap and state reconciled
-state_head: 098d7215c87bfafab68c689fc8ff91dbe0dda234
+last_activity_desc: Phase 5 post-05-08 technical verification recertified without local reset
+state_head: 573ba71c3115592ee12068d02aac18e4bf0ec696
 progress:
   total_phases: 9
   completed_phases: 7
@@ -16,6 +16,12 @@ progress:
   completed_plans: 130
 milestone_name: milestone
 ---
+
+## Phase 5 post-05-08 verification supplement - 2026-10-02
+
+- Preserved the approved 2026-09-14 Phase 5 snapshot and added targeted post-05-08 evidence to `05-VALIDATION.md` and `05-VERIFICATION.md`. The 05-08 summary remains the source for the 2026-09-15 disposable Docker reset and successful double full seed; those actions were not repeated.
+- Fresh checks on HEAD `573ba71c3115592ee12068d02aac18e4bf0ec696` passed seed-local 11/11, Node 759/759, Surefire 360/360 and Failsafe 573/573 XML cases, plus `git diff --check`. V31 and V32 matched their approved hashes; both seed scripts remained byte-identical to the preflight.
+- No Angular or Playwright rerun, new 70-path frozen manifest, persistent database mutation, local seed, Docker reset, code change, stage, commit or push occurred. Phase 6 remains at 3/8, and Plan 06-04 still requires separate execution approval.
 
 ## Phase 6 / Plan 06-03 closeout - 2026-10-02
 
@@ -865,7 +871,7 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-02T12:15:34-03:00
+Last session: 2026-10-02T15:08:38-03:00
 Stopped at: Plan 06-03 complete; Plan 06-04 awaits separate execution approval
 Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-04-PLAN.md
 
