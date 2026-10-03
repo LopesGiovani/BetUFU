@@ -4,18 +4,26 @@ milestone: v1.0
 current_phase: "6"
 current_phase_name: Resultados Confirmados, Rankings e Grupos
 status: executing
-stopped_at: Plan 06-06 complete; Plan 06-07 awaits separate execution approval
-last_updated: "2026-10-02T19:27:52-03:00"
-last_activity: 2026-10-02
-last_activity_desc: Plan 06-06 derived achievements and aggregate verification complete
-state_head: 5345c73eec65c3e53be7256e6ca7a2d63aeed388
+stopped_at: Plan 06-07 complete; Plan 06-08 awaits separate execution approval
+last_updated: "2026-10-03T17:44:00-03:00"
+last_activity: 2026-10-03
+last_activity_desc: Plan 06-07 HTTP contracts and Angular journeys verified and committed
+state_head: 27224b5ef7e77d503e03b5bfeb16fbc2b3e99c2f
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 135
-  completed_plans: 133
+  completed_plans: 134
 milestone_name: milestone
 ---
+
+## Phase 6 / Plan 06-07 closeout - 2026-10-03
+
+- Published five HTTP controllers and officially regenerated the Angular client. Public ranking is discoverable in the Arena; private history, groups and achievements are in the personal console; exact-result settlement authorization is capability-gated in the operational console.
+- Producer-owned adapters implement settlement's public consumer-owned ports. Owner history preserves old facts and separates pending corrections; authorization validates the exact outcome fact and nullable sporting version under lock. DTOs and errors omit private enrollment and operational actors.
+- Technical commit `27224b5ef7e77d503e03b5bfeb16fbc2b3e99c2f` contains exactly 103 reconciled paths. Final clean Maven verify: Surefire 360/360 in 37 classes and Failsafe 606/606 in 120 classes. Focal HTTP/presentation/Modulith: 19/19. Angular 452/452, Node 765/765, generator 73/73, anti-drift, lint, production build, Spotless, scoped Prettier and diff checks passed.
+- Controlled-response Playwright preview passed five surfaces at 1280/320 px, single main, readable internally scrollable tables, Tab/Shift+Tab/Escape and restored focus, cancellation without mutation, blocked 409 and safe reload after 503. This is not the real business E2E required in 06-08. Preview processes were stopped; persistent local services/database were not changed.
+- Owner documentation hashes are unchanged and excluded from stage. No push, seed, reset, real prediction, dependency update or new migration occurred. Temporary preview/candidate artifacts remain unstaged. Phase 6 is 7/8; 06-08 requires separate approval and the phase is not certified passed.
 
 ## Phase 6 / Plan 06-06 closeout - 2026-10-02
 
@@ -642,9 +650,9 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 ## Current Position
 
 Phase: 6 of 9 (Resultados Confirmados, Rankings e Grupos)
-Plan: 06-04 concluido e verificado; 06-05 aguarda aprovacao propria
-Status: 4/8 planos da Fase 6 concluidos; grupos privados permanecem no 06-05
-Last activity: 2026-10-02 - 06-04 verificado e commit tecnico `452993a` criado
+Plan: 06-07 concluido e verificado; 06-08 aguarda aprovacao propria
+Status: 7/8 planos da Fase 6 concluidos; certificacao integrada real permanece no 06-08
+Last activity: 2026-10-03 - 06-07 verificado e commit tecnico `27224b5` criado
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -892,9 +900,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-02T16:28:44-03:00
-Stopped at: Plan 06-04 complete; Plan 06-05 awaits separate execution approval
-Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-05-PLAN.md
+Last session: 2026-10-03T17:44:00-03:00
+Stopped at: Plan 06-07 complete; Plan 06-08 awaits separate execution approval
+Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-08-PLAN.md
 
 ## Accumulated Context
 
