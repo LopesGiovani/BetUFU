@@ -49,6 +49,87 @@ class OddsReplayCorrectionTest {
   }
 
   @Test
+  void cancellationKnownAtCutoffSupersedesSportingInputWithoutChangingPastReplay() {
+    Instant sportTime = Instant.parse("2026-10-01T14:00:00Z");
+    Instant cancellationKnownAt = sportTime.plusSeconds(86400);
+    UUID historicalEvent = UUID.randomUUID();
+    UUID sportingVersion = UUID.randomUUID();
+    ConfirmedSportsResultForOdds sporting =
+        new ConfirmedSportsResultForOdds(
+            sportingVersion,
+            historicalEvent,
+            TEST_COMPETITION,
+            TEST_EDITION,
+            1,
+            ConfirmedSportsResultForOdds.VersionStatus.CONFIRMADO,
+            SportsResultKindForOdds.SPORTING_RESULT,
+            List.of(new Score(1, 2, teamA, "A"), new Score(2, 0, teamB, "B")),
+            sportTime,
+            sportTime,
+            sportTime,
+            null);
+    ConfirmedSportsResultForOdds cancelled =
+        new ConfirmedSportsResultForOdds(
+            UUID.randomUUID(),
+            historicalEvent,
+            TEST_COMPETITION,
+            TEST_EDITION,
+            2,
+            ConfirmedSportsResultForOdds.VersionStatus.CORRIGIDO,
+            SportsResultKindForOdds.CANCELLED,
+            List.of(),
+            cancellationKnownAt,
+            cancellationKnownAt,
+            sportTime,
+            sportingVersion);
+    List<ConfirmedSportsResultForOdds> facts = List.of(sporting, cancelled);
+    OddsInputFilter filter = new OddsInputFilter();
+    assertThat(
+            filter.filterAdmissibleResults(
+                facts, cancellationKnownAt.minusNanos(1), targetScheduledAt))
+        .containsExactly(sporting);
+    assertThat(filter.filterAdmissibleResults(facts, cancellationKnownAt, targetScheduledAt))
+        .isEmpty();
+    var before =
+        replayService.replayWithLineage(
+            targetEventId,
+            targetMarketVersionId,
+            teamA,
+            teamB,
+            List.of(sporting),
+            cancellationKnownAt.minusNanos(1),
+            targetScheduledAt,
+            false,
+            OddsPricingKernel.DEFAULT_MARGIN);
+    var historical =
+        replayService.replayWithLineage(
+            targetEventId,
+            targetMarketVersionId,
+            teamA,
+            teamB,
+            facts,
+            cancellationKnownAt.minusNanos(1),
+            targetScheduledAt,
+            false,
+            OddsPricingKernel.DEFAULT_MARGIN);
+    assertThat(historical).usingRecursiveComparison().isEqualTo(before);
+    var future =
+        replayService.replayWithLineage(
+            targetEventId,
+            targetMarketVersionId,
+            teamA,
+            teamB,
+            facts,
+            cancellationKnownAt,
+            targetScheduledAt,
+            false,
+            OddsPricingKernel.DEFAULT_MARGIN);
+    assertThat(future.filteredHistory()).isEmpty();
+    assertThat(future.output().sampleSize()).isZero();
+    assertThat(facts).containsExactly(sporting, cancelled);
+  }
+
+  @Test
   void replayingAtPriorCutoffIsIdenticalBeforeAndAfterCorrection() {
     Instant tb1 = Instant.parse("2026-10-01T14:00:00Z");
     Instant tb2 = Instant.parse("2026-10-02T14:00:00Z");

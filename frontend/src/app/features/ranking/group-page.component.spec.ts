@@ -12,6 +12,7 @@ describe('Grupos privados', () => {
     close: vi.fn(),
     remove: vi.fn(),
     invite: vi.fn(),
+    rename: vi.fn(),
   };
   async function render() {
     vi.resetAllMocks();
@@ -93,6 +94,37 @@ describe('Grupos privados', () => {
     );
     expect(f.nativeElement.textContent).not.toContain('owner private');
     expect(f.nativeElement.textContent).toContain('Tentar outro convite');
+  });
+  it('envio do formulario de criacao chama a API sem navegacao nativa', async () => {
+    const f = await render();
+    f.componentInstance.name.setValue('  Turma UFU  ');
+    f.detectChanges();
+    const submit = new Event('submit', { bubbles: true, cancelable: true });
+    f.nativeElement.querySelector('#group-name').closest('form').dispatchEvent(submit);
+    await f.whenStable();
+    expect(submit.defaultPrevented).toBe(true);
+    expect(api.create).toHaveBeenCalledExactlyOnceWith('Turma UFU');
+  });
+  it('envio do formulario de convite chama a API sem navegacao nativa', async () => {
+    const f = await render();
+    f.componentInstance.code.setValue('  convite-de-teste  ');
+    f.detectChanges();
+    const submit = new Event('submit', { bubbles: true, cancelable: true });
+    f.nativeElement.querySelector('#invite-code').closest('form').dispatchEvent(submit);
+    await f.whenStable();
+    expect(submit.defaultPrevented).toBe(true);
+    expect(api.join).toHaveBeenCalledExactlyOnceWith('convite-de-teste');
+  });
+  it('envio do formulario de nome chama a API sem navegacao nativa', async () => {
+    const f = await render();
+    await f.componentInstance.store.open('g');
+    f.componentInstance.rename.setValue('  Novo nome  ');
+    f.detectChanges();
+    const submit = new Event('submit', { bubbles: true, cancelable: true });
+    f.nativeElement.querySelector('#rename-group').closest('form').dispatchEvent(submit);
+    await f.whenStable();
+    expect(submit.defaultPrevented).toBe(true);
+    expect(api.rename).toHaveBeenCalledExactlyOnceWith('g', 'Novo nome');
   });
   it('membro nao recebe gestao do owner', async () => {
     const f = await render();

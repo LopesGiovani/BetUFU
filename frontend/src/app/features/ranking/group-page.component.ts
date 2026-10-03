@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { DatePipe, PercentPipe } from '@angular/common';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { GroupStore } from './group.store';
 type DestructiveAction = {
   kind: 'leave' | 'close' | 'remove';
@@ -19,7 +19,7 @@ type DestructiveAction = {
 @Component({
   selector: 'app-group-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PercentPipe, DatePipe],
+  imports: [FormsModule, ReactiveFormsModule, PercentPipe, DatePipe],
   providers: [GroupStore],
   templateUrl: './group-page.component.html',
   styleUrl: './group-page.component.scss',
