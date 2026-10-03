@@ -1,21 +1,40 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-current_phase: "6"
-current_phase_name: Resultados Confirmados, Rankings e Grupos
-status: executing
-stopped_at: Plan 06-07 complete; Plan 06-08 awaits separate execution approval
-last_updated: "2026-10-03T17:44:00-03:00"
+current_phase: "7"
+current_phase_name: Comunidade Moderada e Prontidão do Piloto
+status: ready_to_plan
+stopped_at: Phase 6 certified complete; awaiting separate Phase 7 discussion and planning approval
+last_updated: "2026-10-03T19:20:57-03:00"
 last_activity: 2026-10-03
-last_activity_desc: Plan 06-07 HTTP contracts and Angular journeys verified and committed
-state_head: 27224b5ef7e77d503e03b5bfeb16fbc2b3e99c2f
+last_activity_desc: Plan 06-08 certified; Phase 6 complete at 8/8 with real isolated E2E and aggregate gates passed
+state_head: 0a5f02587e77535e42d43c0e407e380249bb41d8
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 135
-  completed_plans: 134
+  completed_plans: 135
 milestone_name: milestone
 ---
+
+## Phase 6 / Plan 06-08 closeout - 2026-10-03
+
+- Phase 6 is complete at 8/8. Technical commit `0a5f02587e77535e42d43c0e407e380249bb41d8` contains exactly 14 approved paths: phase concurrency/privacy/certification, temporal odds replay, real browser setup/specs, isolated runner/negative guards and the approved FormsModule group-submit fix. Three new DOM regressions failed before the fix and passed after; group focal is 9/9.
+- Final clean Maven verify passed Surefire 361/361 (37 classes) and Failsafe 613/613 (123 classes), zero failures/errors/skips. Focal 20/20, Angular 455/455 in 75 files, Node 812/812 (9 suites), isolation/source guards 47/47, generator anti-drift, lint, production build, Spotless, scoped Prettier, source validator and diff checks passed.
+- Real Chrome passed 16/16 at desktop/320px, zero skips/retries, with genuine OIDC and API-produced populated history, ranking, corrections, grant/revocation and group membership. Setup also proved exact-version settlement UI, self-approval denial and distinct-administrator correction approval/retry. TTL shortening tests real server-store expiry, not a natural eight-hour idle wait.
+- Final isolated run `betufu-phase6-e2e-ab539bbc8557f51c` removed only its owned containers/network/volumes and generated private configuration. No labelled isolated runtime resources remain; 14 uniquely tagged images from seven runs remain. Owner services are healthy at V38; read-only counts remain predictions 2 and settlements/corrections/awards/groups 0. No owner bet or financial fact was mutated/reset.
+- Frozen technical manifest digest is `F5DB48D471CE84C2FFEA57D84457A7153D604FECAC35E03C30F8C26F98552BAF`; read-only RepoWise plus manual 14-file review found no blocking functional issue. Existing CSS budgets, script complexity, read caps/projection costs and launch-load/WCAG limitations are recorded in the passed validation/verification reports.
+- Owner documentation hashes are unchanged; those files and preexisting tmp/CLI artifacts remain excluded. No push, dependency update, worktree or Antigravity. REQUIREMENTS.md was not in this documentary allowlist; its Phase 6 Pending tracking cells need later scoped reconciliation against the evidence index. Phase 7 discussion/planning is the next step and has not started.
+- `state_head` records the certified technical parent; the following documentary commit cannot embed its own SHA.
+
+## Phase 6 / Plan 06-08 initial checkpoint (historical, resolved) - 2026-10-03
+
+- Approved inline execution implemented nine technical candidate files for PostgreSQL concurrency, certification/privacy, temporal odds replay, two real browser specs and a source validator with 27 negative/regression tests. No production source or historical migration was edited.
+- Final focal Maven: 20/20 XML tests, zero failures/errors/skips; final Spotless check passed. Node aggregate: 792/792; Angular: 452/452; generator check, lint, production build and diff checks passed. Initial clean Maven verify ran Surefire 361/361 and Failsafe 613/613 but failed at formatting after a late test edit; full final lifecycle rerun remains required.
+- Real Playwright: 6 passed, 6 failed, zero skips, desktop/320px. Public empty ranking, actual offline recovery, anonymous 401/context and 404 passed. Four failures require missing completed/corrected settlement facts; two expose native GET submission instead of POST in the group form. No failure was hidden or converted to an empty-state certification.
+- Seven local services were started and are healthy at V38. Read-only counts are predictions 2, settlements 0, corrections 0, awards 0 and groups 0. No seed/reset, real prediction, owner-result settlement, financial correction or group creation occurred. The owned CLI browser was closed; services remain running.
+- Production group form/template/DOM-regression paths need explicit allowlist expansion. Rich real E2E needs approved isolated data preparation, preserving owner bets/volumes; administrative maker-checker sessions, loading and actual expiration evidence remain pending. See 06-08-SUMMARY.md, 06-VALIDATION.md and 06-VERIFICATION.md (status blocked).
+- Owner documentation hashes are unchanged; no stage, commit or push occurred. Phase 6 remains 7/8, not passed. Completion commits are deferred until gates are green.
 
 ## Phase 6 / Plan 06-07 closeout - 2026-10-03
 
@@ -645,14 +664,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Plano 06-04 concluido; preparar o preflight separado do 06-05, sem iniciar grupos privados por inferencia.
+**Current focus:** Fase 6 certificada e concluida; preparar a discussao e o planejamento da Fase 7 somente com aprovacao especifica.
 
 ## Current Position
 
-Phase: 6 of 9 (Resultados Confirmados, Rankings e Grupos)
-Plan: 06-07 concluido e verificado; 06-08 aguarda aprovacao propria
-Status: 7/8 planos da Fase 6 concluidos; certificacao integrada real permanece no 06-08
-Last activity: 2026-10-03 - 06-07 verificado e commit tecnico `27224b5` criado
+Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; ainda nao iniciada)
+Plan: Fase 6 concluida em 8/8; proximo plano depende de discussao/planejamento da Fase 7
+Status: 06-08 e Fase 6 passed; aguardando aprovacao do proximo bloco
+Last activity: 2026-10-03 - backend 974/974, Angular 455/455, Node 812/812 e Playwright real 16/16
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -722,7 +741,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 8/8 planos (100%; snapshot, UAT e seed reconciliados); Fase 6: 4/8 planos concluidos
+Progress: Fase 5: 8/8 planos; Fase 6: 8/8 planos certificados; Fase 7: 0/TBD (nao iniciada)
 
 ## Métricas de desempenho
 
@@ -900,9 +919,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-03T17:44:00-03:00
-Stopped at: Plan 06-07 complete; Plan 06-08 awaits separate execution approval
-Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-08-PLAN.md
+Last session: 2026-10-03T19:20:57-03:00
+Stopped at: Phase 6 complete; await separate Phase 7 discussion/planning approval
+Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-08-SUMMARY.md
 
 ## Accumulated Context
 

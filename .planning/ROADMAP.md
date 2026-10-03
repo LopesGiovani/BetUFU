@@ -18,7 +18,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - [x] **Phase 4: Mercados Pré-jogo e Odds Transparentes** - Produzir odds automáticas explicáveis, com substituições excepcionais submetidas a controles rigorosos.
 - [x] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
 - [x] **Phase 05.1: Convergência das Jornadas do Usuário** - Conectar sessão, conta, evento, mercado e palpite em jornadas descobríveis, coerentes e verificadas no navegador real.
-- [ ] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
+- [x] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
 - [ ] **Phase 7: Comunidade Moderada e Prontidão do Piloto** - Entregar chat seguro por partida e uma experiência responsiva, privada e operacionalmente pronta para o piloto público.
 
 ## Detalhes das fases
@@ -529,10 +529,10 @@ approval cycle; no push was performed.
   4. Uma pessoa consegue visualizar um único ranking vitalício da UFU, ordenado primeiro por palpites definitivamente corretos e depois pela taxa de acerto, com posições compartilhadas nos empates restantes e sem multiplicação dos acertos por créditos ou odds.
   5. Usuários cadastrados conseguem administrar grupos privados que exibem as mesmas métricas do ranking vitalício e conquistar feitos concedidos uma única vez, com regras e edição conquistada exibidas no perfil.
 
-**Plans**: 8 plans in 6 waves (`06-01` through `06-08`)
+**Plans**: 8/8 plans complete in 6 waves (`06-01` through `06-08`)
 **Planning artifacts**: `06-CONTEXT.md`, `06-RESEARCH.md`, `06-DISCUSSION-LOG.md`, `06-UI-SPEC.md`
 **Planning review**: structural allowlists reconciled on 2026-10-01; revised UI contract accepted by owner after 6/6 inline review and independently APPROVED by the UI checker (5 PASS, 1 non-blocking FLAG). The approved 06-07 generated-client inventory/digest passed official generation and anti-drift.
-**Execution progress**: `06-01` and `06-02` completed and verified on 2026-10-01; `06-03` through `06-06` completed on 2026-10-02. V33 provides the settlement foundation, V34 the first idempotent pass, V35 audited credit corrections and recovery, V36 the reconstructible lifetime ranking, V37 private groups, and V38 derived, idempotent and revocable achievements. `06-07` completed on 2026-10-03 (`27224b5`): HTTP/OpenAPI/generated client, Angular journeys, focal tests and aggregate checks passed. One plan remains: `06-08`, including real business E2E and phase certification; the phase is not yet passed.
+**Execution progress**: `06-01` and `06-02` completed and verified on 2026-10-01; `06-03` through `06-06` completed on 2026-10-02. V33 provides the settlement foundation, V34 the first idempotent pass, V35 audited credit corrections and recovery, V36 the reconstructible lifetime ranking, V37 private groups, and V38 derived, idempotent and revocable achievements. `06-07` completed on 2026-10-03 (`27224b5`): HTTP/OpenAPI/generated client and Angular journeys. `06-08` completed on 2026-10-03 (`0a5f025`): concurrency, temporal replay, privacy, approved group-form fix, isolated real E2E and final aggregate certification. All eight plans are complete; phase verification is passed.
 **Execution order**:
 
   - Wave 1: `06-01` - fundacao de contratos e schema de liquidacao (complete).
@@ -540,7 +540,20 @@ approval cycle; no push was performed.
   - Wave 3: `06-03` correcoes de ledger (complete); `06-04` ranking reconstruivel (complete).
   - Wave 4: `06-05` grupos privados (complete); `06-06` conquistas derivadas (complete).
   - Wave 5: `06-07` contratos HTTP, cliente Angular e UI integrada (complete).
-  - Wave 6: `06-08` concorrencia, Playwright e certificacao agregada.
+  - Wave 6: `06-08` concorrencia, Playwright e certificacao agregada (complete).
+
+**06-08 certification (2026-10-03)**: approved inline remediation corrected
+native group submission and provisioned strictly owned isolated real test data.
+Final clean Maven verify passed 361 Surefire and 613 Failsafe XML cases,
+Angular 455/455, Node 812/812, focal guards 47/47 and real Chrome 16/16 at
+desktop/320px without skips/retries. Generator/lint/build/Spotless/source and
+diff gates passed. Owner services, volumes, two predictions and documentation
+were preserved; no push occurred. See `06-VALIDATION.md` and
+`06-VERIFICATION.md` (passed) for requirement evidence, frozen hashes and
+limits: bounded races are not launch-load SLOs, forced store expiry is not an
+eight-hour wait, and keyboard/mobile checks are not full WCAG certification.
+REQUIREMENTS.md tracking cells remain outside this documentary allowlist and
+need scoped reconciliation; Phase 7 is pending, not automatically started.
 **UI hint**: yes
 
 ### Phase 7: Comunidade Moderada e Prontidão do Piloto
@@ -574,5 +587,5 @@ approval cycle; no push was performed.
 | 4. Mercados Pré-jogo e Odds Transparentes | 21/21 | Complete    | 2026-09-12 |
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
-| 6. Resultados Confirmados, Rankings e Grupos | 7/8 | In progress; 06-08 awaits separate execution approval | - |
+| 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
 | 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
