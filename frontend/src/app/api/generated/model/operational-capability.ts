@@ -21,6 +21,7 @@ export const OperationalCapability = {
     ViewOddsMarket: 'VIEW_ODDS_MARKET',
     ManageOddsMarket: 'MANAGE_ODDS_MARKET',
     ProposeOddsOverride: 'PROPOSE_ODDS_OVERRIDE',
-    ApproveOddsOverride: 'APPROVE_ODDS_OVERRIDE'
+    ApproveOddsOverride: 'APPROVE_ODDS_OVERRIDE',
+    AuthorizeSettlement: 'AUTHORIZE_SETTLEMENT'
 } as const;
 export type OperationalCapability = typeof OperationalCapability[keyof typeof OperationalCapability];

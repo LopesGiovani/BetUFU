@@ -9,6 +9,10 @@ import java.util.UUID;
 public interface PredictionForSettlementPort {
   List<PredictionSnapshot> findAcceptedByEvent(UUID eventId);
 
+  default List<PredictionSnapshot> findAcceptedByIdentity(UUID identityId) {
+    return List.of();
+  }
+
   record PredictionSnapshot(
       UUID predictionId,
       UUID identityId,

@@ -43,4 +43,30 @@ public class PredictionForSettlementAdapter implements PredictionForSettlementPo
                 rs.getTimestamp("accepted_at").toInstant()),
         eventId);
   }
+
+  @Override
+  public List<PredictionSnapshot> findAcceptedByIdentity(UUID identityId) {
+    if (identityId == null) return List.of();
+    return jdbc.query(
+        """
+            SELECT p.*, m.event_id FROM public.prediction p
+            JOIN public.odds_market m ON m.market_id = p.market_id
+            WHERE p.identity_id = ?
+            ORDER BY p.accepted_at DESC, p.prediction_id DESC LIMIT 100
+            """,
+        (rs, row) ->
+            new PredictionSnapshot(
+                rs.getObject("prediction_id", UUID.class),
+                identityId,
+                rs.getObject("event_id", UUID.class),
+                rs.getObject("market_id", UUID.class),
+                PredictionState.valueOf(rs.getString("state")),
+                rs.getString("selection"),
+                rs.getBigDecimal("stake"),
+                rs.getBigDecimal("accepted_odds"),
+                rs.getBigDecimal("potential_return"),
+                rs.getString("rule_version"),
+                rs.getTimestamp("accepted_at").toInstant()),
+        identityId);
+  }
 }

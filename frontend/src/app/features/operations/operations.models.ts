@@ -15,7 +15,8 @@ export type OperationalCapabilityName =
   | 'VIEW_ODDS_MARKET'
   | 'MANAGE_ODDS_MARKET'
   | 'PROPOSE_ODDS_OVERRIDE'
-  | 'APPROVE_ODDS_OVERRIDE';
+  | 'APPROVE_ODDS_OVERRIDE'
+  | 'AUTHORIZE_SETTLEMENT';
 
 export interface OperationalNavigationItem {
   readonly capability: OperationalCapabilityName;

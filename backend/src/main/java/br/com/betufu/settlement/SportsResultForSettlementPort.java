@@ -1,12 +1,19 @@
 package br.com.betufu.settlement;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 /** Consumer-owned snapshot of a current sporting, administrative, or cancellation outcome. */
 public interface SportsResultForSettlementPort {
   Optional<ResultSnapshot> findCurrent(UUID eventId);
+
+  default List<EventResult> findCandidates() {
+    return List.of();
+  }
+
+  record EventResult(String title, Instant scheduledAt, ResultSnapshot result) {}
 
   enum OutcomeKind {
     SPORTING_RESULT,

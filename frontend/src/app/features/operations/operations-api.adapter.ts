@@ -41,6 +41,7 @@ const OPERATIONAL_CAPABILITY_ORDER: readonly OperationalCapabilityName[] = Objec
   GeneratedOperationalCapability.ManageOddsMarket,
   GeneratedOperationalCapability.ProposeOddsOverride,
   GeneratedOperationalCapability.ApproveOddsOverride,
+  GeneratedOperationalCapability.AuthorizeSettlement,
 ]);
 
 @Injectable({

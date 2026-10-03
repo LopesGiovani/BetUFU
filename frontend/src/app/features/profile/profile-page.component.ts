@@ -12,11 +12,12 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProfileStore } from './profile.store';
+import { AchievementListComponent } from '../ranking/achievement-list.component';
 
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AchievementListComponent],
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

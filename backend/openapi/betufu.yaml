@@ -3861,6 +3861,360 @@ paths:
         "409":
           description: Proposta já decidida ou lock obsoleto.
 
+  /api/v1/me/settlements:
+    get:
+      tags: [Settlement]
+      operationId: getMySettlementHistory
+      security: [{cookieSession: []}]
+      responses:
+        "200":
+          description: Historico sanitizado de palpites e liquidacoes do usuario autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementHistoryPage"
+        "401": {description: Nao autenticado}
+
+  /api/v1/operations/settlements/candidates:
+    get:
+      tags: [Settlement]
+      operationId: listSettlementAuthorizationCandidates
+      security: [{cookieSession: []}]
+      responses:
+        "200":
+          description: Resultados esportivos vigentes que podem ser conferidos para liquidacao.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementAuthorizationCandidatePage"
+        "401": {description: Nao autenticado}
+        "403": {description: Sem papel administrativo global}
+
+  /api/v1/operations/settlements/events/{eventId}/authorize:
+    post:
+      tags: [Settlement]
+      operationId: authorizeSettlement
+      security: [{cookieSession: []}]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: "#/components/parameters/RequiredIdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettlementAuthorizationRequest"
+      responses:
+        "201":
+          description: Autorizacao registrada e processamento iniciado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementAuthorizationResponse"
+        "401": {description: Nao autenticado}
+        "403": {description: Sem papel administrativo global}
+        "409":
+          description: Resultado mudou desde a conferencia.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/BetufuProblemDetails"
+
+  /api/v1/operations/settlements/cases/{caseId}:
+    get:
+      tags: [Settlement]
+      operationId: getSettlementCaseProgress
+      security: [{cookieSession: []}]
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Progresso sanitizado do caso de liquidacao.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SettlementCaseProgress"
+        "401": {description: Nao autenticado}
+        "403": {description: Sem papel administrativo global}
+        "404": {description: Caso nao encontrado}
+
+  /api/v1/me/credit-corrections:
+    get:
+      tags: [CreditCorrection]
+      operationId: getMyCreditCorrections
+      security: [{cookieSession: []}]
+      responses:
+        "200":
+          description: Correcoes de credito visiveis ao titular.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditCorrectionPage"
+        "401": {description: Nao autenticado}
+
+  /api/v1/operations/credit-corrections:
+    post:
+      tags: [CreditCorrection]
+      operationId: proposeCreditCorrection
+      security: [{cookieSession: []}]
+      parameters:
+        - $ref: "#/components/parameters/RequiredIdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreditCorrectionRequest"
+      responses:
+        "201":
+          description: Correcao proposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditCorrectionView"
+        "401": {description: Nao autenticado}
+        "403": {description: Sem papel administrativo global}
+
+  /api/v1/operations/credit-corrections/{caseId}/approve:
+    post:
+      tags: [CreditCorrection]
+      operationId: approveCreditCorrection
+      security: [{cookieSession: []}]
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Correcao aprovada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditCorrectionView"
+
+  /api/v1/operations/credit-corrections/{caseId}/reject:
+    post:
+      tags: [CreditCorrection]
+      operationId: rejectCreditCorrection
+      security: [{cookieSession: []}]
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Correcao rejeitada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditCorrectionView"
+
+  /api/v1/public/ranking/lifetime:
+    get:
+      tags: [Ranking]
+      operationId: getLifetimeRanking
+      responses:
+        "200":
+          description: Ranking vitalicio publico e sanitizado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RankingPage"
+
+  /api/v1/me/groups:
+    get:
+      tags: [Group]
+      operationId: getMyGroups
+      security: [{cookieSession: []}]
+      responses:
+        "200":
+          description: Grupos privados do usuario autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivateGroupSummaryPage"
+    post:
+      tags: [Group]
+      operationId: createPrivateGroup
+      security: [{cookieSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivateGroupNameRequest"
+      responses:
+        "201":
+          description: Grupo criado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivateGroupCreatedResponse"
+
+  /api/v1/me/groups/join:
+    post:
+      tags: [Group]
+      operationId: joinPrivateGroup
+      security: [{cookieSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivateGroupJoinRequest"
+      responses:
+        "201":
+          description: Entrada registrada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivateGroupCreatedResponse"
+
+  /api/v1/me/groups/{groupId}:
+    get:
+      tags: [Group]
+      operationId: getPrivateGroup
+      security: [{cookieSession: []}]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Grupo privado visivel ao membro.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivateGroup"
+        "404": {description: Grupo indisponivel}
+    patch:
+      tags: [Group]
+      operationId: renamePrivateGroup
+      security: [{cookieSession: []}]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivateGroupNameRequest"
+      responses:
+        "204": {description: Grupo renomeado}
+
+  /api/v1/me/groups/{groupId}/invitations:
+    post:
+      tags: [Group]
+      operationId: issuePrivateGroupInvitation
+      security: [{cookieSession: []}]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivateGroupInvitationRequest"
+      responses:
+        "201":
+          description: Convite emitido.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrivateGroupInvitation"
+
+  /api/v1/me/groups/{groupId}/memberships/{membershipId}:
+    patch:
+      tags: [Group]
+      operationId: changePrivateGroupMemberRole
+      security: [{cookieSession: []}]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: membershipId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivateGroupRoleRequest"
+      responses:
+        "204": {description: Papel alterado}
+    delete:
+      tags: [Group]
+      operationId: removePrivateGroupMember
+      security: [{cookieSession: []}]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: membershipId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "204": {description: Integrante removido}
+
+  /api/v1/me/groups/{groupId}/leave:
+    post:
+      tags: [Group]
+      operationId: leavePrivateGroup
+      security: [{cookieSession: []}]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "204": {description: Saida registrada}
+
+  /api/v1/me/groups/{groupId}/close:
+    post:
+      tags: [Group]
+      operationId: closePrivateGroup
+      security: [{cookieSession: []}]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "204": {description: Grupo encerrado}
+
+  /api/v1/me/achievements:
+    get:
+      tags: [Achievement]
+      operationId: getMyAchievements
+      security: [{cookieSession: []}]
+      responses:
+        "200":
+          description: Conquistas concedidas e revogadas do perfil autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AchievementPage"
+
 components:
   parameters:
     IdempotencyKey:
@@ -3884,6 +4238,289 @@ components:
       description: Chave opaca obrigatória para repetição segura do comando de override.
 
   schemas:
+    SettlementHistoryPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettlementHistoryItem"
+
+    SettlementHistoryItem:
+      type: object
+      additionalProperties: false
+      required: [predictionId, eventId, marketId, acceptedAt, selection, stake, acceptedOdds, potentialReturn, state, current, processingStatus]
+      properties:
+        predictionId: {type: string, format: uuid}
+        eventId: {type: string, format: uuid}
+        marketId: {type: string, format: uuid}
+        acceptedAt: {type: string, format: date-time}
+        selection: {type: string}
+        stake: {type: number, format: double}
+        acceptedOdds: {type: number, format: double}
+        potentialReturn: {type: number, format: double}
+        settlementId: {type: [string, "null"], format: uuid}
+        state: {type: string, enum: [PENDING, WON, LOST, REFUNDED, ANNULLED]}
+        reason: {type: [string, "null"]}
+        ruleVersion: {type: [string, "null"]}
+        amount: {type: [number, "null"], format: double}
+        outcomeKind: {type: [string, "null"]}
+        homeScore: {type: [integer, "null"], format: int32}
+        awayScore: {type: [integer, "null"], format: int32}
+        winnerSlotNo: {type: [integer, "null"], format: int32}
+        ledgerEntryId: {type: [string, "null"], format: uuid}
+        current: {type: boolean}
+        processingStatus: {type: string, enum: [PENDING, RUNNING, FAILED, COMPLETE]}
+
+    SettlementAuthorizationCandidatePage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SettlementAuthorizationCandidateItem"
+
+    SettlementAuthorizationCandidateItem:
+      type: object
+      additionalProperties: false
+      required: [eventId, eventTitle, scheduledAt, outcomeFactId, outcomeKind, alreadyAuthorized]
+      properties:
+        eventId: {type: string, format: uuid}
+        eventTitle: {type: string}
+        scheduledAt: {type: string, format: date-time}
+        outcomeFactId: {type: string, format: uuid}
+        confirmedVersionId: {type: [string, "null"], format: uuid}
+        outcomeKind: {type: string}
+        homeScore: {type: [integer, "null"], format: int32}
+        awayScore: {type: [integer, "null"], format: int32}
+        winnerSlotNo: {type: [integer, "null"], format: int32}
+        alreadyAuthorized: {type: boolean}
+        caseProgress:
+          $ref: "#/components/schemas/SettlementCaseProgress"
+
+    SettlementAuthorizationRequest:
+      type: object
+      additionalProperties: false
+      required: [expectedOutcomeFactId]
+      properties:
+        expectedOutcomeFactId: {type: string, format: uuid}
+        expectedConfirmedVersionId: {type: [string, "null"], format: uuid}
+
+    SettlementAuthorizationResponse:
+      type: object
+      additionalProperties: false
+      required: [caseProgress]
+      properties:
+        caseProgress:
+          $ref: "#/components/schemas/SettlementCaseProgress"
+
+    SettlementCaseProgress:
+      type: object
+      additionalProperties: false
+      required: [caseId, status, totalUnits, completedUnits]
+      properties:
+        caseId: {type: string, format: uuid}
+        status: {type: string, enum: [PENDING, RUNNING, FAILED, COMPLETE]}
+        totalUnits: {type: integer, format: int32}
+        completedUnits: {type: integer, format: int32}
+
+    CreditCorrectionPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreditCorrectionView"
+
+    CreditCorrectionView:
+      type: object
+      additionalProperties: false
+      required: [caseId, referenceCode, kind, reason, amount, recovered, pending, status, createdAt]
+      properties:
+        caseId: {type: string, format: uuid}
+        referenceCode: {type: string}
+        kind: {type: string, enum: [CREDIT, RECOVERY]}
+        reason:
+          type: string
+          enum: [SETTLEMENT_CORRECTION, DUPLICATE_OR_MISSING_ENTRY, PROVEN_TECHNICAL_FAILURE, ELIGIBILITY_CORRECTION]
+        evidenceType:
+          type: [string, "null"]
+          enum: [LEDGER_ENTRY, PREDICTION, SETTLEMENT, null]
+        evidenceId: {type: [string, "null"], format: uuid}
+        originalEntryId: {type: [string, "null"], format: uuid}
+        amount: {type: number, format: double}
+        recovered: {type: number, format: double}
+        pending: {type: number, format: double}
+        status: {type: string, enum: [PROPOSED, REJECTED, APPROVED, PENDING, RECOVERED]}
+        createdAt: {type: string, format: date-time}
+
+    CreditCorrectionRequest:
+      type: object
+      additionalProperties: false
+      required: [identityId, kind, reason, amount, evidenceType, evidenceId, description, calculation]
+      properties:
+        identityId: {type: string, format: uuid}
+        kind: {type: string, enum: [CREDIT, RECOVERY]}
+        reason:
+          type: string
+          enum: [SETTLEMENT_CORRECTION, DUPLICATE_OR_MISSING_ENTRY, PROVEN_TECHNICAL_FAILURE, ELIGIBILITY_CORRECTION]
+        amount: {type: number, format: double, minimum: 0.01}
+        evidenceType: {type: string, enum: [LEDGER_ENTRY, PREDICTION, SETTLEMENT]}
+        evidenceId: {type: string, format: uuid}
+        eligibilityContextId: {type: [string, "null"], format: uuid}
+        supersedesCaseId: {type: [string, "null"], format: uuid}
+        description: {type: string, maxLength: 512}
+        calculation: {type: string, maxLength: 1024}
+
+    RankingPage:
+      type: object
+      additionalProperties: false
+      required: [entries]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/RankingEntry"
+
+    RankingEntry:
+      type: object
+      additionalProperties: false
+      required: [position, nickname, wins, losses, hitRate, verificationActive]
+      properties:
+        position: {type: integer, format: int32}
+        nickname: {type: string}
+        wins: {type: integer, format: int64}
+        losses: {type: integer, format: int64}
+        hitRate: {type: number, format: double}
+        verificationActive: {type: boolean}
+
+    PrivateGroupSummaryPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrivateGroupSummary"
+
+    PrivateGroupSummary:
+      type: object
+      additionalProperties: false
+      required: [groupId, name, closed, myRole]
+      properties:
+        groupId: {type: string, format: uuid}
+        name: {type: string}
+        closed: {type: boolean}
+        myRole: {$ref: "#/components/schemas/PrivateGroupRole"}
+
+    PrivateGroup:
+      type: object
+      additionalProperties: false
+      required: [groupId, name, closed, standings]
+      properties:
+        groupId: {type: string, format: uuid}
+        name: {type: string}
+        closed: {type: boolean}
+        standings:
+          type: array
+          items:
+            $ref: "#/components/schemas/PrivateGroupStanding"
+
+    PrivateGroupStanding:
+      type: object
+      additionalProperties: false
+      required: [membershipId, nickname, role, position, wins, losses, hitRate, verificationActive]
+      properties:
+        membershipId: {type: string, format: uuid}
+        nickname: {type: string}
+        role: {$ref: "#/components/schemas/PrivateGroupRole"}
+        position: {type: integer, format: int32}
+        wins: {type: integer, format: int64}
+        losses: {type: integer, format: int64}
+        hitRate: {type: number, format: double}
+        verificationActive: {type: boolean}
+
+    PrivateGroupRole:
+      type: string
+      enum: [OWNER, ADMIN, MEMBER]
+
+    PrivateGroupNameRequest:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 80}
+
+    PrivateGroupInvitationRequest:
+      type: object
+      additionalProperties: false
+      required: [expiresAt]
+      properties:
+        expiresAt: {type: string, format: date-time}
+
+    PrivateGroupInvitation:
+      type: object
+      additionalProperties: false
+      required: [code, expiresAt]
+      properties:
+        code: {type: string}
+        expiresAt: {type: string, format: date-time}
+
+    PrivateGroupJoinRequest:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code: {type: string, minLength: 1, maxLength: 64}
+
+    PrivateGroupRoleRequest:
+      type: object
+      additionalProperties: false
+      required: [role]
+      properties:
+        role: {$ref: "#/components/schemas/PrivateGroupRole"}
+
+    PrivateGroupCreatedResponse:
+      type: object
+      additionalProperties: false
+      required: [groupId]
+      properties:
+        groupId: {type: string, format: uuid}
+
+    AchievementPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Achievement"
+
+    Achievement:
+      type: object
+      additionalProperties: false
+      required: [awardId, code, name, description, rule, catalogEdition, state, awardedAt]
+      properties:
+        awardId: {type: string, format: uuid}
+        code: {type: string}
+        name: {type: string}
+        description: {type: string}
+        rule: {type: string}
+        catalogEdition: {type: string}
+        sportsEditionId: {type: [string, "null"], format: uuid}
+        state: {type: string, enum: [AWARDED, REVOKED]}
+        awardedAt: {type: string, format: date-time}
+        revokedAt: {type: [string, "null"], format: date-time}
+        revocationReason: {type: [string, "null"]}
+
     CreditBalanceResponse:
       type: object
       additionalProperties: false
@@ -6641,6 +7278,7 @@ components:
         - MANAGE_ODDS_MARKET
         - PROPOSE_ODDS_OVERRIDE
         - APPROVE_ODDS_OVERRIDE
+        - AUTHORIZE_SETTLEMENT
       description: Allowlist fechada das capacidades operacionais da BETUFU (OPER-01, OPER-02, OPER-04).
 
     OperationalCapabilitiesResponse:

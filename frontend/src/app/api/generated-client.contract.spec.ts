@@ -4,6 +4,11 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
 import {
+  SettlementService,
+  RankingService,
+  GroupService,
+  AchievementService,
+  CreditCorrectionService,
   AthleteLinkDecisionRequest,
   AthleteLinkProposal,
   AthleteLinkReviewPage,
@@ -40,6 +45,64 @@ import {
 } from './generated';
 
 describe('Generated BETUFU API client contract', () => {
+  it('Fase 6 usa URLs relativas reais e preserva separacao publica/privada', async () => {
+    configureClient(true);
+    const calls = [
+      [
+        TestBed.inject(RankingService).getLifetimeRanking(),
+        '/api/v1/public/ranking/lifetime',
+        { entries: [] },
+      ],
+      [
+        TestBed.inject(SettlementService).getMySettlementHistory(),
+        '/api/v1/me/settlements',
+        { items: [] },
+      ],
+      [TestBed.inject(GroupService).getMyGroups(), '/api/v1/me/groups', { items: [] }],
+      [
+        TestBed.inject(AchievementService).getMyAchievements(),
+        '/api/v1/me/achievements',
+        { items: [] },
+      ],
+      [
+        TestBed.inject(CreditCorrectionService).getMyCreditCorrections(),
+        '/api/v1/me/credit-corrections',
+        { items: [] },
+      ],
+    ] as const;
+    for (const [call, path, response] of calls) {
+      const pending = firstValueFrom<unknown>(call);
+      const request = httpTesting.expectOne(path);
+      expect(request.request.method).toBe('GET');
+      expect(request.request.headers.has('Authorization')).toBe(false);
+      request.flush(response);
+      await pending;
+    }
+  });
+
+  it('Fase 6 envia fato e versao exatos com CSRF e idempotencia', async () => {
+    configureClient(true);
+    const body = { expectedOutcomeFactId: 'fact-1', expectedConfirmedVersionId: 'version-1' };
+    const pending = firstValueFrom(
+      TestBed.inject(SettlementService).authorizeSettlement({
+        eventId: 'event-1',
+        idempotencyKey: 'opaque-key',
+        settlementAuthorizationRequest: body,
+      }),
+    );
+    const request = httpTesting.expectOne(
+      '/api/v1/operations/settlements/events/event-1/authorize',
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(body);
+    expect(request.request.headers.get('Idempotency-Key')).toBe('opaque-key');
+    expect(request.request.headers.get('X-XSRF-TOKEN')).toBe(xsrfToken);
+    request.flush({
+      authorizationId: 'a',
+      caseProgress: { caseId: 'c', status: 'COMPLETE', totalUnits: 1, completedUnits: 1 },
+    });
+    await pending;
+  });
   const xsrfToken = 'task-01-20-xsrf-token';
   let httpTesting: HttpTestingController;
   let identityService: IdentityService;
@@ -843,7 +906,10 @@ describe('Generated BETUFU API client contract', () => {
     expect(approvalRequest.request.headers.get('Idempotency-Key')).toBe('odds-approve-001');
     expect(approvalRequest.request.headers.get('Content-Type')).toBe('application/json');
     expect(approvalRequest.request.headers.get('X-XSRF-TOKEN')).toBe(xsrfToken);
-    approvalRequest.flush({ ...overrideResponse, decision: OddsOverrideView.DecisionEnum.Approved });
+    approvalRequest.flush({
+      ...overrideResponse,
+      decision: OddsOverrideView.DecisionEnum.Approved,
+    });
     await expect(approvalResult).resolves.toMatchObject({ decision: 'APPROVED' });
   });
 });

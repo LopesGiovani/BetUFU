@@ -17,6 +17,41 @@ public interface SettlementReadPort {
 
   record CaseProgress(UUID caseId, ProcessingStatus status, int totalUnits, int completedUnits) {}
 
+  record AuthorizationCandidate(
+      UUID eventId,
+      String eventTitle,
+      Instant scheduledAt,
+      UUID outcomeFactId,
+      UUID confirmedVersionId,
+      String outcomeKind,
+      Integer homeScore,
+      Integer awayScore,
+      Integer winnerSlotNo,
+      boolean alreadyAuthorized,
+      CaseProgress caseProgress) {}
+
+  record HistoryItem(
+      UUID predictionId,
+      UUID eventId,
+      UUID marketId,
+      Instant acceptedAt,
+      String selection,
+      BigDecimal stake,
+      BigDecimal acceptedOdds,
+      BigDecimal potentialReturn,
+      UUID settlementId,
+      SettlementState state,
+      String reason,
+      String ruleVersion,
+      BigDecimal amount,
+      String outcomeKind,
+      Integer homeScore,
+      Integer awayScore,
+      Integer winnerSlotNo,
+      UUID ledgerEntryId,
+      boolean current,
+      String processingStatus) {}
+
   record PredictionOutcome(
       UUID settlementId,
       UUID predictionId,
@@ -49,6 +84,14 @@ public interface SettlementReadPort {
   Optional<CaseProgress> findCase(UUID caseId);
 
   Optional<PredictionOutcome> findLatestByPrediction(UUID predictionId);
+
+  default List<HistoryItem> findHistoryByIdentity(UUID identityId) {
+    return List.of();
+  }
+
+  default List<AuthorizationCandidate> findAuthorizationCandidates() {
+    return List.of();
+  }
 
   List<CurrentFact> findCurrentFacts();
 }

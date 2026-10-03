@@ -273,6 +273,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'AthleteMedia',
     'AthletePublicProfile',
     'CreditLedger',
+    'CreditCorrection',
     'Diagnostic',
     'Enrollment',
     'Identity',
@@ -295,7 +296,14 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'OddsMarket',
     'OddsOverride',
     'OddsPublic',
+    'Settlement',
+    'Ranking',
+    'Group',
+    'Achievement',
   ]);
+  for (const model of ['SettlementHistoryItem', 'SettlementAuthorizationRequest', 'CreditCorrectionView', 'RankingEntry', 'PrivateGroup', 'Achievement']) {
+    assert.equal(PUBLIC_GENERATOR_MODELS.includes(model), true, model);
+  }
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('CreditBalanceResponse'), true);
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('AthleteMediaResponse'), true);
@@ -403,7 +411,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, '31B9391A4390DFE1EBCB180D41C21DE9672B9E6EA7B314140C651C2C06B86EA8');
+  assert.equal(manifest.digest, 'AA0BC4ACFADDD834D15B85E6FA331A4554AC01696135823E40B01DF7BA288ED3');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,

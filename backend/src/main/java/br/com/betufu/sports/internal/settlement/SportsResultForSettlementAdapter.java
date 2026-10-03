@@ -77,4 +77,30 @@ public class SportsResultForSettlementAdapter implements SportsResultForSettleme
             : rs.getTimestamp("confirmed_at").toInstant(),
         rs.getTimestamp("known_at").toInstant());
   }
+
+  @Override
+  public List<EventResult> findCandidates() {
+    return jdbc
+        .query(
+            """
+            SELECT e.event_id, e.title, e.scheduled_at FROM public.sports_event e
+            JOIN public.sports_outcome_head h ON h.event_id = e.event_id
+            WHERE e.status IN ('PUBLICADO', 'CANCELADO')
+            ORDER BY e.scheduled_at DESC, e.event_id
+            """,
+            (rs, row) ->
+                new EventMetadata(
+                    rs.getObject("event_id", UUID.class),
+                    rs.getString("title"),
+                    rs.getTimestamp("scheduled_at").toInstant()))
+        .stream()
+        .flatMap(
+            event ->
+                findCurrent(event.id()).stream()
+                    .map(result -> new EventResult(event.title(), event.scheduledAt(), result)))
+        .limit(100)
+        .toList();
+  }
+
+  private record EventMetadata(UUID id, String title, java.time.Instant scheduledAt) {}
 }

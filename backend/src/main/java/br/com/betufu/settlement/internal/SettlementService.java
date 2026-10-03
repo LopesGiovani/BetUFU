@@ -13,6 +13,8 @@ import br.com.betufu.settlement.SettlementModels.SettlementReason;
 import br.com.betufu.settlement.SettlementModels.Unit;
 import br.com.betufu.settlement.SettlementProcessPort;
 import br.com.betufu.settlement.SettlementReadPort;
+import br.com.betufu.settlement.SettlementReadPort.AuthorizationCandidate;
+import br.com.betufu.settlement.SettlementReadPort.HistoryItem;
 import br.com.betufu.settlement.SettlementState;
 import br.com.betufu.settlement.SportsResultForSettlementPort;
 import br.com.betufu.settlement.SportsResultForSettlementPort.OutcomeKind;
@@ -119,6 +121,31 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
 
   @Override
   public UUID authorize(UUID eventId, UUID administratorIdentityId, String idempotencyKey) {
+    return authorizeInternal(eventId, null, null, administratorIdentityId, idempotencyKey);
+  }
+
+  @Override
+  public UUID authorize(
+      UUID eventId,
+      UUID expectedOutcomeFactId,
+      UUID expectedConfirmedVersionId,
+      UUID administratorIdentityId,
+      String idempotencyKey) {
+    Objects.requireNonNull(expectedOutcomeFactId);
+    return authorizeInternal(
+        eventId,
+        expectedOutcomeFactId,
+        expectedConfirmedVersionId,
+        administratorIdentityId,
+        idempotencyKey);
+  }
+
+  private UUID authorizeInternal(
+      UUID eventId,
+      UUID expectedOutcomeFactId,
+      UUID expectedConfirmedVersionId,
+      UUID administratorIdentityId,
+      String idempotencyKey) {
     Objects.requireNonNull(eventId);
     Objects.requireNonNull(administratorIdentityId);
     if (idempotencyKey == null || idempotencyKey.isBlank() || idempotencyKey.length() > 255) {
@@ -129,6 +156,12 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
           requireAdministrator(administratorIdentityId);
           repository.lockEvent(eventId);
           ResultSnapshot result = currentResult(eventId);
+          if (expectedOutcomeFactId != null
+              && (!expectedOutcomeFactId.equals(result.outcomeFactId())
+                  || !Objects.equals(expectedConfirmedVersionId, result.confirmedVersionId()))) {
+            throw new IllegalStateException(
+                "settlement authorization refers to a stale result version");
+          }
           Authorization requested =
               new Authorization(
                   UUID.randomUUID(),
@@ -327,6 +360,84 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
   @Override
   public Optional<PredictionOutcome> findLatestByPrediction(UUID predictionId) {
     return repository.findLatestOutcome(predictionId);
+  }
+
+  @Override
+  public List<HistoryItem> findHistoryByIdentity(UUID identityId) {
+    return predictions.findAcceptedByIdentity(identityId).stream()
+        .flatMap(
+            prediction -> {
+              var facts =
+                  repository.findHistoryFacts(prediction.predictionId(), prediction.eventId());
+              var items = new java.util.ArrayList<HistoryItem>();
+              if (facts.stream().noneMatch(SettlementRepository.HistoryFact::current)) {
+                items.add(
+                    historyItem(
+                        prediction,
+                        null,
+                        true,
+                        repository
+                            .findLatestProgressByEvent(prediction.eventId())
+                            .map(p -> p.status().name())
+                            .orElse("PENDING")));
+              }
+              facts.forEach(
+                  fact ->
+                      items.add(
+                          historyItem(prediction, fact.outcome(), fact.current(), fact.status())));
+              return items.stream();
+            })
+        .toList();
+  }
+
+  private HistoryItem historyItem(
+      PredictionSnapshot p, PredictionOutcome o, boolean current, String processingStatus) {
+    return new HistoryItem(
+        p.predictionId(),
+        p.eventId(),
+        p.marketId(),
+        p.acceptedAt(),
+        p.selection(),
+        p.stake(),
+        p.acceptedOdds(),
+        p.potentialReturn(),
+        o == null ? null : o.settlementId(),
+        o == null ? SettlementState.PENDING : o.state(),
+        o == null ? null : o.reason(),
+        o == null ? p.ruleVersion() : o.ruleVersion(),
+        o == null ? null : o.amount(),
+        o == null ? null : o.outcomeKind(),
+        o == null ? null : o.homeScore(),
+        o == null ? null : o.awayScore(),
+        o == null ? null : o.winnerSlotNo(),
+        o == null ? null : o.ledgerEntryId(),
+        current,
+        processingStatus);
+  }
+
+  @Override
+  public List<AuthorizationCandidate> findAuthorizationCandidates() {
+    return sports.findCandidates().stream()
+        .map(
+            event -> {
+              var r = event.result();
+              return new AuthorizationCandidate(
+                  r.eventId(),
+                  event.title(),
+                  event.scheduledAt(),
+                  r.outcomeFactId(),
+                  r.confirmedVersionId(),
+                  r.kind().name(),
+                  r.homeScore(),
+                  r.awayScore(),
+                  r.winnerSlotNo(),
+                  repository.isAuthorized(r.outcomeFactId()),
+                  repository
+                      .findCaseByOutcome(r.eventId(), r.outcomeFactId())
+                      .flatMap(c -> repository.findProgress(c.caseId()))
+                      .orElse(null));
+            })
+        .toList();
   }
 
   @Override

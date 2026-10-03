@@ -111,6 +111,9 @@ public class OperationalCapabilitiesService {
       capabilities.add(OperationalCapability.PROPOSE_ODDS_OVERRIDE);
       capabilities.add(OperationalCapability.APPROVE_ODDS_OVERRIDE);
     }
+    if (isGlobalAdmin) {
+      capabilities.add(OperationalCapability.AUTHORIZE_SETTLEMENT);
+    }
 
     return new OperationalCapabilitiesResponse(capabilities);
   }

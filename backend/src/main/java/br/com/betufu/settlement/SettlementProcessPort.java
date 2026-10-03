@@ -6,5 +6,12 @@ import java.util.UUID;
 public interface SettlementProcessPort {
   UUID authorize(UUID eventId, UUID administratorIdentityId, String idempotencyKey);
 
+  UUID authorize(
+      UUID eventId,
+      UUID expectedOutcomeFactId,
+      UUID expectedConfirmedVersionId,
+      UUID administratorIdentityId,
+      String idempotencyKey);
+
   UUID process(UUID authorizationId);
 }

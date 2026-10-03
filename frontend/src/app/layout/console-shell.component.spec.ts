@@ -74,6 +74,32 @@ describe('ConsoleShellComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Matrícula UFU');
   });
 
+  it('descobre historico, grupos e conquistas pelo console pessoal', async () => {
+    fixture = TestBed.createComponent(ConsoleShellComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const paths = fixture.componentInstance.personalDestinations.map((item) => item.path);
+    expect(paths).toEqual(
+      expect.arrayContaining(['/conta/historico', '/conta/grupos', '/conta/conquistas']),
+    );
+  });
+
+  it('mostra autorizacao de liquidacao apenas com capacidade especifica', async () => {
+    routeData['consoleVariant'] = 'operational';
+    operationsApiAdapter.fetchOperationalCapabilities.mockReturnValue(of(['AUTHORIZE_SETTLEMENT']));
+    fixture = TestBed.createComponent(ConsoleShellComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operationDestinations().map((item) => item.path)).toContain(
+      '/operacao/liquidacoes',
+    );
+    fixture.componentInstance.capabilities.set([]);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.operationDestinations()).toEqual([]);
+  });
+
   it('mantém a variante operacional e suas capacidades', async () => {
     routeData['consoleVariant'] = undefined;
     fixture = TestBed.createComponent(ConsoleShellComponent);

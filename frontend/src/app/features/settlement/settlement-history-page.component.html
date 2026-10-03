@@ -1,0 +1,124 @@
+<section [attr.aria-busy]="store.loading()" aria-labelledby="history-title">
+  <h1 id="history-title">Historico de liquidacoes</h1>
+  @if (store.loading()) {
+    <p role="status">Carregando historico...</p>
+  } @else if (store.error()) {
+    <p role="alert">
+      Nao foi possivel carregar seu historico. Confira a conexao e tente novamente.
+    </p>
+    <button type="button" (click)="store.load()">Recarregar historico</button>
+  } @else {
+    @if (!store.data().items.length) {
+      <p>
+        Seu historico de palpites ainda esta vazio. Explore a agenda para encontrar uma partida.
+      </p>
+      <a routerLink="/" fragment="agenda">Ver agenda</a>
+    }
+    @for (item of store.data().items; track $index) {
+      <article>
+        <h2>{{ states[item.state] }}</h2>
+        <p>{{ item.current ? 'Estado atual' : 'Fato historico preservado' }}</p>
+        <time [attr.datetime]="item.acceptedAt">{{ item.acceptedAt | date: 'short' }}</time>
+        @if (item.processingStatus !== 'COMPLETE') {
+          <p role="status">
+            {{
+              item.processingStatus === 'FAILED'
+                ? 'Processamento interrompido; aguardando retomada.'
+                : item.processingStatus === 'RUNNING'
+                  ? 'Liquidacao parcial em processamento.'
+                  : 'Aguardando resultado confirmado'
+            }}
+          </p>
+        } @else {
+          <h3>Resultado confirmado</h3>
+          <p>
+            {{
+              item.homeScore !== null &&
+              item.homeScore !== undefined &&
+              item.awayScore !== null &&
+              item.awayScore !== undefined
+                ? item.homeScore + ' x ' + item.awayScore
+                : 'Resultado administrativo ou cancelamento'
+            }}
+          </p>
+          <p>
+            {{ reasons[item.reason ?? ''] ?? 'Resultado definitivo' }}. Regra:
+            {{ item.ruleVersion }}
+          </p>
+          <h3>Calculo</h3>
+          <p>
+            {{
+              item.state === 'WON'
+                ? 'Stake x odd aceita = retorno'
+                : item.state === 'LOST'
+                  ? 'Selecao nao vencedora: retorno zero'
+                  : 'Devolucao da stake aceita'
+            }}
+          </p>
+          <p>Retorno: {{ item.amount | number: '1.2-2' }} creditos</p>
+          <h3>Movimentacoes de saldo</h3>
+          <p>
+            {{
+              item.ledgerEntryId
+                ? 'Lancamento relacionado: ' + item.ledgerEntryId
+                : 'Sem lancamento de credito para este resultado.'
+            }}
+          </p>
+        }
+        <dl>
+          <dt>Selecao</dt>
+          <dd>
+            {{
+              item.selection === 'HOME'
+                ? 'Mandante'
+                : item.selection === 'AWAY'
+                  ? 'Visitante'
+                  : 'Empate'
+            }}
+          </dd>
+          <dt>Stake aceita</dt>
+          <dd>{{ item.stake | number: '1.2-2' }} creditos</dd>
+          <dt>Odd aceita</dt>
+          <dd>{{ item.acceptedOdds | number: '1.2-2' }}</dd>
+          <dt>Retorno potencial aceito</dt>
+          <dd>{{ item.potentialReturn | number: '1.2-2' }} creditos</dd>
+        </dl>
+        <a [routerLink]="['/eventos', item.eventId]">Ver partida</a>
+      </article>
+    }
+    @for (correction of store.data().corrections; track correction.caseId) {
+      <article>
+        <h2>Correcao de saldo</h2>
+        <p>
+          {{
+            correction.pending > 0
+              ? 'Correcao pendente'
+              : correction.status === 'RECOVERED'
+                ? 'Pendencia quitada'
+                : correction.status === 'REJECTED'
+                  ? 'Correcao rejeitada'
+                  : correction.status === 'PROPOSED'
+                    ? 'Aguardando aprovacao'
+                    : 'Correcao aprovada'
+          }}
+        </p>
+        <dl>
+          <dt>Codigo de referencia</dt>
+          <dd>{{ correction.referenceCode }}</dd>
+          <dt>Motivo</dt>
+          <dd>{{ reasons[correction.reason] }}</dd>
+          <dt>Valor original</dt>
+          <dd>{{ correction.amount | number: '1.2-2' }} creditos</dd>
+          <dt>Valor recuperado</dt>
+          <dd>{{ correction.recovered | number: '1.2-2' }} creditos</dd>
+          <dt>Valor pendente</dt>
+          <dd>{{ correction.pending | number: '1.2-2' }} creditos</dd>
+          <dt>Lancamento original</dt>
+          <dd>{{ correction.originalEntryId ?? 'Sem lancamento original' }}</dd>
+          <dt>Registro relacionado</dt>
+          <dd>{{ correction.evidenceId ?? 'Correcao de liquidacao' }}</dd>
+        </dl>
+      </article>
+    }
+  }
+</section>

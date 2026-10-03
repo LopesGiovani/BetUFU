@@ -1,0 +1,142 @@
+:host {
+  display: block;
+  min-width: 0;
+  color: var(--bt-text);
+}
+section {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding: var(--bt-space-6);
+  overflow-wrap: anywhere;
+}
+h1,
+h2,
+h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  line-height: 1.2;
+}
+h1 {
+  font-size: var(--bt-type-heading);
+}
+h2 {
+  font-size: 1.5rem;
+}
+p {
+  line-height: 1.5;
+}
+article,
+form,
+details {
+  padding: var(--bt-space-4);
+  margin-block: var(--bt-space-4);
+  border: 1px solid var(--bt-border-strong);
+  border-radius: var(--bt-radius-card);
+  background: var(--bt-surface);
+}
+button,
+a,
+summary {
+  min-height: 44px;
+}
+button,
+a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--bt-space-2) var(--bt-space-4);
+  margin: var(--bt-space-1);
+  border: 1px solid var(--bt-text-muted);
+  border-radius: var(--bt-radius-field);
+  background: var(--bt-surface-raised);
+  color: var(--bt-text);
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-block: var(--bt-space-2);
+  padding: var(--bt-space-2);
+  background: var(--bt-canvas);
+  color: var(--bt-text);
+  border: 1px solid var(--bt-text-muted);
+  border-radius: var(--bt-radius-field);
+  font: inherit;
+}
+:focus-visible {
+  outline: 3px solid var(--bt-focus);
+  outline-offset: 3px;
+}
+.danger {
+  color: var(--bt-danger);
+  border-color: var(--bt-danger);
+}
+dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--bt-space-2);
+}
+dt {
+  color: var(--bt-text-muted);
+}
+dd {
+  margin: 0;
+}
+.table-scroll {
+  max-width: 100%;
+  overflow: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th,
+td {
+  padding: var(--bt-space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--bt-border-strong);
+}
+caption {
+  text-align: left;
+  padding-block: var(--bt-space-4);
+}
+dialog {
+  width: min(640px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  overflow: auto;
+  padding: var(--bt-space-6);
+  border: 1px solid var(--bt-text-muted);
+  border-radius: var(--bt-radius-card);
+  background: var(--bt-surface);
+  color: var(--bt-text);
+}
+dialog::backdrop {
+  background: rgba(9, 8, 13, 0.8);
+}
+.forms {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bt-space-4);
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+}
+@media (max-width: 599px) {
+  section {
+    padding: var(--bt-space-4);
+  }
+  .forms {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

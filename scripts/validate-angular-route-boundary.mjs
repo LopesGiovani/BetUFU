@@ -137,6 +137,14 @@ const APPROVED_ROOT_STATE_ROUTES = Object.freeze([
   ),
 ]);
 
+const APPROVED_PHASE_SIX_ROUTES = Object.freeze([
+  approvedRoute('ranking', './features/ranking/ranking-page.component', 'RankingPageComponent'),
+  approvedRoute('conta/historico', './features/settlement/settlement-history-page.component', 'SettlementHistoryPageComponent'),
+  approvedRoute('conta/grupos', './features/ranking/group-page.component', 'GroupPageComponent'),
+  approvedRoute('conta/conquistas', './features/ranking/achievement-list.component', 'AchievementListComponent'),
+  approvedRoute('operacao/liquidacoes', './features/settlement/settlement-operations-page.component', 'SettlementOperationsPageComponent'),
+]);
+
 const APPROVED_CONSOLE_ROUTES = Object.freeze([
   approvedRoute(
     '',
@@ -752,6 +760,7 @@ function approvedDynamicImportsFor(relativePath) {
       ...APPROVED_PUBLIC_ROUTES,
       ...APPROVED_ODDS_OPERATION_ROUTES,
       ...APPROVED_ROOT_STATE_ROUTES,
+      ...APPROVED_PHASE_SIX_ROUTES,
     ];
   }
   if (relativePath === PATHS.development) {
@@ -1554,6 +1563,11 @@ function validateGeneratedClient(generatedSources) {
     }
 
     const activeSource = stripScriptComments(source);
+    // Domain authorization DTO imports are not authentication header activation.
+    const headerInspectedSource = activeSource.replace(
+      /from\s*'\.\.\/model\/settlement-authorization-(?:candidate-page|request|response)'/gu,
+      "from 'approved-settlement-model'",
+    );
     const executableSource = maskScriptStrings(activeSource);
     expect(
       !/\[\s*(['"])(?:accessToken|apiKeys|credentials|username|password)\1\s*\]/u.test(activeSource),
@@ -1567,7 +1581,7 @@ function validateGeneratedClient(generatedSources) {
       // de header cuja ativacao manual precisa ser recusada.
       const inspectedSource = forbiddenPattern.rule === 'GENERATED_AUTH_CONFIGURATION'
         ? executableSource
-        : activeSource;
+        : headerInspectedSource;
       expect(
         !forbiddenPattern.pattern.test(inspectedSource),
         forbiddenPattern.rule,
@@ -1882,8 +1896,28 @@ function expectExactApprovedRoutes(routes, approvedRoutes, rule, environmentLabe
   );
 }
 
+function normalizePhaseSixRoutes(source) {
+  if (!APPROVED_PHASE_SIX_ROUTES.some(route => source.includes(route.modulePath))) return source;
+  const guard = /canActivateChild\s*:\s*\[\s*authenticationGuard\s*,\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*\[/u.exec(source);
+  expect(guard !== null, 'PHASE_SIX_GUARDS', 'Fase 6 privada exige os dois guards existentes.');
+  let start = guard.index + guard[0].length;
+  let tail = source.slice(start);
+  for (const route of APPROVED_PHASE_SIX_ROUTES.slice(1)) {
+    const variant = route.path.startsWith('conta/') ? 'personal' : 'operational';
+    const modulePath = route.modulePath.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+    const pattern = new RegExp(String.raw`^\s*\{\s*path\s*:\s*'${route.path}'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'${variant}'\s*\}\s*,\s*children\s*:\s*\[\s*\{\s*path\s*:\s*''\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'${modulePath}'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*${route.component}\s*\}\s*\)\s*=>\s*${route.component}\s*,?\s*\)\s*,?\s*\}\s*,?\s*\]\s*,?\s*\}\s*,`, 'u');
+    const match = pattern.exec(tail);
+    expect(match !== null, 'PHASE_SIX_ROUTE_SHAPE', 'Cada rota privada da Fase 6 deve usar o shell e o componente aprovado dentro dos guards.');
+    tail = tail.slice(match[0].length);
+  }
+  source = source.slice(0, start) + tail;
+  const ranking = /\{\s*path\s*:\s*'ranking'\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'\.\/features\/ranking\/ranking-page\.component'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*RankingPageComponent\s*\}\s*\)\s*=>\s*RankingPageComponent\s*,?\s*\)\s*,?\s*\}\s*,/u;
+  expect(countMatches(source, ranking) === 1, 'PHASE_SIX_PUBLIC_RANKING', 'Ranking publico deve ser declarado uma unica vez.');
+  return source.replace(ranking, '');
+}
+
 function validateRouteSources(sources) {
-  const seam = stripScriptComments(sources.get(PATHS.seam));
+  const seam = normalizePhaseSixRoutes(stripScriptComments(sources.get(PATHS.seam)));
   const profileGuard = stripScriptComments(sources.get(PATHS.profileGuard));
   const development = stripScriptComments(sources.get(PATHS.development));
   const production = stripScriptComments(sources.get(PATHS.production));

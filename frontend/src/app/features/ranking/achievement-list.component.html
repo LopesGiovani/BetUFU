@@ -1,0 +1,60 @@
+<section [attr.aria-busy]="loading()" aria-labelledby="achievements-title">
+  <h2 id="achievements-title">Conquistas</h2>
+  @if (loading()) {
+    <p role="status">Carregando conquistas...</p>
+  } @else if (error()) {
+    <p role="alert">
+      Nao foi possivel carregar suas conquistas. Confira a conexao e tente novamente.
+    </p>
+    <button type="button" (click)="load()">Recarregar conquistas</button>
+  } @else if (!items().length) {
+    <p>Voce ainda nao recebeu conquistas. Veja as regras para saber como obte-las.</p>
+    <a href="#achievement-rules">Ver regras das conquistas</a>
+  } @else {
+    @for (item of items(); track item.awardId) {
+      <article>
+        <h3>{{ item.name }}</h3>
+        <p>{{ item.description }}</p>
+        <p>
+          <strong>{{ item.state === 'REVOKED' ? 'Revogada' : 'Concedida' }}</strong>
+        </p>
+        @if (item.state === 'REVOKED') {
+          <p>
+            A correcao de um resultado invalidou a regra desta conquista. O registro original
+            permanece no historico.
+          </p>
+        }
+        <dl>
+          <dt>Regra</dt>
+          <dd>{{ item.rule }}</dd>
+          <dt>Edicao</dt>
+          <dd>{{ item.catalogEdition }}</dd>
+          <dt>Origem</dt>
+          <dd>
+            {{
+              item.sportsEditionId
+                ? 'Resultados da edicao esportiva'
+                : 'Resultados definitivos vitalicios'
+            }}
+          </dd>
+        </dl>
+        <time [attr.datetime]="item.awardedAt">{{ item.awardedAt | date: 'short' }}</time>
+        @if (item.revokedAt) {
+          <p>
+            Revogada em
+            <time [attr.datetime]="item.revokedAt">{{ item.revokedAt | date: 'short' }}</time>
+          </p>
+        }
+      </article>
+    }
+  }
+  <details id="achievement-rules">
+    <summary>Regras das conquistas</summary>
+    <p>
+      Conquistas derivam de acertos definitivos: sequencia de tres acertos; acerto com odd aceita de
+      pelo menos 3; acertos de uma fase; acerto apoiando a organizacao favorita atual do perfil.
+      Cada item informa a regra e a edicao exatas. Correcoes podem revogar conquistas. Nenhuma
+      conquista gera creditos ou premios.
+    </p>
+  </details>
+</section>

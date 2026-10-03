@@ -1,4 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { RankingPageComponent } from './features/ranking/ranking-page.component';
+import { GroupPageComponent } from './features/ranking/group-page.component';
+import { SettlementHistoryPageComponent } from './features/settlement/settlement-history-page.component';
+import { AchievementListComponent } from './features/ranking/achievement-list.component';
+import { SettlementOperationsPageComponent } from './features/settlement/settlement-operations-page.component';
 import { APP_ROUTES } from './app.routes';
 import { ArenaShellComponent } from './layout/arena-shell.component';
 import { PublicAgendaPageComponent } from './features/sports/public-agenda/public-agenda-page.component';
@@ -17,6 +22,24 @@ import { NotFoundPageComponent } from './features/errors/not-found-page.componen
 function childrenOf(route: (typeof APP_ROUTES)[number]): readonly (typeof APP_ROUTES)[number][] {
   return route.children ?? [];
 }
+
+it('Fase 6 oferece ranking publico e quatro rotas privadas com os guards existentes', async () => {
+  const arena = APP_ROUTES.find((route) => route.component === ArenaShellComponent);
+  const ranking = arena?.children?.find((route) => route.path === 'ranking');
+  await expect(ranking?.loadComponent?.()).resolves.toBe(RankingPageComponent);
+  const guarded = APP_ROUTES.find((route) => route.canActivateChild?.includes(authenticationGuard));
+  expect(guarded?.canActivateChild).toEqual([authenticationGuard, profileCompletionGuard]);
+  for (const [path, component] of [
+    ['conta/historico', SettlementHistoryPageComponent],
+    ['conta/grupos', GroupPageComponent],
+    ['conta/conquistas', AchievementListComponent],
+    ['operacao/liquidacoes', SettlementOperationsPageComponent],
+  ] as const) {
+    const route = guarded?.children?.find((route) => route.path === path);
+    await expect(route?.children?.[0].loadComponent?.()).resolves.toBe(component);
+    expect(arena?.children?.some((route) => route.path === path)).toBe(false);
+  }
+});
 
 it('resolve o deep link publico de odds sem guard autenticado ou rotas operacionais', async () => {
   const arena = APP_ROUTES.find((route) =>

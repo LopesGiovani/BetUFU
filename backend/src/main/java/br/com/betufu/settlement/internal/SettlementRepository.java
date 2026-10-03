@@ -369,6 +369,74 @@ public class SettlementRepository {
         predictionId);
   }
 
+  public record HistoryFact(PredictionOutcome outcome, boolean current, String status) {}
+
+  public List<HistoryFact> findHistoryFacts(UUID predictionId, UUID eventId) {
+    return jdbc.query(
+        """
+            SELECT u.*, c.rule_version, x.selection, x.stake, x.accepted_odds,
+                   x.potential_return, x.outcome_kind, x.home_score, x.away_score,
+                   x.winner_slot_no, x.ledger_entry_id, progress.status,
+                   NOT EXISTS (SELECT 1 FROM public.settlement_case newer
+                     WHERE newer.event_id = ? AND newer.processing_version > c.processing_version)
+                     AND progress.status = 'COMPLETE' AS current
+            FROM public.prediction_settlement u
+            JOIN public.settlement_case c ON c.case_id = u.case_id
+            JOIN public.settlement_calculation x ON x.settlement_id = u.settlement_id
+            JOIN public.settlement_processing progress ON progress.case_id = c.case_id
+            WHERE u.prediction_id = ? ORDER BY c.processing_version DESC
+            """,
+        (rs, row) ->
+            new HistoryFact(
+                new PredictionOutcome(
+                    rs.getObject("settlement_id", UUID.class),
+                    predictionId,
+                    SettlementState.valueOf(rs.getString("state")),
+                    rs.getString("reason"),
+                    rs.getString("rule_version"),
+                    rs.getString("selection"),
+                    rs.getBigDecimal("stake"),
+                    rs.getBigDecimal("accepted_odds"),
+                    rs.getBigDecimal("potential_return"),
+                    rs.getBigDecimal("amount"),
+                    rs.getString("outcome_kind"),
+                    rs.getObject("home_score", Integer.class),
+                    rs.getObject("away_score", Integer.class),
+                    rs.getObject("winner_slot_no", Integer.class),
+                    rs.getObject("ledger_entry_id", UUID.class)),
+                rs.getBoolean("current"),
+                rs.getString("status")),
+        eventId,
+        predictionId);
+  }
+
+  public Optional<CaseProgress> findLatestProgressByEvent(UUID eventId) {
+    return jdbc
+        .query(
+            """
+            SELECT p.* FROM public.settlement_processing p
+            JOIN public.settlement_case c ON c.case_id = p.case_id
+            WHERE c.event_id = ? ORDER BY c.processing_version DESC LIMIT 1
+            """,
+            (rs, row) ->
+                new CaseProgress(
+                    rs.getObject("case_id", UUID.class),
+                    ProcessingStatus.valueOf(rs.getString("status")),
+                    rs.getInt("total_units"),
+                    rs.getInt("completed_units")),
+            eventId)
+        .stream()
+        .findFirst();
+  }
+
+  public boolean isAuthorized(UUID outcomeFactId) {
+    return Boolean.TRUE.equals(
+        jdbc.queryForObject(
+            "SELECT EXISTS(SELECT 1 FROM public.settlement_authorization WHERE outcome_fact_id = ? AND decision = 'APPROVED')",
+            Boolean.class,
+            outcomeFactId));
+  }
+
   public List<CurrentFact> findCurrentFacts() {
     return jdbc.query(
         """

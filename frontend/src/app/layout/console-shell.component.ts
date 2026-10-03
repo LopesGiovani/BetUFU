@@ -28,6 +28,11 @@ import {
 
 const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Object.freeze([
   Object.freeze({
+    capability: 'AUTHORIZE_SETTLEMENT',
+    label: 'Resultados para autorizar',
+    path: '/operacao/liquidacoes',
+  }),
+  Object.freeze({
     capability: 'VIEW_OPERATIONAL_PANEL',
     label: 'Painel operacional',
     path: '/operacao/painel',
@@ -90,6 +95,9 @@ const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Obje
 ]);
 
 const PERSONAL_DESTINATIONS = Object.freeze([
+  Object.freeze({ label: 'Historico de liquidacoes', path: '/conta/historico' }),
+  Object.freeze({ label: 'Meus grupos', path: '/conta/grupos' }),
+  Object.freeze({ label: 'Conquistas', path: '/conta/conquistas' }),
   Object.freeze({ label: 'Meu perfil', path: '/conta/perfil' }),
   Object.freeze({ label: 'Matrícula UFU', path: '/conta/matricula' }),
   Object.freeze({ label: 'Vínculo esportivo', path: '/conta/vinculo-atleta' }),

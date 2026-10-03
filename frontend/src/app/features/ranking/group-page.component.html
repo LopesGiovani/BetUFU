@@ -1,0 +1,198 @@
+<section [attr.aria-busy]="store.loading() || store.busy()" aria-labelledby="groups-title">
+  <h1 id="groups-title">Meus grupos</h1>
+  <p>Grupos privados com as mesmas metricas do ranking vitalicio. Sem saldo coletivo ou premios.</p>
+  <p role="status" aria-live="polite">{{ store.message() }}</p>
+  @if (store.loading()) {
+    <p role="status">Carregando grupos...</p>
+  } @else if (store.error()) {
+    <p role="alert">Nao foi possivel carregar seus grupos. Confira a conexao e tente novamente.</p>
+    <button type="button" (click)="store.load()" [disabled]="store.busy()">
+      Recarregar grupos
+    </button>
+  } @else {
+    @if (!store.groups().length) {
+      <p>Voce ainda nao participa de grupos. Crie um grupo ou entre com convite.</p>
+    }
+    <div class="forms">
+      <form (ngSubmit)="create()">
+        <h2>Criar grupo</h2>
+        <label for="group-name">Nome do grupo</label>
+        <input id="group-name" [formControl]="name" maxlength="80" autocomplete="off" />
+        <button type="submit" [disabled]="name.invalid || store.busy()">Criar grupo</button>
+      </form>
+      <form (ngSubmit)="join()">
+        <h2>Entrar com convite</h2>
+        <label for="invite-code">Codigo de convite</label>
+        <input
+          id="invite-code"
+          #inviteInput
+          [formControl]="code"
+          maxlength="64"
+          autocomplete="off" />
+        <button type="submit" [disabled]="code.invalid || store.busy()">Entrar com convite</button>
+        @if (store.message().startsWith('Nao foi possivel entrar')) {
+          <button type="button" (click)="code.reset(); inviteInput.focus()">
+            Tentar outro convite
+          </button>
+        }
+        <span>Solicite um novo codigo se o convite expirou.</span>
+      </form>
+    </div>
+    <nav aria-label="Seus grupos">
+      @for (group of store.groups(); track group.groupId) {
+        <button type="button" (click)="store.open(group.groupId)" [disabled]="store.busy()">
+          {{ group.name }}{{ group.closed ? ' (Encerrado)' : '' }}
+        </button>
+      }
+    </nav>
+    @if (store.selected(); as group) {
+      <article>
+        <h2>{{ group.name }}</h2>
+        <p>{{ group.closed ? 'Grupo encerrado: historico preservado' : 'Grupo ativo' }}</p>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Metricas do grupo">
+          <table>
+            <caption>
+              Acertos definitivos, depois taxa; empates compartilham posicao
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Posicao</th>
+                <th scope="col">Apelido</th>
+                <th scope="col">Papel</th>
+                <th scope="col">Acertos</th>
+                <th scope="col">Taxa de acerto</th>
+                <th scope="col">Verificacao</th>
+                <th scope="col">Gestao</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (member of group.standings; track member.membershipId) {
+                <tr>
+                  <td>{{ member.position || 'Sem resultado' }}</td>
+                  <th scope="row">{{ member.nickname }}</th>
+                  <td>
+                    {{
+                      member.role === 'OWNER'
+                        ? 'Dono'
+                        : member.role === 'ADMIN'
+                          ? 'Administrador'
+                          : 'Membro'
+                    }}
+                  </td>
+                  <td>{{ member.wins }}</td>
+                  <td>{{ member.hitRate | percent: '1.0-2' }}</td>
+                  <td>
+                    {{
+                      member.verificationActive
+                        ? 'Matricula atual ativa'
+                        : 'Matricula atual inativa'
+                    }}
+                  </td>
+                  <td>
+                    @if (
+                      !group.closed &&
+                      member.role !== 'OWNER' &&
+                      (store.myRole() === 'OWNER' ||
+                        (store.myRole() === 'ADMIN' && member.role === 'MEMBER'))
+                    ) {
+                      <button
+                        type="button"
+                        (click)="ask('remove', $event, member.membershipId)"
+                        [disabled]="store.busy()">
+                        Remover integrante {{ member.nickname }}
+                      </button>
+                      @if (store.myRole() === 'OWNER') {
+                        <button
+                          type="button"
+                          (click)="
+                            changeRole(
+                              member.membershipId,
+                              member.role === 'ADMIN' ? 'MEMBER' : 'ADMIN'
+                            )
+                          "
+                          [disabled]="store.busy()">
+                          {{ member.role === 'ADMIN' ? 'Tornar membro' : 'Tornar administrador' }}
+                        </button>
+                      }
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (!group.closed) {
+          @if (store.myRole() === 'OWNER' || store.myRole() === 'ADMIN') {
+            @if (store.myRole() === 'OWNER') {
+              <form (ngSubmit)="renameGroup()">
+                <label for="rename-group">Novo nome</label>
+                <input id="rename-group" [formControl]="rename" maxlength="80" />
+                <button type="submit" [disabled]="rename.invalid || store.busy()">
+                  Renomear grupo
+                </button>
+              </form>
+            }
+            <button type="button" (click)="store.issueInvitation()" [disabled]="store.busy()">
+              Emitir convite de um dia
+            </button>
+            @if (store.invitation(); as invite) {
+              <p role="status">
+                Convite de uso unico: <code>{{ invite.code }}</code
+                >. Expira em
+                <time [attr.datetime]="invite.expiresAt">{{
+                  invite.expiresAt | date: 'short'
+                }}</time>
+              </p>
+            }
+          }
+          @if (store.myRole() === 'OWNER') {
+            <button type="button" (click)="ask('close', $event)" [disabled]="store.busy()">
+              Encerrar grupo
+            </button>
+          } @else {
+            <button type="button" (click)="ask('leave', $event)" [disabled]="store.busy()">
+              Sair do grupo
+            </button>
+          }
+        }
+      </article>
+    }
+  }
+  <dialog
+    #confirmation
+    tabindex="-1"
+    (cancel)="cancel($event)"
+    (keydown)="containFocus($event)"
+    aria-labelledby="group-confirm-title"
+    aria-describedby="group-confirm-detail">
+    <h2 id="group-confirm-title">
+      {{
+        pending()?.kind === 'close'
+          ? 'Encerrar grupo'
+          : pending()?.kind === 'remove'
+            ? 'Remover integrante'
+            : 'Sair do grupo'
+      }}: {{ pending()?.name }}
+    </h2>
+    <p id="group-confirm-detail">
+      {{
+        pending()?.kind === 'close'
+          ? 'Novas entradas e alteracoes serao bloqueadas. O historico sera preservado.'
+          : 'O acesso do integrante ao grupo sera encerrado. O ranking principal nao sera alterado.'
+      }}
+    </p>
+    <button type="button" autofocus (click)="cancel()">
+      {{ pending()?.kind === 'leave' ? 'Continuar no grupo' : 'Manter grupo' }}
+    </button>
+    <button type="button" class="danger" (click)="confirm()" [disabled]="store.busy()">
+      Confirmar
+      {{
+        pending()?.kind === 'close'
+          ? 'encerramento'
+          : pending()?.kind === 'remove'
+            ? 'remocao'
+            : 'saida'
+      }}
+    </button>
+  </dialog>
+</section>

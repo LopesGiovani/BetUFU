@@ -16,6 +16,13 @@ export const APP_ROUTES: Routes = [
     children: [
       ...PUBLIC_MARKET_ROUTES,
       {
+        path: 'ranking',
+        loadComponent: () =>
+          import('./features/ranking/ranking-page.component').then(
+            ({ RankingPageComponent }) => RankingPageComponent,
+          ),
+      },
+      {
         path: '',
         pathMatch: 'full',
         loadComponent: () =>
@@ -92,6 +99,62 @@ export const APP_ROUTES: Routes = [
     path: '',
     canActivateChild: [authenticationGuard, profileCompletionGuard],
     children: [
+      {
+        path: 'conta/historico',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'personal' },
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/settlement/settlement-history-page.component').then(
+                ({ SettlementHistoryPageComponent }) => SettlementHistoryPageComponent,
+              ),
+          },
+        ],
+      },
+      {
+        path: 'conta/grupos',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'personal' },
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/ranking/group-page.component').then(
+                ({ GroupPageComponent }) => GroupPageComponent,
+              ),
+          },
+        ],
+      },
+      {
+        path: 'conta/conquistas',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'personal' },
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/ranking/achievement-list.component').then(
+                ({ AchievementListComponent }) => AchievementListComponent,
+              ),
+          },
+        ],
+      },
+      {
+        path: 'operacao/liquidacoes',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'operational' },
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/settlement/settlement-operations-page.component').then(
+                ({ SettlementOperationsPageComponent }) => SettlementOperationsPageComponent,
+              ),
+          },
+        ],
+      },
       ...sportsOperationsRoutes,
       ...BUILD_SPECIFIC_ROUTES,
       {

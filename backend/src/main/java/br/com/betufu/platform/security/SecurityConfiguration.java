@@ -236,6 +236,9 @@ public class SecurityConfiguration {
                     // Restringir por método mantém qualquer comando de mercado autenticado.
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/odds/**")
                     .permitAll()
+                    // Ranking vitalicio e uma leitura publica sanitizada, sem PII ou saldo.
+                    .requestMatchers(HttpMethod.GET, "/api/v1/public/ranking/**")
+                    .permitAll()
                     // Diagnostico exige o papel tecnico, e o matcher precisa vir ANTES de
                     // /api/v1/** — senao aquele matcher mais largo o engoliria e bastaria
                     // estar autenticado. A autoridade so pode ser produzida pelo

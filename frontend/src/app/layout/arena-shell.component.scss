@@ -200,6 +200,9 @@
 
   .arena-mobile-actions {
     display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     align-items: center;
     gap: tokens.$space-2;
   }

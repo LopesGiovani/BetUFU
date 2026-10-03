@@ -1,0 +1,48 @@
+<section [attr.aria-busy]="store.loading()" aria-labelledby="ranking-title">
+  <h1 id="ranking-title">Ranking vitalicio</h1>
+  <p>
+    Ordem: acertos definitivos, depois taxa de acerto. Empates compartilham a posicao e pulam as
+    posicoes seguintes. Anulacoes e devolucoes nao contam. Saldo e stake nao multiplicam acertos.
+  </p>
+  @if (store.loading()) {
+    <p role="status">Carregando ranking...</p>
+  } @else if (store.error()) {
+    <p role="alert">Nao foi possivel carregar o ranking. Confira a conexao e tente novamente.</p>
+    <button type="button" (click)="store.load()">Recarregar ranking</button>
+  } @else if (!store.entries().length) {
+    <p>Ainda nao ha palpites com resultado definitivo para classificar.</p>
+    <a routerLink="/">Voltar a Arena</a>
+  } @else {
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Classificacao vitalicia">
+      <table>
+        <caption>
+          Resultados definitivos de participantes verificados
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Posicao</th>
+            <th scope="col">Apelido</th>
+            <th scope="col">Acertos definitivos</th>
+            <th scope="col">Erros</th>
+            <th scope="col">Taxa de acerto</th>
+            <th scope="col">Verificacao</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of store.entries(); track $index) {
+            <tr>
+              <td>{{ entry.position }}</td>
+              <th scope="row">{{ entry.nickname }}</th>
+              <td>{{ entry.wins }}</td>
+              <td>{{ entry.losses }}</td>
+              <td>{{ entry.hitRate | percent: '1.0-2' }}</td>
+              <td>
+                {{ entry.verificationActive ? 'Matricula atual ativa' : 'Matricula atual inativa' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

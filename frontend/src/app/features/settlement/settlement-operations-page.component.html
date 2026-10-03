@@ -1,0 +1,105 @@
+<section [attr.aria-busy]="loading() || busy()" aria-labelledby="settlement-operations-title">
+  <h1 id="settlement-operations-title">Resultados para autorizar</h1>
+  <p>
+    Confira o resultado vigente antes de iniciar a liquidacao. Regra: h2h-settlement-v1. A
+    autorizacao e registrada antes da execucao.
+  </p>
+  <p role="status" aria-live="polite">{{ message() }}</p>
+  @if (loading()) {
+    <p role="status">Carregando resultados...</p>
+  } @else if (error()) {
+    <p role="alert">
+      Nao foi possivel carregar os resultados para autorizacao. Confira a conexao e tente novamente.
+    </p>
+    <button type="button" (click)="load()">Recarregar resultados</button>
+  } @else if (!permitted()) {
+    <a routerLink="/">Voltar a Arena</a>
+  } @else {
+    @if (stale()) {
+      <button type="button" (click)="load()" [disabled]="busy()">Atualizar resultado</button>
+    }
+    @if (!candidates().length) {
+      <p>Nenhum resultado aguarda autorizacao agora.</p>
+      <a routerLink="/operacao/esportes/eventos">Ver eventos</a>
+    }
+    @for (candidate of candidates(); track candidate.outcomeFactId) {
+      <article>
+        <h2>{{ candidate.eventTitle }}</h2>
+        <dl>
+          <dt>Fonte</dt>
+          <dd>
+            {{
+              candidate.outcomeKind === 'SPORTING_RESULT'
+                ? 'Resultado esportivo confirmado'
+                : 'Fato administrativo confirmado'
+            }}
+          </dd>
+          <dt>Resultado confirmado</dt>
+          <dd>{{ result(candidate) }}</dd>
+          <dt>Versao exata</dt>
+          <dd>{{ candidate.confirmedVersionId ?? candidate.outcomeFactId }}</dd>
+        </dl>
+        @if (candidate.alreadyAuthorized) {
+          <p>Autorizacao registrada para este resultado. O processamento pode estar pendente.</p>
+        }
+        @if (candidate.caseProgress; as progress) {
+          <p>
+            {{
+              progress.status === 'COMPLETE'
+                ? 'Concluida'
+                : progress.status === 'FAILED'
+                  ? 'Interrompida; aguardando retomada'
+                  : 'Pendente ou parcial em processamento'
+            }}: {{ progress.completedUnits }} de {{ progress.totalUnits }} palpites
+          </p>
+          <button type="button" (click)="load()" [disabled]="busy()">
+            Atualizar progresso deste resultado
+          </button>
+        }
+        <button
+          type="button"
+          (click)="ask(candidate, $event)"
+          [disabled]="busy() || stale() || candidate.alreadyAuthorized">
+          Autorizar liquidacao
+        </button>
+      </article>
+    }
+  }
+  @if (progress(); as caseProgress) {
+    <article>
+      <h2>Progresso da liquidacao</h2>
+      <p role="status">
+        {{
+          caseProgress.status === 'COMPLETE'
+            ? 'Concluida'
+            : caseProgress.status === 'FAILED'
+              ? 'Interrompida; aguardando retomada'
+              : 'Pendente ou parcial em processamento'
+        }}: {{ caseProgress.completedUnits }} de {{ caseProgress.totalUnits }} palpites
+      </p>
+      <button type="button" (click)="refreshProgress()" [disabled]="busy()">
+        Atualizar progresso
+      </button>
+    </article>
+  }
+  <dialog
+    #confirmation
+    tabindex="-1"
+    (cancel)="cancel($event)"
+    (keydown)="containFocus($event)"
+    aria-labelledby="settlement-confirm-title"
+    aria-describedby="settlement-confirm-detail">
+    <h2 id="settlement-confirm-title">Autorizar liquidacao: {{ selected()?.eventTitle }}</h2>
+    @if (selected(); as candidate) {
+      <p id="settlement-confirm-detail">
+        Resultado: {{ result(candidate) }}. Versao exata:
+        {{ candidate.confirmedVersionId ?? candidate.outcomeFactId }}. Esta acao registra a
+        autorizacao e inicia a liquidacao dos palpites.
+      </p>
+    }
+    <button type="button" autofocus (click)="cancel()">Voltar a conferencia</button>
+    <button type="button" (click)="authorize()" [disabled]="busy() || stale()">
+      Confirmar autorizacao
+    </button>
+  </dialog>
+</section>

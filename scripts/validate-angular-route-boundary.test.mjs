@@ -479,6 +479,40 @@ test('aceita uma fixture canonica isolada', async () => {
   });
 });
 
+test('aceita rotas da Fase 6 com ranking publico e dois guards privados', async () => {
+  await withFixture('phase-six-approved', async (fixtureRoot) => {
+    const source = await readFile(join(projectRoot, appRoutesPath), 'utf8');
+    assert.match(source, /path: 'conta\/historico'/u);
+    assert.match(source, /path: 'ranking'/u);
+    await overwriteText(fixtureRoot, appRoutesPath, source);
+    const result = runValidator(fixtureRoot);
+    assert.equal(result.status, 0, result.stderr);
+  });
+});
+
+for (const [label, mutate, rule] of [
+  ['missing-authentication', source => source.replace('[authenticationGuard, profileCompletionGuard]', '[profileCompletionGuard]'), 'PHASE_SIX_GUARDS'],
+  ['wrong-private-shell', source => source.replace("path: 'conta/historico',\n        component: ConsoleShellComponent", "path: 'conta/historico',\n        component: ArenaShellComponent"), 'PHASE_SIX_ROUTE_SHAPE'],
+  ['private-path-drift', source => source.replace("path: 'conta/grupos'", "path: 'grupos'"), 'PHASE_SIX_ROUTE_SHAPE'],
+  ['missing-public-ranking', source => source.replace("path: 'ranking'", "path: 'ranking-privado'"), 'PHASE_SIX_PUBLIC_RANKING'],
+]) {
+  test(`recusa rotas da Fase 6: ${label}`, async () => {
+    await withFixture(`phase-six-${label}`, async (fixtureRoot) => {
+      const source = (await readFile(join(projectRoot, appRoutesPath), 'utf8')).replaceAll('\r\n', '\n');
+      await overwriteText(fixtureRoot, appRoutesPath, source);
+      await mutateText(fixtureRoot, appRoutesPath, mutate);
+      expectValidationFailure(runValidator(fixtureRoot), rule);
+    });
+  });
+}
+
+test('DTO de autorizacao de liquidacao nao libera header Authorization manual', async () => {
+  await withFixture('settlement-dto-manual-auth', async (fixtureRoot) => {
+    await mutateText(fixtureRoot, 'frontend/src/app/api/generated/api/settlement.service.ts', source => `${source}\nconst header = 'Authorization';\n`);
+    expectValidationFailure(runValidator(fixtureRoot), 'GENERATED_AUTHORIZATION');
+  });
+});
+
 test('recusa modulo publico divergente na Arena', async () => {
   await withFixture('public-arena-module-outside-allowlist', async (fixtureRoot) => {
     await mutateText(
