@@ -3,19 +3,165 @@ gsd_state_version: 1.0
 milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
-status: ready_to_plan
-stopped_at: Phase 6 certified complete; awaiting separate Phase 7 discussion and planning approval
-last_updated: "2026-10-03T19:20:57-03:00"
-last_activity: 2026-10-03
-last_activity_desc: Plan 06-08 certified; Phase 6 complete at 8/8 with real isolated E2E and aggregate gates passed
-state_head: 0a5f02587e77535e42d43c0e407e380249bb41d8
+status: planning_review_required
+stopped_at: Phase 7 review gaps reconciled as proposals; owner review and consumer checkpoints pending
+last_updated: "2026-10-04T16:44:09-03:00"
+last_activity: 2026-10-04
+last_activity_desc: Phase 7 pause availability, moderation escalation and six consumer gates reconciled; 35 draft plans, no execution
+state_head: 21edd3b9d58d83b7c961cd51f218999bc3113cfb
 progress:
   total_phases: 9
   completed_phases: 8
-  total_plans: 135
+  total_plans: 170
   completed_plans: 135
 milestone_name: milestone
 ---
+
+## Phase 7 review-gap reconciliation - 2026-10-04
+
+- Owner authorized documentary adjustments only to the three inline review
+  findings, on master at unchanged HEAD `21edd3b9d58d83b7c961cd51f218999bc3113cfb`.
+  This is not approval of proposed endpoints, schemas, security changes or code.
+- 16/18/19 now connect audited moderation escalation, generated contract and
+  the two-session UI journey; escalating a case never automatically sanctions.
+- 20/21/22/23 propose separate participant availability GETs, consumer-owned
+  read ports, scoped postcommit invalidation and actual composer/ticket blocking.
+  Administrative lists/mutations remain admin-only. Own-account data comes from
+  the server session; refresh/reconnection recover a minimal safe snapshot.
+- 12/15/19/23/26/31 now explicitly run --plan/--stage approval validation before
+  any material write/setup, matching 01. Bootstrap exception remains only 01.
+- Technical allowlists proposed for 20/21/23 are 12/15/15 paths; 21 includes
+  endpoint/filter-chain/privacy tests, and 23 ticket/store DOM tests. Generator
+  variants requiring extra files must block and subdivide before publication.
+- DECOMPOSITION and VALIDATION track the new contracts and future proofs.
+  Counts remain 35 plans, 17 waves, 102 tasks and 0 executed. No Ready to execute,
+  business PASS or UI approval inferred. Current corrections invalidate the
+  earlier frozen review; final owner review/checkpoints remain pending.
+- Documentary checks passed 35/35 plan structures with zero errors/warnings,
+  102/102 task mappings and literal commands, <=15 paths, valid predecessors,
+  no same-wave collisions and monotonic V39..V47 waves. All consumers explicitly
+  invoke their approval validator before writes; 40/40 decision references and
+  7/7 UI references covered. These are not implementation/business evidence.
+- Diff check passed with existing Windows LF/CRLF warnings only. RepoWise risk
+  health/coverage is partial/unavailable for these Markdown/untracked drafts;
+  manual proposal review supplements the structural checks, not a global PASS.
+- Per-account backend rules-dismissal persistence is approved in conversation,
+  but exact storage/API/failure policies still await their consumer checkpoints.
+- No code, migration, governed OpenAPI/client, tests of business behavior,
+  dependency, service/database, stage, commit or push. Owner documents preserved.
+  Initial patch attempts failed before mutation (hunk order/partial-line anchor);
+  line-level ordered patch resolved the mechanical issue without changing scope.
+
+## Phase 7 documentary reconciliation - 2026-10-04
+
+- Authorized planning-only reconciliation, direct master, unchanged HEAD
+  `21edd3b9d58d83b7c961cd51f218999bc3113cfb`; no code, database or Git mutation.
+- 07-08 now includes actual Arena header HTML and shell test (15 paths); existing
+  RouterLink import means no .ts change is proposed. Real entry is tested, not
+  just a direct route. UI-D01..07 recorded in CONTEXT.
+- Added proposed 07-33/34/35 (10/14/9 paths): account rules-dismissal persistence,
+  private generated API, accessible popup with two-account/two-device real E2E.
+  Storage in chat/V47 and sync-failure policy are proposals awaiting the first
+  human checkpoint of 33, not approved architecture. Dismissal is not legal
+  acceptance and never grants writing, enrollment or financial effects.
+- V47 depends on V46/27; API 34 follows API 25; UI 35 follows 23 to serialize
+  chat-panel. Integrated 31 depends on 35. Additive numbering preserves 01..32;
+  execution follows DAG/waves, not numeric order. Phase 7 now 0/35, 102 tasks,
+  17 waves. Earlier 32-plan review is historical, not a verdict on new plans.
+- REQUIREMENTS CHAT-01/05 and Out of Scope reconciled with approved ATIVO,
+  global reading and admin-only sanctions. IDs/checkboxes preserved; RT-01/
+  STOMP untouched. UI-SPEC remains draft with owner/checker pending.
+- GSD state.planned-phase intentionally not used: it would mark Ready to execute
+  despite pending gates. Only current metadata/counts changed; history retained.
+  Documentary checks passed 35/35 structures, 102/102 task mappings, zero
+  errors/warnings, <=15 paths, valid DAG/no same-wave collisions and increasing
+  V39..V47 waves. Installed gate covers D-01..40 (40/40); manual UI-ID mapping
+  covers 7/7 and requirement references 16/16. Diff check passed with existing
+  LF/CRLF warnings only. Inline review is not independent or business PASS.
+- Owner documentation preserved; intentionally deleted mockup not restored.
+  No stage, commit, push, Docker, dependencies, code or migration. Pause for review.
+
+## Phase 7 discussion and subdivision (historical, before UI reconciliation) - 2026-10-04
+
+- Authorized documentary consolidation only, direct master, HEAD
+  `21edd3b9d58d83b7c961cd51f218999bc3113cfb`; no Phase 7 implementation.
+  Owner chose subdivision rather than a file-count exception.
+- CONTEXT records D-01..D-40. Global chat is included in the pilot: authenticated
+  reading even when inactive, ATIVO writing. Match chat remains publicly readable.
+  Account-synchronized mute, admin-only global sanctions/review, volatile offline
+  queue and atomic pauses are proposed with explicit policy checkpoints.
+- Replaced the old ten-plan numbering with 07-01..07-32: 92 tasks in 17 dependency
+  waves, at most 15 declared paths each, including persistent candidates and
+  generated files. See 07-DECOMPOSITION.md; old numeric references are superseded.
+  Foundations/API blocks are not claimed as complete user journeys.
+- Eight future SQL candidates V39..V46 and six API increments each retain
+  preparation -> human digest/inventory approval -> publication. No SQL, governed
+  OpenAPI or generated client changed. Extra real outputs require subdivision.
+- Draft VALIDATION now maps all 92 tasks and future commands; nyquist_compliant
+  and wave_0_complete remain false. GSD plan-structure passed 32/32 with 92 tasks,
+  zero errors/warnings; requirement references cover 16/16 and decision gate
+  covers 40/40. Task files reconcile with allowlists, all new phase documents
+  are ASCII, no missing/later predecessors or same-wave shared paths. Diff check
+  passed with existing Windows LF/CRLF warnings only. Independent review read
+  all actions/verification/done and examined 01/03/20 more deeply; 0 confirmed
+  blockers and 2 warnings, not global PASS. Added monotonic dependencies for
+  V41->V42 and V43->V44 and explicit blocking --plan/--stage validation in every
+  consumer; bootstrap 07-01 is exempt. Independent recheck confirmed both
+  warnings resolved, with no remaining issues in that limited scope; not a
+  global PASS. Final documentary checks again passed 32/32, 92 tasks, 40/40
+  decision references and 16 requirements; V39..V46 occupy increasing waves
+  2/4/5/6/7/8/9/10. Owner review and unresolved product/launch gates remain.
+- RPO <=1h/RTO <=4h, 50 simultaneous users as load reference, backup retention
+  30 days and blocking all confirmed vulnerabilities were selected, not measured.
+  Common/evidence retention 90/180 days remains subject to legal review.
+- Pending consumers: UI-SPEC, server-push protocol and RT-01/STOMP reconciliation,
+  CHAT-05 versus admin-only sanctions, lifecycle edge cases, mute/limiter details,
+  legal/identity policies, backup keys/destination and load mix/SLO/error budget.
+  REQUIREMENTS.md is outside this allowlist. No choice silently approved.
+- Phase 6 remains complete at 8/8, 135 earlier plans completed; Phase 7 is 0/32.
+  Preserve owner documents and historical evidence. No material tests, code,
+  dependencies, Docker, migrations, stage, commit, push, worktrees or Antigravity.
+  Config remains interactive with automatic advancement and doc commits disabled.
+
+## Phase 7 initial planning proposal (historical, superseded) - 2026-10-04
+
+- Authorized scope: gsd-plan-phase 7 with the owner's consolidated decisions;
+  planning files only. Direct master on baseline `21edd3b9d58d83b7c961cd51f218999bc3113cfb`.
+  Phase 6 remains passed at 8/8; its 31 requirements were reconciled by `21edd3b`.
+- Created 07-CONTEXT.md, 07-RESEARCH.md, draft 07-VALIDATION.md and ten draft
+  plans 07-01..07-10. The proposal has nine dependency waves and 44 tasks;
+  only 07-02 and 07-08 share a wave, with disjoint allowlists.
+- RepoWise-first local research and separate GSD planner/checker contexts were
+  used. The researcher returned inline evidence after a bounded interruption;
+  the orchestrator consolidated RESEARCH. No web research or material test result
+  is claimed. Installed deterministic edge probe classified all 16 Portuguese
+  requirement texts as unresolved/unclassified; manual edge derivation remains
+  explicit in the plans, not a fabricated probe pass.
+- Initial checker found missing checkpoint fields, approvals outside executable
+  tasks, candidate preparation/order gaps, six oversized plans and a stale
+  validation map. Revision corrected the execution-contract fields and order,
+  added candidate-only preparation and human hash/inventory approval before
+  governed writes, and mapped all 44 tasks in draft validation.
+- Pure documentary checks passed plan structure for 10/10 proposals (44 tasks,
+  zero errors/warnings), requirement coverage 16/16 and decision coverage 14/14.
+  These do not certify business implementation or lift the scope blocker.
+  Plans 07-02..07-07 exceed the GSD file-count limit and contain explicit pending
+  scope reviews and concrete vertical split recommendations. Do not mark Ready
+  to execute; present subdivision versus explicit granularity exception to owner.
+- Missing 07-UI-SPEC is an explicit pre-implementation human gate. The installed
+  UI detector returned frontend=true/static=false/block=false: its root-only
+  package check and component extension scan miss this Angular monorepo.
+  No configuration change or implicit UI waiver occurred.
+- Transport selection and RT-01/STOMP reconciliation, definitive settlement
+  timing, sanctions/kill-switch semantics, legal/retention/rights policies,
+  institutional identity, all-substrate backups, RTO/RPO, load/SLO/error budget
+  and security severity remain recognized checkpoints. No pending choice was
+  silently filled; TEST-04 retains its inherited launch obligation.
+- Owner documentation hashes are unchanged. No code, migration V39+, generated
+  client, dependency, Docker/service/data mutation, stage, commit or push.
+  Config remains interactive, commit_docs=false and auto_advance=false.
+  Next step is owner review of proposal/granularity, then approved UI/policy
+  gates and final planning verification before any separately approved execution.
 
 ## Phase 6 / Plan 06-08 closeout - 2026-10-03
 
@@ -668,10 +814,10 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 ## Current Position
 
-Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; ainda nao iniciada)
-Plan: Fase 6 concluida em 8/8; proximo plano depende de discussao/planejamento da Fase 7
-Status: 06-08 e Fase 6 passed; aguardando aprovacao do proximo bloco
-Last activity: 2026-10-03 - backend 974/974, Angular 455/455, Node 812/812 e Playwright real 16/16
+Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; planejamento proposto, execucao nao iniciada)
+Plan: 35 propostas / 17 ondas / 102 tasks; revisao documental concluida, aceite final e checkpoints pendentes
+Status: planning_review_required; Fase 6 passed; Fase 7 sem aprovacao de execucao
+Last activity: 2026-10-04 - tres gaps reconciliados como propostas; estrutura 35/35, mapa 102/102, gates explicitos e cobertura de decisoes 40/40; nenhum teste material
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -741,7 +887,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 8/8 planos; Fase 6: 8/8 planos certificados; Fase 7: 0/TBD (nao iniciada)
+Progress: Fase 5: 8/8 planos; Fase 6: 8/8 planos certificados; Fase 7: 0/35 propostas (execucao nao iniciada; aceite final e checkpoints pendentes)
 
 ## Métricas de desempenho
 
@@ -919,9 +1065,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-03T19:20:57-03:00
-Stopped at: Phase 6 complete; await separate Phase 7 discussion/planning approval
-Resume file: .planning/phases/06-resultados-confirmados-rankings-e-grupos/06-08-SUMMARY.md
+Last session: 2026-10-04T16:44:09-03:00
+Stopped at: Phase 7 review gaps reconciled as proposals; await final owner review and consumer checkpoints; no execution or Git approval
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-01-PLAN.md
 
 ## Accumulated Context
 

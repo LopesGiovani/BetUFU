@@ -133,11 +133,11 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Chat e Moderação
 
-- [ ] **CHAT-01**: Usuário autenticado pode ler e publicar mensagens de texto no canal disponível de uma partida.
+- [ ] **CHAT-01**: Partida publicada oferece leitura pública; a sala global exige sessão para leitura, inclusive para matrícula inativa. Publicar texto em ambos os canais exige usuário autenticado com matrícula ATIVO.
 - [ ] **CHAT-02**: Mensagens persistidas aparecem em atualização próxima do tempo real e o histórico é carregado por páginas.
 - [ ] **CHAT-03**: Usuário pode denunciar mensagem específica informando um motivo.
 - [ ] **CHAT-04**: Usuário pode silenciar outro participante sem notificá-lo nem alterar a visão dos demais.
-- [ ] **CHAT-05**: Moderador pode remover mensagem, suspender participante ou bani-lo conforme escopo e motivo auditável.
+- [ ] **CHAT-05**: Moderador pode revisar denúncias, remover mensagens e escalar casos somente no escopo autorizado; apenas ADMINISTRADOR_GERAL aplica suspensões globais de escrita no chat (24h, 7 dias ou banimento de chat), com motivo e auditoria, sem alterar saldo, ranking ou histórico.
 - [ ] **CHAT-06**: Mensagem moderada preserva metadados internos necessários à auditoria sem continuar visível ao público.
 
 ### Arquitetura, Segurança e Qualidade
@@ -228,7 +228,7 @@ Adiados do MVP em 2026-08-19. No MVP a matrícula é autodeclarada e a plataform
 | Mercados criados por usuários | Abririam espaço para manipulação e liquidação inconsistente. |
 | Edição manual rotineira ou override unilateral de odds | Odds são automáticas; exceção exige mercado suspenso, justificativa e duas pessoas distintas. |
 | Alteração retroativa da odd aceita | Destruiria reprodutibilidade e tratamento uniforme das apostas. |
-| Chat anônimo, global ou sem moderação | Aumentaria abuso e removeria o contexto da partida. |
+| Escrita anônima ou chat sem moderação | Escrita exige sessão e matrícula ATIVO; a sala global moderada está incluída no piloto. Leitura pública de chat por partida permanece permitida. |
 | Login, senha ou SSO oficial da UFU | A BETUFU possui identidade própria e não presume integração institucional. |
 | Branding ou comunicação que indiquem vínculo oficial com a UFU | A plataforma é independente e deve evitar confusão institucional. |
 | Anonimato absoluto do operador perante provedores ou autoridades | Não é tecnicamente nem juridicamente garantível; a proteção acordada é contra exposição pública pessoal. |

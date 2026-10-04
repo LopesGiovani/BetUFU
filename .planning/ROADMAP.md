@@ -558,20 +558,103 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 
 ### Phase 7: Comunidade Moderada e Prontidão do Piloto
 
-**Goal**: O piloto oferece conversas seguras e responsivas sobre as partidas e está pronto para operar publicamente sem comprometer privacidade, responsabilização ou capacidade de recuperação.
+**Goal**: O piloto oferece chat por partida e sala global, com conversas seguras e responsivas, moderação auditável e operação recuperável sem comprometer privacidade ou integridade financeira.
 **Mode:** mvp
 **Depends on**: Phase 2, Phase 3, Phase 6
 **Requirements**: CHAT-01, CHAT-02, CHAT-03, CHAT-04, CHAT-05, CHAT-06, RT-01, INTE-05, PRIV-03, PRIV-04, PRIV-05, OPS-04, TEST-03, TEST-05, UX-01, UX-02
-**Decisão pendente**: A escolha dos provedores de nuvem e CI e os fluxos legais, de privacidade, retenção e direitos dos titulares precisam ser encerrados explicitamente antes do lançamento público; este roadmap não os seleciona.
+**Frontend scope**: Entrada Comunidade no topo da Arena, chat no evento, denúncias/mute, console de moderação e pausas, revisão de sanções e Privacidade na conta. Angular Signals, sessão BFF, OpenAPI gerado e visual existente preservado; contrato UI ainda pendente.
+**Decisões consolidadas**: D-01..D-40 em 07-CONTEXT.md; global incluído expressamente no piloto. Esta atualização aprova somente a consolidação documental.
+**Decisões pendentes**: Protocolo server-push e reconciliação RT-01/STOMP; aprovação do UI-SPEC draft e arquitetura/falhas da preferência de regras; bordas de lifecycle/mute/limiter; políticas jurídicas, identidade institucional legítima, backup/chaves/destino e carga/SLO/erro. Nenhum provedor ou dependência selecionado por inferência.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
-  1. Um usuário autenticado consegue ler e publicar mensagens de texto persistidas em um canal de partida autorizado, receber atualizações quase em tempo real e carregar o histórico mais antigo por páginas.
-  2. Um usuário consegue denunciar uma mensagem ou silenciar outro participante sem notificá-lo, enquanto um moderador no escopo correto consegue remover conteúdo ou suspender e banir um participante com motivo auditável e evidência interna preservada.
-  3. Um operador autorizado consegue suspender uma conta, confronto, mercado ou canal sem apagar o histórico necessário.
-  4. Fluxos públicos, autenticados, de palpites, histórico, ranking, administração e chat permanecem utilizáveis em dispositivos móveis e computadores e comunicam estados de carregamento, vazio, erro, suspensão e confirmação sem depender apenas de cores.
-  5. Verificações de lançamento impedem exposição conhecida de dados pessoais, usam a identidade institucional operacional aprovada, comprovam backups por restauração e bloqueiam a entrega quando falham os gates de qualidade, migração, contrato, arquitetura ou segurança.
+  1. Partidas publicadas têm leitura pública; global exige sessão inclusive para leitura, mas permite inativos. Ambos exigem ATIVO para escrever, texto até 280 caracteres e uma mensagem por usuário a cada três segundos. Partida fecha permanentemente duas horas após marco definitivo aprovado; correção concluída antes de fechar reconta o prazo, nunca reabre canal expirado.
+  2. Denúncia privada com catálogo fechado e mute imediato sincronizado preservam a experiência de outros leitores. Moderador remove no escopo; somente administrador geral aplica sanção de escrita em todos os chats, com progressão e revisão auditáveis. Texto original restrito não aparece em API/stream público.
+  3. Somente administrador geral pausa/retoma conta, partida, mercado ou canal; nega novos comandos definidos sem apagar histórico ou interromper liquidação/devolução/correção. Conta pausada conserva consultas, revisão e direitos.
+  4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
+  5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: TBD
+**Plans**: 35 propostas em 17 ondas, 102 tasks; 0 executadas. Status: revisão do responsável e gates pendentes, não Ready to execute. A nova numeração substitui os dez planos antigos; ver 07-DECOMPOSITION.md.
+
+**Wave 1**
+- [ ] 07-01-PLAN.md — Governanca de blocos e registro de gates.
+
+**Wave 2 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-02-PLAN.md — Preparacao juridica e institucional segregada.
+- [ ] 07-03-PLAN.md — Pipeline real para fonte OpenAPI candidata.
+- [ ] 07-04-PLAN.md — Canais global e por partida: schema V39.
+- [ ] 07-28-PLAN.md — Backups automaticos completos com RPO1h.
+
+**Wave 3 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-05-PLAN.md — Portas publicas e leitura HTTP segura.
+
+**Wave 4 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-06-PLAN.md — Contrato gerado de leitura dos dois canais.
+- [ ] 07-07-PLAN.md — Server push seguro e cursor de mudancas.
+- [ ] 07-09-PLAN.md — Escrita ATIVO, limite e idempotencia: V40/backend.
+
+**Wave 5 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-08-PLAN.md — Comunidade Arena e evento: tracer real de leitura.
+- [ ] 07-10-PLAN.md — Marco definitivo e encerramento permanente: V41.
+
+**Wave 6 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-11-PLAN.md — Contrato oficial de envio e recibo.
+- [ ] 07-13-PLAN.md — Denuncia e mute sincronizado: V42/backend.
+
+**Wave 7 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-14-PLAN.md — Contrato de denuncias e mute de conta.
+- [ ] 07-16-PLAN.md — Moderacao scoped e evidencia restrita: V43.
+
+**Wave 8 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-17-PLAN.md — Sancoes globais e revisao na conta: backend.
+- [ ] 07-20-PLAN.md — Pausa e retomada admin-only: V44/backend.
+
+**Wave 9 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-18-PLAN.md — Contrato de moderacao e revisao privada.
+- [ ] 07-21-PLAN.md — Guards atomicos de chat e novos palpites.
+- [ ] 07-24-PLAN.md — Direitos do titular e resposta operacional: V45/backend.
+
+**Wave 10 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-12-PLAN.md — Composer e fila volatil: tracer real de envio.
+- [ ] 07-22-PLAN.md — Contrato oficial de pausas e estados.
+- [ ] 07-27-PLAN.md — Retencao segregada, exports e supressoes: V46.
+
+**Wave 11 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-15-PLAN.md — Denunciar e silenciar: tracer multi-dispositivo.
+- [ ] 07-25-PLAN.md — Contrato oficial de Privacidade da conta.
+- [ ] 07-29-PLAN.md — Restore real isolado e supressao antes de servir.
+- [ ] 07-33-PLAN.md — Proposta de preferência de regras por conta: backend e V47 após V46.
+
+**Wave 12 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-19-PLAN.md — Console e punicoes da conta: tracer integrado.
+- [ ] 07-34-PLAN.md — Contrato privado gerado da preferência de regras, após 07-25/33.
+
+**Wave 13 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-23-PLAN.md — Pausas operacionais e estados: tracer real.
+
+**Wave 14 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-26-PLAN.md — Privacidade na conta: tracer titular/operacao.
+- [ ] 07-35-PLAN.md — Popup de regras acessível e jornada real entre contas/dispositivos.
+
+**Wave 15 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-30-PLAN.md — CI, publicacao e carga de referencia50.
+
+**Wave 16 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-31-PLAN.md — Jornadas reais integradas e regressao do piloto.
+
+**Wave 17 — Bloqueada pelas dependências explícitas dos planos**
+- [ ] 07-32-PLAN.md — Certificacao, snapshot e parecer do responsavel.
+
+**Cross-cutting constraints:**
+- Briefing/aprovação por bloco e candidatos/hashes antes de SQL/API governados; execução e Git separados, sem push.
+- Allowlists com até 15 paths incluindo candidatos/metadados/gerados. Inventário real extra interrompe publicação e exige revisão/subdivisão.
+- Portas públicas consumer-owned/adaptadores produtores, sem imports internos cruzados; schemas append-only candidatos V39..V47 não alteram V1..V38 nem fatos financeiros.
+- UI-SPEC existe como draft, com aprovação/checker pendentes; server-push não escolhe SSE implicitamente. CHAT-01/05 e Out of Scope reconciliados, sem marcar entrega.
+- Sanções/pausas não geram punição financeira; DTOs/marcadores/cursor/stream respeitam autorização e privacidade.
+- Backup/restore/carga/E2E somente em alvos isolados aprovados; preservar documentos, apostas, volumes e serviços do responsável.
+- Ondas serializam gerador/contrato/rotas/shell compartilhados. Preferência inline; tabela não autoriza worktrees/agentes ou paralelismo.
+
+**Planning review anterior — 2026-10-04 (32 planos, escopo delimitado):** Subdivisão documental substitui o blocker de tamanho da proposta inicial: 32 allowlists com no máximo 15 paths; DAG local sem predecessor inválido ou colisão na mesma onda. Mapa de validação atualizado para 92 tasks. Revisão independente delimitada encontrou 0 BLOCKERs e 2 WARNINGs: ordem Flyway e ligação do validador. Ajustados por dependências monotônicas V39..V46 e chamadas bloqueantes por etapa; rechecagem independente confirmou os dois alertas resolvidos. Não há PASS global; estrutura 32/32 e referências 16/16 requisitos e 40/40 decisões são provas documentais, não testes de negócio. Verificações anteriores de 10/10 e 14 decisões são históricas. Fase 7 não implementada ou liberada para execução.
+**Reconciliation — 2026-10-04:** 07-08 inclui HTML/teste reais do header (15 paths). Acrescentadas propostas 07-33/34/35 (10/14/9 paths) nas ondas 11/12/14, sem renumerar 01..32. V47 depende de V46; API 34 serializa contrato/gerador após 25; UI 35 serializa chat-panel após 23. 31 exige 35 antes da certificação. Preferência no módulo chat e política de falhas são propostas para aprovação no primeiro checkpoint de 33, não decisões já autorizadas. Fechar regras não significa aceite jurídico. UI-D01..07 registradas no contexto; requisitos não marcados concluídos. Revisão atual inline, não independente; nenhuma implementação, Git ou liberação do piloto.
 **UI hint**: yes
 
 ## Progress
@@ -588,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidão do Piloto | 0/TBD | Pending | - |
+| 7. Comunidade Moderada e Prontidão do Piloto | 0/35 | Draft planning; owner review and gates pending; no execution | - |
