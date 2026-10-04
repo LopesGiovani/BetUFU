@@ -29,6 +29,7 @@ import {
 } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { validatePhase7Approvals } from '../../scripts/validate-phase7-approvals.mjs';
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const defaultProjectRoot = resolve(scriptsDirectory, '..', '..');
@@ -1163,6 +1164,16 @@ async function persistCandidateMetadata(
   const prepared = join(parent, `.${parse(candidateDirectory).base}.prepare-${nonce}`);
   await mkdir(prepared, { recursive: false, mode: 0o700 });
   try {
+    // Keep the approved source and existing non-metadata files when refreshing evidence.
+    if (await pathExists(candidateDirectory)) {
+      const existing = await readTreeManifest(candidateDirectory);
+      for (const entry of existing.entries) {
+        if (['inventory.json', 'digest.sha256', 'governed-before.sha256', 'governed-after.sha256'].includes(entry.path)) continue;
+        const destination = resolveSafeRelative(prepared, entry.path);
+        await mkdir(dirname(destination), { recursive: true });
+        await writeFile(destination, entry.bytes);
+      }
+    }
     await writeJson(join(prepared, 'inventory.json'), metadata);
     await writeFile(join(prepared, 'digest.sha256'), `${metadata.digest}\n`, 'utf8');
     await writeFile(join(prepared, 'governed-before.sha256'), `${governedBefore}\n`, 'utf8');
@@ -1668,7 +1679,7 @@ function assertApprovedJavaRuntime(output) {
   }
 }
 
-async function runOpenApiGenerator({ configuration, enginePath, frontendRoot, inputSpec, outputDirectory }) {
+async function runOpenApiGenerator({ configuration, enginePath, frontendRoot, inputSpec, outputDirectory, globalProperty = PUBLIC_GENERATOR_GLOBAL_PROPERTY }) {
   const properties = Object.entries(configuration.generator.additionalProperties)
     .map(([key, value]) => `${key}=${String(value)}`)
     .join(',');
@@ -1685,7 +1696,7 @@ async function runOpenApiGenerator({ configuration, enginePath, frontendRoot, in
     '--additional-properties',
     properties,
     '--global-property',
-    PUBLIC_GENERATOR_GLOBAL_PROPERTY,
+    globalProperty,
   ];
 
   const javaEnvironment = safeJavaEnvironment();
@@ -1955,17 +1966,418 @@ async function createOperation(workspace, nonce) {
   return { backup, candidate, executionEngine, nonce, preserve: false, raw, root };
 }
 
+function bytesDigest(bytes) {
+  return createHash('sha256').update(bytes).digest('hex').toUpperCase();
+}
+
+function contractTags(source) {
+  const result = [];
+  for (const match of source.matchAll(
+    /^\s+tags:\s*(?:\[([^\]\n]*)\]|\n((?:\s+- [A-Za-z][A-Za-z0-9_-]*\s*\n)+))/gmu,
+  )) {
+    result.push(
+      ...(match[1] !== undefined
+        ? match[1].split(',').map((tag) => tag.trim())
+        : [...match[2].matchAll(/- ([A-Za-z][A-Za-z0-9_-]*)/gu)].map((tag) => tag[1])),
+    );
+  }
+  return [...new Set(result)].sort();
+}
+
+function exactSet(actual, expected, rule) {
+  if (
+    !Array.isArray(actual) ||
+    actual.some((value) => typeof value !== 'string') ||
+    new Set(actual).size !== actual.length ||
+    actual.length !== expected.length ||
+    expected.some((value) => !actual.includes(value))
+  ) {
+    const error = new GenerateApiContractError(rule, 'escopo candidato diverge da autorizacao.');
+    error.actualScope = actual;
+    error.expectedScope = expected;
+    throw error;
+  }
+}
+
+async function loadCandidateApproval(context, approvalPath) {
+  const absoluteApproval = resolveCandidateDirectory(context.projectRoot, approvalPath);
+  await assertNoLinks(context.projectRoot, absoluteApproval);
+  await verifyRegularFile(absoluteApproval, 'CANDIDATE_APPROVAL', 'CANDIDATE_APPROVAL');
+  const approval = await readJson(absoluteApproval, 'CANDIDATE_APPROVAL');
+  if (
+    toPosixPath(relative(context.projectRoot, absoluteApproval)) !==
+    `docs/phase7-approvals/${approval.plan}.json`
+  )
+    fail('CANDIDATE_APPROVAL', 'registro fora do path do plano.');
+  try {
+    await validatePhase7Approvals({
+      projectRoot: context.projectRoot,
+      plan: approval.plan,
+      stage: 'prepare-candidates',
+      currentHead: context.adapters.currentHead,
+    });
+  } catch {
+    fail('CANDIDATE_APPROVAL', 'aprovacao de preparacao ausente ou divergente.');
+  }
+  return { approval, absoluteApproval };
+}
+
+async function candidatePlanAllowlist(context, approval, sourcePath) {
+  const scope = approval.candidate_scope;
+  const sourceRelative = toPosixPath(relative(context.projectRoot, sourcePath));
+  if (
+    !scope ||
+    !approval.scope.paths.includes(sourceRelative) ||
+    scope.source_sha256 !== bytesDigest(await readFile(sourcePath))
+  )
+    fail('CANDIDATE_SCOPE', 'fonte fora do escopo ou digest divergente.');
+  const planPath = join(
+    context.projectRoot,
+    '.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto',
+    `${approval.plan}-PLAN.md`,
+  );
+  const planSource = await readFile(planPath, 'utf8');
+  const allowlist = [
+    ...planSource.match(/^---\r?\n([\s\S]*?)\r?\n---/)[1].matchAll(/^\s+- ([^\r\n]+)/gmu),
+  ].map((match) => match[1].trim());
+  return allowlist;
+}
+
+function validateCandidateGeneratedPaths(context, scope, allowlist) {
+  const targetPrefix = `${toPosixPath(relative(context.projectRoot, context.target))}/`;
+  for (const key of ['generated_paths', 'deleted_paths']) {
+    const paths = scope[key];
+    if (
+      !Array.isArray(paths) ||
+      new Set(paths).size !== paths.length ||
+      paths.some(
+        (path) =>
+          typeof path !== 'string' || !path.startsWith(targetPrefix) || !allowlist.includes(path),
+      )
+    )
+      fail('CANDIDATE_SCOPE', 'path candidato nao pertence a allowlist do plano.');
+  }
+}
+
+async function validateCandidateSelections(context, scope, sourcePath) {
+  const source = await readFile(sourcePath, 'utf8');
+  const governed = await readFile(context.inputSpec, 'utf8');
+  for (const [key, present, approved] of [
+    ['tags', contractTags(source), PUBLIC_GENERATOR_API_TAGS],
+    ['models', inspectOpenApiContract(source).schemas, PUBLIC_GENERATOR_MODELS],
+  ]) {
+    const names = scope[key];
+    if (
+      !Array.isArray(names) ||
+      new Set(names).size !== names.length ||
+      names.some(
+        (name) =>
+          !/^[A-Za-z][A-Za-z0-9_-]*$/u.test(name) ||
+          !present.includes(name) ||
+          approved.includes(name),
+      )
+    )
+      fail('CANDIDATE_SCOPE', 'tags/models candidatos invalidos.');
+    const baseline =
+      key === 'tags' ? contractTags(governed) : inspectOpenApiContract(governed).schemas;
+    exactSet(
+      names.filter((name) => !baseline.includes(name)),
+      present.filter((name) => !baseline.includes(name)),
+      'CANDIDATE_SCOPE',
+    );
+  }
+}
+
+async function validateCandidateFiles(context, approval) {
+  for (const path of [
+    'inventory.json',
+    'digest.sha256',
+    'governed-before.sha256',
+    'governed-after.sha256',
+  ]) {
+    if (
+      !approval.scope.paths.includes(
+        toPosixPath(relative(context.projectRoot, join(context.candidateDirectory, path))),
+      )
+    )
+      fail('CANDIDATE_SCOPE', 'metadados fora da allowlist.');
+  }
+  if (await pathExists(context.candidateDirectory)) {
+    for (const path of (await readTreeManifest(context.candidateDirectory)).files) {
+      if (
+        !approval.scope.paths.includes(
+          toPosixPath(relative(context.projectRoot, join(context.candidateDirectory, path))),
+        )
+      )
+        fail('CANDIDATE_SCOPE', 'arquivo candidato extra.');
+    }
+  }
+}
+
+async function validateCandidateBaseline(context, approval) {
+  const baselinePaths = [
+    context.inputSpec,
+    context.configurationPath,
+    context.enginePath,
+    ...(await readTreeManifest(context.target)).files.map((path) => join(context.target, path)),
+  ];
+  for (const path of baselinePaths) {
+    const portable = toPosixPath(relative(context.projectRoot, path));
+    if (approval.baseline_hashes[portable]?.toUpperCase() !== bytesDigest(await readFile(path)))
+      fail('CANDIDATE_SCOPE', 'baseline governada incompleta.');
+  }
+}
+
+async function candidateAuthority(context, sourcePath, approvalPath) {
+  const { approval, absoluteApproval } = await loadCandidateApproval(context, approvalPath);
+  const scope = approval.candidate_scope;
+  const allowlist = await candidatePlanAllowlist(context, approval, sourcePath);
+  validateCandidateGeneratedPaths(context, scope, allowlist);
+  await validateCandidateSelections(context, scope, sourcePath);
+  await validateCandidateFiles(context, approval);
+  await validateCandidateBaseline(context, approval);
+  return {
+    approval,
+    scope,
+    allowlist,
+    approval_sha256: bytesDigest(await readFile(absoluteApproval)),
+    globalProperty: [
+      `apis=${[...PUBLIC_GENERATOR_API_TAGS, ...scope.tags].join(':')}`,
+      `models=${[...PUBLIC_GENERATOR_MODELS, ...scope.models].join(':')}`,
+      'supportingFiles=',
+    ].join(','),
+  };
+}
+
+async function governedCandidateSnapshot(context) {
+  const files = [context.inputSpec, context.configurationPath, context.enginePath];
+  return Object.fromEntries(
+    await Promise.all(
+      files.map(async (path) => [
+        toPosixPath(relative(context.projectRoot, path)),
+        bytesDigest(await readFile(path)),
+      ]),
+    ),
+  );
+}
+
+function candidateChanges(before, after, prefix) {
+  const old = new Map(before.entries.map((entry) => [entry.path, entry.bytes]));
+  const next = new Map(after.entries.map((entry) => [entry.path, entry.bytes]));
+  return [...new Set([...old.keys(), ...next.keys()])].sort().map((path) => {
+    const previous = old.get(path),
+      current = next.get(path);
+    const status =
+      previous === undefined
+        ? 'added'
+        : current === undefined
+          ? 'deleted'
+          : previous.equals(current)
+            ? 'unchanged'
+            : 'modified';
+    const decoder = new TextDecoder('utf-8', { fatal: true });
+    return {
+      path: `${prefix}/${path}`,
+      status,
+      before_sha256: previous === undefined ? null : bytesDigest(previous),
+      after_sha256: current === undefined ? null : bytesDigest(current),
+      before_content:
+        status === 'unchanged' || previous === undefined ? null : decoder.decode(previous),
+      after_content:
+        status === 'unchanged' || current === undefined ? null : decoder.decode(current),
+    };
+  });
+}
+
+async function initializeCandidate(
+  context,
+  candidateDirectory,
+  candidateSource,
+  candidateApproval,
+) {
+  let candidateInput;
+  let candidateAuthorization;
+  context.candidateDirectory = resolveCandidateDirectory(context.projectRoot, candidateDirectory);
+  await assertNoLinks(context.projectRoot, context.candidateDirectory);
+  if (
+    isContained(context.target, context.candidateDirectory) ||
+    isContained(context.candidateDirectory, context.target)
+  ) {
+    fail('UNSAFE_PATH', 'diretorio candidato nao pode coincidir com a arvore governada.');
+  }
+  if (
+    [context.inputSpec, context.configurationPath, context.enginePath, context.workspace].some(
+      (path) =>
+        isContained(context.candidateDirectory, path) ||
+        isContained(context.workspace, context.candidateDirectory),
+    )
+  )
+    fail('UNSAFE_PATH', 'candidato sobrepoe artefatos governados ou workspace.');
+  if (candidateSource !== null) {
+    candidateInput = resolveCandidateDirectory(context.projectRoot, candidateSource);
+    await assertNoLinks(context.projectRoot, candidateInput);
+    await verifyRegularFile(candidateInput, 'SPEC_MISSING', 'SPEC_INVALID');
+    if (
+      !isContained(context.candidateDirectory, candidateInput) ||
+      candidateInput === context.inputSpec
+    )
+      fail('CANDIDATE_SCOPE', 'fonte deve pertencer ao diretorio candidato.');
+    candidateAuthorization = await candidateAuthority(context, candidateInput, candidateApproval);
+  }
+  return { candidateInput, candidateAuthorization };
+}
+
+async function validateCandidateDrift(context, state) {
+  const {
+    governedBeforeManifest,
+    governedSnapshot,
+    candidateInput,
+    openApiSource,
+    executionInput,
+    candidateAuthorization,
+    candidateApproval,
+  } = state;
+  const governedAfterManifest = await readTreeManifest(context.target);
+  if (governedAfterManifest.digest !== governedBeforeManifest.digest) {
+    fail('GENERATED_DRIFT', 'arvore governada mudou durante a geracao candidata.');
+  }
+  if (
+    !isDeepStrictEqual(governedSnapshot, await governedCandidateSnapshot(context)) ||
+    bytesDigest(await readFile(candidateInput ?? context.inputSpec)) !==
+      bytesDigest(Buffer.from(openApiSource, 'utf8')) ||
+    bytesDigest(await readFile(executionInput)) !== bytesDigest(Buffer.from(openApiSource, 'utf8'))
+  )
+    fail('CANDIDATE_DRIFT', 'baseline ou fonte mudou durante a geracao.');
+  if (
+    candidateAuthorization &&
+    (await candidateAuthority(context, candidateInput, candidateApproval)).approval_sha256 !==
+      candidateAuthorization.approval_sha256
+  )
+    fail('CANDIDATE_DRIFT', 'aprovacao mudou durante a geracao.');
+  return governedAfterManifest;
+}
+
+async function completeCandidate(context, state) {
+  const {
+    governedBeforeManifest,
+    governedSnapshot,
+    candidateInput,
+    openApiSource,
+    candidateAuthorization,
+    candidateManifest,
+    contract,
+    nonce,
+    mode,
+  } = state;
+  const governedAfterManifest = await validateCandidateDrift(context, state);
+  const openApiInventory = candidateAuthorization
+    ? inspectOpenApiContract(openApiSource)
+    : inspectGeneratedOpenApiContract(openApiSource);
+  const operationIds = inspectOpenApiOperationIds(openApiSource);
+  const changes = candidateChanges(
+    governedBeforeManifest,
+    candidateManifest,
+    toPosixPath(relative(context.projectRoot, context.target)),
+  );
+  if (candidateAuthorization) {
+    exactSet(
+      changes.filter((entry) => entry.status !== 'unchanged').map((entry) => entry.path),
+      candidateAuthorization.scope.generated_paths,
+      'CANDIDATE_SCOPE',
+    );
+    exactSet(
+      changes.filter((entry) => entry.status === 'deleted').map((entry) => entry.path),
+      candidateAuthorization.scope.deleted_paths,
+      'CANDIDATE_REMOVAL',
+    );
+  }
+  const governedPath = toPosixPath(relative(context.projectRoot, context.inputSpec));
+  const governedBytes = await readFile(context.inputSpec);
+  const sourceBytes = Buffer.from(openApiSource, 'utf8');
+  const sourceChanged = !governedBytes.equals(sourceBytes);
+  if (
+    candidateAuthorization &&
+    sourceChanged &&
+    !candidateAuthorization.allowlist.includes(governedPath)
+  )
+    fail('CANDIDATE_SCOPE', 'contrato governado fora da allowlist.');
+  changes.push({
+    path: governedPath,
+    status: sourceChanged ? 'modified' : 'unchanged',
+    before_sha256: bytesDigest(governedBytes),
+    after_sha256: bytesDigest(sourceBytes),
+    before_content: sourceChanged ? governedBytes.toString('utf8') : null,
+    after_content: sourceChanged ? openApiSource : null,
+  });
+  for (const path of [context.configurationPath, context.enginePath]) {
+    const portable = toPosixPath(relative(context.projectRoot, path));
+    changes.push({
+      path: portable,
+      status: 'unchanged',
+      before_sha256: governedSnapshot[portable],
+      after_sha256: governedSnapshot[portable],
+    });
+  }
+  const metadata = {
+    version: 2,
+    generatedTarget: context.configuration.generator.target,
+    files: candidateManifest.files,
+    digest: candidateManifest.digest,
+    endpoints: openApiInventory.endpoints,
+    operationIds,
+    schemas: openApiInventory.schemas,
+    publicSchemas: openApiInventory.publicSchemas,
+    source: {
+      path: toPosixPath(relative(context.projectRoot, candidateInput ?? context.inputSpec)),
+      sha256: bytesDigest(sourceBytes),
+    },
+    governed: governedSnapshot,
+    engine: { ...contract },
+    generatedEntries: candidateManifest.entries.map((entry) => ({
+      path: entry.path,
+      size: entry.bytes.length,
+      sha256: bytesDigest(entry.bytes),
+    })),
+    changes,
+  };
+  await persistCandidateMetadata(
+    context.candidateDirectory,
+    metadata,
+    governedBeforeManifest.digest,
+    governedAfterManifest.digest,
+    nonce,
+    context.projectRoot,
+  );
+  return {
+    mode,
+    digest: candidateManifest.digest,
+    files: candidateManifest.files,
+    candidateDirectory: context.candidateDirectory,
+    governedBefore: governedBeforeManifest.digest,
+    governedAfter: governedAfterManifest.digest,
+  };
+}
+
 export async function executeGenerateApi({
   projectRoot = defaultProjectRoot,
   mode = 'generate',
   contract = APPROVED_ENGINE,
   generatedManifestContract = APPROVED_GENERATED_MANIFEST,
   candidateDirectory = null,
+  candidateSource = null,
+  candidateApproval = null,
   adapters: adapterOverrides = {},
 } = {}) {
   if (!['generate', 'check', 'candidate'].includes(mode)) {
     fail('MODE_INVALID', 'modo deve ser generate, check ou candidate.');
   }
+  if (
+    mode !== 'candidate' &&
+    (candidateSource !== null || candidateApproval !== null || candidateDirectory !== null)
+  )
+    fail('CANDIDATE_FLAGS', 'flags candidatas somente no modo candidate.');
+  if ((candidateSource === null) !== (candidateApproval === null))
+    fail('CANDIDATE_APPROVAL', 'fonte e aprovacao candidatas devem ser informadas juntas.');
   if (mode === 'candidate' && candidateDirectory === null) {
     fail('CANDIDATE_PATH_MISSING', 'diretorio candidato obrigatorio.');
   }
@@ -1982,18 +2394,16 @@ export async function executeGenerateApi({
   context.journalPath = join(context.workspace, JOURNAL_FILE);
   const approvedManifest = mode === 'candidate' ? null : generatedManifestContract;
   let governedBeforeManifest;
+  let candidateAuthorization;
+  let candidateInput;
+  let governedSnapshot;
   if (mode === 'candidate') {
-    context.candidateDirectory = resolveCandidateDirectory(
-      context.projectRoot,
+    ({ candidateInput, candidateAuthorization } = await initializeCandidate(
+      context,
       candidateDirectory,
-    );
-    await assertNoLinks(context.projectRoot, context.candidateDirectory);
-    if (
-      isContained(context.target, context.candidateDirectory)
-      || isContained(context.candidateDirectory, context.target)
-    ) {
-      fail('UNSAFE_PATH', 'diretorio candidato nao pode coincidir com a arvore governada.');
-    }
+      candidateSource,
+      candidateApproval,
+    ));
   }
 
   const targetVolume = await adapters.volumeOf(context.target);
@@ -2004,17 +2414,20 @@ export async function executeGenerateApi({
 
   await verifyRegularFile(context.inputSpec, 'SPEC_MISSING', 'SPEC_INVALID');
   await verifyEngine(context.enginePath, contract);
-  const openApiSource = await readFile(context.inputSpec, 'utf8');
+  const openApiSource = await readFile(candidateInput ?? context.inputSpec, 'utf8');
   assertPublicSchemaAllowlist(openApiSource);
   if (mode === 'candidate') {
     try {
       governedBeforeManifest = await readTreeManifest(context.target);
+      if (generatedManifestContract !== null)
+        assertApprovedGeneratedManifest(governedBeforeManifest, generatedManifestContract);
     } catch (error) {
       if (isMissing(error)) {
         fail('GENERATED_DRIFT', 'arvore governada esta ausente antes do candidato.');
       }
       throw error;
     }
+    governedSnapshot = await governedCandidateSnapshot(context);
   }
   await mkdir(context.workspace, { recursive: true });
   await assertNoLinks(context.projectRoot, context.workspace);
@@ -2037,14 +2450,29 @@ export async function executeGenerateApi({
       fileSystemConstants.COPYFILE_EXCL,
     );
     await verifyEngine(operation.executionEngine, contract);
+    let executionInput = context.inputSpec;
+    if (mode === 'candidate') {
+      executionInput = join(operation.root, 'candidate-source.yaml');
+      await copyFile(
+        candidateInput ?? context.inputSpec,
+        executionInput,
+        fileSystemConstants.COPYFILE_EXCL,
+      );
+      if (
+        bytesDigest(await readFile(executionInput)) !==
+        bytesDigest(Buffer.from(openApiSource, 'utf8'))
+      )
+        fail('CANDIDATE_DRIFT', 'fonte mudou antes de gerar.');
+    }
     let generatorError;
     try {
       await adapters.generate({
         configuration: context.configuration,
         enginePath: operation.executionEngine,
         frontendRoot: context.frontendRoot,
-        inputSpec: context.inputSpec,
+        inputSpec: executionInput,
         outputDirectory: operation.raw,
+        globalProperty: candidateAuthorization?.globalProperty ?? PUBLIC_GENERATOR_GLOBAL_PROPERTY,
       });
     } catch (error) {
       generatorError = error;
@@ -2077,40 +2505,19 @@ export async function executeGenerateApi({
     await materializeTypeScript(operation.raw, operation.candidate);
     const candidateManifest = await readTreeManifest(operation.candidate);
     if (mode === 'candidate') {
-      const governedAfterManifest = await readTreeManifest(context.target);
-      if (governedAfterManifest.digest !== governedBeforeManifest.digest) {
-        fail('GENERATED_DRIFT', 'arvore governada mudou durante a geracao candidata.');
-      }
-      const openApiInventory = inspectGeneratedOpenApiContract(
-        await readFile(context.inputSpec, 'utf8'),
-      );
-      const operationIds = inspectOpenApiOperationIds(await readFile(context.inputSpec, 'utf8'));
-      const metadata = {
-        version: 1,
-        generatedTarget: context.configuration.generator.target,
-        files: candidateManifest.files,
-        digest: candidateManifest.digest,
-        endpoints: openApiInventory.endpoints,
-        operationIds,
-        schemas: openApiInventory.schemas,
-        publicSchemas: openApiInventory.publicSchemas,
-      };
-      await persistCandidateMetadata(
-        context.candidateDirectory,
-        metadata,
-        governedBeforeManifest.digest,
-        governedAfterManifest.digest,
+      return await completeCandidate(context, {
+        governedBeforeManifest,
+        governedSnapshot,
+        candidateInput,
+        openApiSource,
+        executionInput,
+        candidateAuthorization,
+        candidateApproval,
+        candidateManifest,
+        contract,
         nonce,
-        context.projectRoot,
-      );
-      return {
         mode,
-        digest: candidateManifest.digest,
-        files: candidateManifest.files,
-        candidateDirectory: context.candidateDirectory,
-        governedBefore: governedBeforeManifest.digest,
-        governedAfter: governedAfterManifest.digest,
-      };
+      });
     }
     if (approvedManifest !== null) {
       assertApprovedGeneratedManifest(candidateManifest, approvedManifest);
@@ -2125,12 +2532,7 @@ export async function executeGenerateApi({
       };
     }
 
-    await publishCandidate(
-      context,
-      operation,
-      candidateManifest,
-      approvedManifest,
-    );
+    await publishCandidate(context, operation, candidateManifest, approvedManifest);
     return {
       mode,
       digest: candidateManifest.digest,
@@ -2141,7 +2543,7 @@ export async function executeGenerateApi({
     throw error;
   } finally {
     try {
-      if (operation && !operation.preserve && await pathExists(operation.root)) {
+      if (operation && !operation.preserve && (await pathExists(operation.root))) {
         await removeKnownTree(context.workspace, operation.root);
       }
     } catch (cleanupError) {
@@ -2167,18 +2569,25 @@ export function sanitizeError(error) {
   return 'INTERNAL_ERROR: falha interna no pipeline OpenAPI.';
 }
 
+function parseArguments(argumentsList) {
+  if (argumentsList.length === 0) return { mode: 'generate' };
+  if (argumentsList.length === 1 && argumentsList[0] === '--check') return { mode: 'check' };
+  if (![2, 6].includes(argumentsList.length) || argumentsList[0] !== '--candidate') return null;
+  const result = { mode: 'candidate', candidateDirectory: argumentsList[1] };
+  if (argumentsList.length === 2) return result;
+  if (argumentsList[2] !== '--candidate-source' || argumentsList[4] !== '--candidate-approval')
+    return null;
+  return { ...result, candidateSource: argumentsList[3], candidateApproval: argumentsList[5] };
+}
+
 async function main() {
   const argumentsList = process.argv.slice(2);
-  const mode = argumentsList.length === 0
-    ? { mode: 'generate' }
-    : argumentsList.length === 1 && argumentsList[0] === '--check'
-      ? { mode: 'check' }
-      : argumentsList.length === 2 && argumentsList[0] === '--candidate'
-        ? { mode: 'candidate', candidateDirectory: argumentsList[1] }
-        : null;
+  const mode = parseArguments(argumentsList);
 
   if (mode === null) {
-    console.error('Uso: node frontend/scripts/generate-api.mjs [--check] | [--candidate <dir>]');
+    console.error(
+      'Uso: node frontend/scripts/generate-api.mjs [--check] | [--candidate <dir> [--candidate-source <file> --candidate-approval <file>]]',
+    );
     process.exitCode = 2;
     return;
   }

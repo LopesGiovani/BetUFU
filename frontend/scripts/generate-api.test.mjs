@@ -15,9 +15,11 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { phase7PlanContract } from '../../scripts/validate-phase7-approvals.mjs';
 
 import {
   APPROVED_GENERATED_DIGEST,
+  APPROVED_ENGINE,
   APPROVED_GENERATED_FILES,
   PUBLIC_GENERATOR_API_TAGS,
   PUBLIC_GENERATOR_GLOBAL_PROPERTY,
@@ -158,8 +160,442 @@ async function execute(fixture, options = {}) {
     generatedManifestContract: options.generatedManifestContract ?? null,
     mode: options.mode ?? 'generate',
     candidateDirectory: options.candidateDirectory ?? null,
+    candidateSource: options.candidateSource ?? null,
+    candidateApproval: options.candidateApproval ?? null,
   });
 }
+
+async function candidateFixture(fixture) {
+  const phase = '.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto';
+  const directory = `${phase}/07-06-candidate`;
+  const sourcePath = `${directory}/betufu.yaml`;
+  const approvalPath = 'docs/phase7-approvals/07-06.json';
+  const generatedPaths = ['api/chat.service.ts', 'model/chat-message.ts'].map(
+    (path) => `frontend/src/app/api/generated/${path}`,
+  );
+  const metadata = [
+    'inventory.json',
+    'digest.sha256',
+    'governed-before.sha256',
+    'governed-after.sha256',
+  ].map((path) => `${directory}/${path}`);
+  const allPaths = [
+    approvalPath,
+    sourcePath,
+    ...metadata,
+    ...generatedPaths,
+    'backend/openapi/betufu.yaml',
+  ];
+  const plan = `---\nplan: '06'\nfiles_modified:\n${allPaths.map((path) => `  - ${path}\n`).join('')}---\n<task type="auto"><files>${[sourcePath, ...metadata].join(', ')}</files><verify><automated>node scripts/validate-phase7-approvals.mjs --plan 07-06 --stage prepare-candidates</automated></verify></task>`;
+  const source =
+    'openapi: 3.1.0\ninfo: {title: Candidate, version: 1.0.0}\npaths:\n  /api/v1/chat/global:\n    get:\n      tags: [Chat]\n      operationId: getGlobalChat\n      responses:\n        "200": {description: ok}\ncomponents:\n  schemas:\n    ChatMessage:\n      type: object\n';
+  await writeText(join(fixture.root, sourcePath), source);
+  await writeText(join(fixture.root, phase, '07-06-PLAN.md'), plan);
+  const decisions = JSON.stringify({ schema_version: 1, plan_gates: { '07-06': [] } });
+  await writeText(join(fixture.root, 'docs/phase7-decisions.json'), decisions);
+  const baselinePaths = [
+    'frontend/openapitools.json',
+    'backend/openapi/betufu.yaml',
+    `frontend/${fixture.contract.path}`,
+    ...(await readTreeManifest(fixture.target)).files.map(
+      (path) => `frontend/src/app/api/generated/${path}`,
+    ),
+  ];
+  const approval = {
+    schema_version: 1,
+    plan: '07-06',
+    status: 'approved',
+    authorized_stage: 'prepare-candidates',
+    head: 'a'.repeat(40),
+    human_approval: {
+      source: 'owner',
+      status: 'approved',
+      reference: 'synthetic-unit-test-only',
+      statement:
+        'Synthetic record confined to this temporary test directory, never a real authorization.',
+      plans: ['07-06'],
+    },
+    plan_sha256: sha256(plan).toLowerCase(),
+    decisions_sha256: sha256(decisions).toLowerCase(),
+    scope: phase7PlanContract(plan, '07-06', 'prepare-candidates'),
+    baseline_hashes: Object.fromEntries(
+      await Promise.all(
+        baselinePaths.map(async (path) => [
+          path,
+          sha256(await readFile(join(fixture.root, path))).toLowerCase(),
+        ]),
+      ),
+    ),
+    candidate_hashes: {},
+    candidate_scope: {
+      source_sha256: sha256(source),
+      tags: ['Chat'],
+      models: ['ChatMessage'],
+      generated_paths: generatedPaths,
+      deleted_paths: [],
+    },
+  };
+  await writeText(join(fixture.root, approvalPath), JSON.stringify(approval));
+  return {
+    directory,
+    sourcePath,
+    approvalPath,
+    approval,
+    options: {
+      mode: 'candidate',
+      candidateDirectory: directory,
+      candidateSource: sourcePath,
+      candidateApproval: approvalPath,
+      adapters: {
+        currentHead: 'a'.repeat(40),
+        generate: async ({ outputDirectory }) => {
+          for (const entry of (await readTreeManifest(fixture.target)).entries)
+            await writeText(join(outputDirectory, entry.path), entry.bytes);
+          await writeText(join(outputDirectory, 'api.base.service.ts'), RAW_BASE_SERVICE);
+          await writeText(
+            join(outputDirectory, 'api/chat.service.ts'),
+            'export class ChatService {}\r\n',
+          );
+          await writeText(
+            join(outputDirectory, 'model/chat-message.ts'),
+            'export interface ChatMessage {}\r\n',
+          );
+        },
+      },
+    },
+  };
+}
+
+test('candidate source drives generation and persists complete bytes without deleting its YAML', async () => {
+  await withFixture('phase7-candidate', async (fixture) => {
+    await execute(fixture);
+    const f = await candidateFixture(fixture);
+    const source = await readFile(join(fixture.root, f.sourcePath));
+    const before = await snapshotTree(fixture.target);
+    let seen;
+    const original = f.options.adapters.generate;
+    f.options.adapters.generate = async (args) => {
+      seen = await readFile(args.inputSpec);
+      await original(args);
+    };
+    const result = await execute(fixture, f.options);
+    assert.deepEqual(seen, source);
+    assert.deepEqual(await readFile(join(fixture.root, f.sourcePath)), source);
+    assert.equal(await snapshotTree(fixture.target), before);
+    const inventory = JSON.parse(await readFile(join(fixture.root, f.directory, 'inventory.json')));
+    assert.equal(inventory.source.sha256, sha256(source));
+    assert.equal(inventory.digest, result.digest);
+    const changed = inventory.changes.filter(
+      (entry) =>
+        entry.status !== 'unchanged' && entry.path.startsWith('frontend/src/app/api/generated/'),
+    );
+    assert.deepEqual(
+      changed.map((entry) => entry.path).sort(),
+      f.approval.candidate_scope.generated_paths.sort(),
+    );
+    for (const entry of changed) {
+      assert.equal(entry.status, 'added');
+      assert.equal(sha256(entry.after_content), entry.after_sha256);
+      assert.equal(entry.after_content.includes('\r'), false);
+    }
+  });
+});
+
+for (const [label, mutation] of [
+  [
+    'pending approval',
+    (f) => {
+      f.approval.status = 'pending';
+    },
+  ],
+  [
+    'wrong source hash',
+    (f) => {
+      f.approval.candidate_scope.source_sha256 = '0'.repeat(64);
+    },
+  ],
+  [
+    'extra scope',
+    (f) => {
+      f.approval.candidate_scope.generated_paths.push(
+        'frontend/src/app/api/generated/unapproved.ts',
+      );
+    },
+  ],
+  [
+    'missing changed path',
+    (f) => {
+      f.approval.candidate_scope.generated_paths.pop();
+    },
+  ],
+  [
+    'unapproved model',
+    (f) => {
+      f.approval.candidate_scope.models = ['NotInSource'];
+    },
+  ],
+  [
+    'unapproved tag',
+    (f) => {
+      f.approval.candidate_scope.tags = ['NotInSource'];
+    },
+  ],
+  [
+    'fixture approval',
+    (f) => {
+      f.approval.fixture = true;
+    },
+  ],
+  [
+    'stale HEAD',
+    (f) => {
+      f.approval.head = 'b'.repeat(40);
+    },
+  ],
+  [
+    'incomplete governed baseline',
+    (f) => {
+      delete f.approval.baseline_hashes['backend/openapi/betufu.yaml'];
+    },
+  ],
+])
+  test(`candidate source rejects ${label}`, async () => {
+    await withFixture(`candidate-${label.replaceAll(' ', '-')}`, async (fixture) => {
+      await execute(fixture);
+      const f = await candidateFixture(fixture);
+      const before = await snapshotTree(fixture.target);
+      mutation(f);
+      await writeText(join(fixture.root, f.approvalPath), JSON.stringify(f.approval));
+      await assert.rejects(
+        execute(fixture, f.options),
+        (error) => error instanceof GenerateApiContractError,
+      );
+      assert.equal(await snapshotTree(fixture.target), before);
+    });
+  });
+
+test('candidate flags are rejected outside candidate mode', async () => {
+  await withFixture('candidate-mode-guard', async (fixture) => {
+    for (const mode of ['generate', 'check'])
+      await assert.rejects(
+        execute(fixture, {
+          mode,
+          candidateSource: 'source.yaml',
+          candidateApproval: 'approval.json',
+        }),
+        (error) => error.rule === 'CANDIDATE_FLAGS',
+      );
+  });
+});
+
+for (const kind of ['escape', 'missing', 'directory', 'junction', 'governed-overlap'])
+  test(`candidate source rejects ${kind} path`, async () => {
+    await withFixture(`candidate-path-${kind}`, async (fixture) => {
+      await execute(fixture);
+      const f = await candidateFixture(fixture);
+      if (kind === 'escape') f.options.candidateSource = '../outside.yaml';
+      if (kind === 'missing') f.options.candidateSource += '.missing';
+      if (kind === 'directory') f.options.candidateSource = f.directory;
+      if (kind === 'governed-overlap') f.options.candidateDirectory = 'backend';
+      if (kind === 'junction') {
+        const link = join(fixture.root, 'candidate-link');
+        await symlink(
+          join(fixture.root, f.directory),
+          link,
+          process.platform === 'win32' ? 'junction' : 'dir',
+        );
+        f.options.candidateSource = 'candidate-link/betufu.yaml';
+      }
+      await assert.rejects(
+        execute(fixture, f.options),
+        (error) => error instanceof GenerateApiContractError,
+      );
+    });
+  });
+
+for (const kind of [
+  'source',
+  'configuration',
+  'governed-api',
+  'governed-tree',
+  'approval',
+  'unexpected-removal',
+])
+  test(`candidate detects ${kind} drift during generation`, async () => {
+    await withFixture(`candidate-drift-${kind}`, async (fixture) => {
+      await execute(fixture);
+      const f = await candidateFixture(fixture);
+      if (kind === 'unexpected-removal') {
+        const deleted = 'frontend/src/app/api/generated/model/current-identity-response.ts';
+        f.approval.candidate_scope.generated_paths.push(deleted);
+        const planPath = join(
+          fixture.root,
+          '.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-06-PLAN.md',
+        );
+        const plan = (await readFile(planPath, 'utf8')).replace(
+          '\n---\n',
+          `\n  - ${deleted}\n---\n`,
+        );
+        await writeText(planPath, plan);
+        f.approval.plan_sha256 = sha256(plan).toLowerCase();
+        await writeText(join(fixture.root, f.approvalPath), JSON.stringify(f.approval));
+      }
+      const generate = f.options.adapters.generate;
+      f.options.adapters.generate = async (args) => {
+        await generate(args);
+        if (kind === 'source') await writeText(join(fixture.root, f.sourcePath), 'tampered\n');
+        if (kind === 'configuration')
+          await writeText(join(fixture.frontendRoot, 'openapitools.json'), '{}');
+        if (kind === 'governed-api')
+          await writeText(join(fixture.root, 'backend/openapi/betufu.yaml'), 'tampered\n');
+        if (kind === 'governed-tree')
+          await writeText(join(fixture.target, 'api/identity.service.ts'), 'tampered\n');
+        if (kind === 'approval')
+          await writeText(
+            join(fixture.root, f.approvalPath),
+            JSON.stringify({ ...f.approval, note: 'changed in flight' }),
+          );
+        if (kind === 'unexpected-removal') {
+          await rm(join(args.outputDirectory, 'model/current-identity-response.ts'));
+        }
+      };
+      await assert.rejects(
+        execute(fixture, f.options),
+        (error) =>
+          error instanceof GenerateApiContractError &&
+          (kind !== 'unexpected-removal' || error.rule === 'CANDIDATE_REMOVAL'),
+      );
+      await assert.rejects(stat(join(fixture.root, f.directory, 'inventory.json')), {
+        code: 'ENOENT',
+      });
+    });
+  });
+
+test('CLI rejects candidate-only flags in generate/check and incomplete approval flags', () => {
+  for (const args of [
+    ['--candidate-source', 'source.yaml'],
+    ['--check', '--candidate-source', 'source.yaml'],
+    ['--candidate', 'candidate', '--candidate-source', 'source.yaml'],
+  ]) {
+    const result = spawnSync(process.execPath, [runnerPath, ...args], {
+      cwd: projectRoot,
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 10000,
+    });
+    assert.equal(result.status, 2);
+    assert.equal(result.stdout, '');
+  }
+});
+
+test('candidate inventory distinguishes modified and deleted bytes with explicit removal scope', async () => {
+  await withFixture('candidate-inventory-status', async (fixture) => {
+    await execute(fixture);
+    const f = await candidateFixture(fixture);
+    const deleted = 'frontend/src/app/api/generated/model/current-identity-response.ts';
+    const modified = 'frontend/src/app/api/generated/api/identity.service.ts';
+    f.approval.candidate_scope.generated_paths.push(deleted, modified);
+    f.approval.candidate_scope.deleted_paths = [deleted];
+    const planPath = join(
+      fixture.root,
+      '.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-06-PLAN.md',
+    );
+    const plan = (await readFile(planPath, 'utf8')).replace(
+      '\n---\n',
+      `\n  - ${deleted}\n  - ${modified}\n---\n`,
+    );
+    await writeText(planPath, plan);
+    f.approval.plan_sha256 = sha256(plan).toLowerCase();
+    await writeText(join(fixture.root, f.approvalPath), JSON.stringify(f.approval));
+    const generate = f.options.adapters.generate;
+    f.options.adapters.generate = async (args) => {
+      await generate(args);
+      await rm(join(args.outputDirectory, 'model/current-identity-response.ts'));
+      await writeText(
+        join(args.outputDirectory, 'api/identity.service.ts'),
+        'export const line = 2;\r\n',
+      );
+    };
+    await execute(fixture, f.options);
+    const inventory = JSON.parse(await readFile(join(fixture.root, f.directory, 'inventory.json')));
+    const removed = inventory.changes.find((entry) => entry.path === deleted);
+    const changed = inventory.changes.find((entry) => entry.path === modified);
+    assert.equal(removed.status, 'deleted');
+    assert.equal(removed.after_content, null);
+    assert.equal(sha256(removed.before_content), removed.before_sha256);
+    assert.equal(changed.status, 'modified');
+    assert.equal(sha256(changed.after_content), changed.after_sha256);
+    assert.equal(changed.after_content, 'export const line = 2;\n');
+  });
+});
+
+test('REAL approved Java engine generates new candidate Chat service and model without governed writes', async () => {
+  await withFixture('candidate-real-engine', async (fixture) => {
+    fixture.contract = APPROVED_ENGINE;
+    await writeFile(
+      fixture.enginePath,
+      await readFile(join(projectRoot, 'frontend', APPROVED_ENGINE.path)),
+    );
+    await writeText(
+      join(fixture.frontendRoot, 'openapitools.json'),
+      await readFile(join(projectRoot, 'frontend/openapitools.json')),
+    );
+    await rm(fixture.target, { recursive: true });
+    for (const entry of (
+      await readTreeManifest(join(projectRoot, 'frontend/src/app/api/generated'))
+    ).entries)
+      await writeText(join(fixture.target, entry.path), entry.bytes);
+    const baseline = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+    await writeText(join(fixture.root, 'backend/openapi/betufu.yaml'), baseline);
+    const f = await candidateFixture(fixture);
+    const source = baseline
+      .replace(
+        'paths:\n',
+        'paths:\n  /api/v1/chat/test:\n    get:\n      tags: [Chat]\n      operationId: getCandidateChat\n      responses:\n        "200":\n          description: Candidate only\n          content:\n            application/json:\n              schema: {$ref: "#/components/schemas/ChatMessage"}\n',
+      )
+      .replace(
+        '  schemas:\n',
+        '  schemas:\n    ChatMessage:\n      type: object\n      required: [text]\n      properties:\n        text: {type: string}\n',
+      );
+    assert.notEqual(source, baseline);
+    await writeText(join(fixture.root, f.sourcePath), source);
+    const additions = ['api/api.ts', 'model/models.ts'].map(
+      (path) => `frontend/src/app/api/generated/${path}`,
+    );
+    f.approval.candidate_scope.generated_paths.push(...additions);
+    f.approval.candidate_scope.source_sha256 = sha256(source);
+    const planPath = join(
+      fixture.root,
+      '.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-06-PLAN.md',
+    );
+    const plan = (await readFile(planPath, 'utf8')).replace(
+      '\n---\n',
+      `\n${additions.map((path) => `  - ${path}\n`).join('')}---\n`,
+    );
+    await writeText(planPath, plan);
+    f.approval.plan_sha256 = sha256(plan).toLowerCase();
+    await writeText(join(fixture.root, f.approvalPath), JSON.stringify(f.approval));
+    const before = await snapshotTree(fixture.target);
+    const result = await executeGenerateApi({
+      projectRoot: fixture.root,
+      contract: APPROVED_ENGINE,
+      ...f.options,
+      adapters: { currentHead: 'a'.repeat(40) },
+    });
+    assert.equal(result.governedAfter, before);
+    const inventory = JSON.parse(await readFile(join(fixture.root, f.directory, 'inventory.json')));
+    const service = inventory.changes.find((entry) => entry.path.endsWith('/api/chat.service.ts'));
+    assert.match(service.after_content, /getCandidateChat/);
+    assert.match(service.after_content, /ChatMessage/);
+    assert.equal(sha256(service.after_content), service.after_sha256);
+    assert.equal(inventory.engine.sha256, APPROVED_ENGINE.sha256);
+    assert.equal(await snapshotTree(fixture.target), before);
+    assert.equal(
+      await readFile(join(fixture.root, 'backend/openapi/betufu.yaml'), 'utf8'),
+      baseline,
+    );
+  });
+});
 
 async function snapshotTree(path) {
   try {
