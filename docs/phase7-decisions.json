@@ -1,0 +1,492 @@
+{
+  "schema_version": 1,
+  "phase": "07",
+  "source": {
+    "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+    "sha256": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf"
+  },
+  "notes": [
+    "These records transcribe the existing context; they do not approve pending technical, visual, legal or launch gates.",
+    "D-40 describes the earlier planning session. The current owner instruction separately authorizes only Wave 1 execution and its two local commits.",
+    "Approved targets (RPO/RTO/50 users) are decisions, not measured readiness evidence.",
+    "The validator checks local records and digests; it cannot authenticate a conversation or resist an operator rewriting both evidence and hashes. Human references remain reviewable.",
+    "Plan gate mappings are consumer obligations derived from CONTEXT/RESEARCH/PLAN; prepare-candidates and implementation authorities remain separate."
+  ],
+  "decisions": [
+    {
+      "id": "D-01",
+      "statement": "Escrita exige sessao e matricula ATIVO. Partida aceita leitura",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-02",
+      "statement": "Partida abre ao publicar e fecha escrita permanentemente duas horas",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-03",
+      "statement": "Uma mensagem por usuario a cada tres segundos e maximo 280 caracteres;",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-04",
+      "statement": "Atualizacao integrada a Modulith/Angular Signals. D-27 refina a",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-05",
+      "statement": "Motivos fechados: DISCURSO_DE_ODIO, SPAM, OFENSA, ASSEDIO, FRAUDE.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-06",
+      "statement": "Mute pessoal imediato, sem avisar alvo ou alterar outros leitores;",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-07",
+      "statement": "Remocao exibe marcador, preserva original restrito e auditoria;",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-08",
+      "statement": "Sancoes 24h/7dias/banimento de CHAT, sem alterar saldo/ranking/historico;",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-09",
+      "statement": "Pausa/retomada auditavel de conta/partida/mercado/canal, per INTE-05;",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-10",
+      "statement": "Backup automatico e restore real de BETUFU + Keycloak + objetos",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-11",
+      "statement": "CI seguranca/anti-drift deve bloquear gates falhos. Usar ferramentas",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-12",
+      "statement": "Portas publicas consumer-owned de chat, adaptadores nos produtores",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-13",
+      "statement": "Mensagens/denuncias/moderacao append-only, Flyway V39+, projecoes",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-14",
+      "statement": "Preservar docs/development.md, docs/local-seed.md e",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-15",
+      "statement": "Global incluido no piloto. Sessao obrigatoria para ler, mesmo",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-16",
+      "statement": "Pagina Comunidade com link no topo Arena; chat de partida no jogo.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-17",
+      "statement": "Suspensao bloqueia escrita em TODOS os chats, mantendo leitura",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-18",
+      "statement": "Sistema sugere 24h -> 7 dias -> ban; administrador confirma.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-19",
+      "statement": "Solicitar revisao na conta, com motivo/duracao/explicacao.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-20",
+      "statement": "Autenticado com acesso ao canal pode denunciar, inclusive inativo,",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-21",
+      "statement": "Mute salvo na conta, sincronizado em dispositivos, efeito local",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-22",
+      "statement": "Somente ADMINISTRADOR_GERAL pausa/retoma qualquer alvo, registrando",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-23",
+      "statement": "Chat pausado: leitura autorizada/historico continuam, envios bloqueados,",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-24",
+      "statement": "Mercado pausado bloqueia novos palpites; partida pausada bloqueia",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-25",
+      "statement": "Conta pausada bloqueia novos palpites/mensagens, mantem consulta",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-26",
+      "statement": "Autoscroll so no fim; lendo historico preservar posicao e mostrar",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-27",
+      "statement": "Aviso do servidor quase imediato; nao escolher polling periodico.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-28",
+      "statement": "Envio offline Aguardando conexao, retry automatico ao reconectar.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-29",
+      "statement": "Fila apenas na memoria da aba; fechar/refresh perde pendentes.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-30",
+      "statement": "Com palpites: resultado confirmado e processamento completo de",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-31",
+      "statement": "Correcao CONCLUIDA enquanto chat aberto reconta duas horas desde",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-32",
+      "statement": "Metas RPO <= 3600s (uma hora), RTO <= 14400s (quatro horas).",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-33",
+      "statement": "Referencia de carga: 50 usuarios simultaneos, chat/navegacao/palpites.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-34",
+      "statement": "TODA vulnerabilidade confirmada bloqueia piloto, incluindo low/moderate.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-35",
+      "statement": "Historico comum: proposta 90 dias, sujeita a revisao juridica.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "proposal",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-36",
+      "statement": "Original moderado restrito a admin geral e moderadores autorizados",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-37",
+      "statement": "Conteudo de evidencias: proposta 180 dias APOS encerrar caso.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "proposal",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-38",
+      "statement": "Backup retido 30 dias, independente da frequencia exigida por RPO.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-39",
+      "statement": "Area Privacidade na conta: pedir acesso/correcao/exclusao e acompanhar.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "D-40",
+      "statement": "Responsavel aprovou subdivisao e consolidacao APENAS documental.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "historical-documentary-authorization",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "UI-D01",
+      "statement": "Preservar identidade visual da Arena, sem redesign global.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "UI-D02",
+      "statement": "Comunidade em pagina propria com entrada no topo desktop/mobile.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "UI-D03",
+      "statement": "Lista compacta tipo Discord em ambos chats, apelido/hora sobre",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "UI-D04",
+      "statement": "Mensagem propria discretamente distinta, com rotulo Voce.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "UI-D05",
+      "statement": "Regras em popup fechavel; botao manual Regras, Escape e foco.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "UI-D06",
+      "statement": "Primeira visita autenticada a Comunidade abre automaticamente;",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    },
+    {
+      "id": "UI-D07",
+      "statement": "Visitante no jogo tem Regras manual, sem abertura automatica.",
+      "source": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md",
+      "status": "recorded-owner-decision",
+      "human_reference": "07-CONTEXT.md:explicit-owner-decisions-and-conversational-discussion"
+    }
+  ],
+  "gates": {
+    "protocol": {
+      "status": "pending",
+      "description": "Server-push protocol and RT-01/IDEN-04 reconciliation",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "ui": {
+      "status": "pending",
+      "description": "Reviewed UI contract, desktop/mobile/keyboard/focus",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "mvp_story": {
+      "status": "pending",
+      "description": "Owner ratification of the actual user story; no invented persona",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "writing_contract": {
+      "status": "pending",
+      "description": "Unicode unit and authoritative rate-limit scope",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "lifecycle": {
+      "status": "pending",
+      "description": "Definitive producer timestamps, cancellation and pending compensation",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "moderation_policy": {
+      "status": "pending",
+      "description": "Infraction/case identity, concurrency and reversal rules",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "mute_policy": {
+      "status": "pending",
+      "description": "Cross-channel scope and synchronization failure policy",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "legal": {
+      "status": "pending",
+      "description": "Legal review, rights authority and retention by data class",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "institutional": {
+      "status": "pending",
+      "description": "Legitimate institutional identity and public identifier checklist",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "backup_operations": {
+      "status": "pending",
+      "description": "Three substrates, scheduling, destination, encryption/keys/access/expiry",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "load_profile": {
+      "status": "pending",
+      "description": "50 concurrent users: mix, duration, environment, SLO and error rate",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    },
+    "rules_preference": {
+      "status": "pending",
+      "description": "Storage/module/FK/retention and rules dismissal sync failure policy",
+      "source": "owner",
+      "human_reference": null,
+      "evidence_hashes": {}
+    }
+  },
+  "plan_gates": {
+    "07-01": [],
+    "07-02": [],
+    "07-03": [],
+    "07-04": [],
+    "07-05": [],
+    "07-06": [],
+    "07-07": ["protocol"],
+    "07-08": ["ui", "mvp_story"],
+    "07-09": ["writing_contract"],
+    "07-10": ["lifecycle"],
+    "07-11": [],
+    "07-12": ["ui", "mvp_story", "writing_contract"],
+    "07-13": ["mute_policy"],
+    "07-14": [],
+    "07-15": ["ui", "mvp_story", "mute_policy"],
+    "07-16": ["moderation_policy"],
+    "07-17": ["moderation_policy"],
+    "07-18": [],
+    "07-19": ["ui", "mvp_story", "moderation_policy"],
+    "07-20": [],
+    "07-21": [],
+    "07-22": [],
+    "07-23": ["ui", "mvp_story"],
+    "07-24": ["legal"],
+    "07-25": [],
+    "07-26": ["ui", "mvp_story"],
+    "07-27": ["legal"],
+    "07-28": ["backup_operations"],
+    "07-29": ["legal", "backup_operations"],
+    "07-30": ["legal", "institutional", "backup_operations", "load_profile"],
+    "07-31": [
+      "protocol",
+      "ui",
+      "mvp_story",
+      "writing_contract",
+      "lifecycle",
+      "moderation_policy",
+      "mute_policy",
+      "legal",
+      "rules_preference"
+    ],
+    "07-32": [
+      "protocol",
+      "ui",
+      "mvp_story",
+      "writing_contract",
+      "lifecycle",
+      "moderation_policy",
+      "mute_policy",
+      "legal",
+      "institutional",
+      "backup_operations",
+      "load_profile",
+      "rules_preference"
+    ],
+    "07-33": ["rules_preference"],
+    "07-34": ["rules_preference"],
+    "07-35": ["ui", "mvp_story", "rules_preference"]
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "plan": "07-01",
+  "wave": 1,
+  "status": "approved",
+  "authorized_stage": "implementation",
+  "head": "c8ffac21d8b800ac912cf899f04a1391dbf0a689",
+  "recorded_at": "2026-10-04T20:07:44.506Z",
+  "plan_sha256": "dbf03870348cb2093e15bc0b4a7cd06097f80f1e7b5a0b31713b3efe074c0ef6",
+  "decisions_sha256": "6da3080e26da4b88afeba9b6b5d0d46c3d43dfe7dea8469d1fc4afb8086816e0",
+  "human_approval": {
+    "source": "owner",
+    "status": "approved",
+    "reference": "conversation:2026-10-04:owner-start-phase7-wave1-inline-master",
+    "statement": "Inicie a execucao da Fase 7 a partir da Wave 1 (07-01-PLAN.md), direta e inline na master. Autorizacao explicita e continua para criar arquivos, testes Maven/Node, self-healing e todos os planos da Wave 1; dois commits por plano; sem push, Antigravity ou worktrees.",
+    "plans": ["07-01"]
+  },
+  "scope": {
+    "paths": [
+      "docs/phase7-approvals/07-01.json",
+      "docs/phase7-decisions.json",
+      "scripts/validate-phase7-approvals.mjs",
+      "scripts/validate-phase7-approvals.test.mjs"
+    ],
+    "commands": [
+      "node --test scripts/validate-phase7-approvals.test.mjs",
+      "node scripts/maven.mjs -f backend/pom.xml verify",
+      "node --test scripts/*.test.mjs"
+    ],
+    "candidates": []
+  },
+  "baseline_hashes": {
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md": "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845",
+    "docs/development.md": "deaf6470acf46c158d53ec66784916dd021cd8464336ff583ee780e0f9898fe8",
+    "docs/local-seed.md": "ef1da4213b92e1db908ccf370390c24e412c0891e3ef7f8d17c5d2092a925fcc",
+    "docs/manual-testing.md": "d4e1df426a38b6c680a0a864997f01d5692b687308fd944f8ee6161491f3307f",
+    "backend/src/main/resources/db/migration/V10__expand_sports_catalog_and_venues.sql": "315512503e97b66782e40aeed0ba021c4022975cc325219e7fab286f34b90e44",
+    "backend/src/main/resources/db/migration/V11__create_sports_organizations_and_teams.sql": "fff447bda702b6e2b9d22a79383bcef9a81644bb521c5de931f7db9fb1764c08",
+    "backend/src/main/resources/db/migration/V12__create_sports_athletes.sql": "1a66e4da2144289fdb09f591d621b7af017f8fedd202881c838bd7dec41b80ca",
+    "backend/src/main/resources/db/migration/V13__create_athlete_link_proposals.sql": "0b73e2d399231751f349ddfe184d805344a7f6420545e6075cc22fd4c2dc10b4",
+    "backend/src/main/resources/db/migration/V14__harden_athlete_link_proposals.sql": "a800c8a4df97410cc36e535e778955784e7a8d3215430b4ff37e00460a52faa3",
+    "backend/src/main/resources/db/migration/V15__create_sports_rosters.sql": "5c8c2f99d6acd5f7b871ee4d1b2197eab1e3356f6311479c598c8c446b66dfa3",
+    "backend/src/main/resources/db/migration/V16__create_event_result_versions.sql": "cf8f9a00199af090a2be5944026ad6b459235493298f1d40e09f2a428aaa349d",
+    "backend/src/main/resources/db/migration/V17__create_sports_brackets.sql": "c9d7ecd1f51e34c0e31a1f2fffcf439e44f252435eeed4def9f023a572123eca",
+    "backend/src/main/resources/db/migration/V18__create_sports_standings.sql": "c2f529080b4e346685c5164f3f527243f2d32179e2eb6be36a2d81bb30d4e9b0",
+    "backend/src/main/resources/db/migration/V19__create_athlete_public_profiles.sql": "f8036e81091d6c1e8f235e1898e05bfa58cde7afc971cb2e0a22835ce6a3331e",
+    "backend/src/main/resources/db/migration/V1__create_local_identity.sql": "56f9ad3eaab4e06efd785cdae2acd9ab53668717a424487b0acba67b958e8c18",
+    "backend/src/main/resources/db/migration/V20__create_athlete_profile_media.sql": "80fb0b08ed54636717c6d57b70595d4e1d8b1e2cb8c6b344da67ed06bba7eaa6",
+    "backend/src/main/resources/db/migration/V21__associate_competitions_and_sports.sql": "103367f2bae3eaaedbe330709d7f116411071d437dd25b32a8e4fa358da70e21",
+    "backend/src/main/resources/db/migration/V22__allow_generic_event_format.sql": "9568dbdc5bcf27a47f00c21b6187de95444762f74ff4c110080b45029f1338e5",
+    "backend/src/main/resources/db/migration/V23__add_roster_affiliation_period.sql": "fed4d38a826bedaf68429711c7ca13f11412268fb111267831cf910aa2504ddc",
+    "backend/src/main/resources/db/migration/V24__create_event_lifecycle_history.sql": "a1d400558cb3596b6e2c178f702b1f7c6d8aca515d91d595290dd617b233b256",
+    "backend/src/main/resources/db/migration/V25__create_odds_market_lineage.sql": "216fc7dcd426a08ee391b5f3da7d23303bfe93268143de4f53ed7d1c1d18850f",
+    "backend/src/main/resources/db/migration/V26__extend_odds_governance_audit.sql": "61590b53fb50f86398fd26dbcd865927179395213b8a5a12a041b8c3f573aa33",
+    "backend/src/main/resources/db/migration/V27__create_sports_outcome_authority.sql": "6bea5b46e11a52294809ef21fe6f8db1b542651fc8f0303c1b9f834c607ca9f9",
+    "backend/src/main/resources/db/migration/V28__bind_event_roster_publication.sql": "ccee8d1a579dd175380db98fcb9088c0c07a065a6cc89fd696c5cac9657eaa27",
+    "backend/src/main/resources/db/migration/V29__create_virtual_credit_ledger.sql": "d84f77372eaf859e25b09ee976fa52ab16596ea65dc522c349af8714eca64e61",
+    "backend/src/main/resources/db/migration/V2__add_platform_guards.sql": "7f2d8952a33f5a0746dd32703002b6f06436058ea4938e654da74c63044218cf",
+    "backend/src/main/resources/db/migration/V30__create_prediction_records.sql": "bcb9731dac52fe362ee4381ff58aa784af73b6f1c3536b29a2cc0443b0482c4d",
+    "backend/src/main/resources/db/migration/V31__create_odds_publication_selections.sql": "1db6e1ce197dff9f12ed9f293b78956bbfd9de8e6e17772b07bc66662a4ab204",
+    "backend/src/main/resources/db/migration/V32__backfill_eligible_virtual_credit_grants.sql": "850eb3de83bd308d2b9e301bbc9f1bc6e2485653df3fc7343b6c548a125f91d7",
+    "backend/src/main/resources/db/migration/V33__create_settlement_foundation.sql": "4e3fb0314cf7fab31b2f618115843c44b46060fe134051c6ac258832408dee52",
+    "backend/src/main/resources/db/migration/V34__add_settlement_processing_state.sql": "fe8257a77938cb102050a5e214486dfcd30eaf3d67be02a08bb3a259188e1e85",
+    "backend/src/main/resources/db/migration/V35__create_credit_correction_cases.sql": "b8541baf59a689afe8f5a2621a4143261889feca8ccfdddd3e14a92278344e7d",
+    "backend/src/main/resources/db/migration/V36__create_ranking_projection.sql": "f35eacc28ce465d5ebddbeca9522b0112d6b6876b678a06a8e70280787a7d835",
+    "backend/src/main/resources/db/migration/V37__create_private_groups.sql": "cf1034e0f13bec8c5b4f9d1d04771ba50707e651ff9e383126fdfe573d89f4e7",
+    "backend/src/main/resources/db/migration/V38__create_achievement_awards.sql": "f7cb6126f937f78a3091c4ce16929ab5c5f24dde80c173d74bf972ec1a12eafc",
+    "backend/src/main/resources/db/migration/V3__create_betufu_profile.sql": "6321fbcb3d1babd19c6cb487eb5368a9e82edeb5763d85104aa07f8087405e5f",
+    "backend/src/main/resources/db/migration/V4__create_audit_event.sql": "b95a43ba32e5084e6139edff05d848cb2efe3bcfb59c6a634fe76bfd3233ba8d",
+    "backend/src/main/resources/db/migration/V5__create_ufu_enrollment.sql": "ccd138a0540fa3f5526018b7a3fa77110cc1d9e1c8ad58d6e1b3c18c7c776755",
+    "backend/src/main/resources/db/migration/V6__create_operational_role_grant.sql": "91a224f027cbb711bb9f3364ca8d77bd112cfbab2c7d7f422baa734be0a992a7",
+    "backend/src/main/resources/db/migration/V7__enforce_operational_role_scope.sql": "5fe19f7043de03ebfc0b39558dd186b64d79deedd50440dc2b89774ef9280471",
+    "backend/src/main/resources/db/migration/V8__add_password_reset_replay_audit_action.sql": "d893eee00b67fc2c6ba2a9317599c0de8fbff576873985f3c6e76e6a9b4e51dc",
+    "backend/src/main/resources/db/migration/V9__create_sports_tracer.sql": "f3ff62eab0f4f2fa16922de882c0023ab45bba3ca78c8b7eda6e2b9949d37773"
+  },
+  "candidate_hashes": {},
+  "bootstrap": {
+    "plan": "07-01",
+    "reason": "The owner authorized creation of the validator itself; no existing validator is required before its first creation."
+  },
+  "closeout_authorization": {
+    "reference": "conversation:2026-10-04:owner-six-step-per-plan-cycle",
+    "documentation_paths": [
+      ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-01-SUMMARY.md",
+      ".planning/STATE.md",
+      ".planning/ROADMAP.md"
+    ],
+    "local_commits": [
+      "feat(07-01): add scoped phase 7 approval validation",
+      "docs(07-01): finalize plan 07-01 summary and update state"
+    ],
+    "push": false
+  },
+  "notes": [
+    "Historical authorization is bound to this pre-implementation HEAD; commits make it stale for a new execution. Never silently refresh its HEAD.",
+    "Only 07-01 is in Wave 1. This authorization does not resolve future product/architecture/UI/legal/protocol/digest gates."
+  ]
+}
