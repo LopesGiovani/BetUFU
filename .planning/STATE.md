@@ -4,21 +4,41 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 Wave 2 executing; 07-03 complete; next 07-04
-last_updated: "2026-10-04T22:04:23.326Z"
+stopped_at: Phase 7 Wave 2 executing; 07-04 complete; next 07-28
+last_updated: "2026-10-04T23:03:31.029Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 7 real candidate pipeline verified; 3/35 plans complete
-state_head: be45ed1edc8e13b441f7da79d85e57947d26e2ec
+last_activity_desc: Phase 7 chat schema verified; 4/35 plans complete
+state_head: fef7ce5fc20469e0065c606da9a5548ce89bea4f
 state_head_role: verified_implementation_commit; closing documentation is its direct child
 current_wave: 2
-current_plan: "07-04"
+current_plan: "07-28"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 138
+  completed_plans: 139
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 2 / Plan 07-04 closeout - 2026-10-04
+
+- Technical commit fef7ce5fc20469e0065c606da9a5548ce89bea4f; append-only chat channel/message facts,
+  singleton global/unique event, exact text, UUIDs, keyset/change indices, separate
+  rebuildable visibility projection. V39 exactly equals reviewed candidate hash.
+- Distinct runtime role proves grants, UPDATE/DELETE triggers, TRUNCATE denial,
+  references/uniqueness, projection reconstruction and stable pagination.
+- Final focal 29/29 (9 chat + 20 Flyway); OddsMigrationIT 5/5; Node 883/883 in
+  9 suites; Maven verify BUILD SUCCESS: fresh Surefire 361/37 classes + Failsafe
+  622/124 classes, 983 total, zero failures/errors/skips. Old focal Surefire IT
+  reports excluded from aggregate counts. No owner DB/volumes/seed touched.
+- Mechanical self-healing: reproduced expected39/actual40 in OddsMigrationIT;
+  one assertion corrected, scoped PLAN/approval extension under continuous authority.
+  First verify tests green but Spotless failed; formatted three scoped Java paths,
+  repeated focal, Node and literal full verify; final all green.
+- Frozen review: no functional finding; RepoWise 5/7 analyzed without new markers,
+  approval/PLAN manually checked. Protected docs, V1-V38 and official API intact.
+- Continue 07-28 in Wave 2; owner WebSocket/STOMP decision remains active.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-04-SUMMARY.md.
 
 ## Phase 7 / Wave 2 / Plan 07-03 closeout - 2026-10-04
 
@@ -886,12 +906,12 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Phase 7 continuous inline execution; Wave 2, next 07-04.
+**Current focus:** Phase 7 continuous inline execution; Wave 2, next 07-28.
 
 ## Current Position
 
 Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 2 em execucao)
-Plan: 3/35 concluidos (07-01/02/03), 17 ondas / 102 tasks; proximo 07-04
+Plan: 4/35 concluidos (07-01/02/03/04), 17 ondas / 102 tasks; proximo 07-28
 Status: wave_complete; Fase 6 passed; Wave 1 verificada, demais ondas/gates pendentes
 Last activity: 2026-10-04 - governanca entregue inline na master; focal 31/31, Node 843/843, Maven 974/974; sem push
 
@@ -963,7 +983,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 8/8; Fase 6: 8/8; Fase 7: 3/35 executados; certificacao final pendente
+Progress: Fase 5: 8/8; Fase 6: 8/8; Fase 7: 4/35 executados; certificacao final pendente
 
 ## Métricas de desempenho
 
@@ -1142,8 +1162,8 @@ não é uma instrução operacional vigente.
 ## Session Continuity
 
 Last session: 2026-10-04T20:34:40.348Z
-Stopped at: Phase 7 Wave 2; continuous execution authorized; next 07-04
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-04-PLAN.md
+Stopped at: Phase 7 Wave 2; continuous execution authorized; next 07-28
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-28-PLAN.md
 
 ## Accumulated Context
 
