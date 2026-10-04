@@ -4,21 +4,38 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 Wave 2 executing under continuous owner authorization; 07-02 complete; next 07-03
-last_updated: "2026-10-04T21:20:11.408Z"
+stopped_at: Phase 7 Wave 2 executing; 07-03 complete; next 07-04
+last_updated: "2026-10-04T22:04:23.326Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 7 policy foundation verified; 2/35 plans complete; continuous inline execution authorized
-state_head: 5bbee7e884d10e1e862805a324dd4d201425cb24
+last_activity_desc: Phase 7 real candidate pipeline verified; 3/35 plans complete
+state_head: be45ed1edc8e13b441f7da79d85e57947d26e2ec
 state_head_role: verified_implementation_commit; closing documentation is its direct child
 current_wave: 2
-current_plan: "07-03"
+current_plan: "07-04"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 137
+  completed_plans: 138
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 2 / Plan 07-03 closeout - 2026-10-04
+
+- Technical commit be45ed1edc8e13b441f7da79d85e57947d26e2ec; exactly three technical paths.
+  Source/approval candidate flags drive the real engine without governed writes;
+  complete normalized content/hash inventory and exact change/removal scope.
+- Focal 98/98, including actual Java generation; final Node 883/883 in 9 suites;
+  Maven verify BUILD SUCCESS: Surefire 361/37 classes, Failsafe 613/123 classes;
+  all fresh, zero failures/errors/skips. Owner documents/V1-V38 unchanged.
+- Owner resolved protocol divergence: WebSocket/STOMP per RT-01. Reference
+  conversation:2026-10-04:owner-protocol-stomp; SSE proposal superseded.
+  This decision governs 07-07; it does not certify an implemented stream.
+- Scoped inline frozen review: no functional finding; authorization complexity
+  reduced; residual bounded I/O/size/conditional advisories documented.
+- Continuous authorization remains active; next 07-04, then 07-28 in Wave 2.
+  No push, worktree, Antigravity, dependency or persistent database change.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-03-SUMMARY.md.
 
 ## Phase 7 / Wave 2 / Plan 07-02 closeout - 2026-10-04
 
@@ -869,12 +886,12 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Fase 6 certificada e concluida; preparar a discussao e o planejamento da Fase 7 somente com aprovacao especifica.
+**Current focus:** Phase 7 continuous inline execution; Wave 2, next 07-04.
 
 ## Current Position
 
-Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 1 concluida)
-Plan: 1/35 concluido (07-01), 17 ondas / 102 tasks planejadas; proxima Wave 2: 07-02/03/04/28
+Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 2 em execucao)
+Plan: 3/35 concluidos (07-01/02/03), 17 ondas / 102 tasks; proximo 07-04
 Status: wave_complete; Fase 6 passed; Wave 1 verificada, demais ondas/gates pendentes
 Last activity: 2026-10-04 - governanca entregue inline na master; focal 31/31, Node 843/843, Maven 974/974; sem push
 
@@ -946,7 +963,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 8/8 planos; Fase 6: 8/8 planos certificados; Fase 7: 0/35 propostas (execucao nao iniciada; aceite final e checkpoints pendentes)
+Progress: Fase 5: 8/8; Fase 6: 8/8; Fase 7: 3/35 executados; certificacao final pendente
 
 ## Métricas de desempenho
 
@@ -1125,8 +1142,8 @@ não é uma instrução operacional vigente.
 ## Session Continuity
 
 Last session: 2026-10-04T20:34:40.348Z
-Stopped at: Phase 7 Wave 1 complete; Wave 2 outside current authorization; consumer gates pending
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-02-PLAN.md
+Stopped at: Phase 7 Wave 2; continuous execution authorized; next 07-04
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-04-PLAN.md
 
 ## Accumulated Context
 

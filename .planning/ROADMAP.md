@@ -573,14 +573,14 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 2 executados (07-01/02). Wave 2 em execu??o direta na master com avan?o cont?nuo autorizado pelo respons?vel. 07-02 verificado: focal 40/40, Node 883/883, Maven 974/974. Gates jur?dicos, institucionais e demais consumidores permanecem pendentes; fase n?o certificada. Ver 07-DECOMPOSITION.md e os SUMMARYs.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 3 executados (07-01/02/03). Wave 2 em execucao direta na master com avanco continuo autorizado. 07-03: focal 98/98, Node 883/883, Maven 974/974. Protocolo WebSocket/STOMP ratificado conforme RT-01; gates juridicos/institucionais/operacionais continuam pendentes. Fase nao certificada; ver SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
 
 **Wave 2 — Próxima; exige autorização e gates dos consumidores**
 - [x] 07-02-PLAN.md — Preparacao juridica e institucional segregada.
-- [ ] 07-03-PLAN.md — Pipeline real para fonte OpenAPI candidata.
+- [x] 07-03-PLAN.md — Pipeline real para fonte OpenAPI candidata.
 - [ ] 07-04-PLAN.md — Canais global e por partida: schema V39.
 - [ ] 07-28-PLAN.md — Backups automaticos completos com RPO1h.
 
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidão do Piloto | 1/35 | Wave 1 complete; remaining execution and consumer gates pending | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 3/35 | Wave 2 executing continuously; next 07-04 | - |
