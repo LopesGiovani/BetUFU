@@ -1,0 +1,313 @@
+{
+  "schema_version": 1,
+  "status": "pending",
+  "notes": [
+    "Preparation only; no legal review or launch authorization. Execution approval does not resolve substantive decisions. No automatic purge or modification of historical facts."
+  ],
+  "legal_review": {
+    "status": "pending",
+    "authority": null,
+    "reference": null,
+    "evidence": {
+      "path": null,
+      "sha256": null
+    }
+  },
+  "classes": {
+    "common_messages": {
+      "purpose": "Authenticated chat participation and public match history",
+      "retention": {
+        "status": "proposed",
+        "days": 90,
+        "start_event": "message_created",
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["legal_hold"]
+    },
+    "moderation_evidence": {
+      "purpose": "Restricted original content needed to treat an actual moderation case",
+      "retention": {
+        "status": "proposed",
+        "days": 180,
+        "start_event": "case_closed",
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["open_case", "pending_review", "legal_hold"]
+    },
+    "sanction_progression": {
+      "purpose": "Minimum trace of decisions, reversals and progression without erasing active bans",
+      "retention": {
+        "status": "pending",
+        "days": null,
+        "start_event": null,
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["legal_hold", "active_sanction", "progression"]
+    },
+    "athlete_without_account": {
+      "purpose": "Sports profile of a holder without a platform account",
+      "retention": {
+        "status": "pending",
+        "days": null,
+        "start_event": null,
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["legal_hold"]
+    },
+    "ledger": {
+      "purpose": "Historical virtual-credit accounting facts",
+      "retention": {
+        "status": "pending",
+        "days": null,
+        "start_event": null,
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["legal_hold"]
+    },
+    "audit": {
+      "purpose": "Historical operation and access accountability",
+      "retention": {
+        "status": "pending",
+        "days": null,
+        "start_event": null,
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["legal_hold"]
+    },
+    "logs": {
+      "purpose": "Operational and security diagnostics",
+      "retention": {
+        "status": "pending",
+        "days": null,
+        "start_event": null,
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["legal_hold"]
+    },
+    "backups": {
+      "purpose": "Recovery of BETUFU, Keycloak and private objects; 30 days operational target, legal disposition pending",
+      "retention": {
+        "status": "proposed",
+        "days": 30,
+        "start_event": "snapshot_created",
+        "disposition": null,
+        "authority": {
+          "status": "pending",
+          "authority": null,
+          "reference": null,
+          "evidence": {
+            "path": null,
+            "sha256": null
+          }
+        }
+      },
+      "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+      "holds": ["legal_hold"]
+    }
+  },
+  "rights": {
+    "notice": {
+      "procedure": null,
+      "authority": {
+        "status": "pending",
+        "authority": null,
+        "reference": null,
+        "evidence": {
+          "path": null,
+          "sha256": null
+        }
+      }
+    },
+    "access": {
+      "procedure": null,
+      "authority": {
+        "status": "pending",
+        "authority": null,
+        "reference": null,
+        "evidence": {
+          "path": null,
+          "sha256": null
+        }
+      }
+    },
+    "correction": {
+      "procedure": null,
+      "authority": {
+        "status": "pending",
+        "authority": null,
+        "reference": null,
+        "evidence": {
+          "path": null,
+          "sha256": null
+        }
+      }
+    },
+    "objection": {
+      "procedure": null,
+      "authority": {
+        "status": "pending",
+        "authority": null,
+        "reference": null,
+        "evidence": {
+          "path": null,
+          "sha256": null
+        }
+      }
+    },
+    "deletion": {
+      "procedure": null,
+      "authority": {
+        "status": "pending",
+        "authority": null,
+        "reference": null,
+        "evidence": {
+          "path": null,
+          "sha256": null
+        }
+      }
+    },
+    "pseudonymization": {
+      "procedure": null,
+      "authority": {
+        "status": "pending",
+        "authority": null,
+        "reference": null,
+        "evidence": {
+          "path": null,
+          "sha256": null
+        }
+      }
+    }
+  },
+  "holder_verification": {
+    "account": null,
+    "athlete_without_account": null,
+    "authority": {
+      "status": "pending",
+      "authority": null,
+      "reference": null,
+      "evidence": {
+        "path": null,
+        "sha256": null
+      }
+    }
+  },
+  "response_operator": {
+    "identity": null,
+    "authority": {
+      "status": "pending",
+      "authority": null,
+      "reference": null,
+      "evidence": {
+        "path": null,
+        "sha256": null
+      }
+    }
+  },
+  "minimum_audit": {
+    "preserve_active_sanctions": true,
+    "preserve_progression": true,
+    "retention": {
+      "status": "pending",
+      "days": null,
+      "start_event": null,
+      "disposition": null,
+      "authority": {
+        "status": "pending",
+        "authority": null,
+        "reference": null,
+        "evidence": {
+          "path": null,
+          "sha256": null
+        }
+      }
+    }
+  },
+  "restore": {
+    "reapply_current_suppressions_before_serving": true,
+    "authority": {
+      "status": "pending",
+      "authority": null,
+      "reference": null,
+      "evidence": {
+        "path": null,
+        "sha256": null
+      }
+    }
+  },
+  "external_dependencies": {
+    "legal_review": "pending",
+    "holder_verification": "pending",
+    "response_authority": "pending"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "status": "pending",
+  "notes": [
+    "Preparation only; no legal review or launch authorization. Execution approval does not resolve substantive decisions. No automatic purge or modification of historical facts."
+  ],
+  "public_name": "BETUFU",
+  "legal_identity": null,
+  "official_ufu_affiliation": false,
+  "domain": null,
+  "contact_email": null,
+  "infrastructure_operator": null,
+  "authority": {
+    "status": "pending",
+    "authority": null,
+    "reference": null,
+    "evidence": {
+      "path": null,
+      "sha256": null
+    }
+  },
+  "external_dependencies": {
+    "institutional_identity": "pending",
+    "domain_email_infrastructure": "pending"
+  }
+}
