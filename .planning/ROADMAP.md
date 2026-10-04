@@ -573,12 +573,12 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 propostas em 17 ondas, 102 tasks; 0 executadas. Status: revisão do responsável e gates pendentes, não Ready to execute. A nova numeração substitui os dez planos antigos; ver 07-DECOMPOSITION.md.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 1 executado (07-01, Wave 1 concluída em 2026-10-04). Governança verificada: focal 31/31, Node 843/843 e Maven 974/974. Demais ondas e gates dos consumidores permanecem pendentes; a fase não está certificada. A nova numeração substitui os dez planos antigos; ver 07-DECOMPOSITION.md e 07-01-SUMMARY.md.
 
 **Wave 1**
-- [ ] 07-01-PLAN.md — Governanca de blocos e registro de gates.
+- [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
 
-**Wave 2 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 2 — Próxima; exige autorização e gates dos consumidores**
 - [ ] 07-02-PLAN.md — Preparacao juridica e institucional segregada.
 - [ ] 07-03-PLAN.md — Pipeline real para fonte OpenAPI candidata.
 - [ ] 07-04-PLAN.md — Canais global e por partida: schema V39.
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidão do Piloto | 0/35 | Draft planning; owner review and gates pending; no execution | - |
+| 7. Comunidade Moderada e Prontidão do Piloto | 1/35 | Wave 1 complete; remaining execution and consumer gates pending | - |

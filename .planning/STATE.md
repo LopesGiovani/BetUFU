@@ -3,19 +3,60 @@ gsd_state_version: 1.0
 milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
-status: planning_review_required
-stopped_at: Phase 7 review gaps reconciled as proposals; owner review and consumer checkpoints pending
-last_updated: "2026-10-04T16:44:09-03:00"
+status: wave_complete
+stopped_at: Phase 7 Wave 1 complete (07-01); Wave 2 outside current execution authorization and consumer gates pending
+last_updated: "2026-10-04T20:34:40.348Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 7 pause availability, moderation escalation and six consumer gates reconciled; 35 draft plans, no execution
-state_head: 21edd3b9d58d83b7c961cd51f218999bc3113cfb
+last_activity_desc: Phase 7 Wave 1 governance implemented and verified inline on master; 1/35 plans complete
+state_head: 6e62b0ee4c3da2b165f0d33577df4d4a476f4bab
+state_head_role: verified_implementation_commit; closing documentation is its direct child
+current_wave: 2
+current_plan: "07-02"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 135
+  completed_plans: 136
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 1 / Plan 07-01 closeout - 2026-10-04
+
+- Owner explicitly authorized the entire Wave 1, direct inline master execution,
+  Maven/Node tests, mechanical self-healing, two local commits and documentation;
+  no push, Antigravity or worktrees. Wave 1 contains only 07-01. This authority
+  supersedes the earlier documentary-only session for this wave alone.
+- Base `c8ffac21d8b800ac912cf899f04a1391dbf0a689`; technical commit
+  `6e62b0ee4c3da2b165f0d33577df4d4a476f4bab`. The `state_head` above is the
+  verified implementation anchor; its direct child contains this closeout.
+- Created the approval record, 40 domain/7 visual decision records, explicit
+  pending consumer gates and a fail-closed CLI for plan/stage/HEAD/paths/commands,
+  human authority and baseline/candidate/evidence hashes. Bootstrap only 07-01.
+- Final focal 31/31, including a mutation that removes the pending-status guard;
+  final Node aggregate 843/843 in 9 suites. Maven verify BUILD SUCCESS:
+  Surefire 361 tests/37 classes and Failsafe 613 tests/123 classes, all reports
+  refreshed in this run, zero failures/errors/skips. Wrapper 1948 double-counts
+  summary lines; authoritative XML total is 974. Formatting/diff checks passed.
+- Read-only compatibility: 35 implementation/16 candidate-stage contracts parsed.
+  Real 07-01 approval passed before commits; real unapproved 07-02 blocked.
+  After commits, 07-01's original HEAD-bound authority becomes historical and
+  must not be refreshed or reused as approval for another execution.
+- Frozen inline review found no functional defect. RepoWise analysed the two
+  scripts, skipped JSON health scoring, and raised nine maintenance/performance
+  markers (validation complexity 17, parser 11, path nesting 4, inherent file
+  reads and synchronous Git lookup). These are residual maintainability signals,
+  not an independent security certification; local records do not authenticate
+  conversations against an operator rewriting both evidence and hashes.
+- Fixed the nested Node mutation runner's inherited NODE_TEST_CONTEXT and
+  refreshed the decisions digest after formatting before the final freeze.
+  Maven spent time closing old Hikari pools/Testcontainers; read-only jcmd
+  confirmed progress. No backend code or persistent local data was changed.
+- Four technical paths and three closeout paths only. Owner documents and all
+  V1-V38 migration bytes preserved. Config remains interactive/auto_advance=false.
+- Phase 7 is 1/35, not certified complete. TEST-03/UX-01/UX-02 receive foundation
+  support only; requirement completion, UI/protocol/legal/operational gates and
+  product journeys remain pending. Next wave: 07-02/03/04/28, outside this scope.
+- Evidence/hashes: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-01-SUMMARY.md.
 
 ## Phase 7 review-gap reconciliation - 2026-10-04
 
@@ -814,10 +855,10 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 ## Current Position
 
-Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; planejamento proposto, execucao nao iniciada)
-Plan: 35 propostas / 17 ondas / 102 tasks; revisao documental concluida, aceite final e checkpoints pendentes
-Status: planning_review_required; Fase 6 passed; Fase 7 sem aprovacao de execucao
-Last activity: 2026-10-04 - tres gaps reconciliados como propostas; estrutura 35/35, mapa 102/102, gates explicitos e cobertura de decisoes 40/40; nenhum teste material
+Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 1 concluida)
+Plan: 1/35 concluido (07-01), 17 ondas / 102 tasks planejadas; proxima Wave 2: 07-02/03/04/28
+Status: wave_complete; Fase 6 passed; Wave 1 verificada, demais ondas/gates pendentes
+Last activity: 2026-10-04 - governanca entregue inline na master; focal 31/31, Node 843/843, Maven 974/974; sem push
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -1065,9 +1106,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-04T16:44:09-03:00
-Stopped at: Phase 7 review gaps reconciled as proposals; await final owner review and consumer checkpoints; no execution or Git approval
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-01-PLAN.md
+Last session: 2026-10-04T20:34:40.348Z
+Stopped at: Phase 7 Wave 1 complete; Wave 2 outside current authorization; consumer gates pending
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-02-PLAN.md
 
 ## Accumulated Context
 
