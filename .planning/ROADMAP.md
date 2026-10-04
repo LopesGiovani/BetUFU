@@ -573,13 +573,13 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 1 executado (07-01, Wave 1 concluída em 2026-10-04). Governança verificada: focal 31/31, Node 843/843 e Maven 974/974. Demais ondas e gates dos consumidores permanecem pendentes; a fase não está certificada. A nova numeração substitui os dez planos antigos; ver 07-DECOMPOSITION.md e 07-01-SUMMARY.md.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 2 executados (07-01/02). Wave 2 em execu??o direta na master com avan?o cont?nuo autorizado pelo respons?vel. 07-02 verificado: focal 40/40, Node 883/883, Maven 974/974. Gates jur?dicos, institucionais e demais consumidores permanecem pendentes; fase n?o certificada. Ver 07-DECOMPOSITION.md e os SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
 
 **Wave 2 — Próxima; exige autorização e gates dos consumidores**
-- [ ] 07-02-PLAN.md — Preparacao juridica e institucional segregada.
+- [x] 07-02-PLAN.md — Preparacao juridica e institucional segregada.
 - [ ] 07-03-PLAN.md — Pipeline real para fonte OpenAPI candidata.
 - [ ] 07-04-PLAN.md — Canais global e por partida: schema V39.
 - [ ] 07-28-PLAN.md — Backups automaticos completos com RPO1h.
