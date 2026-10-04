@@ -64,9 +64,9 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [x] **CRED-04**: Créditos não possuem símbolo nem valor monetário e não podem ser comprados, vendidos, transferidos, sacados, convertidos ou trocados por prêmio econômico.
 - [x] **CRED-05**: O MVP não oferece missões, recargas, bônus recorrentes, palpite de recuperação ou outra fonte de créditos além da concessão inicial, ganhos de apostas e correções legítimas.
 - [x] **CRED-06**: Usuário com saldo abaixo do mínimo configurado, inclusive saldo zero, fica impedido de apostar e pode permanecer assim por tempo indeterminado no MVP.
-- [ ] **CRED-07**: Usuário pode consultar saldo e histórico explicável de concessões, débitos, pagamentos, devoluções, reversões e correções.
+- [x] **CRED-07**: Usuário pode consultar saldo e histórico explicável de concessões, débitos, pagamentos, devoluções, reversões e correções.
 - [x] **CRED-08**: O sistema rejeita aposta acima do saldo disponível e nunca permite saldo negativo, inclusive sob requisições concorrentes e retries.
-- [ ] **CRED-09**: Ajuste administrativo serve somente para correção compensatória, exige permissão, motivo e fluxo de aprovação ainda a definir e não pode funcionar como reposição discricionária de saldo.
+- [x] **CRED-09**: Ajuste administrativo serve somente para correção compensatória, exige permissão, motivo e fluxo de aprovação ainda a definir e não pode funcionar como reposição discricionária de saldo.
 - [x] **CRED-10**: Valor mínimo, valor máximo, precisão decimal, fórmula de pagamento, inclusão ou não da stake no retorno e arredondamento são regras determinísticas e versionadas que serão definidas antes da fase de implementação.
 
 ### Mercados e Odds
@@ -85,7 +85,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [x] **ODDS-12**: Override exige aprovação por segundo administrador distinto e cria nova versão imutável e auditada. MFA é opcional no MVP e não condiciona a aprovação.
 - [x] **ODDS-13**: Override pode ocorrer durante suspensão administrativa, mas não após o encerramento definitivo do mercado por prazo ou estado CLOSED/LOCKED, e nunca altera a odd de aposta já aceita.
 - [x] **ODDS-14**: Mudança de versão antes do envio invalida o bilhete aberto e exige reconfirmação explícita do usuário.
-- [ ] **ODDS-15**: Somente resultado confirmado e vigente alimenta o rating; correção confirmada recompõe ratings e odds futuras de forma versionada sem alterar odds já aceitas.
+- [x] **ODDS-15**: Somente resultado confirmado e vigente alimenta o rating; correção confirmada recompõe ratings e odds futuras de forma versionada sem alterar odds já aceitas.
 
 ### Apostas Pré-jogo
 
@@ -97,39 +97,39 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [x] **PRED-06**: Aposta aceita não pode ser editada nem cancelada pelo usuário e não é modificada por versões futuras da odd.
 - [x] **PRED-07**: Seleções individuais e distribuições agregadas permanecem ocultas de outros usuários até o fechamento do mercado.
 - [x] **PRED-08**: O servidor fecha o mercado pelo horário canônico configurado antes da partida e rejeita qualquer tentativa posterior.
-- [ ] **PRED-09**: Usuário pode consultar histórico com seleção, créditos, odd aceita, retorno potencial e estado pendente, ganho, perdido, devolvido ou anulado.
+- [x] **PRED-09**: Usuário pode consultar histórico com seleção, créditos, odd aceita, retorno potencial e estado pendente, ganho, perdido, devolvido ou anulado.
 
 ### Resultados e Liquidação
 
-- [ ] **SETL-01**: A liquidação consome exatamente uma versão vigente do resultado esportivo já publicada e confirmada na Fase 3, preservando sua fonte e identificador; não cria um segundo cadastro de resultado.
-- [ ] **SETL-02**: A autorização para liquidar valida novamente permissão, estado e versão do resultado; no MVP, o mesmo administrador que registrou ou confirmou o resultado esportivo pode autorizar essa versão, com atores persistidos separadamente para futura política de duas pessoas.
-- [ ] **SETL-03**: Nenhuma aposta é liquidada antes de existir versão esportiva confirmada e autorização de liquidação válida e auditada; segundo administrador distinto não é obrigatório no MVP.
-- [ ] **SETL-04**: Após confirmação, a liquidação aplica a regra versionada do mercado a todas as apostas elegíveis de forma idempotente.
-- [ ] **SETL-05**: Partida adiada suspende mercado e liquidação até remarcação ou cancelamento auditável.
-- [ ] **SETL-06**: Partida cancelada ou mercado anulado devolve integralmente os créditos uma única vez e não registra acerto nem erro.
-- [ ] **SETL-07**: Repetir fechamento, confirmação, liquidação, anulação, devolução ou retry não duplica débito nem pagamento.
-- [ ] **SETL-08**: Correção, cancelamento ou anulação posterior nasce como nova versão no domínio esportivo; somente depois de publicada e confirmada pode autorizar reversão, devolução ou reliquidação auditada. O MVP permite o mesmo administrador e preserva atores separados para futura segregação de função.
-- [ ] **SETL-09**: Usuário pode ver resultado utilizado, regra, cálculo do retorno e lançamentos que alteraram seu saldo.
-- [ ] **SETL-10**: Execução de liquidação, devolução ou correção possui estado e progresso duráveis, propriedade temporária de processamento e unidades idempotentes, permitindo diagnóstico e retomada sem apresentar execução parcial como concluída.
-- [ ] **SETL-11**: Correção confirmada recompõe, de forma idempotente, ledger, ranking, conquistas e dados futuros do modelo, preservando todas as versões anteriores.
+- [x] **SETL-01**: A liquidação consome exatamente uma versão vigente do resultado esportivo já publicada e confirmada na Fase 3, preservando sua fonte e identificador; não cria um segundo cadastro de resultado.
+- [x] **SETL-02**: A autorização para liquidar valida novamente permissão, estado e versão do resultado; no MVP, o mesmo administrador que registrou ou confirmou o resultado esportivo pode autorizar essa versão, com atores persistidos separadamente para futura política de duas pessoas.
+- [x] **SETL-03**: Nenhuma aposta é liquidada antes de existir versão esportiva confirmada e autorização de liquidação válida e auditada; segundo administrador distinto não é obrigatório no MVP.
+- [x] **SETL-04**: Após confirmação, a liquidação aplica a regra versionada do mercado a todas as apostas elegíveis de forma idempotente.
+- [x] **SETL-05**: Partida adiada suspende mercado e liquidação até remarcação ou cancelamento auditável.
+- [x] **SETL-06**: Partida cancelada ou mercado anulado devolve integralmente os créditos uma única vez e não registra acerto nem erro.
+- [x] **SETL-07**: Repetir fechamento, confirmação, liquidação, anulação, devolução ou retry não duplica débito nem pagamento.
+- [x] **SETL-08**: Correção, cancelamento ou anulação posterior nasce como nova versão no domínio esportivo; somente depois de publicada e confirmada pode autorizar reversão, devolução ou reliquidação auditada. O MVP permite o mesmo administrador e preserva atores separados para futura segregação de função.
+- [x] **SETL-09**: Usuário pode ver resultado utilizado, regra, cálculo do retorno e lançamentos que alteraram seu saldo.
+- [x] **SETL-10**: Execução de liquidação, devolução ou correção possui estado e progresso duráveis, propriedade temporária de processamento e unidades idempotentes, permitindo diagnóstico e retomada sem apresentar execução parcial como concluída.
+- [x] **SETL-11**: Correção confirmada recompõe, de forma idempotente, ledger, ranking, conquistas e dados futuros do modelo, preservando todas as versões anteriores.
 
 ### Ranking UFU, Grupos e Conquistas
 
-- [ ] **RANK-01**: Pessoa pode consultar um único ranking principal UFU, alimentado apenas por apostas feitas enquanto a verificação era válida e mantido de forma vitalícia no MVP.
-- [ ] **RANK-02**: O ranking ordena primeiro pelo total de apostas corretas definitivamente liquidadas.
-- [ ] **RANK-03**: O primeiro desempate é a maior taxa de acerto, calculada como acertos divididos por apostas definitivamente liquidadas com resultado decisivo.
-- [ ] **RANK-04**: Apostas anuladas, canceladas ou devolvidas ficam fora do total de acertos, do total de erros e do denominador da taxa.
-- [ ] **RANK-05**: Persistindo empate após a taxa de acerto, os usuários compartilham a mesma posição.
-- [ ] **RANK-06**: Cada mercado pode gerar no máximo um acerto por usuário, independentemente dos créditos usados ou da odd aceita.
-- [ ] **RANK-07**: Ranking é derivado das liquidações e pode ser reconstruído sem alterar apostas, odds ou ledger.
-- [ ] **RANK-08**: Expiração da verificação bloqueia novas apostas sem apagar estatísticas legítimas; a visibilidade no ranking durante a expiração seguirá política ainda a definir.
-- [ ] **POOL-01**: Usuário cadastrado pode criar grupo privado para disputar com amigos; somente apostas elegíveis geram estatísticas.
-- [ ] **POOL-02**: Usuário pode entrar por convite ou código válido e sair quando a política permitir.
-- [ ] **POOL-03**: Criador pode editar nome, convidar ou remover integrantes e encerrar o grupo sem criar moeda, prêmio ou regra financeira própria.
-- [ ] **POOL-04**: Grupo exibe um recorte de seus integrantes usando as mesmas métricas, período vitalício e desempates do ranking UFU.
-- [ ] **ACHV-01**: Usuário pode obter conquistas por sequência de acertos, previsão de azarão, desempenho em rodada e apoio à organização esportiva favorita.
-- [ ] **ACHV-02**: Conquistas derivam de liquidações e odds aceitas e não são concedidas duas vezes quando o processamento é repetido.
-- [ ] **ACHV-03**: Perfil apresenta conquistas com nome, descrição, regra e edição em que foram obtidas.
+- [x] **RANK-01**: Pessoa pode consultar um único ranking principal UFU, alimentado apenas por apostas feitas enquanto a verificação era válida e mantido de forma vitalícia no MVP.
+- [x] **RANK-02**: O ranking ordena primeiro pelo total de apostas corretas definitivamente liquidadas.
+- [x] **RANK-03**: O primeiro desempate é a maior taxa de acerto, calculada como acertos divididos por apostas definitivamente liquidadas com resultado decisivo.
+- [x] **RANK-04**: Apostas anuladas, canceladas ou devolvidas ficam fora do total de acertos, do total de erros e do denominador da taxa.
+- [x] **RANK-05**: Persistindo empate após a taxa de acerto, os usuários compartilham a mesma posição.
+- [x] **RANK-06**: Cada mercado pode gerar no máximo um acerto por usuário, independentemente dos créditos usados ou da odd aceita.
+- [x] **RANK-07**: Ranking é derivado das liquidações e pode ser reconstruído sem alterar apostas, odds ou ledger.
+- [x] **RANK-08**: Expiração da verificação bloqueia novas apostas sem apagar estatísticas legítimas; a visibilidade no ranking durante a expiração seguirá política ainda a definir.
+- [x] **POOL-01**: Usuário cadastrado pode criar grupo privado para disputar com amigos; somente apostas elegíveis geram estatísticas.
+- [x] **POOL-02**: Usuário pode entrar por convite ou código válido e sair quando a política permitir.
+- [x] **POOL-03**: Criador pode editar nome, convidar ou remover integrantes e encerrar o grupo sem criar moeda, prêmio ou regra financeira própria.
+- [x] **POOL-04**: Grupo exibe um recorte de seus integrantes usando as mesmas métricas, período vitalício e desempates do ranking UFU.
+- [x] **ACHV-01**: Usuário pode obter conquistas por sequência de acertos, previsão de azarão, desempenho em rodada e apoio à organização esportiva favorita.
+- [x] **ACHV-02**: Conquistas derivam de liquidações e odds aceitas e não são concedidas duas vezes quando o processamento é repetido.
+- [x] **ACHV-03**: Perfil apresenta conquistas com nome, descrição, regra e edição em que foram obtidas.
 
 ### Chat e Moderação
 
@@ -174,7 +174,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [x] **TEST-01**: Regras de domínio possuem testes JUnit e transações integradas usam PostgreSQL e dependências reais via Testcontainers.
 - [x] **TEST-02**: Spring Modulith Test e ArchUnit verificam limites modulares e dependências permitidas.
 - [ ] **TEST-03**: Contrato OpenAPI, componentes Angular e jornadas completas críticas possuem testes automatizados, incluindo Playwright.
-- [ ] **TEST-04**: Testes concorrentes cobrem aposta, saldo, liquidação e devolução; perfil de carga, SLO e taxa máxima de erro são definidos e verificados antes do lançamento.
+- [x] **TEST-04**: Testes concorrentes cobrem aposta, saldo, liquidação e devolução; perfil de carga, SLO e taxa máxima de erro são definidos e verificados antes do lançamento.
 - [ ] **TEST-05**: Pipeline bloqueia entrega com falha em testes, migrations, contrato, arquitetura ou achado de segurança acima da severidade definida.
 - [ ] **UX-01**: Fluxos públicos, autenticação, aposta, histórico, ranking, administração e chat funcionam em navegadores móveis e desktop.
 - [ ] **UX-02**: Interface apresenta estados de carregamento, vazio, erro, suspensão e confirmação sem depender apenas de cor.
@@ -332,37 +332,37 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | DATA-04 | Phase 5 | Complete |
 | DATA-05 | Phase 5 | Complete |
 | API-03 | Phase 5 | Complete |
-| CRED-07 | Phase 6 | Pending |
-| CRED-09 | Phase 6 | Pending |
-| PRED-09 | Phase 6 | Pending |
-| ODDS-15 | Phase 6 | Pending |
-| SETL-01 | Phase 6 | Pending |
-| SETL-02 | Phase 6 | Pending |
-| SETL-03 | Phase 6 | Pending |
-| SETL-04 | Phase 6 | Pending |
-| SETL-05 | Phase 6 | Pending |
-| SETL-06 | Phase 6 | Pending |
-| SETL-07 | Phase 6 | Pending |
-| SETL-08 | Phase 6 | Pending |
-| SETL-09 | Phase 6 | Pending |
-| SETL-10 | Phase 6 | Pending |
-| SETL-11 | Phase 6 | Pending |
-| RANK-01 | Phase 6 | Pending |
-| RANK-02 | Phase 6 | Pending |
-| RANK-03 | Phase 6 | Pending |
-| RANK-04 | Phase 6 | Pending |
-| RANK-05 | Phase 6 | Pending |
-| RANK-06 | Phase 6 | Pending |
-| RANK-07 | Phase 6 | Pending |
-| RANK-08 | Phase 6 | Pending |
-| POOL-01 | Phase 6 | Pending |
-| POOL-02 | Phase 6 | Pending |
-| POOL-03 | Phase 6 | Pending |
-| POOL-04 | Phase 6 | Pending |
-| ACHV-01 | Phase 6 | Pending |
-| ACHV-02 | Phase 6 | Pending |
-| ACHV-03 | Phase 6 | Pending |
-| TEST-04 | Phase 6 | Pending |
+| CRED-07 | Phase 6 | Complete |
+| CRED-09 | Phase 6 | Complete |
+| PRED-09 | Phase 6 | Complete |
+| ODDS-15 | Phase 6 | Complete |
+| SETL-01 | Phase 6 | Complete |
+| SETL-02 | Phase 6 | Complete |
+| SETL-03 | Phase 6 | Complete |
+| SETL-04 | Phase 6 | Complete |
+| SETL-05 | Phase 6 | Complete |
+| SETL-06 | Phase 6 | Complete |
+| SETL-07 | Phase 6 | Complete |
+| SETL-08 | Phase 6 | Complete |
+| SETL-09 | Phase 6 | Complete |
+| SETL-10 | Phase 6 | Complete |
+| SETL-11 | Phase 6 | Complete |
+| RANK-01 | Phase 6 | Complete |
+| RANK-02 | Phase 6 | Complete |
+| RANK-03 | Phase 6 | Complete |
+| RANK-04 | Phase 6 | Complete |
+| RANK-05 | Phase 6 | Complete |
+| RANK-06 | Phase 6 | Complete |
+| RANK-07 | Phase 6 | Complete |
+| RANK-08 | Phase 6 | Complete |
+| POOL-01 | Phase 6 | Complete |
+| POOL-02 | Phase 6 | Complete |
+| POOL-03 | Phase 6 | Complete |
+| POOL-04 | Phase 6 | Complete |
+| ACHV-01 | Phase 6 | Complete |
+| ACHV-02 | Phase 6 | Complete |
+| ACHV-03 | Phase 6 | Complete |
+| TEST-04 | Phase 6 | Complete (Phase 6); launch gate pending |
 | CHAT-01 | Phase 7 | Pending |
 | CHAT-02 | Phase 7 | Pending |
 | CHAT-03 | Phase 7 | Pending |
@@ -380,6 +380,22 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | UX-01 | Phase 7 | Pending |
 | UX-02 | Phase 7 | Pending |
 
+### Reconciliação da Fase 6 — 2026-10-04
+
+Os 31 requisitos atribuídos à Fase 6 foram reconciliados com a aprovação do
+responsável e com o índice de evidências de
+`phases/06-resultados-confirmados-rankings-e-grupos/06-VALIDATION.md` e a
+certificação `06-VERIFICATION.md` (`status: passed`), formalizadas em
+`47a3041`. Esta atualização altera o tracking, não as regras dos requisitos.
+
+**Ressalva de TEST-04:** o marcador `[x]` registra a entrega aprovada da
+concorrência de aposta, saldo, liquidação e devolução na Fase 6. Não certifica
+perfil de carga, SLO ou taxa máxima de erro: essa parte continua obrigatória e
+pendente antes do lançamento público, conforme a validação da fase. Por isso,
+a tabela mantém o gate de lançamento explicitamente pendente; sua definição e
+verificação devem ser discutidas na prontidão do piloto, sem remover a obrigação
+nem declarar um benchmark inexistente.
+
 **Coverage:**
 
 - v1 requirements: 139 total
@@ -388,4 +404,4 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 
 ---
 *Requisitos definidos em: 2026-08-01*
-*Última atualização: 2026-09-15 após reconciliar os contratos de verificação das Fases 03.1 e 05; 139/139 requisitos v1 permanecem mapeados*
+*Última atualização: 2026-10-04 após reconciliar os 31 requisitos entregues pela Fase 6; 139/139 requisitos v1 permanecem mapeados, com o gate pré-lançamento de TEST-04 explicitamente pendente*
