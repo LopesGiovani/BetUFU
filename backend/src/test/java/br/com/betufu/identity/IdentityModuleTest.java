@@ -57,8 +57,9 @@ class IdentityModuleTest {
   // O Plano 03-02 autoriza identity -> sports somente pelo contrato publico
   // CompetitionScopeCatalog; ApplicationModules.verify() continua vedando sports.internal.
   // O 06-04 autoriza identity -> ranking somente pela porta publica de apelido.
+  // O 07-05 entrega identity -> chat apenas pela porta publica ChatIdentityPort.
   private static final List<String> FUTURE_BUSINESS_MODULES =
-      List.of("verification", "odds", "betting", "ledger", "settlement", "chat");
+      List.of("verification", "odds", "betting", "ledger", "settlement");
 
   @Autowired private ApplicationContext applicationContext;
 

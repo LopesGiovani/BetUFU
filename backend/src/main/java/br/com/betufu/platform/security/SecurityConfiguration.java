@@ -197,7 +197,10 @@ public class SecurityConfiguration {
           boolean isApiPath =
               (uri != null && uri.startsWith("/api/"))
                   || (servletPath != null && servletPath.startsWith("/api/"));
-          return isApiPath && (accept != null && !accept.contains("text/html"));
+          boolean isChatPath =
+              (uri != null && uri.startsWith("/api/v1/chat/"))
+                  || (servletPath != null && servletPath.startsWith("/api/v1/chat/"));
+          return isApiPath && (isChatPath || (accept != null && !accept.contains("text/html")));
         };
 
     http.cors(cors -> cors.configurationSource(corsConfigurationSource))
@@ -238,6 +241,10 @@ public class SecurityConfiguration {
                     .permitAll()
                     // Ranking vitalicio e uma leitura publica sanitizada, sem PII ou saldo.
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/ranking/**")
+                    .permitAll()
+                    // The service verifies publication and rejects global UUID aliases.
+                    .requestMatchers(
+                        HttpMethod.GET, "/api/v1/chat/events/*", "/api/v1/chat/events/*/changes")
                     .permitAll()
                     // Diagnostico exige o papel tecnico, e o matcher precisa vir ANTES de
                     // /api/v1/** — senao aquele matcher mais largo o engoliria e bastaria

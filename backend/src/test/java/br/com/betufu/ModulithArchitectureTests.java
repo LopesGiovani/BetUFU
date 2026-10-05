@@ -2,6 +2,8 @@ package br.com.betufu;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.com.betufu.chat.ChatEventPort;
+import br.com.betufu.chat.ChatIdentityPort;
 import br.com.betufu.identity.ProfileEnrollmentStatusLookup;
 import br.com.betufu.ranking.AchievementQueryPort;
 import br.com.betufu.ranking.AchievementSettlementSource;
@@ -73,12 +75,15 @@ class ModulithArchitectureTests {
   void verifiesDeclaredModuleContracts() {
     ApplicationModules modules = ApplicationModules.of(BetufuApplication.class);
     ApplicationModule identity = modules.getModuleByName("identity").orElseThrow();
+    ApplicationModule chat = modules.getModuleByName("chat").orElseThrow();
     ApplicationModule sports = modules.getModuleByName("sports").orElseThrow();
     ApplicationModule settlement = modules.getModuleByName("settlement").orElseThrow();
     ApplicationModule ranking = modules.getModuleByName("ranking").orElseThrow();
     ApplicationModule platform = modules.getModuleByName("platform").orElseThrow();
 
     assertThat(identity.isExposed(ProfileEnrollmentStatusLookup.class)).isTrue();
+    assertThat(chat.isExposed(ChatEventPort.class)).isTrue();
+    assertThat(chat.isExposed(ChatIdentityPort.class)).isTrue();
     assertThat(sports.isExposed(EnrollmentFingerprintPort.class)).isTrue();
     assertThat(sports.isExposed(PublicEventMarketLookup.class)).isTrue();
     assertThat(sports.isExposed(CompetitionScopeCatalog.class)).isTrue();
