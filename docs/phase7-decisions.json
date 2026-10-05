@@ -345,11 +345,14 @@
   ],
   "gates": {
     "protocol": {
-      "status": "pending",
+      "status": "approved",
       "description": "Server-push protocol and RT-01/IDEN-04 reconciliation",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:2026-10-04:owner-protocol-stomp",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-03-SUMMARY.md": "085bf0feab254e5005d8a95b84dafc86c1e68a0cc96c2562d4a33b55814f7c41"
+      },
+      "statement": "Manter WebSocket/STOMP conforme RT-01. Recorded owner reply in 07-03-SUMMARY; SSE proposal superseded. Session/origin/domain authorization and CONNECT CSRF retained."
     },
     "ui": {
       "status": "pending",
@@ -441,30 +444,77 @@
     "07-04": [],
     "07-05": [],
     "07-06": [],
-    "07-07": ["protocol"],
-    "07-08": ["ui", "mvp_story"],
-    "07-09": ["writing_contract"],
-    "07-10": ["lifecycle"],
+    "07-07": [
+      "protocol"
+    ],
+    "07-08": [
+      "ui",
+      "mvp_story"
+    ],
+    "07-09": [
+      "writing_contract"
+    ],
+    "07-10": [
+      "lifecycle"
+    ],
     "07-11": [],
-    "07-12": ["ui", "mvp_story", "writing_contract"],
-    "07-13": ["mute_policy"],
+    "07-12": [
+      "ui",
+      "mvp_story",
+      "writing_contract"
+    ],
+    "07-13": [
+      "mute_policy"
+    ],
     "07-14": [],
-    "07-15": ["ui", "mvp_story", "mute_policy"],
-    "07-16": ["moderation_policy"],
-    "07-17": ["moderation_policy"],
+    "07-15": [
+      "ui",
+      "mvp_story",
+      "mute_policy"
+    ],
+    "07-16": [
+      "moderation_policy"
+    ],
+    "07-17": [
+      "moderation_policy"
+    ],
     "07-18": [],
-    "07-19": ["ui", "mvp_story", "moderation_policy"],
+    "07-19": [
+      "ui",
+      "mvp_story",
+      "moderation_policy"
+    ],
     "07-20": [],
     "07-21": [],
     "07-22": [],
-    "07-23": ["ui", "mvp_story"],
-    "07-24": ["legal"],
+    "07-23": [
+      "ui",
+      "mvp_story"
+    ],
+    "07-24": [
+      "legal"
+    ],
     "07-25": [],
-    "07-26": ["ui", "mvp_story"],
-    "07-27": ["legal"],
-    "07-28": ["backup_operations"],
-    "07-29": ["legal", "backup_operations"],
-    "07-30": ["legal", "institutional", "backup_operations", "load_profile"],
+    "07-26": [
+      "ui",
+      "mvp_story"
+    ],
+    "07-27": [
+      "legal"
+    ],
+    "07-28": [
+      "backup_operations"
+    ],
+    "07-29": [
+      "legal",
+      "backup_operations"
+    ],
+    "07-30": [
+      "legal",
+      "institutional",
+      "backup_operations",
+      "load_profile"
+    ],
     "07-31": [
       "protocol",
       "ui",
@@ -490,8 +540,16 @@
       "load_profile",
       "rules_preference"
     ],
-    "07-33": ["rules_preference"],
-    "07-34": ["rules_preference"],
-    "07-35": ["ui", "mvp_story", "rules_preference"]
+    "07-33": [
+      "rules_preference"
+    ],
+    "07-34": [
+      "rules_preference"
+    ],
+    "07-35": [
+      "ui",
+      "mvp_story",
+      "rules_preference"
+    ]
   }
 }

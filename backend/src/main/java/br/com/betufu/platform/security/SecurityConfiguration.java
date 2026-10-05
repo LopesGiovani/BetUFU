@@ -231,6 +231,9 @@ public class SecurityConfiguration {
                     // Order matters: a broader matcher placed first would swallow it.
                     .requestMatchers(HttpMethod.GET, "/api/v1/session")
                     .permitAll()
+                    // Read-only chat STOMP verifies origin/CONNECT CSRF and each subscription.
+                    .requestMatchers(HttpMethod.GET, "/api/v1/chat/push")
+                    .permitAll()
                     // Only published sports snapshots cross this anonymous boundary.
                     // The HTTP method is part of the rule: mutations remain authenticated.
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/sports/**")
