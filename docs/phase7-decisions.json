@@ -408,11 +408,16 @@
       "evidence_hashes": {}
     },
     "backup_operations": {
-      "status": "pending",
+      "status": "approved",
       "description": "Three substrates, scheduling, destination, encryption/keys/access/expiry",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:2026-10-04:owner-local-backup-policy",
+      "evidence_hashes": {
+        "infra/backup/phase7-backup-policy.json": "bd064016986dbaec195ba3c2ad3461ff411ec3754a2ca2cb0952df1ed2b1b5c7"
+      },
+      "scope": "isolated-local-proof",
+      "production_status": "pending",
+      "statement": "Owner answered Autorizado to the proposed private local encrypted backup proof; public-pilot policy remains pending."
     },
     "load_profile": {
       "status": "pending",

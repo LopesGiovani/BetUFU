@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "scope": "isolated-local-proof",
+  "production_status": "pending",
+  "human_reference": "conversation:2026-10-04:owner-local-backup-policy",
+  "substrates": [
+    "betufu",
+    "keycloak",
+    "private-objects"
+  ],
+  "schedule": {
+    "interval_seconds": 1800,
+    "isolated_first_delay_ms": 1000
+  },
+  "rpo_seconds": 3600,
+  "retention_days": 30,
+  "destination": "runner-created-private-directory",
+  "key_custody": "separate-private-key-file-outside-artifact-directory",
+  "encryption": "AES-256-GCM",
+  "access": "current-os-account-only",
+  "consistency": "quiesce-disposable-writers-before-all-snapshots",
+  "expiry": "dry-run-only-authenticated-owned-artifacts",
+  "provider": "pending"
+}
