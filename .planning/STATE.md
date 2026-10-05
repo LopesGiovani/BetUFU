@@ -4,21 +4,31 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-07 complete; next 07-09 Wave 4
-last_updated: "2026-10-05T03:32:39.798Z"
+stopped_at: Phase 7 plan 07-09 complete; next 07-08 Wave 5
+last_updated: "2026-10-05T04:28:56.303Z"
 last_activity: 2026-10-05
-last_activity_desc: Phase 7 session-guarded STOMP verified; 8/35 plans complete
-state_head: f6a9869f680389a760ad22cb44874fb29d50b3c3
+last_activity_desc: Phase 7 eligible idempotent writes verified; 9/35 plans complete
+state_head: 63bd92977a16e9232683fae6f05501fae6c44972
 state_head_role: verified_implementation_commit; closing documentation is its direct child
-current_wave: 4
-current_plan: "07-09"
+current_wave: 5
+current_plan: "07-08"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 143
+  completed_plans: 144
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 4 / Plan 07-09 closeout - 2026-10-05
+
+- Technical commit 63bd92977a16e9232683fae6f05501fae6c44972; eligible authenticated writes, immutable V40 receipts and actor-wide3s limiter.
+- Literal focal13/13, combined45/45, Node916/916; full Maven1023/1023 (Surefire361 + Failsafe662),0fail/error/skip.
+- Same-session Redis-save conflict fixed with64bounded local stripes; cross-session integrity uses PostgreSQL actor locks. This is not distributed coordination.
+- Migration-count self-healing reproduced and corrected; final clean/focal/full verify passed. First interrupted aggregate is not counted as success.
+- All245protected hashes/owner docs/V1-V38 intact. Frozen inline review found no functional defect;16new health heuristics/0worsened recorded.
+- Phase7 is9/35; Wave4 complete; continuous authority advances07-08 then07-10/Wave5. No push or public-pilot certification.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-09-SUMMARY.md.
 
 ## Phase 7 / Wave 4 / Plan 07-07 closeout - 2026-10-05
 
@@ -967,14 +977,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Phase 7 continuous inline execution; Wave 2, next 07-28.
+**Current focus:** Phase 7 continuous inline execution; Wave 5, next 07-08.
 
 ## Current Position
 
-Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 2 em execucao)
-Plan: 4/35 concluidos (07-01/02/03/04), 17 ondas / 102 tasks; proximo 07-28
-Status: wave_complete; Fase 6 passed; Wave 1 verificada, demais ondas/gates pendentes
-Last activity: 2026-10-04 - governanca entregue inline na master; focal 31/31, Node 843/843, Maven 974/974; sem push
+Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 5 em execucao)
+Plan: 9/35 concluidos (07-01/02/03/04/28/05/06/07/09), 17 ondas / 102 tasks; proximo 07-08
+Status: executing; Fase 6 passed; Waves 1-4 completas; demais ondas/gates pendentes
+Last activity: 2026-10-05 - escrita idempotente entregue inline; focal13/13, Node916/916, Maven1023/1023; sem push
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -1222,9 +1232,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-05T03:32:39.798Z
-Stopped at: Phase 7 plan 07-07 complete; continuous execution authorized; next 07-09
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-09-PLAN.md
+Last session: 2026-10-05T04:28:56.303Z
+Stopped at: Phase 7 plan 07-09 complete; continuous execution authorized; next 07-08
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-PLAN.md
 
 ## Accumulated Context
 
