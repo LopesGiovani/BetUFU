@@ -33,6 +33,7 @@ public class ChatWriteService {
   private final ChatEventPort events;
   private final List<ChatWriteGuard> guards;
   private final ChatPushService push;
+  private final ChatLifecycleService lifecycle;
   private final Clock clock;
   private final ObjectProvider<SessionRepository<?>> sessions;
 
@@ -43,6 +44,7 @@ public class ChatWriteService {
       ChatEventPort events,
       List<ChatWriteGuard> guards,
       ChatPushService push,
+      ChatLifecycleService lifecycle,
       Clock clock,
       ObjectProvider<SessionRepository<?>> sessions) {
     this.writes = writes;
@@ -51,11 +53,13 @@ public class ChatWriteService {
     this.events = events;
     this.guards = List.copyOf(guards);
     this.push = push;
+    this.lifecycle = lifecycle;
     this.clock = clock;
     this.sessions = sessions;
   }
 
-  @Transactional
+  // Expected business rejection may commit lifecycle facts, but never an accepted message.
+  @Transactional(noRollbackFor = ApiProblemException.class)
   public ChatWriteController.Ack write(
       String issuer, String subject, String sessionId, UUID eventId, UUID key, String text) {
     if (key == null) throw invalid();
@@ -85,8 +89,11 @@ public class ChatWriteService {
         throw new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
       channel = channels.recoverEvent(eventId);
     }
+    Instant guardTime = clock.instant().truncatedTo(ChronoUnit.MICROS);
+    guards.forEach(guard -> guard.requireAllowed(actor, channel.channelId(), eventId, guardTime));
+    lifecycle.requireWritable(eventId, guardTime);
+    // Event locking may wait; acceptance and the limiter use the time after that wait.
     Instant now = clock.instant().truncatedTo(ChronoUnit.MICROS);
-    guards.forEach(guard -> guard.requireAllowed(actor, channel.channelId(), eventId, now));
     if (last != null && now.isBefore(last.plusSeconds(3)))
       throw new RateLimited(last.plusSeconds(3), now);
     requireCurrentSession(sessionId, issuer, subject);

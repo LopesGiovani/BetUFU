@@ -394,11 +394,19 @@
       }
     },
     "lifecycle": {
-      "status": "pending",
+      "status": "approved",
       "description": "Definitive producer timestamps, cancellation and pending compensation",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:2026-10-05:owner-cancel-compensation-rule",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf"
+      },
+      "executor_choice": {
+        "cancellation": "confirmed-cancellation-starts-two-hour-chat-window",
+        "pending_compensation": "blocks-definitive-milestone-until-complete"
+      },
+      "statement": "Owner decision: cancelamento confirmado sem placar inicia a janela de duas horas para fechamento permanente do chat; compensacao pendente bloqueia o marco ate sua conclusao. Resultado, processamento completo e correcoes seguem D-30/D-31.",
+      "authorization_basis": "explicit-owner-decision"
     },
     "moderation_policy": {
       "status": "pending",

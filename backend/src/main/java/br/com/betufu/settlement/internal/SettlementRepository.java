@@ -258,6 +258,14 @@ public class SettlementRepository {
     if (rows != 1) throw new IllegalStateException("settlement still has incomplete units");
   }
 
+  /** Durable completion evidence in the same transaction as the COMPLETE projection. */
+  public void appendChatSettlementCompletion(UUID caseId, Instant completedAt) {
+    jdbc.update(
+        "INSERT INTO public.settlement_chat_completion_fact(case_id,completed_at) VALUES (?,?) ON CONFLICT DO NOTHING",
+        caseId,
+        Timestamp.from(completedAt));
+  }
+
   public void fail(UUID caseId, UUID owner, Instant now) {
     jdbc.update(
         "UPDATE public.settlement_processing SET status = 'FAILED', lease_owner = NULL, lease_expires_at = NULL, last_error = 'PROCESSING_FAILED', updated_at = ? WHERE case_id = ? AND lease_owner = ?",

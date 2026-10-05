@@ -208,7 +208,15 @@ public class SettlementService implements SettlementProcessPort, SettlementReadP
             ignored -> processUnit(settlementCase, owner, prediction));
       }
       transactions.executeWithoutResult(
-          ignored -> repository.complete(settlementCase.caseId(), owner, clock.instant()));
+          ignored -> {
+            repository.lockEvent(settlementCase.eventId());
+            var authorization =
+                repository.findAuthorization(settlementCase.authorizationId()).orElseThrow();
+            requireAuthorizedResult(authorization);
+            Instant completedAt = clock.instant();
+            repository.complete(settlementCase.caseId(), owner, completedAt);
+            repository.appendChatSettlementCompletion(settlementCase.caseId(), completedAt);
+          });
       return settlementCase.caseId();
     } catch (RuntimeException failure) {
       transactions.executeWithoutResult(
