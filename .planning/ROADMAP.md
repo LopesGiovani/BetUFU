@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 9 executados (07-01/02/03/04/28/05/06/07/09). Wave 4 concluida; Wave 5 inicia07-08 na master com avanco continuo autorizado. 07-09: focal13/13, Node916/916, Maven1023/1023; escrita elegivel/idempotente V40. 07-07: focal15/15, Node916/916, Maven1010/1010; push STOMP seguro e avisos poscommit. 07-06: gerador100/100, Angular455/455, Node916/916, Maven995/995; contrato/client oficial publicado. V39/V40 aplicadas somente em testes descartaveis. WebSocket/STOMP ratificado conforme RT-01; backup local isolado ratificado/provado; gates juridicos/institucionais e operacao publica continuam pendentes. Fase nao certificada; ver SUMMARYs.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 10 executados (07-01/02/03/04/28/05/06/07/08/09). Wave 4 concluida; Wave 5 continua07-10 na master com avanco continuo autorizado. 07-08: browser2/2, Node936/936, Angular455/455, Maven1025/1025; leitura Arena/evento e STOMP real verificadas. 07-09: focal13/13, Node916/916, Maven1023/1023; escrita elegivel/idempotente V40. 07-07: focal15/15, Node916/916, Maven1010/1010; push STOMP seguro e avisos poscommit. V39/V40 aplicadas somente em testes descartaveis. WebSocket/STOMP ratificado conforme RT-01; backup local isolado ratificado/provado; gates juridicos/institucionais e operacao publica continuam pendentes. Fase nao certificada; ver SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -592,8 +592,8 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-07-PLAN.md — Server push seguro e cursor de mudancas.
 - [x] 07-09-PLAN.md — Escrita ATIVO, limite e idempotencia: V40/backend.
 
-**Wave 5 — Bloqueada pelas dependências explícitas dos planos**
-- [ ] 07-08-PLAN.md — Comunidade Arena e evento: tracer real de leitura.
+**Wave 5 — Em execução**
+- [x] 07-08-PLAN.md — Comunidade Arena e evento: tracer real de leitura.
 - [ ] 07-10-PLAN.md — Marco definitivo e encerramento permanente: V41.
 
 **Wave 6 — Bloqueada pelas dependências explícitas dos planos**

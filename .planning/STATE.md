@@ -4,21 +4,31 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-09 complete; next 07-08 Wave 5
-last_updated: "2026-10-05T04:28:56.303Z"
+stopped_at: Phase 7 plan 07-08 complete; next 07-10 Wave 5
+last_updated: "2026-10-05T13:35:00.000Z"
 last_activity: 2026-10-05
-last_activity_desc: Phase 7 eligible idempotent writes verified; 9/35 plans complete
-state_head: 63bd92977a16e9232683fae6f05501fae6c44972
+last_activity_desc: Phase 7 Arena chat read and real STOMP browser proof verified; 10/35 plans complete
+state_head: 953ecc4
 state_head_role: verified_implementation_commit; closing documentation is its direct child
 current_wave: 5
-current_plan: "07-08"
+current_plan: "07-10"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 144
+  completed_plans: 145
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 5 / Plan 07-08 closeout - 2026-10-05
+
+- Technical commit 953ecc4; Arena Community route, event chat panel, Signal read store, real STOMP reconnect and logout cleanup.
+- Browser proof passed 2/2 in 24.6s with HTTP 101 upgrades, real Keycloak/PostgreSQL facts, desktop/320px, history, scroll, live publish and no polling.
+- Node936/936, Angular455/455, Maven fresh XML 1,025/1,025 (Surefire361 + Failsafe664), lint/build/generator passed; 0 failure/error/skip.
+- Anonymous-session handshake correction and security tests were self-healing additions; supplemental paths are recorded in the plan/approval evidence.
+- All253 protected hashes, owner docs and V1-V38 intact. No dependency changes, data reset, push, worktree or Antigravity.
+- Phase7 is10/35; Wave5 continues with07-10. Legal/institutional/public-operation gates remain pending.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-SUMMARY.md and .git/gsd/phase7/07-08-evidence.json.
 
 ## Phase 7 / Wave 4 / Plan 07-09 closeout - 2026-10-05
 
