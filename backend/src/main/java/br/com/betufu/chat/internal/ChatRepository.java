@@ -19,11 +19,13 @@ public class ChatRepository {
   private static final String READ =
       """
       SELECT m.message_id, m.posted_at, m.change_cursor,
-             COALESCE(p.state = 'REMOVED', false) AS removed,
-             CASE WHEN p.state = 'REMOVED' THEN NULL ELSE m.author_identity_id END AS author_id,
-             CASE WHEN p.state = 'REMOVED' THEN NULL ELSE m.body END AS visible_text
+             COALESCE(p.state = 'REMOVED' OR r.message_id IS NOT NULL, false) AS removed,
+             CASE WHEN p.state = 'REMOVED' OR r.message_id IS NOT NULL THEN NULL ELSE m.author_identity_id END AS author_id,
+             CASE WHEN p.state = 'REMOVED' OR r.message_id IS NOT NULL THEN NULL ELSE m.body END AS visible_text,
+             COALESCE(r.change_cursor, m.change_cursor) AS effective_change_cursor
       FROM public.chat_message m
       LEFT JOIN public.chat_message_projection p ON p.message_id = m.message_id
+      LEFT JOIN public.chat_message_removal_fact r ON r.message_id = m.message_id
       WHERE m.channel_id = ?
       """;
 
@@ -74,7 +76,8 @@ public class ChatRepository {
 
   List<Fact> changes(Channel channel, long after, int limit) {
     return jdbc.query(
-        READ + " AND m.change_cursor > ? ORDER BY m.change_cursor LIMIT ?",
+        READ
+            + " AND COALESCE(r.change_cursor, m.change_cursor) > ? ORDER BY COALESCE(r.change_cursor, m.change_cursor) LIMIT ?",
         this::fact,
         channel.channelId(),
         after,
@@ -83,8 +86,9 @@ public class ChatRepository {
 
   long latestCursor(Channel channel) {
     return jdbc.queryForObject(
-        "SELECT COALESCE(max(change_cursor),0) FROM public.chat_message WHERE channel_id=?",
+        "SELECT GREATEST(COALESCE((SELECT max(m.change_cursor) FROM public.chat_message m WHERE m.channel_id=?),0), COALESCE((SELECT max(r.change_cursor) FROM public.chat_message_removal_fact r JOIN public.chat_message m ON m.message_id=r.message_id WHERE m.channel_id=?),0))",
         Long.class,
+        channel.channelId(),
         channel.channelId());
   }
 
@@ -102,6 +106,6 @@ public class ChatRepository {
         rs.getString("visible_text"),
         rs.getTimestamp("posted_at").toInstant(),
         rs.getBoolean("removed"),
-        rs.getLong("change_cursor"));
+        rs.getLong("effective_change_cursor"));
   }
 }

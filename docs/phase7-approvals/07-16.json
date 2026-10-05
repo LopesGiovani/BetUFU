@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "plan": "07-16",
+  "wave": 7,
+  "status": "approved",
+  "authorized_stage": "implementation",
+  "head": "b7c69a839e5b3bba9c307fb68e8938526bcab644",
+  "recorded_at": "2026-10-05T18:28:53.130Z",
+  "plan_sha256": "b0b665bd721b4f44bf2243346431494fe9a2e236f06a2d0c4f4a48c697ed74df",
+  "decisions_sha256": "f9780da3a65a23c24e49b70712b79766741531d92c0b1c8cf6214bc9524f0e52",
+  "human_approval": {
+    "source": "owner",
+    "status": "approved",
+    "reference": "conversation:owner-continuous-phase7-wave2-through-completion",
+    "statement": "Owner expressly authorized continuous Phase7 inline execution from Wave2 through completion, including V43 candidate preparation, implementation, tests/self-healing and two local commits. Moderation policy is governed by D-17/D-18/D-19 and the exact 07-16 scope.",
+    "plans": [
+      "07-16"
+    ]
+  },
+  "scope": {
+    "paths": [
+      "docs/phase7-approvals/07-16.json",
+      "backend/src/main/resources/db/migration/V43__chat_moderation_cases.sql",
+      "backend/src/main/java/br/com/betufu/chat/ChatModerationAuthorityPort.java",
+      "backend/src/main/java/br/com/betufu/identity/internal/ChatModerationAuthorityAdapter.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatModerationController.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatModerationService.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatModerationRepository.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatModerationModels.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatReadService.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatRepository.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatPushService.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatModerationIT.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatEvidenceAccessIT.java"
+    ],
+    "commands": [
+      "node scripts/validate-phase7-approvals.mjs --plan 07-16 --stage implementation",
+      "node scripts/maven.mjs -f backend/pom.xml \"-Dtest=ChatModerationIT,ChatEvidenceAccessIT\" test",
+      "node scripts/maven.mjs -f backend/pom.xml verify",
+      "node --test scripts/*.test.mjs"
+    ],
+    "candidates": [
+      ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-candidate/V43__chat_moderation_cases.sql"
+    ]
+  },
+  "baseline_hashes": {
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/STATE.md": "6460f3d87a96d5213f8f6217f33c97ea020d177e949a0ca04e4dc9ed12f95085",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-PLAN.md": "b0b665bd721b4f44bf2243346431494fe9a2e236f06a2d0c4f4a48c697ed74df",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md": "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845",
+    "backend/src/main/resources/db/migration/V39__chat_channels_and_messages.sql": "e0b9a9005e8dfe13f1d7786b4d145dfa50412928c12804e7eed436ec65041a0b",
+    "backend/src/main/resources/db/migration/V40__chat_writing.sql": "1c4fd6192ca7ff0192de2c56f31de8bc3543e5436cb505fa6429cf0b6f1a79f4",
+    "backend/src/main/resources/db/migration/V41__chat_definitive_lifecycle.sql": "820aebe54d305b51db5b2e0c3c607234b7d6b0049f4652357be8f0edf9fb5347",
+    "backend/src/main/resources/db/migration/V42__chat_reports_and_mutes.sql": "720ac40c9febfd112211d228d97e0c18d6d1a61a71a89580342c20797ab90db6"
+  },
+  "candidate_hashes": {
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-candidate/V43__chat_moderation_cases.sql": "9fc8ee740832a7d58d1a3e5142e5b9b15ed0e389b54938d8b613c6e8db27e981"
+  }
+}
