@@ -4,21 +4,36 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 Wave 3 complete; next 07-06 Wave 4
-last_updated: "2026-10-05T01:53:14.847Z"
+stopped_at: Phase 7 plan 07-06 complete; next 07-07 Wave 4
+last_updated: "2026-10-05T02:40:46.656Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 7 secure chat reads verified; 6/35 plans complete
-state_head: 3400b4f7aa2df12009183c1067330fbbb81f0fff
+last_activity_desc: Phase 7 generated chat reads verified; 7/35 plans complete
+state_head: 2387cd312f106b2ce96b5808b7ea5a695fe18bfe
 state_head_role: verified_implementation_commit; closing documentation is its direct child
 current_wave: 4
-current_plan: "07-06"
+current_plan: "07-07"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 141
+  completed_plans: 142
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 4 / Plan 07-06 closeout - 2026-10-05
+
+- Technical commit 2387cd312f106b2ce96b5808b7ea5a695fe18bfe; official generated Chat client and four GET contracts.
+- Real197-file tree, five generated deltas plus YAML; fourteen scoped technical paths.
+- Final generator100/100, Node916/916, Angular455/455 in75files; APIcheck/lint/build pass.
+- Maven BUILD SUCCESS: fresh Surefire361/37classes + Failsafe634/125classes,995total,0fail/error/skip.
+- Transient Windows EPERM recovered with exact owned probes; root cause unconfirmed.
+  Two existing Angular timeouts passed focally and final full rerun, no test weakening.
+- Inherited YAML blank-line whitespace amended with measured hashes and repeated
+  real generation/check/focal; generated tree identical. Frozen review no functional finding.
+- All239 immutable baselines and protected documents/V1-V38 intact; owner edits excluded.
+  Existing cookieSession schema declaration gap remains a formal OpenAPI limitation.
+- Phase7 is7/35, not certified; continue07-07 then09 under continuous authority. No push.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-06-SUMMARY.md.
 
 ## Phase 7 / Wave 3 / Plan 07-05 closeout - 2026-10-04
 
@@ -1015,7 +1030,7 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 8/8; Fase 6: 8/8; Fase 7: 4/35 executados; certificacao final pendente
+Progress: Fase 5: 8/8; Fase 6: 8/8; Fase 7: 7/35 executados; certificacao final pendente
 
 ## Métricas de desempenho
 
@@ -1193,9 +1208,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-05T01:53:14.847Z
-Stopped at: Phase 7 Wave 3 complete; continuous execution authorized; next 07-06
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-06-PLAN.md
+Last session: 2026-10-05T02:40:46.656Z
+Stopped at: Phase 7 plan 07-06 complete; continuous execution authorized; next 07-07
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-07-PLAN.md
 
 ## Accumulated Context
 

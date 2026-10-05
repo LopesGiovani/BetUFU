@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 6 executados (07-01/02/03/04/28/05). Wave 3 concluida; Wave 4 inicia 07-06 na master com avanco continuo autorizado. 07-05: focal15/15, identity17/17, Node916/916, Maven995/995. V39 aplicada somente em testes descartaveis. WebSocket/STOMP ratificado conforme RT-01; backup local isolado ratificado/provado; gates juridicos/institucionais e operacao publica continuam pendentes. Fase nao certificada; ver SUMMARYs.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 7 executados (07-01/02/03/04/28/05/06). Wave 4 em execucao; proximo 07-07 na master com avanco continuo autorizado. 07-06: gerador100/100, Angular455/455, Node916/916, Maven995/995; contrato/client oficial publicado. V39 aplicada somente em testes descartaveis. WebSocket/STOMP ratificado conforme RT-01; backup local isolado ratificado/provado; gates juridicos/institucionais e operacao publica continuam pendentes. Fase nao certificada; ver SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -588,7 +588,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-05-PLAN.md — Portas publicas e leitura HTTP segura.
 
 **Wave 4 — Bloqueada pelas dependências explícitas dos planos**
-- [ ] 07-06-PLAN.md — Contrato gerado de leitura dos dois canais.
+- [x] 07-06-PLAN.md — Contrato gerado de leitura dos dois canais.
 - [ ] 07-07-PLAN.md — Server push seguro e cursor de mudancas.
 - [ ] 07-09-PLAN.md — Escrita ATIVO, limite e idempotencia: V40/backend.
 
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 6/35 | Wave 3 complete; next 07-06 Wave 4 | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 7/35 | Wave 4 executing; next 07-07 | - |
