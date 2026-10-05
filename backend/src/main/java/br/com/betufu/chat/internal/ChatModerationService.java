@@ -33,10 +33,14 @@ public class ChatModerationService {
     this.push = push;
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public List<ChatModerationModels.CaseSummary> list(
       String issuer, String subject, String sessionId) {
     var authority = currentAuthority(issuer, subject, sessionId);
+    // Rebuild the scoped queue from immutable reports without requiring manual report identifiers.
+    repository.pendingReports().stream()
+        .filter(report -> allowed(authority, report.eventId()))
+        .forEach(report -> repository.ensureCase(report.reportId()));
     return repository.cases().stream()
         .filter(row -> allowed(authority, row.eventId()))
         .map(this::summary)

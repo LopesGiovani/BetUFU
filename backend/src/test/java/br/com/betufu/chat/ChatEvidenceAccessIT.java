@@ -104,6 +104,50 @@ class ChatEvidenceAccessIT extends ChatCommunityFixture {
         .isZero();
   }
 
+  @Test
+  void moderationFactsDenyRuntimeMutationAndOwnerTriggersProtectHistory() throws Exception {
+    var runtime = runtime();
+    String migration;
+    try (var resource =
+        getClass().getResourceAsStream("/db/migration/V43__chat_moderation_cases.sql")) {
+      migration = new String(resource.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+    }
+    try (var connection =
+            java.sql.DriverManager.getConnection(
+                POSTGRESQL.getJdbcUrl(), POSTGRESQL.getUsername(), POSTGRESQL.getPassword());
+        var statement = connection.createStatement()) {
+      statement.execute("SET betufu.runtime_role='chat_community_runtime'");
+      statement.execute(migration.substring(migration.indexOf("DO $$")));
+    }
+    for (String table :
+        java.util.List.of(
+            "chat_moderation_case_report_fact",
+            "chat_moderation_review_fact",
+            "chat_moderation_decision_fact",
+            "chat_message_removal_fact",
+            "chat_moderation_forward_fact",
+            "chat_moderation_sanction_fact",
+            "chat_moderation_evidence_access_fact")) {
+      for (String privilege : java.util.List.of("UPDATE", "DELETE", "TRUNCATE")) {
+        assertThat(
+                runtime.queryForObject(
+                    "SELECT has_table_privilege(current_user, ?, ?)",
+                    Boolean.class,
+                    "public." + table,
+                    privilege))
+            .isFalse();
+      }
+      assertThat(
+              runtime.queryForObject(
+                  "SELECT has_table_privilege(current_user, ?, 'INSERT')",
+                  Boolean.class,
+                  "public." + table))
+          .isTrue();
+      assertThatThrownBy(() -> jdbc.update("DELETE FROM public." + table + " WHERE false"))
+          .hasMessageContaining("immutable");
+    }
+  }
+
   private void grant(UUID identity, String role, UUID scope) {
     jdbc.update(
         "INSERT INTO operational_role_grant(identity_id,role_name,scope_ref,status) VALUES (?, ?, ?, 'VIGENTE')",

@@ -4,8 +4,8 @@
   "wave": 7,
   "status": "approved",
   "authorized_stage": "implementation",
-  "head": "b7c69a839e5b3bba9c307fb68e8938526bcab644",
-  "recorded_at": "2026-10-05T18:28:53.130Z",
+  "head": "f5578566393c4625569f96d1692cc145e4afa0fa",
+  "recorded_at": "2026-10-05T21:33:16.870Z",
   "plan_sha256": "b0b665bd721b4f44bf2243346431494fe9a2e236f06a2d0c4f4a48c697ed74df",
   "decisions_sha256": "f9780da3a65a23c24e49b70712b79766741531d92c0b1c8cf6214bc9524f0e52",
   "human_approval": {
@@ -45,7 +45,7 @@
   },
   "baseline_hashes": {
     "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
-    ".planning/STATE.md": "6460f3d87a96d5213f8f6217f33c97ea020d177e949a0ca04e4dc9ed12f95085",
+    ".planning/STATE.md": "94b414fbd9ead859ee16fc8295826f5a9a72a3f25378a539ea10b26bb61dcbc1",
     ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-PLAN.md": "b0b665bd721b4f44bf2243346431494fe9a2e236f06a2d0c4f4a48c697ed74df",
     ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
     ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
@@ -57,5 +57,10 @@
   },
   "candidate_hashes": {
     ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-candidate/V43__chat_moderation_cases.sql": "9fc8ee740832a7d58d1a3e5142e5b9b15ed0e389b54938d8b613c6e8db27e981"
+  },
+  "previous_implementation_head": "b7c69a839e5b3bba9c307fb68e8938526bcab644",
+  "self_healing": {
+    "reference": "conversation:owner-resume-as-before-continuous-phase7",
+    "statement": "Resume includes forwarding timestamp correction, shared removal cursor, scoped discovery of reported messages, regression tests and runtime ACL/trigger proof within the existing 07-16 technical allowlist. No new product rule or migration bytes."
   }
 }

@@ -409,11 +409,15 @@
       "authorization_basis": "explicit-owner-decision"
     },
     "moderation_policy": {
-      "status": "pending",
+      "status": "approved",
       "description": "Infraction/case identity, concurrency and reversal rules",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf"
+      },
+      "authorization_basis": "delegated-continuous-execution",
+      "statement": "D-17/D-18/D-19 governam o bloco: moderador atua somente no escopo concedido; ADMINISTRADOR_GERAL aplica suspensoes globais; denuncia nao pune automaticamente; a unidade de caso impede dupla sancao; revisao e anulacao sao novos fatos auditados; nenhuma acao altera saldo, ranking ou historico financeiro."
     },
     "mute_policy": {
       "status": "approved",

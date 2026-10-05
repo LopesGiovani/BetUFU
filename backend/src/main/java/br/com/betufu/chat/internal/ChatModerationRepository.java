@@ -25,6 +25,12 @@ public class ChatModerationRepository {
         this::caseRow);
   }
 
+  List<PendingReport> pendingReports() {
+    return jdbc.query(
+        "SELECT r.report_id,ch.event_id FROM public.chat_report r JOIN public.chat_message m ON m.message_id=r.message_id JOIN public.chat_channel ch ON ch.channel_id=m.channel_id LEFT JOIN public.chat_moderation_case_report_fact cf ON cf.report_id=r.report_id WHERE cf.report_id IS NULL ORDER BY r.reported_at,r.report_id",
+        (rs, row) -> new PendingReport(rs.getObject(1, UUID.class), rs.getObject(2, UUID.class)));
+  }
+
   Optional<CaseRow> findCase(UUID caseId) {
     return jdbc
         .query(
@@ -87,9 +93,13 @@ public class ChatModerationRepository {
   Optional<CommandFact> command(String table, UUID actor, UUID command) {
     if (!table.matches("chat_moderation_(decision|forward)_fact"))
       throw new IllegalArgumentException("unsupported moderation fact table");
+    String timestamp =
+        table.equals("chat_moderation_forward_fact") ? "forwarded_at" : "recorded_at";
     return jdbc
         .query(
-            "SELECT case_id,client_command_id,reason,recorded_at FROM public."
+            "SELECT case_id,client_command_id,reason,"
+                + timestamp
+                + " FROM public."
                 + table
                 + " WHERE actor_identity_id=? AND client_command_id=?",
             (rs, row) ->
@@ -134,7 +144,8 @@ public class ChatModerationRepository {
 
   RemovalFact remove(UUID caseId, UUID messageId, UUID actor, String reason) {
     jdbc.update(
-        "INSERT INTO public.chat_message_removal_fact(case_id,message_id,actor_identity_id,reason) VALUES (?,?,?,?) ON CONFLICT (case_id) DO NOTHING",
+        // Removal and message writes share one cursor domain so connected readers see old removals.
+        "INSERT INTO public.chat_message_removal_fact(case_id,message_id,actor_identity_id,reason,change_cursor) OVERRIDING SYSTEM VALUE VALUES (?,?,?,?,nextval('public.chat_message_change_cursor_seq')) ON CONFLICT (case_id) DO NOTHING",
         caseId,
         messageId,
         actor,
@@ -217,6 +228,8 @@ public class ChatModerationRepository {
   record MessageRef(UUID messageId, UUID channelId) {}
 
   record ReportTarget(UUID eventId) {}
+
+  record PendingReport(UUID reportId, UUID eventId) {}
 
   record CommandFact(UUID caseId, UUID commandId, String reason, Instant recordedAt) {}
 
