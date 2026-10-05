@@ -19,7 +19,11 @@ import { OpenApiHttpParams, QueryParamStyle } from '../query.params';
 // @ts-ignore
 import { BetufuProblemDetails } from '../model/betufu-problem-details';
 // @ts-ignore
+import { ChatCommandReceipt } from '../model/chat-command-receipt';
+// @ts-ignore
 import { ChatReadResponse } from '../model/chat-read-response';
+// @ts-ignore
+import { ChatSendRequest } from '../model/chat-send-request';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -51,6 +55,19 @@ export interface GetGlobalChatChangesRequestParams {
     /** Technical sequence cursor; complete moderation replay is not yet certified. */
     changeCursor?: number;
     limit?: number;
+}
+
+export interface SendEventChatMessageRequestParams {
+    eventId: string;
+    /** Canonical lowercase UUID retained for this exact command, including retries. */
+    idempotencyKey: string;
+    chatSendRequest: ChatSendRequest;
+}
+
+export interface SendGlobalChatMessageRequestParams {
+    /** Canonical lowercase UUID retained for this exact command, including retries. */
+    idempotencyKey: string;
+    chatSendRequest: ChatSendRequest;
 }
 
 
@@ -373,6 +390,162 @@ export class ChatService extends BaseService {
             {
                 context: localVarHttpContext,
                 params: localVarQueryParameters.toHttpParams(),
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Send an authenticated chat message
+     * Requires a current session and ATIVO enrollment. The body contains only exact plain text; the server derives the actor. One new message per actor per three seconds across all channels. Reuse the original canonical UUID Idempotency-Key with the same actor, text and channel after a lost response; accepted replay returns the original receipt without creating another message. Only the persisted 201 acknowledgement confirms delivery. Network failures can retry with the same key; 429 waits for Retry-After/retryAt. 400/401/403/404/409 are terminal for automatic retry. The server rejects writes at the definitive two-hour deadline; completed timely corrections extend the window, expired chats never reopen.
+     * @endpoint post /api/v1/chat/events/{eventId}/messages
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public sendEventChatMessage(requestParameters: SendEventChatMessageRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatCommandReceipt>;
+    public sendEventChatMessage(requestParameters: SendEventChatMessageRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatCommandReceipt>>;
+    public sendEventChatMessage(requestParameters: SendEventChatMessageRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatCommandReceipt>>;
+    public sendEventChatMessage(requestParameters: SendEventChatMessageRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const eventId = requestParameters?.eventId;
+        if (eventId === null || eventId === undefined) {
+            throw new Error('Required parameter eventId was null or undefined when calling sendEventChatMessage.');
+        }
+        const idempotencyKey = requestParameters?.idempotencyKey;
+        if (idempotencyKey === null || idempotencyKey === undefined) {
+            throw new Error('Required parameter idempotencyKey was null or undefined when calling sendEventChatMessage.');
+        }
+        const chatSendRequest = requestParameters?.chatSendRequest;
+        if (chatSendRequest === null || chatSendRequest === undefined) {
+            throw new Error('Required parameter chatSendRequest was null or undefined when calling sendEventChatMessage.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+        if (idempotencyKey !== undefined && idempotencyKey !== null) {
+            localVarHeaders = localVarHeaders.set('Idempotency-Key', String(idempotencyKey));
+        }
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/events/${this.configuration.encodeParam({name: "eventId", value: eventId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/messages`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatCommandReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatSendRequest,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Send an authenticated chat message
+     * Requires a current session and ATIVO enrollment. The body contains only exact plain text; the server derives the actor. One new message per actor per three seconds across all channels. Reuse the original canonical UUID Idempotency-Key with the same actor, text and channel after a lost response; accepted replay returns the original receipt without creating another message. Only the persisted 201 acknowledgement confirms delivery. Network failures can retry with the same key; 429 waits for Retry-After/retryAt. 400/401/403/404/409 are terminal for automatic retry. The global channel has no event deadline.
+     * @endpoint post /api/v1/chat/global/messages
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public sendGlobalChatMessage(requestParameters: SendGlobalChatMessageRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatCommandReceipt>;
+    public sendGlobalChatMessage(requestParameters: SendGlobalChatMessageRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatCommandReceipt>>;
+    public sendGlobalChatMessage(requestParameters: SendGlobalChatMessageRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatCommandReceipt>>;
+    public sendGlobalChatMessage(requestParameters: SendGlobalChatMessageRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const idempotencyKey = requestParameters?.idempotencyKey;
+        if (idempotencyKey === null || idempotencyKey === undefined) {
+            throw new Error('Required parameter idempotencyKey was null or undefined when calling sendGlobalChatMessage.');
+        }
+        const chatSendRequest = requestParameters?.chatSendRequest;
+        if (chatSendRequest === null || chatSendRequest === undefined) {
+            throw new Error('Required parameter chatSendRequest was null or undefined when calling sendGlobalChatMessage.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+        if (idempotencyKey !== undefined && idempotencyKey !== null) {
+            localVarHeaders = localVarHeaders.set('Idempotency-Key', String(idempotencyKey));
+        }
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/global/messages`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatCommandReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatSendRequest,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

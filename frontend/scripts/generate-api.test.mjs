@@ -101,7 +101,7 @@ test('official chat read contract preserves session boundary and minimal project
   );
 });
 
-test('official chat read client contains only the four relative GET operations', async () => {
+test('official chat client preserves four relative GET reads alongside authenticated writes', async () => {
   assert.ok(PUBLIC_GENERATOR_API_TAGS.includes('Chat'));
   assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatMessage'));
   assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatReadResponse'));
@@ -119,12 +119,111 @@ test('official chat read client contains only the four relative GET operations',
     requests.map((m) => m[1]),
     ['get', 'get', 'get', 'get'],
   );
-  assert.equal((service.match(/let localVarPath = `\/api\/v1\/chat\//gu) ?? []).length, 4);
+  assert.equal((service.match(/let localVarPath = `\/api\/v1\/chat\//gu) ?? []).length, 6);
   assert.doesNotMatch(service, /lookupCredential|['"](?:Authorization|Cookie)['"]/u);
   const message = await readFile(join(generated, 'model/chat-message.ts'), 'utf8');
   assert.match(message, /text\?: string \| null/u);
   assert.match(message, /participantId\?: string \| null/u);
   assert.doesNotMatch(message, /\b(?:email|providerId|authorId|enrollment|originalText)\??:/u);
+});
+
+function assertChatWriteContract(source) {
+  for (const [route, operation] of [
+    ['/api/v1/chat/events/{eventId}/messages', 'sendEventChatMessage'],
+    ['/api/v1/chat/global/messages', 'sendGlobalChatMessage'],
+  ]) {
+    const block = source.split(`  ${route}:\n`)[1]?.split(/\n  \S/u)[0];
+    assert.ok(block, `missing ${route}`);
+    assert.match(block, new RegExp(`operationId: ${operation}\\b`, 'u'));
+    assert.match(block, /security: \[\{cookieSession: \[\]\}\]/u);
+    assert.match(block, /name: Idempotency-Key\n\s+in: header\n\s+required: true/u);
+    assert.match(block, /Canonical lowercase UUID/u);
+    assert.match(block, /#\/components\/schemas\/ChatSendRequest/u);
+    assert.match(block, /#\/components\/schemas\/ChatCommandReceipt/u);
+    assert.match(block, /"201":[\s\S]*?Committed immutable receipt/u);
+    for (const status of ['400', '401', '403', '404', '409', '429'])
+      assert.match(block, new RegExp(`"${status}":`, 'u'));
+    assert.match(block, /Retry-After:[\s\S]*?minimum: 1/u);
+    assert.match(block, /private, no-store/u);
+  }
+  for (const [name, fields, required] of [
+    ['ChatSendRequest', ['text'], '[text]'],
+    [
+      'ChatCommandReceipt',
+      ['messageId', 'postedAt', 'changeCursor'],
+      '[messageId, postedAt, changeCursor]',
+    ],
+  ]) {
+    const block = source.split(`    ${name}:\n`)[1]?.split(/\n    \S/u)[0];
+    assert.ok(block, `missing ${name}`);
+    assert.match(block, /additionalProperties: false/u);
+    assert.ok(block.includes(`required: ${required}`));
+    assert.deepEqual(
+      [...block.matchAll(/^        (\w+):/gmu)].map((match) => match[1]),
+      fields,
+    );
+  }
+  const problem = source.split('    BetufuProblemDetails:\n')[1]?.split(/\n    \S/u)[0];
+  assert.match(problem, /retryAt:\n\s+type: string\n\s+format: date-time/u);
+}
+
+test('official chat write contract matches runtime header, receipt, retries and private-field rejection', async () => {
+  const source = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+  assertChatWriteContract(source);
+  const mutants = [
+    source.replace(
+      /(operationId: sendGlobalChatMessage\n[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u,
+      '$1[]',
+    ),
+    source.replace('        - name: Idempotency-Key', '        - name: clientCommandId'),
+    source.replace('      required: [text]', '      required: [text, actorId]'),
+    source.replace(
+      '        text: {type: string, minLength: 1, maxLength: 280}',
+      '        actorId: {type: string}\n        text: {type: string, minLength: 1, maxLength: 280}',
+    ),
+    source.replace(
+      '        postedAt: {type: string, format: date-time}',
+      '        acceptedAt: {type: string, format: date-time}',
+    ),
+    source.replace('        retryAt:\n', '        internalReason:\n'),
+  ];
+  for (const mutant of mutants) {
+    assert.notEqual(mutant, source, 'mutation must change the real contract');
+    assert.throws(() => assertChatWriteContract(mutant));
+  }
+});
+
+test('official generated chat write client sends two relative POSTs and exposes exact public acknowledgements', async () => {
+  const generated = join(projectRoot, 'frontend/src/app/api/generated');
+  const service = await readFile(join(generated, 'api/chat.service.ts'), 'utf8');
+  for (const operation of ['sendEventChatMessage', 'sendGlobalChatMessage'])
+    assert.match(service, new RegExp(`public ${operation}\\(`, 'u'));
+  assert.deepEqual(
+    [...service.matchAll(/request<ChatCommandReceipt>\('([^']+)'/gu)].map((match) => match[1]),
+    ['post', 'post'],
+  );
+  assert.equal(
+    (service.match(/localVarHeaders\.set\('Idempotency-Key', String\(idempotencyKey\)\)/gu) ?? [])
+      .length,
+    2,
+  );
+  assert.doesNotMatch(service, /lookupCredential|['"](?:Authorization|Cookie)['"]/u);
+  const request = await readFile(join(generated, 'model/chat-send-request.ts'), 'utf8');
+  const receipt = await readFile(join(generated, 'model/chat-command-receipt.ts'), 'utf8');
+  assert.deepEqual(
+    [...request.matchAll(/^    (\w+)\??:/gmu)].map((match) => match[1]),
+    ['text'],
+  );
+  assert.deepEqual(
+    [...receipt.matchAll(/^    (\w+)\??:/gmu)].map((match) => match[1]),
+    ['messageId', 'postedAt', 'changeCursor'],
+  );
+  assert.match(
+    await readFile(join(generated, 'model/betufu-problem-details.ts'), 'utf8'),
+    /retryAt\?: string/u,
+  );
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatSendRequest'));
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatCommandReceipt'));
 });
 
 function testContract(engineBytes) {
@@ -962,7 +1061,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, 'CFD9FEDAAA07BE604D87958284470FFEDCD4780E0EA3205305DDDC0955B03A81');
+  assert.equal(manifest.digest, '534BB5B13A376FEB9504F7E697C6AE21BDE3CDA94A3106E333C87FC800A00E09');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,

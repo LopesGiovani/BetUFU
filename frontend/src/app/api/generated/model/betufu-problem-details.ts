@@ -40,6 +40,10 @@ export interface BetufuProblemDetails {
      */
     action: string;
     /**
+     * Optional authoritative earliest retry instant for chat rate limiting.
+     */
+    retryAt?: string;
+    /**
      * Código opaco opcional para suporte e correlação de logs.
      */
     correlationId?: string;

@@ -97,8 +97,10 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Achievement',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
+  'ChatCommandReceipt',
   'ChatMessage',
   'ChatReadResponse',
+  'ChatSendRequest',
   'AdministrativeCorrectionEventDto',
   'AdministrativeCorrectionsBlock',
   'AthleteLinkDecisionRequest',
@@ -333,8 +335,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/athlete-public-profile.ts',
   'model/betufu-field-violation.ts',
   'model/betufu-problem-details.ts',
+  'model/chat-command-receipt.ts',
   'model/chat-message.ts',
   'model/chat-read-response.ts',
+  'model/chat-send-request.ts',
   'model/create-odds-market-request.ts',
   'model/credit-balance-response.ts',
   'model/credit-correction-page.ts',
@@ -526,8 +530,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // 13CC... publica os contratos HTTP da Fase 6 para liquidacao, correcoes, ranking,
 // grupos e conquistas no plano 06-07, preservando a geracao oficial do cliente.
 // CFD9... acrescenta as quatro leituras do chat e seus dois modelos no plano 07-06.
+// 534B... acrescenta envio/recibo do chat e retryAt no plano 07-11.
 export const APPROVED_GENERATED_DIGEST =
-  'CFD9FEDAAA07BE604D87958284470FFEDCD4780E0EA3205305DDDC0955B03A81';
+  '534BB5B13A376FEB9504F7E697C6AE21BDE3CDA94A3106E333C87FC800A00E09';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

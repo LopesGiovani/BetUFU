@@ -8,6 +8,164 @@ servers:
   - url: /
 
 paths:
+  /api/v1/chat/events/{eventId}/messages:
+    post:
+      tags: [Chat]
+      operationId: sendEventChatMessage
+      summary: Send an authenticated chat message
+      description: >-
+        Requires a current session and ATIVO enrollment. The body contains only exact plain text;
+        the server derives the actor. One new message per actor per three seconds across all channels.
+        Reuse the original canonical UUID Idempotency-Key with the same actor, text and channel after
+        a lost response; accepted replay returns the original receipt without creating another message.
+        Only the persisted 201 acknowledgement confirms delivery. Network failures can retry with the
+        same key; 429 waits for Retry-After/retryAt. 400/401/403/404/409 are terminal for automatic retry.
+        The server rejects writes at the definitive two-hour deadline; completed timely corrections extend the window, expired chats never reopen.
+      security: [{cookieSession: []}]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Canonical lowercase UUID retained for this exact command, including retries.
+          schema:
+            type: string
+            format: uuid
+            pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatSendRequest"}
+      responses:
+        "201":
+          description: Committed immutable receipt, also returned unchanged for accepted replay.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatCommandReceipt"}
+        "400":
+          description: Invalid canonical UUID, body shape or text; no automatic retry.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Current session required; discard commands on logout or account change.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Current enrollment or security authorization denies the command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Channel unavailable or event is not actually published.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Terminal lifecycle closure or reuse of a key for different text/channel.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+        "429":
+          description: Wait until retryAt and respect Retry-After before retrying this command.
+          headers:
+            Retry-After:
+              schema: {type: integer, minimum: 1}
+              description: Rounded-up seconds until another new message can be accepted.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/global/messages:
+    post:
+      tags: [Chat]
+      operationId: sendGlobalChatMessage
+      summary: Send an authenticated chat message
+      description: >-
+        Requires a current session and ATIVO enrollment. The body contains only exact plain text;
+        the server derives the actor. One new message per actor per three seconds across all channels.
+        Reuse the original canonical UUID Idempotency-Key with the same actor, text and channel after
+        a lost response; accepted replay returns the original receipt without creating another message.
+        Only the persisted 201 acknowledgement confirms delivery. Network failures can retry with the
+        same key; 429 waits for Retry-After/retryAt. 400/401/403/404/409 are terminal for automatic retry.
+        The global channel has no event deadline.
+      security: [{cookieSession: []}]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Canonical lowercase UUID retained for this exact command, including retries.
+          schema:
+            type: string
+            format: uuid
+            pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatSendRequest"}
+      responses:
+        "201":
+          description: Committed immutable receipt, also returned unchanged for accepted replay.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatCommandReceipt"}
+        "400":
+          description: Invalid canonical UUID, body shape or text; no automatic retry.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Current session required; discard commands on logout or account change.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Current enrollment or security authorization denies the command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Channel unavailable or event is not actually published.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Terminal lifecycle closure or reuse of a key for different text/channel.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+        "429":
+          description: Wait until retryAt and respect Retry-After before retrying this command.
+          headers:
+            Retry-After:
+              schema: {type: integer, minimum: 1}
+              description: Rounded-up seconds until another new message can be accepted.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
   /api/v1/chat/events/{eventId}:
     get:
       tags: [Chat]
@@ -4424,6 +4582,24 @@ components:
       description: Chave opaca obrigatória para repetição segura do comando de override.
 
   schemas:
+    ChatSendRequest:
+      type: object
+      additionalProperties: false
+      required: [text]
+      description: Exact nonblank text, at most 280 Unicode code points; controls and unpaired surrogates are invalid. Plain text only, no HTML rendering.
+      properties:
+        text: {type: string, minLength: 1, maxLength: 280}
+
+    ChatCommandReceipt:
+      type: object
+      additionalProperties: false
+      required: [messageId, postedAt, changeCursor]
+      description: Server acknowledgement of a committed message; no client-supplied delivery status or private identity.
+      properties:
+        messageId: {type: string, format: uuid}
+        postedAt: {type: string, format: date-time}
+        changeCursor: {type: integer, format: int64, minimum: 1}
+
     ChatMessage:
       type: object
       additionalProperties: false
@@ -5390,6 +5566,10 @@ components:
         action:
           type: string
           description: Ação segura recomendada à pessoa usuária.
+        retryAt:
+          type: string
+          format: date-time
+          description: Optional authoritative earliest retry instant for chat rate limiting.
         correlationId:
           type: string
           description: Código opaco opcional para suporte e correlação de logs.
