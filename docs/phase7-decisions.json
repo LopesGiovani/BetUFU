@@ -369,11 +369,19 @@
       "evidence_hashes": {}
     },
     "writing_contract": {
-      "status": "pending",
+      "status": "approved",
       "description": "Unicode unit and authoritative rate-limit scope",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-09-PLAN.md": "5a2f549c74d312d819efca043e528dc6e509c25810c008b9ac45275e166e4399"
+      },
+      "statement": "Executor technical choice under explicit continuous owner authority:280Unicode code points, exact unnormalized text; one new accepted message per actor per3seconds across all channels. This records delegated implementation, not a separate owner answer.",
+      "authorization_basis": "delegated-continuous-execution",
+      "executor_choice": {
+        "unicode": "code-points",
+        "rate_scope": "actor-all-channels"
+      }
     },
     "lifecycle": {
       "status": "pending",

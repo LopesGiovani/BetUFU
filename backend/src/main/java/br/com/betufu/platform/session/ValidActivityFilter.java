@@ -21,6 +21,10 @@ public final class ValidActivityFilter extends OncePerRequestFilter {
   private static final List<RequestMatcher> ALLOWLISTED_MUTATIONS =
       List.of(
           PathPatternRequestMatcher.withDefaults()
+              .matcher(HttpMethod.POST, "/api/v1/chat/global/messages"),
+          PathPatternRequestMatcher.withDefaults()
+              .matcher(HttpMethod.POST, "/api/v1/chat/events/*/messages"),
+          PathPatternRequestMatcher.withDefaults()
               .matcher(HttpMethod.PUT, "/api/v1/tracer/identity/current"),
           PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.PUT, "/api/v1/profile/me"),
           PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.PUT, "/api/v1/enrollment/me"),
@@ -32,6 +36,8 @@ public final class ValidActivityFilter extends OncePerRequestFilter {
               .matcher(HttpMethod.POST, "/api/v1/operations/enrollments/correction"));
 
   private final SessionLifecycleService sessionLifecycleService;
+  private final Object[] chatActivityLocks =
+      java.util.stream.IntStream.range(0, 64).mapToObj(index -> new Object()).toArray();
 
   public ValidActivityFilter(SessionLifecycleService sessionLifecycleService) {
     this.sessionLifecycleService =
@@ -50,6 +56,21 @@ public final class ValidActivityFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+    if (request.getRequestURI().startsWith("/api/v1/chat/") && request.getSession(false) != null) {
+      // Keep response-triggered Redis session saves inside the same bounded local stripe.
+      int stripe =
+          Math.floorMod(request.getSession(false).getId().hashCode(), chatActivityLocks.length);
+      synchronized (chatActivityLocks[stripe]) {
+        completeActivity(request, response, filterChain);
+      }
+      return;
+    }
+    completeActivity(request, response, filterChain);
+  }
+
+  private void completeActivity(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
