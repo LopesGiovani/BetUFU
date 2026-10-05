@@ -4,21 +4,35 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-14 complete; next 07-16 Wave 7
-last_updated: "2026-10-05T18:20:41.875Z"
+stopped_at: Phase 7 plan 07-16 complete; next 07-17 Wave 8
+last_updated: "2026-10-05T21:27:33.4871206Z"
 last_activity: 2026-10-05
-last_activity_desc: Phase 7 community contract generated and verified; 14/35 plans complete
-state_head: 8954ef5191d62fc6801abe9731a80f9fb25657fb
+last_activity_desc: Phase 7 scoped moderation cases and restricted evidence verified; 15/35 plans complete
+state_head: bba4d4e8ac51b06611e553ded23fb01bd52ea244
 state_head_role: verified_implementation_commit; closing documentation is its direct child
-current_wave: 7
-current_plan: "07-16"
+current_wave: 8
+current_plan: "07-17"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 149
+  completed_plans: 150
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 7 / Plan 07-16 closeout - 2026-10-05
+
+- Technical commits `f557856` and `bba4d4e`; V43 scoped
+  moderation cases, restricted evidence and append-only audit facts.
+- Focal Maven8/8, Maven verify1062/1062 (361 Surefire +701 Failsafe) and Node936/936 all passed with zero
+  failures, errors, cancellations or skips. Candidate/governed V43 digest is
+  `9FC8EE740832A7D58D1A3E5142E5B9B15ED0E389B54938D8B613C6E8DB27E981`.
+- A BOM mismatch was detected before commit, corrected by exact candidate copy,
+  and all aggregate suites were rerun. Owner documents remain unstaged; no
+  dependency, data reset, volume, push, worktree or Antigravity operation.
+- Phase7 is15/35; Wave7 complete. Continue with07-17 in Wave8. UI, public,
+  legal, institutional, load and restore gates remain pending.
+- Evidence: `.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-SUMMARY.md`.
 
 ## Phase 7 / Wave 7 / Plan 07-14 closeout - 2026-10-05
 
@@ -1276,8 +1290,8 @@ não é uma instrução operacional vigente.
 ## Session Continuity
 
 Last session: 2026-10-05T18:20:41.875Z
-Stopped at: Phase 7 plan 07-14 complete; continuous execution authorized; next 07-16
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-PLAN.md
+Stopped at: Phase 7 plan 07-16 complete; continuous execution authorized; next 07-17
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-17-PLAN.md
 
 ## Accumulated Context
 
