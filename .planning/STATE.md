@@ -4,21 +4,38 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 Wave 2 complete; next 07-05 Wave 3
-last_updated: "2026-10-05T00:54:48.407Z"
+stopped_at: Phase 7 Wave 3 complete; next 07-06 Wave 4
+last_updated: "2026-10-05T01:53:14.847Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 7 isolated backups verified; 5/35 plans complete
-state_head: 188c577364e6ee81f72e846adc9e6f8a1192f35c
+last_activity_desc: Phase 7 secure chat reads verified; 6/35 plans complete
+state_head: 3400b4f7aa2df12009183c1067330fbbb81f0fff
 state_head_role: verified_implementation_commit; closing documentation is its direct child
-current_wave: 3
-current_plan: "07-05"
+current_wave: 4
+current_plan: "07-06"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 140
+  completed_plans: 141
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 3 / Plan 07-05 closeout - 2026-10-04
+
+- Technical commit 3400b4f7aa2df12009183c1067330fbbb81f0fff; public consumer-owned ports and producer-owned adapters.
+- Four secure GETs: published event public, global session-only, no global-alias bypass;
+  actual publication/legacy concurrency, private/no-store, whitelist and removed markers.
+- Literal focal15/15; combined identity focus17/17; Node916/916 in9suites.
+  Final Maven BUILD SUCCESS: fresh Surefire361/37classes + Failsafe634/125classes,
+  995total,0fail/error/skip. Older focal ChatReadIT XML excluded.
+- Identity isolated-context correction scoped to15paths; later3stale binary errors
+  resolved by Maven clean, repeated literal focal and full verify, no data reset.
+- Frozen inline review has no functional finding; residual complexity recorded.
+  All242baseline hashes and owner docs/V1-V38 intact, owner edits excluded, no push.
+- Read AVAILABLE is not write permission; deadline/lifecycle, complete change replay,
+  STOMP and browser journey remain future work. Phase7 is6/35, not certified.
+- Wave3 complete; continuous authority advances to07-06/Wave4.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-05-SUMMARY.md.
 
 ## Phase 7 / Wave 2 / Plan 07-28 closeout - 2026-10-04
 
@@ -1176,9 +1193,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-04T20:34:40.348Z
-Stopped at: Phase 7 Wave 2; continuous execution authorized; next 07-28
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-28-PLAN.md
+Last session: 2026-10-05T01:53:14.847Z
+Stopped at: Phase 7 Wave 3 complete; continuous execution authorized; next 07-06
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-06-PLAN.md
 
 ## Accumulated Context
 
