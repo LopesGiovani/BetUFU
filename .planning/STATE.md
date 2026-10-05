@@ -4,21 +4,36 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 Wave 2 executing; 07-04 complete; next 07-28
-last_updated: "2026-10-04T23:03:31.029Z"
+stopped_at: Phase 7 Wave 2 complete; next 07-05 Wave 3
+last_updated: "2026-10-05T00:54:48.407Z"
 last_activity: 2026-10-04
-last_activity_desc: Phase 7 chat schema verified; 4/35 plans complete
-state_head: fef7ce5fc20469e0065c606da9a5548ce89bea4f
+last_activity_desc: Phase 7 isolated backups verified; 5/35 plans complete
+state_head: 188c577364e6ee81f72e846adc9e6f8a1192f35c
 state_head_role: verified_implementation_commit; closing documentation is its direct child
-current_wave: 2
-current_plan: "07-28"
+current_wave: 3
+current_plan: "07-05"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 139
+  completed_plans: 140
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 2 / Plan 07-28 closeout - 2026-10-04
+
+- Technical commit 188c577364e6ee81f72e846adc9e6f8a1192f35c; approved isolated local backup configuration only.
+- Complete BETUFU/Keycloak databases and offline private object volume, AES-256-GCM,
+  HMAC manifest, separate private key, exclusive lock, real automatic/recurring timer,
+  maximum RPO gap and exact owned retention dry-run/cleanup.
+- Two actual backups passed; final snapshot29.810s, maximum observed gap150.988s.
+  Actual cipher mutation rejected; no owned containers/volumes remain.
+- Focal33/33; Node916/916 in9suites; Maven BUILD SUCCESS: Surefire361/37classes +
+  Failsafe622/124classes,983total,0fail/error/skip. All242baseline hashes intact.
+- Owner operational approval reference conversation:2026-10-04:owner-local-backup-policy;
+  public-pilot destination/provider/key custody and full restore remain pending.
+- No owner volumes/seed/docs touched, no push. Wave2 complete; continue07-05/Wave3.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-28-SUMMARY.md.
 
 ## Phase 7 / Wave 2 / Plan 07-04 closeout - 2026-10-04
 
