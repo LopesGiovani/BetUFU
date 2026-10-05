@@ -4,21 +4,30 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-08 complete; next 07-10 Wave 5
-last_updated: "2026-10-05T13:35:00.000Z"
+stopped_at: Phase 7 plan 07-10 complete; next 07-11 Wave 6
+last_updated: "2026-10-05T16:08:41.392Z"
 last_activity: 2026-10-05
-last_activity_desc: Phase 7 Arena chat read and real STOMP browser proof verified; 10/35 plans complete
-state_head: 953ecc4
+last_activity_desc: Phase 7 definitive lifecycle verified; 11/35 plans complete
+state_head: 78f3de97a7304538f8d436f0bb9ddb746a28b154
 state_head_role: verified_implementation_commit; closing documentation is its direct child
-current_wave: 5
-current_plan: "07-10"
+current_wave: 6
+current_plan: "07-11"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 145
+  completed_plans: 146
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 5 / Plan 07-10 closeout - 2026-10-05
+
+- Technical commit 78f3de97a7304538f8d436f0bb9ddb746a28b154; immutable V41 milestones/completion/close and rebuildable state; cancellation plus2h and pending recovery rule enforced.
+- Literal focal14/14; discriminating rollback/clock mutations fail as expected, final restored focus passes. Node936/936, Angular455/455, Maven1039/1039 (361Surefire +678Failsafe),0fail/error/skip; lint/build/generator passed.
+- Post-lock acceptance clock correction prevents limiter bypass; interrupted aggregate is not counted. Final Maven18min completed successfully.
+- All47 protected hashes/owner docs/V1-V40 preserved;18 explicit implementation paths including documented supplemental ledger adapter. No dependencies, data reset, push, worktree or Antigravity.
+- Pre-V41 COMPLETE records lack immutable completion time; no inferred backfill. Legacy rollout and public/legal gates remain pending.
+- Phase7 is11/35; Wave5 complete; continue07-11 then07-13/Wave6. Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-10-SUMMARY.md and .git/gsd/phase7/07-10-evidence.json.
 
 ## Phase 7 / Wave 5 / Plan 07-08 closeout - 2026-10-05
 
@@ -1242,9 +1251,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-05T04:28:56.303Z
-Stopped at: Phase 7 plan 07-09 complete; continuous execution authorized; next 07-08
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-PLAN.md
+Last session: 2026-10-05T16:08:41.392Z
+Stopped at: Phase 7 plan 07-10 complete; continuous execution authorized; next 07-11
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-11-PLAN.md
 
 ## Accumulated Context
 
