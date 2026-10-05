@@ -83,7 +83,7 @@ public class ChatPushEndpoint extends TextWebSocketHandler {
     try {
       String id = new String(Base64.getDecoder().decode(cookie), StandardCharsets.UTF_8);
       Session found = repository.findById(id);
-      return principal(found) == null ? null : id;
+      return acceptableSession(found) ? id : null;
     } catch (RuntimeException failure) {
       return null;
     }
@@ -93,8 +93,9 @@ public class ChatPushEndpoint extends TextWebSocketHandler {
   public void afterConnectionEstablished(WebSocketSession socket) throws Exception {
     socket.setTextMessageSizeLimit(FRAME_LIMIT);
     String id = (String) socket.getAttributes().get("chat.session");
-    PrincipalSnapshot principal = id == null ? null : principal(repositorySession(id));
-    if (id != null && principal == null) {
+    Session current = id == null ? null : repositorySession(id);
+    PrincipalSnapshot principal = principal(current);
+    if (id != null && !acceptableSession(current)) {
       socket.close(CloseStatus.POLICY_VIOLATION);
       return;
     }
@@ -302,11 +303,24 @@ public class ChatPushEndpoint extends TextWebSocketHandler {
   }
 
   private void requireCurrent(Connection connection) {
+    Session current = connection.sessionId == null ? null : repositorySession(connection.sessionId);
     if (!connection.socket.isOpen()
         || (connection.sessionId != null
-            && !Objects.equals(
-                connection.principal, principal(repositorySession(connection.sessionId)))))
+            && (!acceptableSession(current)
+                || !Objects.equals(connection.principal, principal(current)))))
       throw new IllegalStateException("Session revoked or expired");
+  }
+
+  private boolean acceptableSession(Session session) {
+    return liveSession(session)
+        && (session.getAttribute("SPRING_SECURITY_CONTEXT") == null || principal(session) != null);
+  }
+
+  private static boolean liveSession(Session session) {
+    return session != null
+        && !session.isExpired()
+        && Instant.now()
+            .isBefore(session.getLastAccessedTime().plus(session.getMaxInactiveInterval()));
   }
 
   private Session repositorySession(String id) {
@@ -315,11 +329,7 @@ public class ChatPushEndpoint extends TextWebSocketHandler {
   }
 
   private PrincipalSnapshot principal(Session session) {
-    if (session == null
-        || session.isExpired()
-        || !Instant.now()
-            .isBefore(session.getLastAccessedTime().plus(session.getMaxInactiveInterval())))
-      return null;
+    if (!liveSession(session)) return null;
     Object attribute = session.getAttribute("SPRING_SECURITY_CONTEXT");
     if (!(attribute instanceof SecurityContext context)) return null;
     Authentication auth = context.getAuthentication();

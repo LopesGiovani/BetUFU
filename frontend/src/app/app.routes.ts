@@ -16,6 +16,13 @@ export const APP_ROUTES: Routes = [
     children: [
       ...PUBLIC_MARKET_ROUTES,
       {
+        path: 'comunidade',
+        loadComponent: () =>
+          import('./features/chat/chat-panel.component').then(
+            ({ CommunityPageComponent }) => CommunityPageComponent,
+          ),
+      },
+      {
         path: 'ranking',
         loadComponent: () =>
           import('./features/ranking/ranking-page.component').then(

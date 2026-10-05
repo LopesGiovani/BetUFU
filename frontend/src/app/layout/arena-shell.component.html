@@ -8,6 +8,7 @@
     </a>
 
     <nav class="arena-nav" aria-label="Navegação principal">
+      <a routerLink="/comunidade">Comunidade</a>
       <a routerLink="/ranking">Ranking vitalicio</a>
       <a routerLink="/" fragment="agenda">Competições</a>
       @if (sessionSummary.isChecking()) {
@@ -39,6 +40,7 @@
     </nav>
 
     <div class="arena-mobile-actions">
+      <a class="arena-mobile-actions__link" routerLink="/comunidade">Comunidade</a>
       <a class="arena-mobile-actions__link" routerLink="/ranking">Ranking</a>
       <a class="arena-mobile-actions__link" routerLink="/" fragment="agenda">Competições</a>
       @if (sessionSummary.isChecking()) {

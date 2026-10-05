@@ -45,6 +45,44 @@ import org.testcontainers.utility.DockerImageName;
 class ChatPushSecurityIT extends ChatPushFixture {
   @Test
   @SuppressWarnings({"rawtypes", "unchecked"})
+  void validAnonymousSessionCookieReadsPublishedEventAndRevocationClosesSocket() throws Exception {
+    Session anonymous = session("anonymous-browser");
+    anonymous.removeAttribute("SPRING_SECURITY_CONTEXT");
+    ((SessionRepository) sessions).save(anonymous);
+    try (Wire wire = connected(anonymous)) {
+      UUID event = event(true);
+      wire.subscribe("/chat/events/" + event, "0");
+      assertThat(wire.message()).contains("EVENT", event.toString());
+      sessions.deleteById(anonymous.getId());
+      assertThat(wire.closed.get(5, TimeUnit.SECONDS)).isEqualTo(1008);
+    }
+    assertThatThrownBy(() -> open(anonymous, ORIGIN, TOKEN)).isInstanceOf(Exception.class);
+  }
+
+  @Test
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  void anonymousSessionCannotSubscribeGlobalOrKeepSocketAfterIdentityChanges() throws Exception {
+    Session anonymous = session("anonymous-browser");
+    anonymous.removeAttribute("SPRING_SECURITY_CONTEXT");
+    ((SessionRepository) sessions).save(anonymous);
+    try (Wire wire = connected(anonymous)) {
+      wire.subscribe("/chat/global", "0");
+      assertThat(wire.closed.get(5, TimeUnit.SECONDS)).isEqualTo(1008);
+      assertThat(wire.frames.toString()).doesNotContain("private-global");
+    }
+    try (Wire wire = connected(anonymous)) {
+      wire.subscribe("/chat/events/" + event(true), "0");
+      wire.message();
+      Session signedIn = session("signed-in");
+      anonymous.setAttribute(
+          "SPRING_SECURITY_CONTEXT", signedIn.getAttribute("SPRING_SECURITY_CONTEXT"));
+      ((SessionRepository) sessions).save(anonymous);
+      assertThat(wire.closed.get(5, TimeUnit.SECONDS)).isEqualTo(1008);
+    }
+  }
+
+  @Test
+  @SuppressWarnings({"rawtypes", "unchecked"})
   void changedRoleSnapshotInRedisTerminatesOldSocket() throws Exception {
     Session session = session("reader");
     try (Wire wire = connected(session)) {

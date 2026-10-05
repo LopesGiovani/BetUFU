@@ -761,6 +761,7 @@ function approvedDynamicImportsFor(relativePath) {
       ...APPROVED_ODDS_OPERATION_ROUTES,
       ...APPROVED_ROOT_STATE_ROUTES,
       ...APPROVED_PHASE_SIX_ROUTES,
+      approvedRoute('comunidade', './features/chat/chat-panel.component', 'CommunityPageComponent'),
     ];
   }
   if (relativePath === PATHS.development) {
@@ -1916,8 +1917,20 @@ function normalizePhaseSixRoutes(source) {
   return source.replace(ranking, '');
 }
 
+export function normalizePhaseSevenRoutes(source) {
+  const route = /\{\s*path\s*:\s*'comunidade'\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'\.\/features\/chat\/chat-panel\.component'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*CommunityPageComponent\s*\}\s*\)\s*=>\s*CommunityPageComponent\s*,?\s*\)\s*,?\s*\}\s*,/u;
+  if (!/path\s*:\s*'comunidade'/u.test(source)) return source;
+  const matches = [...source.matchAll(new RegExp(route.source, 'gu'))];
+  const publicStart = source.search(/component\s*:\s*ArenaShellComponent/u);
+  const publicEnd = source.search(/path\s*:\s*'entrar'/u);
+  expect(matches.length === 1 && matches[0].index > publicStart && publicStart >= 0
+    && publicEnd > matches[0].index, 'PHASE_SEVEN_PUBLIC_COMMUNITY',
+    'Comunidade deve usar exatamente a rota e o componente aprovados dentro da Arena publica.');
+  return source.replace(route, '');
+}
+
 function validateRouteSources(sources) {
-  const seam = normalizePhaseSixRoutes(stripScriptComments(sources.get(PATHS.seam)));
+  const seam = normalizePhaseSixRoutes(normalizePhaseSevenRoutes(stripScriptComments(sources.get(PATHS.seam))));
   const profileGuard = stripScriptComments(sources.get(PATHS.profileGuard));
   const development = stripScriptComments(sources.get(PATHS.development));
   const production = stripScriptComments(sources.get(PATHS.production));

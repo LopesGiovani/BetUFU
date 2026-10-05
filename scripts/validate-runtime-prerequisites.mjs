@@ -1763,6 +1763,18 @@ function assertNoCsrfEndpoint(backendSources) {
   }
 }
 
+export function stripApprovedStompCsrf(relativePath, source) {
+  if (relativePath !== 'frontend/src/app/features/chat/chat-read.store.ts') return source;
+  const active = stripComments(source);
+  if (!/private readonly csrf = inject\(HttpXsrfTokenExtractor\);/u.test(active)
+    || !/const token = this\.csrf\.getToken\(\);/u.test(active)) return source;
+  // STOMP CONNECT has no Angular HTTP interceptor; only this native frame may carry the token.
+  return source.replace(
+    /socket\.onopen = \(\) => socket\.send\(`CONNECT\\naccept-version:1\.2\\nX-XSRF-TOKEN:\$\{token\}\\n\\n\\0`\);/u,
+    '',
+  );
+}
+
 function assertAngularContract(angularConfig, frontendSources) {
   const activeConfig = stripComments(angularConfig);
   expect(
@@ -1793,7 +1805,7 @@ function assertAngularContract(angularConfig, frontendSources) {
     );
     if (relativePath !== PATHS.angularConfig) {
       expect(
-        !source.includes(XSRF_HEADER),
+        !stripApprovedStompCsrf(relativePath, source).includes(XSRF_HEADER),
         'ANGULAR_MANUAL_XSRF',
         'header XSRF manual nao e permitido em ' + relativePath + '.',
       );

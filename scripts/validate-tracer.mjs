@@ -742,10 +742,11 @@ async function validateSupplyChain() {
   }
 }
 
-function expectedProxyRule() {
+function expectedProxyRule(websocket = false) {
   return {
     target: 'http://127.0.0.1:8080',
     changeOrigin: false,
+    ...(websocket ? { ws: true } : {}),
     headers: {
       host: 'localhost:4200',
       'x-forwarded-host': 'localhost:4200',
@@ -773,7 +774,7 @@ async function validateBrowserSources() {
   ];
   expect(
     sameJson(Object.keys(proxy), expectedContexts)
-      && expectedContexts.every((context) => sameJson(proxy[context], expectedProxyRule())),
+      && expectedContexts.every((context) => sameJson(proxy[context], expectedProxyRule(context === '^/api(?:/|$)'))),
     'BROWSER_PROXY',
     'proxy deve conter somente os tres segmentos BFF e headers publicos fixos.',
   );

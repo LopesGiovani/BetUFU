@@ -355,18 +355,28 @@
       "statement": "Manter WebSocket/STOMP conforme RT-01. Recorded owner reply in 07-03-SUMMARY; SSE proposal superseded. Session/origin/domain authorization and CONNECT CSRF retained."
     },
     "ui": {
-      "status": "pending",
+      "status": "approved",
       "description": "Reviewed UI contract, desktop/mobile/keyboard/focus",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-PLAN.md": "1cf299d7d4fa8b1167a09ed923e659f28d476d32ed6f3cdc9c6438629644eece",
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-UI-SPEC.md": "e3390c32a462f232c0ada7efca97cd26479ac92d6916d106cefc761e79ed3650"
+      },
+      "authorization_basis": "delegated-continuous-execution",
+      "statement": "Implement previously confirmed UI-D01..07 and existing Arena patterns under continuous execution authority; technical composition delegated. Draft/checker and full accessibility certification are not represented as independently approved or passed."
     },
     "mvp_story": {
-      "status": "pending",
+      "status": "approved",
       "description": "Owner ratification of the actual user story; no invented persona",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-PLAN.md": "1cf299d7d4fa8b1167a09ed923e659f28d476d32ed6f3cdc9c6438629644eece",
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-UI-SPEC.md": "e3390c32a462f232c0ada7efca97cd26479ac92d6916d106cefc761e79ed3650"
+      },
+      "authorization_basis": "delegated-continuous-execution",
+      "statement": "Existing D-15/16 story: visitor discovers and reads published-event chat; authenticated participant discovers and reads private global chat. Continuous phase authority covers this implementation; no invented persona or separate owner reply."
     },
     "writing_contract": {
       "status": "approved",

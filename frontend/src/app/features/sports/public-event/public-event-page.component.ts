@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@a
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PublicEventDetail } from '../../../api/generated/model/public-event-detail';
 import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
+import { ChatPanelComponent } from '../../chat/chat-panel.component';
 
 @Component({
   selector: 'app-public-event-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ChatPanelComponent],
   template: `
-    <main class="public-detail" [attr.aria-busy]="store.isLoading()">
+    <section class="public-detail" [attr.aria-busy]="store.isLoading()">
       <a class="back-link" routerLink="/">← Voltar para a agenda</a>
       @if (store.isLoading()) {
         <section class="state" role="status">
@@ -111,6 +112,16 @@ import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
             <p>O placar aparecerá aqui quando houver uma confirmação pública.</p>
           </section>
         }
+        @if (chatEventId(event.eventId); as chatId) {
+          @defer (on viewport) {
+            <app-chat-panel [eventId]="chatId" />
+          } @placeholder {
+            <section class="section">
+              <h2>Chat da partida</h2>
+              <p>Carregando conversa</p>
+            </section>
+          }
+        }
         <section class="section" aria-labelledby="source-title">
           <div class="section-head">
             <h2 id="source-title">Fonte publicada</h2>
@@ -148,7 +159,7 @@ import { SportsPublicViewStore } from '../public-view/sports-public-view.store';
           <p>A publicação ainda não possui detalhes para exibir.</p>
         </section>
       }
-    </main>
+    </section>
   `,
   styles: `
     :host {
@@ -403,6 +414,11 @@ export class PublicEventPageComponent implements OnInit {
   readonly store = inject(SportsPublicViewStore);
   private readonly route = inject(ActivatedRoute, { optional: true });
   readonly detail = computed(() => this.store.data() as PublicEventDetail | null);
+  chatEventId(value: string): string | null {
+    return /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/u.test(value)
+      ? value
+      : null;
+  }
   ngOnInit(): void {
     const id = this.route?.snapshot.paramMap.get('eventId');
     if (id) void this.store.load('event', id);
