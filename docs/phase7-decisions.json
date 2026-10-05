@@ -416,11 +416,15 @@
       "evidence_hashes": {}
     },
     "mute_policy": {
-      "status": "pending",
-      "description": "Cross-channel scope and synchronization failure policy",
+      "status": "approved",
+      "description": "All chat channels; account version conflict refetch; only persisted writes acknowledged",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-13-PLAN.md": "aa2daa46b1fe3f9baa5b72e39281e9771fe624216e5c364dfab982c7215523bb"
+      },
+      "authorization_basis": "delegated-executor-choice-under-explicit-continuous-authority",
+      "statement": "Executor concretizes cross-channel scope and synchronization semantics in PLAN under continuous owner authority. No separate human policy answer claimed."
     },
     "legal": {
       "status": "pending",

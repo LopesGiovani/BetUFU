@@ -24,6 +24,11 @@ public class ChatPushService {
     afterCommit(new Change(null, issuer, subject));
   }
 
+  /** Same minimal resync hint, confined to the account; no preference list goes on the wire. */
+  public void preferencesChanged(String issuer, String subject) {
+    changedForAccount(issuer, subject);
+  }
+
   void listen(Consumer<Change> listener) {
     listeners.add(listener);
   }
