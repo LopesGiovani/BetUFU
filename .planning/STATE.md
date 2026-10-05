@@ -4,21 +4,35 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-06 complete; next 07-07 Wave 4
-last_updated: "2026-10-05T02:40:46.656Z"
-last_activity: 2026-10-04
-last_activity_desc: Phase 7 generated chat reads verified; 7/35 plans complete
-state_head: 2387cd312f106b2ce96b5808b7ea5a695fe18bfe
+stopped_at: Phase 7 plan 07-07 complete; next 07-09 Wave 4
+last_updated: "2026-10-05T03:32:39.798Z"
+last_activity: 2026-10-05
+last_activity_desc: Phase 7 session-guarded STOMP verified; 8/35 plans complete
+state_head: f6a9869f680389a760ad22cb44874fb29d50b3c3
 state_head_role: verified_implementation_commit; closing documentation is its direct child
 current_wave: 4
-current_plan: "07-07"
+current_plan: "07-09"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 142
+  completed_plans: 143
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 4 / Plan 07-07 closeout - 2026-10-05
+
+- Technical commit f6a9869f680389a760ad22cb44874fb29d50b3c3; read-only STOMP push at /api/v1/chat/push.
+- Exact Origin/CONNECT CSRF, real session revocation, published public event/private global.
+  Minimal postcommit hints require full resync; no idle renewal. Future producers must wire hooks.
+- Final literal focal15/15, architecture7/7, Node916/916 in9suites.
+  Maven BUILD SUCCESS: fresh Surefire361/37classes + Failsafe649/127classes,1010total,0fail/error/skip.
+- Self-healing removed non-exposed SessionPolicy dependency; architecture/focal repeated green.
+  Scoped formatting/fixture corrections recorded; all245immutable baselines/owner docs/V1-V38 intact.
+- Frozen inline review no functional finding; eight new health markers/maintenance risks recorded.
+  No durable journal, browser journey, production SLO or automatic future producer wiring claimed.
+- Phase7 is8/35, not certified; continuous authority advances07-09/Wave4. No push.
+- Evidence: phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-07-SUMMARY.md.
 
 ## Phase 7 / Wave 4 / Plan 07-06 closeout - 2026-10-05
 
@@ -1208,9 +1222,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-05T02:40:46.656Z
-Stopped at: Phase 7 plan 07-06 complete; continuous execution authorized; next 07-07
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-07-PLAN.md
+Last session: 2026-10-05T03:32:39.798Z
+Stopped at: Phase 7 plan 07-07 complete; continuous execution authorized; next 07-09
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-09-PLAN.md
 
 ## Accumulated Context
 
