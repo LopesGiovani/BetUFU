@@ -1,16 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import {
-  mkdir,
-  mkdtemp,
-  readdir,
-  readFile,
-  rm,
-  stat,
-  symlink,
-  writeFile,
-} from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
@@ -41,11 +32,100 @@ const projectRoot = resolve(scriptsDirectory, '..', '..');
 const runnerPath = join(scriptsDirectory, 'generate-api.mjs');
 const FIXED_NOW = '2026-08-11T20:00:00.000Z';
 const FIXED_NONCE = '0123456789abcdef0123456789abcdef';
-const RAW_BASE_SERVICE = "export class BaseService {\r\n    protected basePath = 'http://localhost';\r\n}\r\n";
+const RAW_BASE_SERVICE =
+  "export class BaseService {\r\n    protected basePath = 'http://localhost';\r\n}\r\n";
 
 function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex').toUpperCase();
 }
+
+function assertChatReadContract(source) {
+  const routes = [
+    ['/api/v1/chat/events/{eventId}', 'getEventChat', false, false],
+    ['/api/v1/chat/events/{eventId}/changes', 'getEventChatChanges', false, true],
+    ['/api/v1/chat/global', 'getGlobalChat', true, false],
+    ['/api/v1/chat/global/changes', 'getGlobalChatChanges', true, true],
+  ];
+  for (const [path, operationId, global, changes] of routes) {
+    const block = source.split(`  ${path}:\n`)[1]?.split(/\n  \S/u)[0];
+    assert.ok(block, `missing ${path}`);
+    assert.deepEqual(
+      [...block.matchAll(/^    (\w+):/gmu)].map((m) => m[1]),
+      ['get'],
+    );
+    assert.match(block, /tags: \[Chat\]/u);
+    assert.match(block, new RegExp(`operationId: ${operationId}\\b`, 'u'));
+    assert.match(block, global ? /security: \[\{cookieSession: \[\]\}\]/u : /security: \[\]/u);
+    assert.match(block, /maximum: 100, default: 50/u);
+    assert.match(block, changes ? /name: changeCursor/u : /name: historyCursor/u);
+    assert.match(block, /Cache-Control:/u);
+    assert.match(block, global ? /description: private, no-store/u : /description: no-store/u);
+    assert.match(block, /description: Cookie/u);
+    assert.match(block, /#\/components\/schemas\/ChatReadResponse/u);
+    if (!global) assert.match(block, /name: eventId[\s\S]*?required: true/u);
+  }
+  for (const [name, fields] of [
+    [
+      'ChatMessage',
+      ['messageId', 'participantId', 'nickname', 'text', 'postedAt', 'removed', 'changeCursor'],
+    ],
+    [
+      'ChatReadResponse',
+      ['state', 'kind', 'eventId', 'messages', 'historyCursor', 'changeCursor', 'deadline'],
+    ],
+  ]) {
+    const block = source.split(`    ${name}:\n`)[1]?.split(/\n    \S/u)[0];
+    assert.ok(block, `missing ${name}`);
+    assert.match(block, /additionalProperties: false/u);
+    assert.deepEqual(
+      [...block.matchAll(/^        (\w+):/gmu)].map((m) => m[1]),
+      fields,
+    );
+  }
+  assert.equal(inspectOpenApiContract(source).schemas.includes('Channel'), false);
+}
+
+test('official chat read contract preserves session boundary and minimal projections', async () => {
+  const source = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+  assertChatReadContract(source);
+  assert.throws(() =>
+    assertChatReadContract(
+      source.replace(
+        /(operationId: getGlobalChat\n[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u,
+        '$1[]',
+      ),
+    ),
+  );
+  assert.throws(() =>
+    assertChatReadContract(source.replace('        nickname: {type:', '        email: {type:')),
+  );
+});
+
+test('official chat read client contains only the four relative GET operations', async () => {
+  assert.ok(PUBLIC_GENERATOR_API_TAGS.includes('Chat'));
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatMessage'));
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatReadResponse'));
+  const generated = join(projectRoot, 'frontend/src/app/api/generated');
+  const service = await readFile(join(generated, 'api/chat.service.ts'), 'utf8');
+  for (const operation of [
+    'getEventChat',
+    'getEventChatChanges',
+    'getGlobalChat',
+    'getGlobalChatChanges',
+  ])
+    assert.match(service, new RegExp(`public ${operation}\\(`, 'u'));
+  const requests = [...service.matchAll(/request<ChatReadResponse>\('([^']+)'/gu)];
+  assert.deepEqual(
+    requests.map((m) => m[1]),
+    ['get', 'get', 'get', 'get'],
+  );
+  assert.equal((service.match(/let localVarPath = `\/api\/v1\/chat\//gu) ?? []).length, 4);
+  assert.doesNotMatch(service, /lookupCredential|['"](?:Authorization|Cookie)['"]/u);
+  const message = await readFile(join(generated, 'model/chat-message.ts'), 'utf8');
+  assert.match(message, /text\?: string \| null/u);
+  assert.match(message, /participantId\?: string \| null/u);
+  assert.doesNotMatch(message, /\b(?:email|providerId|authorId|enrollment|originalText)\??:/u);
+});
 
 function testContract(engineBytes) {
   return Object.freeze({
@@ -98,7 +178,10 @@ async function writeLock(workspace, owner) {
   return lockPath;
 }
 
-async function createFixture(label, { targetFiles = { 'legacy.ts': 'export const legacy = true;\n' } } = {}) {
+async function createFixture(
+  label,
+  { targetFiles = { 'legacy.ts': 'export const legacy = true;\n' } } = {},
+) {
   const root = await mkdtemp(join(tmpdir(), `betufu-generate-api-${label}-`));
   const engineBytes = Buffer.from(`engine-${label}`, 'utf8');
   const contract = testContract(engineBytes);
@@ -138,10 +221,19 @@ function adapters(overrides = {}) {
   return {
     generate: async ({ outputDirectory }) => {
       await writeGeneratedBaseService(outputDirectory);
-      await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\r\n');
-      await writeText(join(outputDirectory, 'model', 'current-identity-response.ts'), 'export interface CurrentIdentityResponse {}');
+      await writeText(
+        join(outputDirectory, 'api', 'identity.service.ts'),
+        'export const line = 1;\r\n',
+      );
+      await writeText(
+        join(outputDirectory, 'model', 'current-identity-response.ts'),
+        'export interface CurrentIdentityResponse {}',
+      );
       await writeText(join(outputDirectory, 'README.md'), 'raw auxiliary output\n');
-      await writeText(join(outputDirectory, 'package.json'), '{"scripts":{"prepare":"forbidden"}}\n');
+      await writeText(
+        join(outputDirectory, 'package.json'),
+        '{"scripts":{"prepare":"forbidden"}}\n',
+      );
     },
     processStatus: async () => 'dead',
     volumeOf: () => 'fixture-volume',
@@ -170,7 +262,7 @@ async function candidateFixture(fixture) {
   const directory = `${phase}/07-06-candidate`;
   const sourcePath = `${directory}/betufu.yaml`;
   const approvalPath = 'docs/phase7-approvals/07-06.json';
-  const generatedPaths = ['api/chat.service.ts', 'model/chat-message.ts'].map(
+  const generatedPaths = ['api/candidate-chat.service.ts', 'model/candidate-chat-message.ts'].map(
     (path) => `frontend/src/app/api/generated/${path}`,
   );
   const metadata = [
@@ -188,7 +280,7 @@ async function candidateFixture(fixture) {
   ];
   const plan = `---\nplan: '06'\nfiles_modified:\n${allPaths.map((path) => `  - ${path}\n`).join('')}---\n<task type="auto"><files>${[sourcePath, ...metadata].join(', ')}</files><verify><automated>node scripts/validate-phase7-approvals.mjs --plan 07-06 --stage prepare-candidates</automated></verify></task>`;
   const source =
-    'openapi: 3.1.0\ninfo: {title: Candidate, version: 1.0.0}\npaths:\n  /api/v1/chat/global:\n    get:\n      tags: [Chat]\n      operationId: getGlobalChat\n      responses:\n        "200": {description: ok}\ncomponents:\n  schemas:\n    ChatMessage:\n      type: object\n';
+    'openapi: 3.1.0\ninfo: {title: Candidate, version: 1.0.0}\npaths:\n  /api/v1/chat/global:\n    get:\n      tags: [CandidateChat]\n      operationId: getGlobalChat\n      responses:\n        "200": {description: ok}\ncomponents:\n  schemas:\n    CandidateChatMessage:\n      type: object\n';
   await writeText(join(fixture.root, sourcePath), source);
   await writeText(join(fixture.root, phase, '07-06-PLAN.md'), plan);
   const decisions = JSON.stringify({ schema_version: 1, plan_gates: { '07-06': [] } });
@@ -229,8 +321,8 @@ async function candidateFixture(fixture) {
     candidate_hashes: {},
     candidate_scope: {
       source_sha256: sha256(source),
-      tags: ['Chat'],
-      models: ['ChatMessage'],
+      tags: ['CandidateChat'],
+      models: ['CandidateChatMessage'],
       generated_paths: generatedPaths,
       deleted_paths: [],
     },
@@ -253,12 +345,12 @@ async function candidateFixture(fixture) {
             await writeText(join(outputDirectory, entry.path), entry.bytes);
           await writeText(join(outputDirectory, 'api.base.service.ts'), RAW_BASE_SERVICE);
           await writeText(
-            join(outputDirectory, 'api/chat.service.ts'),
+            join(outputDirectory, 'api/candidate-chat.service.ts'),
             'export class ChatService {}\r\n',
           );
           await writeText(
-            join(outputDirectory, 'model/chat-message.ts'),
-            'export interface ChatMessage {}\r\n',
+            join(outputDirectory, 'model/candidate-chat-message.ts'),
+            'export interface CandidateChatMessage {}\r\n',
           );
         },
       },
@@ -529,7 +621,7 @@ test('candidate inventory distinguishes modified and deleted bytes with explicit
   });
 });
 
-test('REAL approved Java engine generates new candidate Chat service and model without governed writes', async () => {
+test('REAL approved Java engine generates new candidate CandidateChat service and model without governed writes', async () => {
   await withFixture('candidate-real-engine', async (fixture) => {
     fixture.contract = APPROVED_ENGINE;
     await writeFile(
@@ -551,11 +643,11 @@ test('REAL approved Java engine generates new candidate Chat service and model w
     const source = baseline
       .replace(
         'paths:\n',
-        'paths:\n  /api/v1/chat/test:\n    get:\n      tags: [Chat]\n      operationId: getCandidateChat\n      responses:\n        "200":\n          description: Candidate only\n          content:\n            application/json:\n              schema: {$ref: "#/components/schemas/ChatMessage"}\n',
+        'paths:\n  /api/v1/chat/test:\n    get:\n      tags: [CandidateChat]\n      operationId: getCandidateChat\n      responses:\n        "200":\n          description: Candidate only\n          content:\n            application/json:\n              schema: {$ref: "#/components/schemas/CandidateChatMessage"}\n',
       )
       .replace(
         '  schemas:\n',
-        '  schemas:\n    ChatMessage:\n      type: object\n      required: [text]\n      properties:\n        text: {type: string}\n',
+        '  schemas:\n    CandidateChatMessage:\n      type: object\n      required: [text]\n      properties:\n        text: {type: string}\n',
       );
     assert.notEqual(source, baseline);
     await writeText(join(fixture.root, f.sourcePath), source);
@@ -584,9 +676,11 @@ test('REAL approved Java engine generates new candidate Chat service and model w
     });
     assert.equal(result.governedAfter, before);
     const inventory = JSON.parse(await readFile(join(fixture.root, f.directory, 'inventory.json')));
-    const service = inventory.changes.find((entry) => entry.path.endsWith('/api/chat.service.ts'));
+    const service = inventory.changes.find((entry) =>
+      entry.path.endsWith('/api/candidate-chat.service.ts'),
+    );
     assert.match(service.after_content, /getCandidateChat/);
-    assert.match(service.after_content, /ChatMessage/);
+    assert.match(service.after_content, /CandidateChatMessage/);
     assert.equal(sha256(service.after_content), service.after_sha256);
     assert.equal(inventory.engine.sha256, APPROVED_ENGINE.sha256);
     assert.equal(await snapshotTree(fixture.target), before);
@@ -626,28 +720,41 @@ test('endurece somente o fallback conhecido do BaseService para same-origin', ()
     "export class BaseService {\n    protected basePath = '';\n}\n",
   );
   assert.throws(
-    () => hardenGeneratedTypeScript(
-      'api.base.service.ts',
-      "export class BaseService {\n    protected basePath = '';\n}\n",
-    ),
+    () =>
+      hardenGeneratedTypeScript(
+        'api.base.service.ts',
+        "export class BaseService {\n    protected basePath = '';\n}\n",
+      ),
     (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_BASE_PATH',
   );
   assert.throws(
-    () => validateGeneratedTypeScript(
-      'api/identity.service.ts',
-      "const endpoint = 'http://localhost';\n",
-    ),
-    (error) => error instanceof GenerateApiContractError
-      && error.rule === 'GENERATED_ABSOLUTE_URL',
+    () =>
+      validateGeneratedTypeScript(
+        'api/identity.service.ts',
+        "const endpoint = 'http://localhost';\n",
+      ),
+    (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_ABSOLUTE_URL',
   );
 });
 
 for (const [label, source] of [
   ['ausente', 'export class BaseService {}\n'],
-  ['divergente', "export class BaseService { protected basePath = 'https://api.example.invalid'; }\n"],
-  ['duplicado', "protected basePath = 'http://localhost';\nprotected basePath = 'http://localhost';\n"],
-  ['comentado', "/*\n    protected basePath = 'http://localhost';\n*/\nexport class BaseService { protected basePath = '/api'; }\n"],
-  ['outra-classe', "export class Decoy {\n    protected basePath = 'http://localhost';\n}\nexport class BaseService {}\n"],
+  [
+    'divergente',
+    "export class BaseService { protected basePath = 'https://api.example.invalid'; }\n",
+  ],
+  [
+    'duplicado',
+    "protected basePath = 'http://localhost';\nprotected basePath = 'http://localhost';\n",
+  ],
+  [
+    'comentado',
+    "/*\n    protected basePath = 'http://localhost';\n*/\nexport class BaseService { protected basePath = '/api'; }\n",
+  ],
+  [
+    'outra-classe',
+    "export class Decoy {\n    protected basePath = 'http://localhost';\n}\nexport class BaseService {}\n",
+  ],
 ]) {
   test(`recusa fallback ${label} no BaseService gerado`, () => {
     assert.throws(
@@ -667,8 +774,7 @@ test('recusa fallback presente somente em template string', () => {
   ].join('\n');
   assert.throws(
     () => hardenGeneratedTypeScript('api.base.service.ts', source),
-    (error) => error instanceof GenerateApiContractError
-      && error.rule === 'GENERATED_BASE_PATH',
+    (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_BASE_PATH',
   );
 });
 
@@ -685,26 +791,28 @@ for (const [label, relativePath, source] of [
   test(`recusa URL absoluta ${label} antes da publicacao`, () => {
     assert.throws(
       () => validateGeneratedTypeScript(relativePath, source),
-      (error) => error instanceof GenerateApiContractError
-        && error.rule === 'GENERATED_ABSOLUTE_URL',
+      (error) =>
+        error instanceof GenerateApiContractError && error.rule === 'GENERATED_ABSOLUTE_URL',
     );
   });
 }
 
 test('manifesto recusa bytes com URL absoluta escondida depois de regex literal', () => {
-  const maliciousSource = "const matcher = /https?:\\/\\//; const endpoint = 'https://evil.invalid';\n";
+  const maliciousSource =
+    "const matcher = /https?:\\/\\//; const endpoint = 'https://evil.invalid';\n";
   assert.throws(
-    () => assertApprovedGeneratedManifest({
-      files: APPROVED_GENERATED_FILES,
-      digest: sha256(Buffer.from(maliciousSource, 'utf8')),
-    }),
-    (error) => error instanceof GenerateApiContractError
-      && error.rule === 'GENERATED_MANIFEST',
+    () =>
+      assertApprovedGeneratedManifest({
+        files: APPROVED_GENERATED_FILES,
+        digest: sha256(Buffer.from(maliciousSource, 'utf8')),
+      }),
+    (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_MANIFEST',
   );
 });
 
 test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tabular e eventos/resultados', () => {
   assert.deepEqual(PUBLIC_GENERATOR_API_TAGS, [
+    'Chat',
     'AthleteLink',
     'AthleteMedia',
     'AthletePublicProfile',
@@ -737,7 +845,14 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'Group',
     'Achievement',
   ]);
-  for (const model of ['SettlementHistoryItem', 'SettlementAuthorizationRequest', 'CreditCorrectionView', 'RankingEntry', 'PrivateGroup', 'Achievement']) {
+  for (const model of [
+    'SettlementHistoryItem',
+    'SettlementAuthorizationRequest',
+    'CreditCorrectionView',
+    'RankingEntry',
+    'PrivateGroup',
+    'Achievement',
+  ]) {
     assert.equal(PUBLIC_GENERATOR_MODELS.includes(model), true, model);
   }
   assert.equal(PUBLIC_GENERATOR_MODELS.includes('FavoriteOrganizationRequest'), true);
@@ -847,7 +962,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, 'AA0BC4ACFADDD834D15B85E6FA331A4554AC01696135823E40B01DF7BA288ED3');
+  assert.equal(manifest.digest, 'CFD9FEDAAA07BE604D87958284470FFEDCD4780E0EA3205305DDDC0955B03A81');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,
@@ -878,126 +993,131 @@ test('manifesto aprovado recusa arquivo, servico e bytes extras', async () => {
   for (const mutation of mutations) {
     assert.throws(
       () => assertApprovedGeneratedManifest(mutation),
-      (error) => error instanceof GenerateApiContractError
-        && error.rule === 'GENERATED_MANIFEST',
+      (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_MANIFEST',
     );
   }
 });
 
 test('inspeciona endpoints e schemas do contrato sem depender do gerador', () => {
-  const inventory = inspectOpenApiContract([
-    'openapi: 3.1.0',
-    'paths:',
-    '  /api/v1/public/sports/events:',
-    '    get:',
-    '      operationId: listPublishedSportsEvents',
-    'components:',
-    '  schemas:',
-    '    PublicSportsEventPage:',
-    '      type: object',
-    '    SportsEventFormat:',
-    '      type: string',
-    '',
-  ].join('\n'));
+  const inventory = inspectOpenApiContract(
+    [
+      'openapi: 3.1.0',
+      'paths:',
+      '  /api/v1/public/sports/events:',
+      '    get:',
+      '      operationId: listPublishedSportsEvents',
+      'components:',
+      '  schemas:',
+      '    PublicSportsEventPage:',
+      '      type: object',
+      '    SportsEventFormat:',
+      '      type: string',
+      '',
+    ].join('\n'),
+  );
 
-  assert.deepEqual(inventory.endpoints, [{
-    path: '/api/v1/public/sports/events',
-    methods: ['GET'],
-  }]);
+  assert.deepEqual(inventory.endpoints, [
+    {
+      path: '/api/v1/public/sports/events',
+      methods: ['GET'],
+    },
+  ]);
   assert.deepEqual(inventory.schemas, ['PublicSportsEventPage', 'SportsEventFormat']);
   assert.deepEqual(inventory.publicSchemas, ['PublicSportsEventPage']);
 });
 
 test('inventario gerado exclui comandos do tracer e preserva o catalogo escopado', () => {
-  const inventory = inspectGeneratedOpenApiContract([
-    'openapi: 3.1.0',
-    'paths:',
-    '  /api/v1/operations/sports/competitions:',
-    '    post:',
-    '      operationId: createSportsCompetition',
-    '  /api/v1/operations/sports/editions/{editionId}/brackets:',
-    '    get:',
-    '      operationId: listSportsBrackets',
-    '    post:',
-    '      operationId: createSportsBracket',
-    '  /api/v1/operations/sports/brackets/{bracketId}:',
-    '    get:',
-    '      operationId: getSportsBracket',
-    '    put:',
-    '      operationId: updateSportsBracket',
-    '  /api/v1/operations/sports/brackets/{bracketId}/publish:',
-    '    post:',
-    '      operationId: publishSportsBracket',
-    '  /api/v1/operations/sports/brackets/{bracketId}/correct:',
-    '    post:',
-    '      operationId: correctSportsBracket',
-    '  /api/v1/operations/sports/catalog/scope:',
-    '    get:',
-    '      operationId: getSportsCatalogScope',
-    '  /api/v1/public/sports/events:',
-    '    get:',
-    '      operationId: listPublishedSportsEvents',
-    '  /api/v1/operations/sports/organizations:',
-    '    get:',
-    '      operationId: listSportsOrganizations',
-    '    post:',
-    '      operationId: createSportsOrganization',
-  '  /api/v1/operations/sports/teams/{teamId}/publish:',
-  '    post:',
-  '      operationId: publishSportsTeam',
-  '  /api/v1/operations/sports/events/{eventId}/lifecycle:',
-  '    get:',
-  '      operationId: listSportsEventLifecycle',
-  '  /api/v1/operations/sports/athletes:',
-    '    get:',
-    '      operationId: listSportsAthletes',
-    '  /api/v1/operations/sports/teams/{teamId}/athletes:',
-    '    post:',
-    '      operationId: createSportsAthlete',
-    '  /api/v1/operations/sports/teams/{teamId}/roster:',
-    '    get:',
-    '      operationId: getSportsRosterDraft',
-    '    put:',
-    '      operationId: updateSportsRosterDraft',
-    '  /api/v1/operations/sports/teams/{teamId}/roster/publish:',
-    '    post:',
-    '      operationId: publishSportsRoster',
-    '  /api/v1/operations/sports/teams/{teamId}/roster/correct:',
-    '    post:',
-    '      operationId: correctSportsRoster',
-    '  /api/v1/operations/sports/teams/{teamId}/roster/publication:',
-    '    get:',
-    '      operationId: getSportsRosterPublication',
-    'components:',
-    '  schemas:',
-    '    SportsCompetitionCreateRequest:',
-    '      type: object',
-    '    PublicSportsEventPage:',
-    '      type: object',
-    '    SportsOrganizationSummary:',
-    '      type: object',
-    '    FavoriteOrganizationRequest:',
-    '      type: object',
-    '    SportsAthleteCreateRequest:',
-    '      type: object',
-    '    SportsAthleteSummary:',
-    '      type: object',
-    '    SportsEventLifecycleEntry:',
-    '      type: object',
-    '    SportsRosterCorrectRequest:',
-    '      type: object',
-    '    SportsRosterDraft:',
-    '      type: object',
-    '    SportsRosterMemberItem:',
-    '      type: object',
-    '    SportsRosterMemberRequest:',
-    '      type: object',
-    '    SportsRosterPublication:',
-    '      type: object',
-    '    SportsRosterUpdateRequest:',
-    '      type: object',
-    '',
-  ].join('\n'));
+  const inventory = inspectGeneratedOpenApiContract(
+    [
+      'openapi: 3.1.0',
+      'paths:',
+      '  /api/v1/operations/sports/competitions:',
+      '    post:',
+      '      operationId: createSportsCompetition',
+      '  /api/v1/operations/sports/editions/{editionId}/brackets:',
+      '    get:',
+      '      operationId: listSportsBrackets',
+      '    post:',
+      '      operationId: createSportsBracket',
+      '  /api/v1/operations/sports/brackets/{bracketId}:',
+      '    get:',
+      '      operationId: getSportsBracket',
+      '    put:',
+      '      operationId: updateSportsBracket',
+      '  /api/v1/operations/sports/brackets/{bracketId}/publish:',
+      '    post:',
+      '      operationId: publishSportsBracket',
+      '  /api/v1/operations/sports/brackets/{bracketId}/correct:',
+      '    post:',
+      '      operationId: correctSportsBracket',
+      '  /api/v1/operations/sports/catalog/scope:',
+      '    get:',
+      '      operationId: getSportsCatalogScope',
+      '  /api/v1/public/sports/events:',
+      '    get:',
+      '      operationId: listPublishedSportsEvents',
+      '  /api/v1/operations/sports/organizations:',
+      '    get:',
+      '      operationId: listSportsOrganizations',
+      '    post:',
+      '      operationId: createSportsOrganization',
+      '  /api/v1/operations/sports/teams/{teamId}/publish:',
+      '    post:',
+      '      operationId: publishSportsTeam',
+      '  /api/v1/operations/sports/events/{eventId}/lifecycle:',
+      '    get:',
+      '      operationId: listSportsEventLifecycle',
+      '  /api/v1/operations/sports/athletes:',
+      '    get:',
+      '      operationId: listSportsAthletes',
+      '  /api/v1/operations/sports/teams/{teamId}/athletes:',
+      '    post:',
+      '      operationId: createSportsAthlete',
+      '  /api/v1/operations/sports/teams/{teamId}/roster:',
+      '    get:',
+      '      operationId: getSportsRosterDraft',
+      '    put:',
+      '      operationId: updateSportsRosterDraft',
+      '  /api/v1/operations/sports/teams/{teamId}/roster/publish:',
+      '    post:',
+      '      operationId: publishSportsRoster',
+      '  /api/v1/operations/sports/teams/{teamId}/roster/correct:',
+      '    post:',
+      '      operationId: correctSportsRoster',
+      '  /api/v1/operations/sports/teams/{teamId}/roster/publication:',
+      '    get:',
+      '      operationId: getSportsRosterPublication',
+      'components:',
+      '  schemas:',
+      '    SportsCompetitionCreateRequest:',
+      '      type: object',
+      '    PublicSportsEventPage:',
+      '      type: object',
+      '    SportsOrganizationSummary:',
+      '      type: object',
+      '    FavoriteOrganizationRequest:',
+      '      type: object',
+      '    SportsAthleteCreateRequest:',
+      '      type: object',
+      '    SportsAthleteSummary:',
+      '      type: object',
+      '    SportsEventLifecycleEntry:',
+      '      type: object',
+      '    SportsRosterCorrectRequest:',
+      '      type: object',
+      '    SportsRosterDraft:',
+      '      type: object',
+      '    SportsRosterMemberItem:',
+      '      type: object',
+      '    SportsRosterMemberRequest:',
+      '      type: object',
+      '    SportsRosterPublication:',
+      '      type: object',
+      '    SportsRosterUpdateRequest:',
+      '      type: object',
+      '',
+    ].join('\n'),
+  );
 
   assert.deepEqual(inventory, {
     endpoints: [
@@ -1047,7 +1167,10 @@ test('modo candidato persiste somente metadados e nao toca a arvore governada', 
         generate: async ({ outputDirectory }) => {
           scratchDirectory = outputDirectory;
           await writeGeneratedBaseService(outputDirectory);
-          await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\n');
+          await writeText(
+            join(outputDirectory, 'api', 'identity.service.ts'),
+            'export const line = 1;\n',
+          );
           await writeText(join(outputDirectory, 'README.md'), 'raw auxiliary output\n');
         },
       },
@@ -1063,10 +1186,15 @@ test('modo candidato persiste somente metadados e nao toca a arvore governada', 
       'governed-before.sha256',
       'inventory.json',
     ]);
-    const inventory = JSON.parse(await readFile(join(candidateDirectory, 'inventory.json'), 'utf8'));
+    const inventory = JSON.parse(
+      await readFile(join(candidateDirectory, 'inventory.json'), 'utf8'),
+    );
     assert.equal(inventory.digest, result.digest);
     assert.deepEqual(inventory.files, result.files);
-    assert.equal(await readFile(join(candidateDirectory, 'digest.sha256'), 'utf8'), `${result.digest}\n`);
+    assert.equal(
+      await readFile(join(candidateDirectory, 'digest.sha256'), 'utf8'),
+      `${result.digest}\n`,
+    );
     assert.equal(
       await readFile(join(candidateDirectory, 'governed-before.sha256'), 'utf8'),
       `${governedBefore.digest}\n`,
@@ -1075,7 +1203,10 @@ test('modo candidato persiste somente metadados e nao toca a arvore governada', 
       await readFile(join(candidateDirectory, 'governed-after.sha256'), 'utf8'),
       `${governedBefore.digest}\n`,
     );
-    assert.equal((await readdir(candidateDirectory)).some((entry) => entry.endsWith('.ts')), false);
+    assert.equal(
+      (await readdir(candidateDirectory)).some((entry) => entry.endsWith('.ts')),
+      false,
+    );
     await assert.rejects(stat(scratchDirectory), { code: 'ENOENT' });
   });
 });
@@ -1107,9 +1238,10 @@ test('modo candidato bloqueia campo proibido em schema publico antes do digest',
         mode: 'candidate',
         candidateDirectory,
       }),
-      (error) => error instanceof GenerateApiContractError
-        && error.rule === 'PUBLIC_SCHEMA_FORBIDDEN_FIELD'
-        && error.message.includes('matricula'),
+      (error) =>
+        error instanceof GenerateApiContractError &&
+        error.rule === 'PUBLIC_SCHEMA_FORBIDDEN_FIELD' &&
+        error.message.includes('matricula'),
     );
     await assert.rejects(stat(candidateDirectory), { code: 'ENOENT' });
   });
@@ -1129,17 +1261,22 @@ test('manifesto divergente bloqueia publicacao e preserva a arvore valida', asyn
         adapters: {
           generate: async ({ outputDirectory }) => {
             await writeGeneratedBaseService(outputDirectory);
-            await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\n');
-            await writeText(join(outputDirectory, 'model', 'current-identity-response.ts'), 'export interface CurrentIdentityResponse {}\n');
+            await writeText(
+              join(outputDirectory, 'api', 'identity.service.ts'),
+              'export const line = 1;\n',
+            );
+            await writeText(
+              join(outputDirectory, 'model', 'current-identity-response.ts'),
+              'export interface CurrentIdentityResponse {}\n',
+            );
             await writeText(
               join(outputDirectory, 'api', 'extra.service.ts'),
-              "export const extraService = true;\n",
+              'export const extraService = true;\n',
             );
           },
         },
       }),
-      (error) => error instanceof GenerateApiContractError
-        && error.rule === 'GENERATED_MANIFEST',
+      (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_MANIFEST',
     );
 
     const after = await readTreeManifest(fixture.target);
@@ -1162,8 +1299,14 @@ test('gera somente TypeScript, substitui a arvore e remove obsoletos', async () 
       await readFile(join(fixture.target, 'api.base.service.ts'), 'utf8'),
       "export class BaseService {\n    protected basePath = '';\n}\n",
     );
-    assert.equal(await readFile(join(fixture.target, 'api', 'identity.service.ts'), 'utf8'), 'export const line = 1;\n');
-    assert.equal(await readFile(join(fixture.target, 'model', 'current-identity-response.ts'), 'utf8'), 'export interface CurrentIdentityResponse {}\n');
+    assert.equal(
+      await readFile(join(fixture.target, 'api', 'identity.service.ts'), 'utf8'),
+      'export const line = 1;\n',
+    );
+    assert.equal(
+      await readFile(join(fixture.target, 'model', 'current-identity-response.ts'), 'utf8'),
+      'export interface CurrentIdentityResponse {}\n',
+    );
     await assert.rejects(stat(join(fixture.target, 'legacy.ts')), { code: 'ENOENT' });
     await assert.rejects(stat(join(fixture.target, 'README.md')), { code: 'ENOENT' });
     await assert.rejects(stat(join(fixture.target, 'package.json')), { code: 'ENOENT' });
@@ -1173,8 +1316,15 @@ test('gera somente TypeScript, substitui a arvore e remove obsoletos', async () 
 test('fallback ausente ou divergente nunca substitui a arvore valida', async (t) => {
   for (const scenario of [
     { label: 'missing', source: null },
-    { label: 'unexpected', source: "export class BaseService { protected basePath = 'https://api.example.invalid'; }\n" },
-    { label: 'duplicate', source: "protected basePath = 'http://localhost';\nprotected basePath = 'http://localhost';\n" },
+    {
+      label: 'unexpected',
+      source: "export class BaseService { protected basePath = 'https://api.example.invalid'; }\n",
+    },
+    {
+      label: 'duplicate',
+      source:
+        "protected basePath = 'http://localhost';\nprotected basePath = 'http://localhost';\n",
+    },
   ]) {
     await t.test(scenario.label, async () => {
       await withFixture(`base-path-${scenario.label}`, async (fixture) => {
@@ -1186,11 +1336,15 @@ test('fallback ausente ou divergente nunca substitui a arvore valida', async (t)
                 if (scenario.source !== null) {
                   await writeText(join(outputDirectory, 'api.base.service.ts'), scenario.source);
                 }
-                await writeText(join(outputDirectory, 'api', 'identity.service.ts'), 'export const line = 1;\n');
+                await writeText(
+                  join(outputDirectory, 'api', 'identity.service.ts'),
+                  'export const line = 1;\n',
+                );
               },
             },
           }),
-          (error) => error instanceof GenerateApiContractError && error.rule === 'GENERATED_BASE_PATH',
+          (error) =>
+            error instanceof GenerateApiContractError && error.rule === 'GENERATED_BASE_PATH',
         );
         assert.equal(await snapshotTree(fixture.target), before);
       });
@@ -1213,8 +1367,8 @@ test('URL absoluta na candidata nunca substitui a arvore valida', async () => {
           },
         },
       }),
-      (error) => error instanceof GenerateApiContractError
-        && error.rule === 'GENERATED_ABSOLUTE_URL',
+      (error) =>
+        error instanceof GenerateApiContractError && error.rule === 'GENERATED_ABSOLUTE_URL',
     );
     assert.equal(await snapshotTree(fixture.target), before);
   });
@@ -1258,9 +1412,15 @@ for (const drift of ['add', 'delete', 'change']) {
       const before = await snapshotTree(fixture.target);
       const customGenerate = async ({ outputDirectory }) => {
         await writeGeneratedBaseService(outputDirectory);
-        await writeText(join(outputDirectory, 'api', 'identity.service.ts'), drift === 'change' ? 'export const line = 2;\n' : 'export const line = 1;\n');
+        await writeText(
+          join(outputDirectory, 'api', 'identity.service.ts'),
+          drift === 'change' ? 'export const line = 2;\n' : 'export const line = 1;\n',
+        );
         if (drift !== 'delete') {
-          await writeText(join(outputDirectory, 'model', 'current-identity-response.ts'), 'export interface CurrentIdentityResponse {}\n');
+          await writeText(
+            join(outputDirectory, 'model', 'current-identity-response.ts'),
+            'export interface CurrentIdentityResponse {}\n',
+          );
         }
         if (drift === 'add') {
           await writeText(join(outputDirectory, 'extra.ts'), 'export const extra = true;\n');
@@ -1360,7 +1520,12 @@ test('lock vivo ou ambiguo nao e roubado; lock morto e recuperado', async (t) =>
     await withFixture('lock-dead-replaced', async (fixture) => {
       const lockPath = join(fixture.workspace, 'pipeline.lock');
       const ownerPath = join(lockPath, 'owner.json');
-      const replacement = { version: 1, pid: 777, nonce: '77777777777777777777777777777777', createdAt: FIXED_NOW };
+      const replacement = {
+        version: 1,
+        pid: 777,
+        nonce: '77777777777777777777777777777777',
+        createdAt: FIXED_NOW,
+      };
       await writeLock(fixture.workspace, {
         version: 1,
         pid: 999,
@@ -1442,7 +1607,7 @@ test('duas execucoes concorrentes nao geram nem publicam em paralelo', async () 
         adapters: adapters({
           nonce: () => secondNonce,
           pid: 2222,
-          processStatus: async (pid) => pid === 1111 ? 'alive' : 'ambiguous',
+          processStatus: async (pid) => (pid === 1111 ? 'alive' : 'ambiguous'),
           generate: async () => {
             secondGeneratorCalled = true;
           },
@@ -1465,7 +1630,10 @@ test('check recusa journal pendente e nao executa recovery', async () => {
       join(fixture.workspace, 'pipeline.journal.json'),
       `${JSON.stringify({ version: 1, nonce: FIXED_NONCE, state: 'prepared', operation: `tmp/openapi-generator/operations/${FIXED_NONCE}`, candidate: `tmp/openapi-generator/operations/${FIXED_NONCE}/candidate`, backup: `tmp/openapi-generator/operations/${FIXED_NONCE}/backup`, target: 'src/app/api/generated', hadTarget: true, createdAt: FIXED_NOW })}\n`,
     );
-    await assert.rejects(execute(fixture, { mode: 'check' }), (error) => error.rule === 'RECOVERY_REQUIRED');
+    await assert.rejects(
+      execute(fixture, { mode: 'check' }),
+      (error) => error.rule === 'RECOVERY_REQUIRED',
+    );
     assert.equal(await snapshotTree(fixture.target), before);
   });
 });
@@ -1496,7 +1664,9 @@ test('generate recupera journals prepared, old-moved e new-installed', async (t)
 
         const result = await execute(fixture);
         assert.equal(result.mode, 'generate');
-        await assert.rejects(stat(join(fixture.workspace, 'pipeline.journal.json')), { code: 'ENOENT' });
+        await assert.rejects(stat(join(fixture.workspace, 'pipeline.journal.json')), {
+          code: 'ENOENT',
+        });
       });
     });
   }
@@ -1535,7 +1705,9 @@ test('recovery restaura a arvore anterior nas janelas entre rename e journal', a
           (error) => error.rule === 'GENERATOR_FAILED',
         );
         assert.equal(await snapshotTree(fixture.target), before);
-        await assert.rejects(stat(join(fixture.workspace, 'pipeline.journal.json')), { code: 'ENOENT' });
+        await assert.rejects(stat(join(fixture.workspace, 'pipeline.journal.json')), {
+          code: 'ENOENT',
+        });
       });
     });
   }
@@ -1570,7 +1742,9 @@ test('recovery repetido reconhece cleanup ou rollback ja concluido', async (t) =
           (error) => error.rule === 'GENERATOR_FAILED',
         );
         assert.equal(await snapshotTree(fixture.target), before);
-        await assert.rejects(stat(join(fixture.workspace, 'pipeline.journal.json')), { code: 'ENOENT' });
+        await assert.rejects(stat(join(fixture.workspace, 'pipeline.journal.json')), {
+          code: 'ENOENT',
+        });
       });
     });
   }
@@ -1587,7 +1761,13 @@ test('recovery completa janelas parciais de cleanup e rollback', async (t) => {
         `${JSON.stringify({ version: 1, nonce: FIXED_NONCE, state: 'prepared', operation: `tmp/openapi-generator/operations/${FIXED_NONCE}`, candidate: `tmp/openapi-generator/operations/${FIXED_NONCE}/candidate`, backup: `tmp/openapi-generator/operations/${FIXED_NONCE}/backup`, target: 'src/app/api/generated', hadTarget: true, createdAt: FIXED_NOW })}\n`,
       );
       await assert.rejects(
-        execute(fixture, { adapters: { generate: async () => { throw new Error('stop'); } } }),
+        execute(fixture, {
+          adapters: {
+            generate: async () => {
+              throw new Error('stop');
+            },
+          },
+        }),
         (error) => error.rule === 'GENERATOR_FAILED',
       );
       assert.equal(await snapshotTree(fixture.target), before);
@@ -1606,7 +1786,13 @@ test('recovery completa janelas parciais de cleanup e rollback', async (t) => {
         `${JSON.stringify({ version: 1, nonce: FIXED_NONCE, state: 'old-moved', operation: `tmp/openapi-generator/operations/${FIXED_NONCE}`, candidate: `tmp/openapi-generator/operations/${FIXED_NONCE}/candidate`, backup: `tmp/openapi-generator/operations/${FIXED_NONCE}/backup`, target: 'src/app/api/generated', hadTarget: true, createdAt: FIXED_NOW })}\n`,
       );
       await assert.rejects(
-        execute(fixture, { adapters: { generate: async () => { throw new Error('stop'); } } }),
+        execute(fixture, {
+          adapters: {
+            generate: async () => {
+              throw new Error('stop');
+            },
+          },
+        }),
         (error) => error.rule === 'GENERATOR_FAILED',
       );
       assert.equal(await snapshotTree(fixture.target), before);
@@ -1630,7 +1816,9 @@ test('falha no segundo rename restaura a arvore anterior e preserva diagnostico'
       (error) => error.rule === 'PUBLISH_FAILED',
     );
     assert.equal(await snapshotTree(fixture.target), before);
-    const diagnostics = await import('node:fs/promises').then(({ readdir }) => readdir(join(fixture.workspace, 'diagnostics')));
+    const diagnostics = await import('node:fs/promises').then(({ readdir }) =>
+      readdir(join(fixture.workspace, 'diagnostics')),
+    );
     assert.equal(diagnostics.length, 1);
   });
 });
@@ -1650,8 +1838,7 @@ test('mutacao do candidato na janela de publicacao falha e restaura a arvore ant
           },
         },
       }),
-      (error) => error instanceof GenerateApiContractError
-        && error.rule === 'PUBLISH_FAILED',
+      (error) => error instanceof GenerateApiContractError && error.rule === 'PUBLISH_FAILED',
     );
 
     const after = await readTreeManifest(fixture.target);
@@ -1676,7 +1863,10 @@ test('journal com traversal ou volume divergente falha fechado', async (t) => {
       await assert.rejects(
         execute(fixture, {
           adapters: {
-            volumeOf: (path) => path.includes(`${join('src', 'app', 'api', 'generated')}`) ? 'target-volume' : 'workspace-volume',
+            volumeOf: (path) =>
+              path.includes(`${join('src', 'app', 'api', 'generated')}`)
+                ? 'target-volume'
+                : 'workspace-volume',
           },
         }),
         (error) => error.rule === 'VOLUME_MISMATCH',
@@ -1709,9 +1899,16 @@ test('rejeita junction aninhada antes de substituir a arvore valida', async () =
   await withFixture('nested-symlink', async (fixture) => {
     const outside = join(fixture.root, 'outside-nested');
     await mkdir(outside, { recursive: true });
-    await symlink(outside, join(fixture.target, 'nested'), process.platform === 'win32' ? 'junction' : 'dir');
+    await symlink(
+      outside,
+      join(fixture.target, 'nested'),
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
     await assert.rejects(execute(fixture), (error) => error.rule === 'UNSAFE_LINK');
-    assert.equal(await readFile(join(fixture.target, 'legacy.ts'), 'utf8'), 'export const legacy = true;\n');
+    assert.equal(
+      await readFile(join(fixture.target, 'legacy.ts'), 'utf8'),
+      'export const legacy = true;\n',
+    );
   });
 });
 

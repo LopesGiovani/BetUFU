@@ -17,16 +17,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { constants as fileSystemConstants } from 'node:fs';
-import {
-  dirname,
-  delimiter,
-  isAbsolute,
-  join,
-  parse,
-  relative,
-  resolve,
-  sep,
-} from 'node:path';
+import { dirname, delimiter, isAbsolute, join, parse, relative, resolve, sep } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { validatePhase7Approvals } from '../../scripts/validate-phase7-approvals.mjs';
@@ -72,6 +63,7 @@ const APPROVED_GENERATOR = Object.freeze({
   }),
 });
 export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
+  'Chat',
   'AthleteLink',
   'AthleteMedia',
   'AthletePublicProfile',
@@ -105,6 +97,8 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Achievement',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
+  'ChatMessage',
+  'ChatReadResponse',
   'AdministrativeCorrectionEventDto',
   'AdministrativeCorrectionsBlock',
   'AthleteLinkDecisionRequest',
@@ -295,6 +289,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/athlete-link.service.ts',
   'api/athlete-media.service.ts',
   'api/athlete-public-profile.service.ts',
+  'api/chat.service.ts',
   'api/credit-correction.service.ts',
   'api/credit-ledger.service.ts',
   'api/diagnostic.service.ts',
@@ -338,6 +333,8 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/athlete-public-profile.ts',
   'model/betufu-field-violation.ts',
   'model/betufu-problem-details.ts',
+  'model/chat-message.ts',
+  'model/chat-read-response.ts',
   'model/create-odds-market-request.ts',
   'model/credit-balance-response.ts',
   'model/credit-correction-page.ts',
@@ -528,7 +525,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // a allowlist de caminhos, a partir do candidato certificado do plano 05.1-01.
 // 13CC... publica os contratos HTTP da Fase 6 para liquidacao, correcoes, ranking,
 // grupos e conquistas no plano 06-07, preservando a geracao oficial do cliente.
-export const APPROVED_GENERATED_DIGEST = 'AA0BC4ACFADDD834D15B85E6FA331A4554AC01696135823E40B01DF7BA288ED3';
+// CFD9... acrescenta as quatro leituras do chat e seus dois modelos no plano 07-06.
+export const APPROVED_GENERATED_DIGEST =
+  'CFD9FEDAAA07BE604D87958284470FFEDCD4780E0EA3205305DDDC0955B03A81';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
@@ -556,8 +555,12 @@ function toPosixPath(path) {
 
 function isContained(parent, child) {
   const pathFromParent = relative(parent, child);
-  return pathFromParent === ''
-    || (!pathFromParent.startsWith(`..${sep}`) && pathFromParent !== '..' && !isAbsolute(pathFromParent));
+  return (
+    pathFromParent === '' ||
+    (!pathFromParent.startsWith(`..${sep}`) &&
+      pathFromParent !== '..' &&
+      !isAbsolute(pathFromParent))
+  );
 }
 
 function resolveSafeRelative(base, value, rule = 'UNSAFE_PATH') {
@@ -568,10 +571,10 @@ function resolveSafeRelative(base, value, rule = 'UNSAFE_PATH') {
   const normalized = value.replaceAll('\\', '/');
   const segments = normalized.split('/');
   if (
-    isAbsolute(value)
-    || /^[a-zA-Z]:/u.test(value)
-    || normalized.startsWith('//')
-    || segments.some((segment) => segment === '' || segment === '.' || segment === '..')
+    isAbsolute(value) ||
+    /^[a-zA-Z]:/u.test(value) ||
+    normalized.startsWith('//') ||
+    segments.some((segment) => segment === '' || segment === '.' || segment === '..')
   ) {
     fail(rule, 'caminho fora do escopo permitido.');
   }
@@ -891,24 +894,15 @@ function stripComments(source) {
 
 function decodeUrlEscapes(source) {
   return source
-    .replace(
-      /\\x([0-9a-f]{2})/giu,
-      function decodeHexByte(_, hex) {
-        return String.fromCodePoint(Number.parseInt(hex, 16));
-      },
-    )
-    .replace(
-      /\\u\{([0-9a-f]{1,6})\}/giu,
-      function decodeUnicodeCodePoint(_, hex) {
-        return String.fromCodePoint(Number.parseInt(hex, 16));
-      },
-    )
-    .replace(
-      /\\u([0-9a-f]{4})/giu,
-      function decodeUnicodeUnit(_, hex) {
-        return String.fromCodePoint(Number.parseInt(hex, 16));
-      },
-    )
+    .replace(/\\x([0-9a-f]{2})/giu, function decodeHexByte(_, hex) {
+      return String.fromCodePoint(Number.parseInt(hex, 16));
+    })
+    .replace(/\\u\{([0-9a-f]{1,6})\}/giu, function decodeUnicodeCodePoint(_, hex) {
+      return String.fromCodePoint(Number.parseInt(hex, 16));
+    })
+    .replace(/\\u([0-9a-f]{4})/giu, function decodeUnicodeUnit(_, hex) {
+      return String.fromCodePoint(Number.parseInt(hex, 16));
+    })
     .replace(/\\\//gu, '/');
 }
 
@@ -945,20 +939,19 @@ export function hardenGeneratedTypeScript(relativePath, contents) {
   const declarations = executable.match(/\bprotected[ \t]+basePath[ \t]*=/gu) ?? [];
   const baseServiceDeclarations = executable.match(/\bclass[ \t]+BaseService\b/gu) ?? [];
   const sourceOccurrences = [
-    ...executable.matchAll(
-      /^export class BaseService \{\n    protected basePath = '[ \t]*';$/gmu,
-    ),
-  ].filter((match) => (
-    normalized.slice(
-      match.index + 'export class BaseService {\n'.length,
-      match.index + match[0].length,
-    ) === GENERATED_BASE_PATH_SOURCE
-  ));
+    ...executable.matchAll(/^export class BaseService \{\n    protected basePath = '[ \t]*';$/gmu),
+  ].filter(
+    (match) =>
+      normalized.slice(
+        match.index + 'export class BaseService {\n'.length,
+        match.index + match[0].length,
+      ) === GENERATED_BASE_PATH_SOURCE,
+  );
 
   if (
-    declarations.length !== 1
-    || baseServiceDeclarations.length !== 1
-    || sourceOccurrences.length !== 1
+    declarations.length !== 1 ||
+    baseServiceDeclarations.length !== 1 ||
+    sourceOccurrences.length !== 1
   ) {
     fail(
       'GENERATED_BASE_PATH',
@@ -967,9 +960,11 @@ export function hardenGeneratedTypeScript(relativePath, contents) {
   }
 
   const sourceIndex = sourceOccurrences[0].index + 'export class BaseService {\n'.length;
-  return normalized.slice(0, sourceIndex)
-    + GENERATED_BASE_PATH_HARDENED
-    + normalized.slice(sourceIndex + GENERATED_BASE_PATH_SOURCE.length);
+  return (
+    normalized.slice(0, sourceIndex) +
+    GENERATED_BASE_PATH_HARDENED +
+    normalized.slice(sourceIndex + GENERATED_BASE_PATH_SOURCE.length)
+  );
 }
 
 async function collectFiles(root, current, entries) {
@@ -1033,11 +1028,14 @@ function escapeRegularExpression(value) {
 /** Read only the contract inventory needed for a candidate approval. */
 export function inspectOpenApiContract(source) {
   const normalized = String(source).replace(/\r\n?/gu, '\n');
-  const pathsSection = normalized.match(/^paths:\n([\s\S]*?)(?=^components:\n|(?![\s\S]))/m)?.[1] ?? '';
+  const pathsSection =
+    normalized.match(/^paths:\n([\s\S]*?)(?=^components:\n|(?![\s\S]))/m)?.[1] ?? '';
   const endpoints = [];
   const pathPattern = /^  (\/[^:\n]+):\n([\s\S]*?)(?=^  \S|(?![\s\S]))/gmu;
   for (const match of pathsSection.matchAll(pathPattern)) {
-    const methods = [...match[2].matchAll(/^    (get|post|put|patch|delete|head|options|trace):/gimu)]
+    const methods = [
+      ...match[2].matchAll(/^    (get|post|put|patch|delete|head|options|trace):/gimu),
+    ]
       .map((method) => method[1].toUpperCase())
       .sort();
     endpoints.push({ path: match[1], methods });
@@ -1045,7 +1043,8 @@ export function inspectOpenApiContract(source) {
 
   const schemasSection = normalized.match(/^  schemas:\n([\s\S]*)$/m)?.[1] ?? '';
   const schemas = [];
-  const schemaPattern = /^    ([A-Za-z][A-Za-z0-9_-]*):\n([\s\S]*?)(?=^    [A-Za-z][A-Za-z0-9_-]*:\n|(?![\s\S]))/gmu;
+  const schemaPattern =
+    /^    ([A-Za-z][A-Za-z0-9_-]*):\n([\s\S]*?)(?=^    [A-Za-z][A-Za-z0-9_-]*:\n|(?![\s\S]))/gmu;
   for (const match of schemasSection.matchAll(schemaPattern)) {
     schemas.push(match[1]);
   }
@@ -1068,9 +1067,10 @@ export function inspectGeneratedOpenApiContract(source) {
   const inventory = inspectOpenApiContract(source);
   return {
     endpoints: inventory.endpoints.filter(
-      ({ path }) => !path.startsWith('/api/v1/operations/sports/')
-        || path.startsWith('/api/v1/operations/sports/catalog/')
-        || [
+      ({ path }) =>
+        !path.startsWith('/api/v1/operations/sports/') ||
+        path.startsWith('/api/v1/operations/sports/catalog/') ||
+        [
           '/api/v1/operations/sports/athlete-link-reviews',
           '/api/v1/operations/sports/athletes',
           '/api/v1/operations/sports/athletes/{athleteId}',
@@ -1106,8 +1106,8 @@ export function inspectGeneratedOpenApiContract(source) {
         ].includes(path),
     ),
     schemas: inventory.schemas.filter((schema) => PUBLIC_GENERATOR_MODELS.includes(schema)),
-    publicSchemas: inventory.publicSchemas.filter(
-      (schema) => PUBLIC_GENERATOR_MODELS.includes(schema),
+    publicSchemas: inventory.publicSchemas.filter((schema) =>
+      PUBLIC_GENERATOR_MODELS.includes(schema),
     ),
   };
 }
@@ -1115,14 +1115,18 @@ export function inspectGeneratedOpenApiContract(source) {
 export function assertPublicSchemaAllowlist(source) {
   const normalized = String(source).replace(/\r\n?/gu, '\n');
   const schemasSection = normalized.match(/^  schemas:\n([\s\S]*)$/m)?.[1] ?? '';
-  const schemaPattern = /^    ([A-Za-z][A-Za-z0-9_-]*):\n([\s\S]*?)(?=^    [A-Za-z][A-Za-z0-9_-]*:\n|(?![\s\S]))/gmu;
+  const schemaPattern =
+    /^    ([A-Za-z][A-Za-z0-9_-]*):\n([\s\S]*?)(?=^    [A-Za-z][A-Za-z0-9_-]*:\n|(?![\s\S]))/gmu;
   for (const match of schemasSection.matchAll(schemaPattern)) {
     const schemaName = match[1];
     if (!schemaName.startsWith('Public')) {
       continue;
     }
     for (const field of PUBLIC_SCHEMA_FORBIDDEN_FIELDS) {
-      const fieldPattern = new RegExp(`^        ${escapeRegularExpression(field)}:\\s*(?:#.*)?$`, 'mu');
+      const fieldPattern = new RegExp(
+        `^        ${escapeRegularExpression(field)}:\\s*(?:#.*)?$`,
+        'mu',
+      );
       if (fieldPattern.test(match[2])) {
         fail('PUBLIC_SCHEMA_FORBIDDEN_FIELD', field);
       }
@@ -1141,10 +1145,7 @@ function resolveCandidateDirectory(projectRoot, candidateDirectory) {
   const resolvedCandidate = isAbsolute(candidateDirectory)
     ? resolve(candidateDirectory)
     : resolve(projectRoot, candidateDirectory);
-  if (
-    resolvedCandidate === projectRoot
-    || !isContained(projectRoot, resolvedCandidate)
-  ) {
+  if (resolvedCandidate === projectRoot || !isContained(projectRoot, resolvedCandidate)) {
     fail('UNSAFE_PATH', 'diretorio candidato fora do escopo permitido.');
   }
   return resolvedCandidate;
@@ -1168,7 +1169,15 @@ async function persistCandidateMetadata(
     if (await pathExists(candidateDirectory)) {
       const existing = await readTreeManifest(candidateDirectory);
       for (const entry of existing.entries) {
-        if (['inventory.json', 'digest.sha256', 'governed-before.sha256', 'governed-after.sha256'].includes(entry.path)) continue;
+        if (
+          [
+            'inventory.json',
+            'digest.sha256',
+            'governed-before.sha256',
+            'governed-after.sha256',
+          ].includes(entry.path)
+        )
+          continue;
         const destination = resolveSafeRelative(prepared, entry.path);
         await mkdir(dirname(destination), { recursive: true });
         await writeFile(destination, entry.bytes);
@@ -1190,13 +1199,10 @@ async function persistCandidateMetadata(
   }
 }
 
-export function assertApprovedGeneratedManifest(
-  manifest,
-  contract = APPROVED_GENERATED_MANIFEST,
-) {
+export function assertApprovedGeneratedManifest(manifest, contract = APPROVED_GENERATED_MANIFEST) {
   if (
-    !isDeepStrictEqual(manifest?.files, contract?.files)
-    || manifest?.digest !== contract?.digest
+    !isDeepStrictEqual(manifest?.files, contract?.files) ||
+    manifest?.digest !== contract?.digest
   ) {
     fail(
       'GENERATED_MANIFEST',
@@ -1256,11 +1262,11 @@ function validateNonce(nonce) {
 
 function validateLock(value) {
   if (
-    value?.version !== 1
-    || !Number.isSafeInteger(value.pid)
-    || value.pid <= 0
-    || typeof value.createdAt !== 'string'
-    || !NONCE_PATTERN.test(value.nonce ?? '')
+    value?.version !== 1 ||
+    !Number.isSafeInteger(value.pid) ||
+    value.pid <= 0 ||
+    typeof value.createdAt !== 'string' ||
+    !NONCE_PATTERN.test(value.nonce ?? '')
   ) {
     fail('LOCK_AMBIGUOUS', 'lock existente nao pode ser validado.');
   }
@@ -1412,7 +1418,7 @@ async function acquireLock(workspace, adapters, nonce) {
     if (!isDeepStrictEqual(current, existing)) {
       fail('LOCK_AMBIGUOUS', 'lock mudou depois da verificacao de processo.');
     }
-    if (await processStatus(adapters, current) !== 'dead') {
+    if ((await processStatus(adapters, current)) !== 'dead') {
       fail('LOCK_AMBIGUOUS', 'dono do lock deixou de estar comprovadamente morto.');
     }
   } catch (error) {
@@ -1461,11 +1467,11 @@ async function releaseLock(lockPath, lockValue) {
 
 function journalPaths(frontendRoot, workspace, configuration, journal) {
   if (
-    journal?.version !== 1
-    || !NONCE_PATTERN.test(journal.nonce ?? '')
-    || !['prepared', 'old-moved', 'new-installed'].includes(journal.state)
-    || typeof journal.hadTarget !== 'boolean'
-    || typeof journal.createdAt !== 'string'
+    journal?.version !== 1 ||
+    !NONCE_PATTERN.test(journal.nonce ?? '') ||
+    !['prepared', 'old-moved', 'new-installed'].includes(journal.state) ||
+    typeof journal.hadTarget !== 'boolean' ||
+    typeof journal.createdAt !== 'string'
   ) {
     fail('JOURNAL_INVALID', 'journal invalido.');
   }
@@ -1474,10 +1480,10 @@ function journalPaths(frontendRoot, workspace, configuration, journal) {
   const expectedCandidate = `${expectedOperation}/candidate`;
   const expectedBackup = `${expectedOperation}/backup`;
   if (
-    journal.operation !== expectedOperation
-    || journal.candidate !== expectedCandidate
-    || journal.backup !== expectedBackup
-    || journal.target !== configuration.generator.target
+    journal.operation !== expectedOperation ||
+    journal.candidate !== expectedCandidate ||
+    journal.backup !== expectedBackup ||
+    journal.target !== configuration.generator.target
   ) {
     fail('UNSAFE_PATH', 'journal referencia caminho nao aprovado.');
   }
@@ -1506,8 +1512,8 @@ async function recoverJournal(context) {
   const operationExists = await pathExists(paths.operation);
 
   if (!operationExists) {
-    const priorTreeRestored = ['prepared', 'old-moved'].includes(journal.state)
-      && targetExists === journal.hadTarget;
+    const priorTreeRestored =
+      ['prepared', 'old-moved'].includes(journal.state) && targetExists === journal.hadTarget;
     const newTreeCommitted = journal.state === 'new-installed' && targetExists;
     if (backupExists || candidateExists || (!priorTreeRestored && !newTreeCommitted)) {
       fail('RECOVERY_AMBIGUOUS', 'journal sem operacao nao corresponde a um recovery concluido.');
@@ -1569,11 +1575,7 @@ async function recoverJournal(context) {
     }
     await removeKnownTree(workspace, paths.operation);
   } else {
-    if (
-      !targetExists
-      || candidateExists
-      || (!journal.hadTarget && backupExists)
-    ) {
+    if (!targetExists || candidateExists || (!journal.hadTarget && backupExists)) {
       fail('RECOVERY_AMBIGUOUS', 'estado new-installed nao pode ser finalizado com seguranca.');
     }
     await readTreeManifest(paths.target);
@@ -1599,8 +1601,9 @@ function safeJavaEnvironment() {
 }
 
 async function resolveJavaExecutable(environment) {
-  const pathValue = Object.entries(environment)
-    .find(([name]) => name.toUpperCase() === 'PATH')?.[1];
+  const pathValue = Object.entries(environment).find(
+    ([name]) => name.toUpperCase() === 'PATH',
+  )?.[1];
   if (typeof pathValue !== 'string' || pathValue.length === 0) {
     fail('JAVA_MISSING', 'PATH nao permite resolver um launcher Java aprovado.');
   }
@@ -1671,15 +1674,22 @@ function assertApprovedJavaRuntime(output) {
     }
   }
   if (
-    properties.get('java.specification.version') !== APPROVED_JAVA_RUNTIME.specificationVersion
-    || properties.get('java.version') !== APPROVED_JAVA_RUNTIME.version
-    || properties.get('java.vendor') !== APPROVED_JAVA_RUNTIME.vendor
+    properties.get('java.specification.version') !== APPROVED_JAVA_RUNTIME.specificationVersion ||
+    properties.get('java.version') !== APPROVED_JAVA_RUNTIME.version ||
+    properties.get('java.vendor') !== APPROVED_JAVA_RUNTIME.vendor
   ) {
     fail('JAVA_RUNTIME_DRIFT', 'runtime Java diverge da evidencia aceita no Gate.');
   }
 }
 
-async function runOpenApiGenerator({ configuration, enginePath, frontendRoot, inputSpec, outputDirectory, globalProperty = PUBLIC_GENERATOR_GLOBAL_PROPERTY }) {
+async function runOpenApiGenerator({
+  configuration,
+  enginePath,
+  frontendRoot,
+  inputSpec,
+  outputDirectory,
+  globalProperty = PUBLIC_GENERATOR_GLOBAL_PROPERTY,
+}) {
   const properties = Object.entries(configuration.generator.additionalProperties)
     .map(([key, value]) => `${key}=${String(value)}`)
     .join(',');
@@ -1792,10 +1802,10 @@ function manifestsEqual(left, right) {
   if (left.entries.length !== right.entries.length) {
     return false;
   }
-  return left.entries.every((entry, index) => (
-    entry.path === right.entries[index].path
-    && entry.bytes.equals(right.entries[index].bytes)
-  ));
+  return left.entries.every(
+    (entry, index) =>
+      entry.path === right.entries[index].path && entry.bytes.equals(right.entries[index].bytes),
+  );
 }
 
 async function compareWithTarget(candidateManifest, target) {
@@ -1821,12 +1831,19 @@ async function preservePublishDiagnostic(workspace, nonce, now) {
   const path = join(diagnostics, `publish-failure-${nonce}.json`);
   const handle = await open(path, 'wx', 0o600);
   try {
-    await handle.writeFile(`${JSON.stringify({
-      version: 1,
-      rule: 'PUBLISH_FAILED',
-      nonce,
-      createdAt: now,
-    }, null, 2)}\n`, 'utf8');
+    await handle.writeFile(
+      `${JSON.stringify(
+        {
+          version: 1,
+          rule: 'PUBLISH_FAILED',
+          nonce,
+          createdAt: now,
+        },
+        null,
+        2,
+      )}\n`,
+      'utf8',
+    );
   } finally {
     await handle.close();
   }
@@ -1834,30 +1851,15 @@ async function preservePublishDiagnostic(workspace, nonce, now) {
 
 function assertPublishManifest(actual, expected, contract) {
   if (!manifestsEqual(expected, actual)) {
-    fail(
-      'GENERATED_MANIFEST_RACE',
-      'candidato gerado mudou entre validacao e publicacao.',
-    );
+    fail('GENERATED_MANIFEST_RACE', 'candidato gerado mudou entre validacao e publicacao.');
   }
   if (contract !== null) {
     assertApprovedGeneratedManifest(actual, contract);
   }
 }
 
-async function publishCandidate(
-  context,
-  operation,
-  expectedManifest,
-  generatedManifestContract,
-) {
-  const {
-    adapters,
-    configuration,
-    frontendRoot,
-    journalPath,
-    target,
-    workspace,
-  } = context;
+async function publishCandidate(context, operation, expectedManifest, generatedManifestContract) {
+  const { adapters, configuration, frontendRoot, journalPath, target, workspace } = context;
   const hadTarget = await pathExists(target);
   if (hadTarget) {
     await readTreeManifest(target);
@@ -1885,21 +1887,17 @@ async function publishCandidate(
       await writeJsonAtomically(journalPath, journal, operation.nonce);
     }
 
-    await adapters.beforeRename({ role: 'install-candidate', from: operation.candidate, to: target });
+    await adapters.beforeRename({
+      role: 'install-candidate',
+      from: operation.candidate,
+      to: target,
+    });
     const installManifest = await readTreeManifest(operation.candidate);
-    assertPublishManifest(
-      installManifest,
-      expectedManifest,
-      generatedManifestContract,
-    );
+    assertPublishManifest(installManifest, expectedManifest, generatedManifestContract);
     await mkdir(dirname(target), { recursive: true });
     await rename(operation.candidate, target);
     const installedManifest = await readTreeManifest(target);
-    assertPublishManifest(
-      installedManifest,
-      expectedManifest,
-      generatedManifestContract,
-    );
+    assertPublishManifest(installedManifest, expectedManifest, generatedManifestContract);
     journal.state = 'new-installed';
     await writeJsonAtomically(journalPath, journal, operation.nonce);
   } catch {
@@ -1916,13 +1914,13 @@ async function publishCandidate(
           }
           await rename(operation.backup, target);
         }
-        rollbackComplete = await pathExists(target) && !await pathExists(operation.backup);
+        rollbackComplete = (await pathExists(target)) && !(await pathExists(operation.backup));
       } else {
         if (targetExists) {
           await readTreeManifest(target);
           await rm(target, { recursive: true, force: false });
         }
-        rollbackComplete = !await pathExists(target) && !backupExists;
+        rollbackComplete = !(await pathExists(target)) && !backupExists;
       }
       await preservePublishDiagnostic(workspace, operation.nonce, adapters.now());
       if (rollbackComplete) {
@@ -2601,8 +2599,8 @@ async function main() {
   }
 }
 
-const invokedAsScript = process.argv[1]
-  && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const invokedAsScript =
+  process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (invokedAsScript) {
   await main();

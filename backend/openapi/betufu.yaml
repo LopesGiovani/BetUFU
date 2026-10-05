@@ -8,6 +8,192 @@ servers:
   - url: /
 
 paths:
+  /api/v1/chat/events/{eventId}:
+    get:
+      tags: [Chat]
+      operationId: getEventChat
+      summary: Read a published event chat
+      description: Requires actual event publication; draft and global aliases are never public. Read availability does not grant write permission.
+      security: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: historyCursor
+          in: query
+          required: false
+          schema: {type: string}
+          description: Opaque canonical keyset scoped to this channel.
+        - name: limit
+          in: query
+          required: false
+          schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 50}
+      responses:
+        "200":
+          description: Current read projection without original removed text or private identity data.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReadResponse"
+        "400":
+          description: Invalid UUID, cursor or limit.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Session required for global chat, including an event alias.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Event is not published or alias is not an event.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/events/{eventId}/changes:
+    get:
+      tags: [Chat]
+      operationId: getEventChatChanges
+      summary: Read a published event chat changes
+      description: Requires actual event publication; draft and global aliases are never public. Read availability does not grant write permission.
+      security: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: changeCursor
+          in: query
+          required: false
+          schema: {type: integer, format: int64, minimum: 0, default: 0}
+          description: Technical sequence cursor; complete moderation replay is not yet certified.
+        - name: limit
+          in: query
+          required: false
+          schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 50}
+      responses:
+        "200":
+          description: Current read projection without original removed text or private identity data.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReadResponse"
+        "400":
+          description: Invalid UUID, cursor or limit.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Session required for global chat, including an event alias.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Event is not published or alias is not an event.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/global:
+    get:
+      tags: [Chat]
+      operationId: getGlobalChat
+      summary: Read session-private global chat
+      description: Requires an OIDC session; inactive enrollment may read. Read availability does not grant write permission.
+      security: [{cookieSession: []}]
+      parameters:
+        - name: historyCursor
+          in: query
+          required: false
+          schema: {type: string}
+          description: Opaque canonical keyset scoped to this channel.
+        - name: limit
+          in: query
+          required: false
+          schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 50}
+      responses:
+        "200":
+          description: Current read projection without original removed text or private identity data.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReadResponse"
+        "400":
+          description: Invalid UUID, cursor or limit.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Session required for global chat, including an event alias.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/global/changes:
+    get:
+      tags: [Chat]
+      operationId: getGlobalChatChanges
+      summary: Read session-private global chat changes
+      description: Requires an OIDC session; inactive enrollment may read. Read availability does not grant write permission.
+      security: [{cookieSession: []}]
+      parameters:
+        - name: changeCursor
+          in: query
+          required: false
+          schema: {type: integer, format: int64, minimum: 0, default: 0}
+          description: Technical sequence cursor; complete moderation replay is not yet certified.
+        - name: limit
+          in: query
+          required: false
+          schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 50}
+      responses:
+        "200":
+          description: Current read projection without original removed text or private identity data.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatReadResponse"
+        "400":
+          description: Invalid UUID, cursor or limit.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Session required for global chat, including an event alias.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
   /api/v1/me/credits:
     get:
       tags: [CreditLedger]
@@ -28,7 +214,7 @@ paths:
         '201': {description: Ticket aceito, content: {application/json: {schema: {$ref: '#/components/schemas/PredictionTicketResponse'}}}}
         '401': {description: Nao autenticado}
         '409': {description: Conflito ou snapshot stale}
-    
+
   /api/v1/me/predictions/markets/{marketId}:
     get:
       tags: [Prediction]
@@ -4238,6 +4424,46 @@ components:
       description: Chave opaca obrigatória para repetição segura do comando de override.
 
   schemas:
+    ChatMessage:
+      type: object
+      additionalProperties: false
+      required: [messageId, postedAt, removed, changeCursor]
+      description: Whitelisted current projection. Removed facts expose neither original text nor participant.
+      properties:
+        messageId: {type: string, format: uuid}
+        participantId:
+          type: [string, "null"]
+          format: uuid
+          description: Existing public participant identifier, never an OIDC or enrollment identifier.
+        nickname: {type: [string, "null"]}
+        text:
+          type: [string, "null"]
+          description: Exact visible text; null for removed projections.
+        postedAt: {type: string, format: date-time}
+        removed: {type: boolean}
+        changeCursor: {type: integer, format: int64, minimum: 0}
+
+    ChatReadResponse:
+      type: object
+      additionalProperties: false
+      required: [state, kind, messages, changeCursor]
+      properties:
+        state:
+          type: string
+          description: AVAILABLE currently means readable, not permission to write. Lifecycle states are future work.
+        kind: {type: string, enum: [GLOBAL, EVENT]}
+        eventId: {type: [string, "null"], format: uuid}
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChatMessage"
+        historyCursor: {type: [string, "null"]}
+        changeCursor: {type: integer, format: int64, minimum: 0}
+        deadline:
+          type: [string, "null"]
+          format: date-time
+          description: Null until the lifecycle capability is delivered.
+
     SettlementHistoryPage:
       type: object
       additionalProperties: false

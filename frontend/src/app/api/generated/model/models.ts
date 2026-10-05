@@ -11,6 +11,8 @@ export * from './athlete-public-profile';
 export * from './athlete-public-profile-update-request';
 export * from './betufu-field-violation';
 export * from './betufu-problem-details';
+export * from './chat-message';
+export * from './chat-read-response';
 export * from './create-odds-market-request';
 export * from './credit-balance-response';
 export * from './credit-correction-page';
