@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "plan": "07-17",
+  "wave": 8,
+  "status": "approved",
+  "authorized_stage": "implementation",
+  "head": "c4e420a9f4b790a8dbc640fa0f12510ac0eceee7",
+  "recorded_at": "2026-10-05T22:01:32.651Z",
+  "plan_sha256": "60adc66b784c34765a3752b41a04f7ee689bf047d4a717e6a454fc1c28d8e9dc",
+  "decisions_sha256": "f9780da3a65a23c24e49b70712b79766741531d92c0b1c8cf6214bc9524f0e52",
+  "human_approval": {
+    "source": "owner",
+    "status": "approved",
+    "reference": "conversation:owner-continuous-phase7-wave2-through-completion;owner-resume-as-before",
+    "statement": "Owner expressly authorized continuous inline Phase7 execution, tests, self-healing, local implementation/documentary commits and progression through all waves. This record applies that authority to exact plan 07-17 and established D-17/D-18/D-19 rules; no separate human reply is asserted.",
+    "plans": [
+      "07-17"
+    ]
+  },
+  "scope": {
+    "paths": [
+      "docs/phase7-approvals/07-17.json",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatSanctionController.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatSanctionService.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatSanctionRepository.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatReviewController.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatReviewService.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatModerationModels.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatWriteService.java",
+      "backend/src/main/java/br/com/betufu/chat/ChatModerationAuthorityPort.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatSanctionIT.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatReviewIT.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatSanctionConcurrencyIT.java"
+    ],
+    "commands": [
+      "node scripts/validate-phase7-approvals.mjs --plan 07-17 --stage implementation",
+      "node scripts/maven.mjs -f backend/pom.xml \"-Dtest=ChatSanctionIT,ChatReviewIT,ChatSanctionConcurrencyIT\" test",
+      "node scripts/maven.mjs -f backend/pom.xml verify",
+      "node --test scripts/*.test.mjs"
+    ],
+    "candidates": []
+  },
+  "baseline_hashes": {
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/STATE.md": "acd6d380e8e96e136963717c37c20f87b2d20e1b569d04672240ecc470e49c04",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-17-PLAN.md": "60adc66b784c34765a3752b41a04f7ee689bf047d4a717e6a454fc1c28d8e9dc",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md": "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845"
+  },
+  "candidate_hashes": {}
+}

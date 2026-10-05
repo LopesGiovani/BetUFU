@@ -30,6 +30,35 @@ public final class ChatModerationModels {
 
   public record ForwardReceipt(UUID caseId, Instant forwardedAt) {}
 
+  public enum SanctionKind {
+    CHAT_SUSPENSION_24H,
+    CHAT_SUSPENSION_7D,
+    CHAT_BAN
+  }
+
+  public enum ReviewDecision {
+    MAINTAIN,
+    ANNUL
+  }
+
+  public record SanctionCommand(UUID clientCommandId, String reason, SanctionKind kind) {}
+
+  public record ReviewCommand(UUID clientCommandId, String reason, ReviewDecision decision) {}
+
+  public record SanctionSummary(
+      UUID sanctionId,
+      SanctionKind kind,
+      String reason,
+      Instant effectiveFrom,
+      Instant effectiveUntil,
+      boolean active,
+      String reviewStatus) {}
+
+  public record SanctionSuggestion(UUID caseId, SanctionKind suggestedKind) {}
+
+  public record ReviewReceipt(
+      UUID reviewId, UUID sanctionId, String status, String reason, Instant recordedAt) {}
+
   static UUID uuid(String value) {
     try {
       UUID parsed = UUID.fromString(value);
