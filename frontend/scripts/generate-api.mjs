@@ -97,6 +97,10 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Achievement',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
+  'ChatMuteCommand',
+  'ChatMuteState',
+  'ChatReportCommand',
+  'ChatReportReceipt',
   'ChatCommandReceipt',
   'ChatMessage',
   'ChatReadResponse',
@@ -337,7 +341,11 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/betufu-problem-details.ts',
   'model/chat-command-receipt.ts',
   'model/chat-message.ts',
+  'model/chat-mute-command.ts',
+  'model/chat-mute-state.ts',
   'model/chat-read-response.ts',
+  'model/chat-report-command.ts',
+  'model/chat-report-receipt.ts',
   'model/chat-send-request.ts',
   'model/create-odds-market-request.ts',
   'model/credit-balance-response.ts',
@@ -531,8 +539,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // grupos e conquistas no plano 06-07, preservando a geracao oficial do cliente.
 // CFD9... acrescenta as quatro leituras do chat e seus dois modelos no plano 07-06.
 // 534B... acrescenta envio/recibo do chat e retryAt no plano 07-11.
+// 9BB6... publishes private reports and versioned account mutes in07-14.
 export const APPROVED_GENERATED_DIGEST =
-  '534BB5B13A376FEB9504F7E697C6AE21BDE3CDA94A3106E333C87FC800A00E09';
+  '9BB66884F67583582824EED26BA105B3A8776CE87F26092C0E361BAA4DF19FAF';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

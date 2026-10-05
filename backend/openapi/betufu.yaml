@@ -8,6 +8,302 @@ servers:
   - url: /
 
 paths:
+  /api/v1/chat/messages/{messageId}/reports:
+    post:
+      tags: [Chat]
+      operationId: reportChatMessage
+      summary: Privately report a real accessible chat message
+      security: [{cookieSession: []}]
+      description: >-
+        Current authenticated channel readers can report, including inactive, write-suspended
+        and account-paused accounts. Visitors must log in. The server derives the reporter.
+        Removed facts remain reportable without revealing the original. One canonical report
+        per reporter/message; same reason and any fresh key returns the original report.
+        Reuse of an Idempotency-Key for another message/reason returns409.
+        A report never automatically removes a message or sanctions its author.
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatReportCommand"}
+      responses:
+        "201":
+          description: Committed private account response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatReportReceipt"}
+        "400":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Version or idempotency conflict; refetch, no automatic retry.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/me/mutes:
+    get:
+      tags: [Chat]
+      operationId: getAccountChatMutes
+      summary: Read the current account mute preference
+      security: [{cookieSession: []}]
+      description: >-
+        Session-only full account list across all channels; no actor supplied by request.
+        Inactive, write-suspended and account-paused readers can use these safety controls.
+      responses:
+        "200":
+          description: Committed private account response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+            ETag:
+              schema: {type: string}
+              description: Quoted canonical account preference version.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatMuteState"}
+        "400":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Version or idempotency conflict; refetch, no automatic retry.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/me/mutes/{participantId}:
+    get:
+      tags: [Chat]
+      operationId: getAccountChatMute
+      summary: Read the current account mute preference
+      security: [{cookieSession: []}]
+      description: >-
+        Session-only full account list across all channels; no actor supplied by request.
+        Inactive, write-suspended and account-paused readers can use these safety controls.
+      parameters:
+        - name: participantId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Committed private account response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+            ETag:
+              schema: {type: string}
+              description: Quoted canonical account preference version.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatMuteState"}
+        "400":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Version or idempotency conflict; refetch, no automatic retry.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+    put:
+      tags: [Chat]
+      operationId: setAccountChatMute
+      summary: Mute a public participant for the current account
+      security: [{cookieSession: []}]
+      description: >-
+        All chat channels, only this account. Same current version and existing mute is a no-op.
+        A stale expectedVersion returns409; refetch instead of overwriting another device.
+        The target and other readers receive no preference metadata. Failed writes do not
+        confirm persistence. Owner sessions receive only a minimal postcommit resync hint.
+      parameters:
+        - name: participantId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatMuteCommand"}
+      responses:
+        "200":
+          description: Committed private account response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+            ETag:
+              schema: {type: string}
+              description: Quoted canonical account preference version.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatMuteState"}
+        "400":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Version or idempotency conflict; refetch, no automatic retry.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+    delete:
+      tags: [Chat]
+      operationId: removeAccountChatMute
+      summary: Remove a current-account participant mute
+      security: [{cookieSession: []}]
+      description: Stale versions return409; refetch before another attempt. Only a committed response confirms persistence.
+      parameters:
+        - name: participantId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: If-Match
+          in: header
+          required: true
+          description: Quoted canonical account version from ETag, e.g. "1".
+          schema:
+            type: string
+            pattern: '^"(0|[1-9][0-9]{0,18})"$'
+      responses:
+        "200":
+          description: Committed private account response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+            ETag:
+              schema: {type: string}
+              description: Quoted canonical account preference version.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatMuteState"}
+        "400":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Request denied or resource unavailable.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Version or idempotency conflict; refetch, no automatic retry.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
   /api/v1/chat/events/{eventId}/messages:
     post:
       tags: [Chat]
@@ -4589,6 +4885,43 @@ components:
       description: Exact nonblank text, at most 280 Unicode code points; controls and unpaired surrogates are invalid. Plain text only, no HTML rendering.
       properties:
         text: {type: string, minLength: 1, maxLength: 280}
+
+    ChatReportCommand:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          enum: [DISCURSO_DE_ODIO, SPAM, OFENSA, ASSEDIO, FRAUDE]
+
+    ChatReportReceipt:
+      type: object
+      additionalProperties: false
+      required: [reportId, reportedAt]
+      description: Private minimal receipt; never original text, reporter identity or sanction.
+      properties:
+        reportId: {type: string, format: uuid}
+        reportedAt: {type: string, format: date-time}
+
+    ChatMuteCommand:
+      type: object
+      additionalProperties: false
+      required: [expectedVersion]
+      properties:
+        expectedVersion: {type: integer, format: int64, minimum: 0}
+
+    ChatMuteState:
+      type: object
+      additionalProperties: false
+      required: [version, participantIds]
+      description: Private full account preference across all chat channels.
+      properties:
+        version: {type: integer, format: int64, minimum: 0}
+        participantIds:
+          type: array
+          uniqueItems: true
+          items: {type: string, format: uuid}
 
     ChatCommandReceipt:
       type: object

@@ -21,7 +21,15 @@ import { BetufuProblemDetails } from '../model/betufu-problem-details';
 // @ts-ignore
 import { ChatCommandReceipt } from '../model/chat-command-receipt';
 // @ts-ignore
+import { ChatMuteCommand } from '../model/chat-mute-command';
+// @ts-ignore
+import { ChatMuteState } from '../model/chat-mute-state';
+// @ts-ignore
 import { ChatReadResponse } from '../model/chat-read-response';
+// @ts-ignore
+import { ChatReportCommand } from '../model/chat-report-command';
+// @ts-ignore
+import { ChatReportReceipt } from '../model/chat-report-receipt';
 // @ts-ignore
 import { ChatSendRequest } from '../model/chat-send-request';
 
@@ -30,6 +38,10 @@ import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables'
 import { Configuration }                                     from '../configuration';
 import { BaseService } from '../api.base.service';
 
+
+export interface GetAccountChatMuteRequestParams {
+    participantId: string;
+}
 
 export interface GetEventChatRequestParams {
     eventId: string;
@@ -57,6 +69,18 @@ export interface GetGlobalChatChangesRequestParams {
     limit?: number;
 }
 
+export interface RemoveAccountChatMuteRequestParams {
+    participantId: string;
+    /** Quoted canonical account version from ETag, e.g. \&quot;1\&quot;. */
+    ifMatch: string;
+}
+
+export interface ReportChatMessageRequestParams {
+    messageId: string;
+    idempotencyKey: string;
+    chatReportCommand: ChatReportCommand;
+}
+
 export interface SendEventChatMessageRequestParams {
     eventId: string;
     /** Canonical lowercase UUID retained for this exact command, including retries. */
@@ -70,6 +94,11 @@ export interface SendGlobalChatMessageRequestParams {
     chatSendRequest: ChatSendRequest;
 }
 
+export interface SetAccountChatMuteRequestParams {
+    participantId: string;
+    chatMuteCommand: ChatMuteCommand;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -78,6 +107,119 @@ export class ChatService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
+    }
+
+    /**
+     * Read the current account mute preference
+     * Session-only full account list across all channels; no actor supplied by request. Inactive, write-suspended and account-paused readers can use these safety controls.
+     * @endpoint get /api/v1/chat/me/mutes/{participantId}
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getAccountChatMute(requestParameters: GetAccountChatMuteRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatMuteState>;
+    public getAccountChatMute(requestParameters: GetAccountChatMuteRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatMuteState>>;
+    public getAccountChatMute(requestParameters: GetAccountChatMuteRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatMuteState>>;
+    public getAccountChatMute(requestParameters: GetAccountChatMuteRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const participantId = requestParameters?.participantId;
+        if (participantId === null || participantId === undefined) {
+            throw new Error('Required parameter participantId was null or undefined when calling getAccountChatMute.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/me/mutes/${this.configuration.encodeParam({name: "participantId", value: participantId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatMuteState>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Read the current account mute preference
+     * Session-only full account list across all channels; no actor supplied by request. Inactive, write-suspended and account-paused readers can use these safety controls.
+     * @endpoint get /api/v1/chat/me/mutes
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getAccountChatMutes(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatMuteState>;
+    public getAccountChatMutes(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatMuteState>>;
+    public getAccountChatMutes(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatMuteState>>;
+    public getAccountChatMutes(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/me/mutes`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatMuteState>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
     }
 
     /**
@@ -401,6 +543,152 @@ export class ChatService extends BaseService {
     }
 
     /**
+     * Remove a current-account participant mute
+     * Stale versions return409; refetch before another attempt. Only a committed response confirms persistence.
+     * @endpoint delete /api/v1/chat/me/mutes/{participantId}
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public removeAccountChatMute(requestParameters: RemoveAccountChatMuteRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatMuteState>;
+    public removeAccountChatMute(requestParameters: RemoveAccountChatMuteRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatMuteState>>;
+    public removeAccountChatMute(requestParameters: RemoveAccountChatMuteRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatMuteState>>;
+    public removeAccountChatMute(requestParameters: RemoveAccountChatMuteRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const participantId = requestParameters?.participantId;
+        if (participantId === null || participantId === undefined) {
+            throw new Error('Required parameter participantId was null or undefined when calling removeAccountChatMute.');
+        }
+        const ifMatch = requestParameters?.ifMatch;
+        if (ifMatch === null || ifMatch === undefined) {
+            throw new Error('Required parameter ifMatch was null or undefined when calling removeAccountChatMute.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+        if (ifMatch !== undefined && ifMatch !== null) {
+            localVarHeaders = localVarHeaders.set('If-Match', String(ifMatch));
+        }
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/me/mutes/${this.configuration.encodeParam({name: "participantId", value: participantId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatMuteState>('delete', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Privately report a real accessible chat message
+     * Current authenticated channel readers can report, including inactive, write-suspended and account-paused accounts. Visitors must log in. The server derives the reporter. Removed facts remain reportable without revealing the original. One canonical report per reporter/message; same reason and any fresh key returns the original report. Reuse of an Idempotency-Key for another message/reason returns409. A report never automatically removes a message or sanctions its author.
+     * @endpoint post /api/v1/chat/messages/{messageId}/reports
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public reportChatMessage(requestParameters: ReportChatMessageRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatReportReceipt>;
+    public reportChatMessage(requestParameters: ReportChatMessageRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatReportReceipt>>;
+    public reportChatMessage(requestParameters: ReportChatMessageRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatReportReceipt>>;
+    public reportChatMessage(requestParameters: ReportChatMessageRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const messageId = requestParameters?.messageId;
+        if (messageId === null || messageId === undefined) {
+            throw new Error('Required parameter messageId was null or undefined when calling reportChatMessage.');
+        }
+        const idempotencyKey = requestParameters?.idempotencyKey;
+        if (idempotencyKey === null || idempotencyKey === undefined) {
+            throw new Error('Required parameter idempotencyKey was null or undefined when calling reportChatMessage.');
+        }
+        const chatReportCommand = requestParameters?.chatReportCommand;
+        if (chatReportCommand === null || chatReportCommand === undefined) {
+            throw new Error('Required parameter chatReportCommand was null or undefined when calling reportChatMessage.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+        if (idempotencyKey !== undefined && idempotencyKey !== null) {
+            localVarHeaders = localVarHeaders.set('Idempotency-Key', String(idempotencyKey));
+        }
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/messages/${this.configuration.encodeParam({name: "messageId", value: messageId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/reports`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatReportReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatReportCommand,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Send an authenticated chat message
      * Requires a current session and ATIVO enrollment. The body contains only exact plain text; the server derives the actor. One new message per actor per three seconds across all channels. Reuse the original canonical UUID Idempotency-Key with the same actor, text and channel after a lost response; accepted replay returns the original receipt without creating another message. Only the persisted 201 acknowledgement confirms delivery. Network failures can retry with the same key; 429 waits for Retry-After/retryAt. 400/401/403/404/409 are terminal for automatic retry. The server rejects writes at the definitive two-hour deadline; completed timely corrections extend the window, expired chats never reopen.
      * @endpoint post /api/v1/chat/events/{eventId}/messages
@@ -546,6 +834,79 @@ export class ChatService extends BaseService {
             {
                 context: localVarHttpContext,
                 body: chatSendRequest,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Mute a public participant for the current account
+     * All chat channels, only this account. Same current version and existing mute is a no-op. A stale expectedVersion returns409; refetch instead of overwriting another device. The target and other readers receive no preference metadata. Failed writes do not confirm persistence. Owner sessions receive only a minimal postcommit resync hint.
+     * @endpoint put /api/v1/chat/me/mutes/{participantId}
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public setAccountChatMute(requestParameters: SetAccountChatMuteRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatMuteState>;
+    public setAccountChatMute(requestParameters: SetAccountChatMuteRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatMuteState>>;
+    public setAccountChatMute(requestParameters: SetAccountChatMuteRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatMuteState>>;
+    public setAccountChatMute(requestParameters: SetAccountChatMuteRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const participantId = requestParameters?.participantId;
+        if (participantId === null || participantId === undefined) {
+            throw new Error('Required parameter participantId was null or undefined when calling setAccountChatMute.');
+        }
+        const chatMuteCommand = requestParameters?.chatMuteCommand;
+        if (chatMuteCommand === null || chatMuteCommand === undefined) {
+            throw new Error('Required parameter chatMuteCommand was null or undefined when calling setAccountChatMute.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/me/mutes/${this.configuration.encodeParam({name: "participantId", value: participantId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatMuteState>('put', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatMuteCommand,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

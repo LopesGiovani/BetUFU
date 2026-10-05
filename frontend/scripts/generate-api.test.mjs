@@ -119,7 +119,8 @@ test('official chat client preserves four relative GET reads alongside authentic
     requests.map((m) => m[1]),
     ['get', 'get', 'get', 'get'],
   );
-  assert.equal((service.match(/let localVarPath = `\/api\/v1\/chat\//gu) ?? []).length, 6);
+  for (const operation of ['getEventChat', 'getEventChatChanges', 'getGlobalChat', 'getGlobalChatChanges'])
+    assert.match(generatedOperation(service, operation), /let localVarPath = `\/api\/v1\/chat\//u);
   assert.doesNotMatch(service, /lookupCredential|['"](?:Authorization|Cookie)['"]/u);
   const message = await readFile(join(generated, 'model/chat-message.ts'), 'utf8');
   assert.match(message, /text\?: string \| null/u);
@@ -175,7 +176,10 @@ test('official chat write contract matches runtime header, receipt, retries and 
       /(operationId: sendGlobalChatMessage\n[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u,
       '$1[]',
     ),
-    source.replace('        - name: Idempotency-Key', '        - name: clientCommandId'),
+    source.replace(
+      /(operationId: sendGlobalChatMessage\n[\s\S]*?- name: )Idempotency-Key/u,
+      '$1clientCommandId',
+    ),
     source.replace('      required: [text]', '      required: [text, actorId]'),
     source.replace(
       '        text: {type: string, minLength: 1, maxLength: 280}',
@@ -202,11 +206,8 @@ test('official generated chat write client sends two relative POSTs and exposes 
     [...service.matchAll(/request<ChatCommandReceipt>\('([^']+)'/gu)].map((match) => match[1]),
     ['post', 'post'],
   );
-  assert.equal(
-    (service.match(/localVarHeaders\.set\('Idempotency-Key', String\(idempotencyKey\)\)/gu) ?? [])
-      .length,
-    2,
-  );
+  for (const name of ['sendEventChatMessage', 'sendGlobalChatMessage'])
+    assert.match(generatedOperation(service, name), /localVarHeaders\.set\('Idempotency-Key', String\(idempotencyKey\)\)/u);
   assert.doesNotMatch(service, /lookupCredential|['"](?:Authorization|Cookie)['"]/u);
   const request = await readFile(join(generated, 'model/chat-send-request.ts'), 'utf8');
   const receipt = await readFile(join(generated, 'model/chat-command-receipt.ts'), 'utf8');
@@ -224,6 +225,97 @@ test('official generated chat write client sends two relative POSTs and exposes 
   );
   assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatSendRequest'));
   assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatCommandReceipt'));
+});
+
+function generatedOperation(service, name) {
+  const start = service.indexOf(`    public ${name}(`);
+  assert.notEqual(start, -1, `missing generated ${name}`);
+  const end = service.indexOf('\n    /**', start);
+  return service.slice(start, end < 0 ? service.length : end);
+}
+
+function assertChatCommunityContract(source) {
+  const report = source.split('  /api/v1/chat/messages/{messageId}/reports:\n')[1]?.split(/\n  \S/u)[0];
+  assert.ok(report, 'missing real message report route');
+  assert.match(report, /operationId: reportChatMessage/u);
+  assert.match(report, /security: \[\{cookieSession: \[\]\}\]/u);
+  assert.match(report, /name: Idempotency-Key\n\s+in: header\n\s+required: true/u);
+  assert.match(report, /#\/components\/schemas\/ChatReportCommand/u);
+  assert.match(report, /#\/components\/schemas\/ChatReportReceipt/u);
+  assert.match(report, /"201":/u);
+  assert.doesNotMatch(report, /#\/components\/schemas\/ChatCommandReceipt/u);
+  const mutes = source.split('  /api/v1/chat/me/mutes:\n')[1]?.split(/\n  \S/u)[0];
+  assert.ok(mutes, 'missing own account mute list');
+  assert.match(mutes, /security: \[\{cookieSession: \[\]\}\]/u);
+  assert.match(mutes, /private, no-store/u);
+  const target = source.split('  /api/v1/chat/me/mutes/{participantId}:\n')[1]?.split(/\n  \S/u)[0];
+  assert.ok(target, 'missing own account mute command route');
+  for (const name of ['getAccountChatMute', 'setAccountChatMute', 'removeAccountChatMute'])
+    assert.match(target, new RegExp(`operationId: ${name}\\b`, 'u'));
+  assert.equal((target.match(/security: \[\{cookieSession: \[\]\}\]/gu) ?? []).length, 3);
+  assert.match(target, /name: If-Match\n\s+in: header\n\s+required: true/u);
+  assert.match(target, /Quoted canonical account version from ETag/u);
+  assert.match(target, /ETag:/u);
+  assert.match(target, /#\/components\/schemas\/ChatMuteCommand/u);
+  assert.match(target, /#\/components\/schemas\/ChatMuteState/u);
+  for (const [name, fields] of [
+    ['ChatReportCommand', ['reason']],
+    ['ChatReportReceipt', ['reportId', 'reportedAt']],
+    ['ChatMuteCommand', ['expectedVersion']],
+    ['ChatMuteState', ['version', 'participantIds']],
+  ]) {
+    const block = source.split(`    ${name}:\n`)[1]?.split(/\n    \S/u)[0];
+    assert.ok(block, `missing ${name}`);
+    assert.match(block, /additionalProperties: false/u);
+    assert.ok(block.includes(`required: [${fields.join(', ')}]`));
+    assert.deepEqual([...block.matchAll(/^        (\w+):/gmu)].map(match => match[1]), fields);
+  }
+  const command = source.split('    ChatReportCommand:\n')[1]?.split(/\n    \S/u)[0];
+  assert.match(command, /enum: \[DISCURSO_DE_ODIO, SPAM, OFENSA, ASSEDIO, FRAUDE\]/u);
+}
+
+test('community contract preserves private reports, canonical keys and account version conflicts', async () => {
+  const source = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+  assertChatCommunityContract(source);
+  for (const mutant of [
+    source.replace(/(operationId: reportChatMessage\n[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u, '$1[]'),
+    source.replace(/(operationId: reportChatMessage\n[\s\S]*?- name: )Idempotency-Key/u, '$1actorId'),
+    source.replace('enum: [DISCURSO_DE_ODIO, SPAM, OFENSA, ASSEDIO, FRAUDE]', 'enum: [DISCURSO_DE_ODIO, SPAM, OFENSA, ASSEDIO, FRAUDE, OTHER]'),
+    source.replace('      required: [reportId, reportedAt]', '      required: [reportId, reportedAt, reporterId]'),
+    source.replace('        expectedVersion: {type: integer, format: int64, minimum: 0}', '        ownerId: {type: string}\n        expectedVersion: {type: integer, format: int64, minimum: 0}'),
+    source.replace('        - name: If-Match', '        - name: clientVersion'),
+    source.replace('  /api/v1/chat/me/mutes:', '  /api/v1/chat/accounts/{ownerId}/mutes:'),
+  ]) {
+    assert.notEqual(mutant, source, 'community mutation must change real source');
+    assert.throws(() => assertChatCommunityContract(mutant));
+  }
+});
+
+test('generated community commands use private relative routes and exact runtime headers', async () => {
+  const service = await readFile(join(projectRoot, 'frontend/src/app/api/generated/api/chat.service.ts'), 'utf8');
+  assert.match(generatedOperation(service, 'reportChatMessage'), /request<ChatReportReceipt>\('post'/u);
+  assert.match(generatedOperation(service, 'reportChatMessage'), /localVarHeaders\.set\('Idempotency-Key', String\(idempotencyKey\)\)/u);
+  assert.match(generatedOperation(service, 'getAccountChatMutes'), /request<ChatMuteState>\('get'/u);
+  assert.match(generatedOperation(service, 'setAccountChatMute'), /request<ChatMuteState>\('put'/u);
+  assert.match(generatedOperation(service, 'removeAccountChatMute'), /request<ChatMuteState>\('delete'/u);
+  assert.match(generatedOperation(service, 'removeAccountChatMute'), /localVarHeaders\.set\('If-Match', String\(ifMatch\)\)/u);
+  assert.doesNotMatch(service, /lookupCredential|['"](?:Authorization|Cookie)['"]/u);
+  assert.doesNotMatch(service, /api\/v1\/chat\/accounts\//u);
+});
+
+test('generated community models contain no reporter, original text or supplied owner', async () => {
+  const root = join(projectRoot, 'frontend/src/app/api/generated/model');
+  for (const [file, model, fields] of [
+    ['chat-report-command.ts', 'ChatReportCommand', ['reason']],
+    ['chat-report-receipt.ts', 'ChatReportReceipt', ['reportId', 'reportedAt']],
+    ['chat-mute-command.ts', 'ChatMuteCommand', ['expectedVersion']],
+    ['chat-mute-state.ts', 'ChatMuteState', ['version', 'participantIds']],
+  ]) {
+    const source = await readFile(join(root, file), 'utf8');
+    assert.deepEqual([...source.matchAll(/^    (\w+)\??:/gmu)].map(match => match[1]), fields);
+    assert.ok(PUBLIC_GENERATOR_MODELS.includes(model));
+  }
+  assert.match(await readFile(join(root, 'chat-report-command.ts'), 'utf8'), /DISCURSO_DE_ODIO/u);
 });
 
 function testContract(engineBytes) {
@@ -1061,7 +1153,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, '534BB5B13A376FEB9504F7E697C6AE21BDE3CDA94A3106E333C87FC800A00E09');
+  assert.equal(manifest.digest, '9BB66884F67583582824EED26BA105B3A8776CE87F26092C0E361BAA4DF19FAF');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,
