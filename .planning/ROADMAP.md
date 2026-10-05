@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 15 executados (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16). Waves 1-7 completas; Wave 8 inicia com07-17. 07-16: V43, focal8/8, Node936/936 e Maven1062/1062 (XML) verificados. V39-V43 preservadas; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 16 executados (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17). Waves 1-7 completas; Wave 8 continua07-20. 07-17: sancoes/revisao backend, focal14/14, Node936/936 e Maven1076/1076 (XML). V1-V43 preservadas; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -605,7 +605,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-16-PLAN.md — Moderacao scoped e evidencia restrita: V43.
 
 **Wave 8 - Em execucao autorizada; 07-17 e 07-20**
-- [ ] 07-17-PLAN.md — Sancoes globais e revisao na conta: backend.
+- [x] 07-17-PLAN.md — Sancoes globais e revisao na conta: backend.
 - [ ] 07-20-PLAN.md — Pausa e retomada admin-only: V44/backend.
 
 **Wave 9 — Bloqueada pelas dependências explícitas dos planos**
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 15/35 | Wave 8 next; 07-17 | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 16/35 | Wave 8 executing; next 07-20 | - |

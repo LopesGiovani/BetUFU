@@ -4,21 +4,30 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-16 complete; next 07-17 Wave 8
-last_updated: "2026-10-05T21:27:33.4871206Z"
+stopped_at: Phase 7 plan 07-17 complete; next 07-20 Wave 8
+last_updated: "2026-10-05T22:28:43.999Z"
 last_activity: 2026-10-05
-last_activity_desc: Phase 7 scoped moderation cases and restricted evidence verified; 15/35 plans complete
-state_head: bba4d4e8ac51b06611e553ded23fb01bd52ea244
+last_activity_desc: Phase 7 global chat sanctions and private reviews verified; 16/35 plans complete
+state_head: b5f66b551ec0964b3b17d7a385cece404acbcbbe
 state_head_role: verified_implementation_commit; closing documentation is its direct child
 current_wave: 8
-current_plan: "07-17"
+current_plan: "07-20"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 150
+  completed_plans: 151
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 8 / Plan 07-17 closeout - 2026-10-05
+
+- Technical commit b5f66b551ec0964b3b17d7a385cece404acbcbbe; administrator-only global chat sanctions, private reviews and append-only resolutions.
+- Literal focal14/14, Node936/936 and Maven1076/1076 (361 Surefire +715 Failsafe), zero failure/error/skip. Real lock waits prove confirmation/write serialization and current authority/session revalidation.
+- Nonempty credit, ledger, ranking and prediction facts preserved. V1-V43 and owner documents intact; no migration/dependency/data reset/push/worktree/Antigravity.
+- Nine Java files and approval record; staged inline review complete. Ten technical paths, twelve health heuristics, none worsened; no additional functional defect found.
+- Phase7 is16/35; continue07-20 in Wave8. Contracts/UI, paused-account integration, legal/public gates and phase certification remain downstream.
+- Evidence: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-17-SUMMARY.md.
 
 ## Phase 7 / Wave 7 / Plan 07-16 closeout - 2026-10-05
 
@@ -1289,9 +1298,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-05T18:20:41.875Z
-Stopped at: Phase 7 plan 07-16 complete; continuous execution authorized; next 07-17
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-17-PLAN.md
+Last session: 2026-10-05T22:28:43.999Z
+Stopped at: Phase 7 plan 07-17 complete; continuous execution authorized; next 07-20
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-20-PLAN.md
 
 ## Accumulated Context
 
