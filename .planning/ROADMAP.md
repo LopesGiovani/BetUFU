@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 12 executados (07-01/02/03/04/28/05/06/07/08/09/10/11). Waves 1-5 completas; Wave 6 continua07-13 na master com avanco continuo autorizado. 07-11: generator102/102, Node936/936, Angular455/455, Maven1039/1039; contrato de escrita oficialmente gerado e hashes completos verificados. V39-V41 somente em testes descartaveis; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 13 executados (07-01/02/03/04/28/05/06/07/08/09/10/11/13). Waves 1-6 completas; Wave 7 inicia07-14 na master com avanco continuo autorizado. 07-13: focal15/15, Node936/936, Maven1054/1054; denuncias privadas imutaveis, mute de conta versionado, rollback/revogacao e push exclusivo do titular comprovados. V39-V42 somente em testes descartaveis; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -596,11 +596,11 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-08-PLAN.md — Comunidade Arena e evento: tracer real de leitura.
 - [x] 07-10-PLAN.md — Marco definitivo e encerramento permanente: V41.
 
-**Wave 6 - Em execucao; proximo 07-13**
+**Wave 6 - Concluida**
 - [x] 07-11-PLAN.md — Contrato oficial de envio e recibo.
-- [ ] 07-13-PLAN.md — Denuncia e mute sincronizado: V42/backend.
+- [x] 07-13-PLAN.md — Denuncia e mute sincronizado: V42/backend.
 
-**Wave 7 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 7 - Em execucao; proximo 07-14**
 - [ ] 07-14-PLAN.md — Contrato de denuncias e mute de conta.
 - [ ] 07-16-PLAN.md — Moderacao scoped e evidencia restrita: V43.
 
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 12/35 | Wave 6 executing; next 07-13 | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 13/35 | Wave 7 executing; next 07-14 | - |

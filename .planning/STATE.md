@@ -4,21 +4,29 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-11 complete; next 07-13 Wave 6
-last_updated: "2026-10-05T16:43:01.192Z"
+stopped_at: Phase 7 plan 07-13 complete; next 07-14 Wave 7
+last_updated: "2026-10-05T17:25:46.556Z"
 last_activity: 2026-10-05
-last_activity_desc: Phase 7 official chat write contract verified; 12/35 plans complete
-state_head: 46b3c1ca0f79f92a0f3684c56a62d00cec6aecef
+last_activity_desc: Phase 7 private reports and account mutes verified; 13/35 plans complete
+state_head: 4e261e3b1b40c6d4dc0e62cc4b42a3f5e44b011b
 state_head_role: verified_implementation_commit; closing documentation is its direct child
-current_wave: 6
-current_plan: "07-13"
+current_wave: 7
+current_plan: "07-14"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 147
+  completed_plans: 148
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 6 / Plan 07-13 closeout - 2026-10-05
+
+- Technical commit 4e261e3b1b40c6d4dc0e62cc4b42a3f5e44b011b; immutable V42 reports/receipts, private account-wide mutes, versions and owner-only postcommit hints.
+- Literal focal15/15, Node936/936, Maven1054/1054 (361Surefire +693Failsafe),0failure/error/skip; real concurrency, lock-wait revocation, rollback and runtime ACL proved.
+- All53 protected hashes and exact candidate/governedV42 preserved;15 implementation paths. Owner docs excluded; no dependencies, persistent data reset, push, worktree or Antigravity.
+- Backend/schema foundation only; HTTP owner fixture and separate non-superuser SQL evidence distinguished. UI, future sanction/pause producer integration and public/legal gates remain pending.
+- Phase7 is13/35; Wave6 complete; continue07-14 then07-16/Wave7. Evidence: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-13-SUMMARY.md.
 
 ## Phase 7 / Wave 6 / Plan 07-11 closeout - 2026-10-05
 
@@ -1004,13 +1012,13 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Phase 7 continuous inline execution; Wave 6, next 07-13.
+**Current focus:** Phase 7 continuous inline execution; Wave 7, next 07-14.
 
 ## Current Position
 
-Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 6 em execucao)
-Plan: 12/35 concluidos (07-01/02/03/04/28/05/06/07/08/09/10/11), 17 ondas / 102 tasks; proximo 07-13
-Status: executing; Fase 6 passed; Waves 1-5 completas; demais ondas/gates pendentes
+Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 7 em execucao)
+Plan: 13/35 concluidos (07-01/02/03/04/28/05/06/07/08/09/10/11/13), 17 ondas / 102 tasks; proximo 07-14
+Status: executing; Fase 6 passed; Waves 1-6 completas; demais ondas/gates pendentes
 Last activity: 2026-10-05 - escrita idempotente entregue inline; focal13/13, Node916/916, Maven1023/1023; sem push
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
@@ -1259,9 +1267,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-05T16:43:01.192Z
-Stopped at: Phase 7 plan 07-11 complete; continuous execution authorized; next 07-13
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-13-PLAN.md
+Last session: 2026-10-05T17:25:46.556Z
+Stopped at: Phase 7 plan 07-13 complete; continuous execution authorized; next 07-14
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-14-PLAN.md
 
 ## Accumulated Context
 
