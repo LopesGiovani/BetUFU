@@ -95,6 +95,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Ranking',
   'Group',
   'Achievement',
+  'EmergencyPauses',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'ChatMuteCommand',
@@ -269,6 +270,9 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'ChatSanctionSuggestion',
   'ChatReviewCommand',
   'ChatReviewReceipt',
+  'EmergencyPauseAvailability',
+  'EmergencyPauseCommand',
+  'EmergencyPauseState',
 ]);
 export const PUBLIC_GENERATOR_GLOBAL_PROPERTY = [
   `apis=${PUBLIC_GENERATOR_API_TAGS.join(':')}`,
@@ -311,6 +315,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/credit-correction.service.ts',
   'api/credit-ledger.service.ts',
   'api/diagnostic.service.ts',
+  'api/emergency-pauses.service.ts',
   'api/enrollment.service.ts',
   'api/group.service.ts',
   'api/identity.service.ts',
@@ -382,6 +387,9 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/diagnostic-component.ts',
   'model/diagnostic-response.ts',
   'model/diagnostic-status.ts',
+  'model/emergency-pause-availability.ts',
+  'model/emergency-pause-command.ts',
+  'model/emergency-pause-state.ts',
   'model/enrollment-correction-request.ts',
   'model/enrollment-correction-response.ts',
   'model/enrollment-registration-request.ts',
@@ -564,8 +572,10 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // CFD9... acrescenta as quatro leituras do chat e seus dois modelos no plano 07-06.
 // 534B... acrescenta envio/recibo do chat e retryAt no plano 07-11.
 // 9BB6... publishes private reports and versioned account mutes in07-14.
+// AE29... acrescenta o contrato de pausas administrativas e disponibilidade
+// minima publica da Fase 7, preservando as rotas reais dos produtores 07-22.
 export const APPROVED_GENERATED_DIGEST =
-  'E0F2DF3EC108FDEA1B380B300612B2D1704B936635445D40924CA696C21285E3';
+  'AE29F51FB42941664FDFB6AC9A1EB5EDA02EAD9529C7782E9F08C58AC6760AA4';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

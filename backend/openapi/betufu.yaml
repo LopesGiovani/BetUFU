@@ -5451,6 +5451,154 @@ paths:
               schema:
                 $ref: "#/components/schemas/AchievementPage"
 
+  /api/v1/operations/emergency-pauses:
+    get:
+      tags: [EmergencyPauses]
+      operationId: listEmergencyPauses
+      summary: List current emergency pause facts for administrators
+      description: Administrator-only operational projection. Never exposes actor identity, enrollment data or internal lookup details.
+      security: [{cookieSession: []}]
+      responses:
+        "200":
+          description: Current active pause receipts derived from append-only facts.
+          headers:
+            Cache-Control: {schema: {type: string}, description: "private, no-store"}
+            Vary: {schema: {type: string}, description: Cookie}
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: "#/components/schemas/EmergencyPauseState"}
+        "401":
+          description: Session required.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Administrator role required.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+    post:
+      tags: [EmergencyPauses]
+      operationId: commandEmergencyPause
+      summary: Append a pause or resume fact
+      description: Administrator-only idempotent command. RESUME references the expected pause fact and never mutates history.
+      security: [{cookieSession: []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmergencyPauseCommand"
+      responses:
+        "201":
+          description: Fact committed to the append-only operations log.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyPauseState"
+        "400":
+          description: Closed command shape or invalid target.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Session required.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Administrator role required.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Idempotency or stale expected pause conflict.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/events/{eventId}/availability:
+    get:
+      tags: [EmergencyPauses]
+      operationId: getEventChatAvailability
+      summary: Read public chat availability for a published event
+      description: Public minimal snapshot. It exposes only chat state, the messagesPaused flag and an opaque revision.
+      security: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Minimal availability without account, actor, enrollment or internal reason data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyPauseAvailability"
+        "400":
+          description: Invalid event identifier.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Event is not published.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/global/availability:
+    get:
+      tags: [EmergencyPauses]
+      operationId: getGlobalChatAvailability
+      summary: Read session-private global chat availability
+      description: A current session is required; response remains a minimal availability snapshot.
+      security: [{cookieSession: []}]
+      responses:
+        "200":
+          description: Minimal global availability without account or actor data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyPauseAvailability"
+        "401":
+          description: Session required.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/me/predictions/markets/{marketId}/availability:
+    get:
+      tags: [EmergencyPauses]
+      operationId: getPredictionMarketAvailability
+      summary: Read public prediction availability for a market
+      description: Public minimal snapshot. It exposes only prediction state, the predictionsPaused flag and an opaque revision.
+      security: []
+      parameters:
+        - name: marketId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Minimal market availability without account, actor, enrollment or internal reason data.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyPauseAvailability"
+        "400":
+          description: Invalid market identifier.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Market is not published.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
 components:
   parameters:
     IdempotencyKey:
@@ -5684,6 +5832,44 @@ components:
           type: [string, "null"]
           format: date-time
           description: Null until the lifecycle capability is delivered.
+
+    EmergencyPauseCommand:
+      type: object
+      additionalProperties: false
+      required: [clientCommandId, kind, targetId, action, reason]
+      description: Closed administrator command. RESUME additionally requires resumedPauseId; no actor or arbitrary scope is accepted.
+      properties:
+        clientCommandId: {type: string, format: uuid}
+        kind: {type: string, enum: [ACCOUNT, EVENT, MARKET, CHANNEL]}
+        targetId: {type: string, format: uuid}
+        action: {type: string, enum: [PAUSE, RESUME]}
+        reason: {type: string, minLength: 1, maxLength: 280}
+        resumedPauseId: {type: [string, "null"], format: uuid}
+
+    EmergencyPauseAvailability:
+      type: object
+      additionalProperties: false
+      required: [state, revision]
+      description: Minimal availability. Exactly one domain flag is returned; no administrative fields or account identifiers are exposed. A null revision means no pause fact applies.
+      properties:
+        state: {type: string, enum: [AVAILABLE, PAUSED]}
+        messagesPaused: {type: boolean}
+        predictionsPaused: {type: boolean}
+        revision: {type: [string, "null"], format: uuid}
+
+    EmergencyPauseState:
+      type: object
+      additionalProperties: false
+      required: [factId, kind, targetId, action, reason, resumedPauseId, recordedAt]
+      description: Administrator-only append-only receipt matching EmergencyPausePort.Receipt. Never returned by availability endpoints.
+      properties:
+        factId: {type: string, format: uuid}
+        kind: {type: string, enum: [ACCOUNT, EVENT, MARKET, CHANNEL]}
+        targetId: {type: string, format: uuid}
+        action: {type: string, enum: [PAUSE, RESUME]}
+        reason: {type: string, minLength: 1, maxLength: 280, description: Administrator-visible command reason.}
+        resumedPauseId: {type: [string, "null"], format: uuid}
+        recordedAt: {type: string, format: date-time}
 
     SettlementHistoryPage:
       type: object

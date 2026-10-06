@@ -197,6 +197,144 @@ test('official chat write contract matches runtime header, receipt, retries and 
   }
 });
 
+function schemaFields(schema) {
+  const properties = schema.split('      properties:\n')[1] ?? '';
+  return [...properties.matchAll(/^        (\w+):/gmu)].map((match) => match[1]);
+}
+
+function generatedFields(source) {
+  return [...source.matchAll(/^    (\w+)\??:/gmu)].map((match) => match[1]);
+}
+
+function assertEmergencyPauseContract(source) {
+  const routes = [
+    ['/api/v1/operations/emergency-pauses', 'get', 'listEmergencyPauses', true],
+    ['/api/v1/operations/emergency-pauses', 'post', 'commandEmergencyPause', true],
+    ['/api/v1/chat/events/{eventId}/availability', 'get', 'getEventChatAvailability', false],
+    ['/api/v1/chat/global/availability', 'get', 'getGlobalChatAvailability', true],
+    [
+      '/api/v1/me/predictions/markets/{marketId}/availability',
+      'get',
+      'getPredictionMarketAvailability',
+      false,
+    ],
+  ];
+  for (const [path, method, operationId, session] of routes) {
+    const route = source.split(`  ${path}:\n`)[1]?.split(/\n  \S/u)[0];
+    assert.ok(route, `missing ${path}`);
+    const operation = route.split(`    ${method}:\n`)[1]?.split(/\n    (?:get|post):/u)[0] ?? route;
+    assert.match(operation, new RegExp(`operationId: ${operationId}\\b`, 'u'));
+    assert.match(operation, /tags: \[EmergencyPauses\]/u);
+    assert.match(operation, session ? /security: \[\{cookieSession: \[\]\}\]/u : /security: \[\]/u);
+    assert.match(operation, new RegExp('#/components/schemas/' + (operationId.endsWith('Availability') ? 'EmergencyPauseAvailability' : 'EmergencyPauseState') + '\\b', 'u'));
+    assert.doesNotMatch(operation, /name: (?:actorId|enrollmentId|scopeRef)/u);
+  }
+  const command = source.split('    EmergencyPauseCommand:\n')[1]?.split(/\n    \S/u)[0];
+  const state = source.split('    EmergencyPauseState:\n')[1]?.split(/\n    \S/u)[0];
+  assert.ok(command, 'missing EmergencyPauseCommand');
+  assert.ok(state, 'missing EmergencyPauseState');
+  assert.match(command, /additionalProperties: false/u);
+  assert.match(command, /required: \[clientCommandId, kind, targetId, action, reason\]/u);
+  assert.match(command, /enum: \[ACCOUNT, EVENT, MARKET, CHANNEL\]/u);
+  assert.match(command, /enum: \[PAUSE, RESUME\]/u);
+  assert.doesNotMatch(command, /^\s+(?:actorId|enrollmentId|scopeRef|arbitrary):/mu);
+  const availability = source.split('    EmergencyPauseAvailability:\n')[1]?.split(/\n    \S/u)[0];
+  assert.ok(availability, 'missing EmergencyPauseAvailability');
+  for (const schema of [state, availability]) {
+    assert.match(schema, /additionalProperties: false/u);
+    assert.doesNotMatch(schema, /^\s+(?:view|status|actorId|enrollmentId|issuer|subject|matricula|internalEvidence):/mu);
+  }
+  assert.match(availability, /required: \[state, revision\]/u);
+  assert.match(availability, /revision: \{type: \[string, "null"\], format: uuid\}/u);
+  assert.deepEqual(schemaFields(availability), ['state', 'messagesPaused', 'predictionsPaused', 'revision']);
+  assert.match(state, /required: \[factId, kind, targetId, action, reason, resumedPauseId, recordedAt\]/u);
+  assert.deepEqual(schemaFields(state), ['factId', 'kind', 'targetId', 'action', 'reason', 'resumedPauseId', 'recordedAt']);
+}
+
+test('emergency pause contract separates admin commands from minimal public availability', async () => {
+  const source = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+  assertEmergencyPauseContract(source);
+  const mutations = [
+    source.replace(
+      /(operationId: getGlobalChatAvailability\n[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u,
+      '$1[]',
+    ),
+    source.replace(
+      'required: [clientCommandId, kind, targetId, action, reason]',
+      'required: [clientCommandId, kind, targetId, action, reason, actorId]',
+    ),
+    source.replace(
+      '        messagesPaused: {type: boolean}',
+      '        actorId: {type: string}\n        messagesPaused: {type: boolean}',
+    ),
+    source.replace(
+      '/api/v1/me/predictions/markets/{marketId}/availability',
+      '/api/v1/predictions/markets/{marketId}/availability',
+    ),
+  ];
+  for (const mutant of mutations) {
+    assert.notEqual(mutant, source, 'availability mutation must change the real contract');
+    assert.throws(() => assertEmergencyPauseContract(mutant));
+  }
+});
+
+test('generated emergency pause client uses the producer routes and closed DTOs', async () => {
+  assert.ok(PUBLIC_GENERATOR_API_TAGS.includes('EmergencyPauses'));
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('EmergencyPauseCommand'));
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('EmergencyPauseState'));
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('EmergencyPauseAvailability'));
+  const generated = join(projectRoot, 'frontend/src/app/api/generated');
+  const service = await readFile(join(generated, 'api/emergency-pauses.service.ts'), 'utf8');
+  for (const [operation, verb, response] of [
+    ['listEmergencyPauses', 'get', 'Array<EmergencyPauseState>'],
+    ['commandEmergencyPause', 'post', 'EmergencyPauseState'],
+    ['getEventChatAvailability', 'get', 'EmergencyPauseAvailability'],
+    ['getGlobalChatAvailability', 'get', 'EmergencyPauseAvailability'],
+    ['getPredictionMarketAvailability', 'get', 'EmergencyPauseAvailability'],
+  ]) {
+    const op = generatedOperation(service, operation);
+    assert.match(op, new RegExp(`request<${response}>\\('${verb}'`, 'u'));
+    assert.doesNotMatch(op, /set\('(?:Authorization|Cookie)'/u);
+  }
+  assert.match(generatedOperation(service, 'getEventChatAvailability'), /api\/v1\/chat\/events\//u);
+  assert.match(generatedOperation(service, 'getGlobalChatAvailability'), /api\/v1\/chat\/global\/availability/u);
+  assert.match(generatedOperation(service, 'getPredictionMarketAvailability'), /api\/v1\/me\/predictions\/markets/u);
+  const command = await readFile(join(generated, 'model/emergency-pause-command.ts'), 'utf8');
+  const state = await readFile(join(generated, 'model/emergency-pause-state.ts'), 'utf8');
+  assert.deepEqual(
+    [...command.matchAll(/^    (\w+)\??:/gmu)].map((match) => match[1]),
+    ['clientCommandId', 'kind', 'targetId', 'action', 'reason', 'resumedPauseId'],
+  );
+  const availability = await readFile(join(generated, 'model/emergency-pause-availability.ts'), 'utf8');
+  assert.deepEqual(generatedFields(state), ['factId', 'kind', 'targetId', 'action', 'reason', 'resumedPauseId', 'recordedAt']);
+  assert.deepEqual(generatedFields(availability), ['state', 'messagesPaused', 'predictionsPaused', 'revision']);
+  assert.match(availability, /revision: string \| null/u);
+  assert.doesNotMatch(availability, /\b(?:reason|targetId|factId|actorId)\??:/u);
+});
+
+test('emergency pause response fields match the actual Java producer records', async () => {
+  const read = (path) => readFile(join(projectRoot, path), 'utf8');
+  const [contract, chat, predictions, operations] = await Promise.all([
+    read('backend/openapi/betufu.yaml'),
+    read('backend/src/main/java/br/com/betufu/chat/internal/ChatReadModels.java'),
+    read('backend/src/main/java/br/com/betufu/betting/internal/PredictionController.java'),
+    read('backend/src/main/java/br/com/betufu/platform/operations/EmergencyPausePort.java'),
+  ]);
+  const fields = (source, record) => {
+    const body = source.match(new RegExp(`record ${record}\\(([^)]+)\\)`, 'u'))?.[1];
+    assert.ok(body, `missing producer record ${record}`);
+    return body.split(',').map((field) => field.trim().split(/\s+/u).at(-1));
+  };
+  const availability = contract.split('    EmergencyPauseAvailability:\n')[1]?.split(/\n    \S/u)[0];
+  const state = contract.split('    EmergencyPauseState:\n')[1]?.split(/\n    \S/u)[0];
+  const availabilityFields = new Set([
+    ...fields(chat, 'Availability'),
+    ...fields(predictions, 'Availability'),
+  ]);
+  assert.deepEqual([...availabilityFields].sort(), schemaFields(availability).sort());
+  assert.deepEqual(schemaFields(state), fields(operations, 'Receipt'));
+});
+
 test('official generated chat write client sends two relative POSTs and exposes exact public acknowledgements', async () => {
   const generated = join(projectRoot, 'frontend/src/app/api/generated');
   const service = await readFile(join(generated, 'api/chat.service.ts'), 'utf8');
@@ -1161,6 +1299,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'Ranking',
     'Group',
     'Achievement',
+    'EmergencyPauses',
   ]);
   for (const model of [
     'SettlementHistoryItem',
@@ -1279,7 +1418,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, 'E0F2DF3EC108FDEA1B380B300612B2D1704B936635445D40924CA696C21285E3');
+  assert.equal(manifest.digest, 'AE29F51FB42941664FDFB6AC9A1EB5EDA02EAD9529C7782E9F08C58AC6760AA4');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,
