@@ -9,16 +9,19 @@ import {
   inject,
   input,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { SessionStore } from '../../core/session/session.store';
 import { ChatReadStore } from './chat-read.store';
+import { ChatOutboxStore, validChatText } from './chat-outbox.store';
+import { ChatWriteApiAdapter } from './chat-write-api.adapter';
 
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [ChatReadStore],
+  providers: [ChatReadStore, ChatWriteApiAdapter, ChatOutboxStore],
   template: `
     <section
       class="chat-panel"
@@ -94,6 +97,45 @@ import { ChatReadStore } from './chat-read.store';
         <button class="chat-action chat-new" type="button" (click)="toBottom()" aria-live="polite">
           {{ pending() > 0 ? 'Novas mensagens (' + pending() + ')' : 'Ir ao fim' }}
         </button>
+        @if (session.isAuthenticated()) {
+          <form class="chat-composer" (submit)="send($event)">
+            <label [for]="titleId() + '-draft'">Sua mensagem</label>
+            <textarea
+              [id]="titleId() + '-draft'"
+              [value]="draft()"
+              (input)="edit($event)"
+              [disabled]="!outbox.canCompose()"
+              [attr.aria-describedby]="titleId() + '-counter'"
+              rows="2"></textarea>
+            <p [id]="titleId() + '-counter'">{{ characters() }}/280 caracteres</p>
+            <button
+              class="chat-action"
+              type="submit"
+              [disabled]="!outbox.canCompose() || !validDraft()">
+              Enviar mensagem
+            </button>
+            <p class="chat-readonly">
+              Pendentes ficam somente nesta aba. Fechar, atualizar ou sair da conta descarta a fila.
+            </p>
+          </form>
+          <div class="chat-outbox" aria-live="polite">
+            @if (outbox.notice()) {
+              <p role="status">{{ outbox.notice() }}</p>
+            }
+            @for (item of outbox.items(); track item.key) {
+              <p class="chat-pending">
+                {{ item.text }}
+                <strong>{{
+                  item.status === 'sent'
+                    ? 'Enviada'
+                    : item.status === 'sending'
+                      ? 'Aguardando confirmacao'
+                      : 'Aguardando conexao ou confirmacao'
+                }}</strong>
+              </p>
+            }
+          </div>
+        }
         @if (!session.isAuthenticated() && !session.isChecking()) {
           <a class="chat-action chat-login" [href]="loginUrl()">Entrar na conta</a>
         }
@@ -208,12 +250,41 @@ import { ChatReadStore } from './chat-read.store';
     .chat-empty {
       color: var(--bt-text-muted);
     }
+    .chat-composer {
+      display: grid;
+      gap: var(--bt-space-2);
+      margin-top: var(--bt-space-4);
+    }
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 44px;
+      padding: var(--bt-space-2);
+      color: var(--bt-text);
+      background: var(--bt-surface-raised);
+      border: 1px solid var(--bt-border-strong);
+      border-radius: var(--bt-radius-card);
+      font: inherit;
+      resize: vertical;
+    }
+    textarea:focus-visible {
+      outline: 3px solid var(--bt-focus);
+      outline-offset: 3px;
+    }
+    .chat-pending {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
   `,
 })
 export class ChatPanelComponent {
   readonly eventId = input<string | null>(null);
   readonly store = inject(ChatReadStore);
   readonly session = inject(SessionStore);
+  readonly outbox = inject(ChatOutboxStore);
+  readonly draft = signal('');
+  readonly characters = computed(() => [...this.draft()].length);
+  readonly validDraft = computed(() => validChatText(this.draft()));
   readonly heading = computed(() => (this.eventId() === null ? 'Chat global' : 'Chat da partida'));
   readonly titleId = computed(() => 'chat-title-' + (this.eventId() ?? 'global'));
   readonly loginUrl = computed(
@@ -228,8 +299,20 @@ export class ChatPanelComponent {
 
   constructor() {
     effect(() => {
+      this.session.revision();
       if (this.session.isChecking()) this.store.close();
       else this.store.open(this.eventId(), this.session.isAuthenticated());
+      const eventId = this.eventId();
+      const authenticated = this.session.isAuthenticated();
+      untracked(() => {
+        this.draft.set('');
+        if (authenticated) this.outbox.open(eventId);
+        else this.outbox.close();
+      });
+    });
+    effect(() => {
+      const revision = this.outbox.acknowledgements();
+      if (revision > 0) untracked(() => this.store.refresh());
     });
     effect(() => {
       const revision = this.store.revision();
@@ -280,6 +363,14 @@ export class ChatPanelComponent {
     const box = this.history()?.nativeElement;
     if (box) box.scrollTop = box.scrollHeight;
     this.pending.set(0);
+  }
+
+  edit(event: Event): void {
+    this.draft.set((event.target as HTMLTextAreaElement).value);
+  }
+  send(event: Event): void {
+    event.preventDefault();
+    if (this.outbox.enqueue(this.draft())) this.draft.set('');
   }
 
   time(value: string): string {

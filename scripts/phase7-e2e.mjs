@@ -18,9 +18,16 @@ import { buildSql, PERSONAS, sql, stableUuid } from "./seed-local.mjs";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OWNER = "br.com.betufu.phase7-e2e";
 const privateValues = new Set();
+const SPEC_PLANS = Object.freeze({
+  "frontend/e2e/phase7-chat-read.spec.ts": "07-08",
+  "frontend/e2e/phase7-chat-write.spec.ts": "07-12",
+});
+export function specPlan(value) {
+  if (!Object.hasOwn(SPEC_PLANS, value)) throw new Error("Unapproved browser spec");
+  return SPEC_PLANS[value];
+}
 export function approvedSpec(value) {
-  if (value !== "frontend/e2e/phase7-chat-read.spec.ts")
-    throw new Error("Unapproved browser spec");
+  specPlan(value);
   return value;
 }
 export function browserConfig(spec, directory) {
@@ -307,7 +314,8 @@ export async function expireIsolatedSessions(run) {
   await delay(1500);
 }
 
-export async function releaseIsolatedStudentEnrollment(run) {
+export async function releaseIsolatedStudentEnrollment(run, persona = "student") {
+  if (!["student", "athlete"].includes(persona)) throw new Error("Unapproved eligibility persona");
   requireRun(run);
   const id = (
     await command("docker", [
@@ -344,7 +352,7 @@ export async function releaseIsolatedStudentEnrollment(run) {
       env.BETUFU_DB_NAME,
     ],
     {
-      input: `UPDATE public.ufu_enrollment SET status='LIBERADO',updated_at=CURRENT_TIMESTAMP(6) WHERE identity_id=${sql(stableUuid("identity:student"))} AND status='ATIVO';`,
+      input: `UPDATE public.ufu_enrollment SET status='LIBERADO',updated_at=CURRENT_TIMESTAMP(6) WHERE identity_id=${sql(stableUuid("identity:" + persona))} AND status='ATIVO';`,
     },
   );
 }
@@ -467,7 +475,7 @@ export async function runIsolated(spec) {
   approvedSpec(spec);
   const { validatePhase7Approvals } =
     await import("./validate-phase7-approvals.mjs");
-  await validatePhase7Approvals({ plan: "07-08", stage: "implementation" });
+  await validatePhase7Approvals({ plan: specPlan(spec), stage: "implementation" });
   const run = `betufu-phase7-e2e-${randomBytes(8).toString("hex")}`;
   const directory = await mkdtemp(resolve(tmpdir(), "betufu-phase7-e2e-"));
   const secret = () => randomBytes(24).toString("hex");
@@ -540,6 +548,11 @@ export async function runIsolated(spec) {
   const compose = ["compose", "-f", configPath, "--project-name", run];
   console.log(`[phase7-e2e] Isolated run ${run}; owner volumes untouched.`);
   try {
+    // The image copies dist instead of compiling src. Never certify a stale bundle.
+    await command(process.execPath, [
+      resolve(ROOT, "frontend/node_modules/@angular/cli/bin/ng.js"),
+      "build", "--configuration", "production",
+    ], { cwd: resolve(ROOT, "frontend"), visible: true });
     await command("docker", [
       ...compose,
       "up",
@@ -687,6 +700,8 @@ if (
       await expireIsolatedSessions(args[1]);
     else if (args.length === 2 && args[0] === "release-student")
       await releaseIsolatedStudentEnrollment(args[1]);
+    else if (args.length === 2 && args[0] === "release-athlete")
+      await releaseIsolatedStudentEnrollment(args[1], "athlete");
     else {
       if (args.length !== 3 || args[0] !== "--isolated" || args[1] !== "--spec")
         throw new Error("Invalid isolated operation");

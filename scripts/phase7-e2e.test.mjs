@@ -10,6 +10,7 @@ import {
   requireRun,
   requireOwnedVolume,
   approvedSpec,
+  specPlan,
   browserConfig,
   chatHistorySql,
 } from "./phase7-e2e.mjs";
@@ -37,6 +38,9 @@ test("CSRF exception accepts only the owned CONNECT frame and official extractor
 test("only the approved Phase7 browser spec is accepted", () => {
   const spec = "frontend/e2e/phase7-chat-read.spec.ts";
   assert.equal(approvedSpec(spec), spec);
+  assert.equal(specPlan(spec), "07-08");
+  assert.equal(specPlan("frontend/e2e/phase7-chat-write.spec.ts"), "07-12");
+  assert.equal(approvedSpec("frontend/e2e/phase7-chat-write.spec.ts"), "frontend/e2e/phase7-chat-write.spec.ts");
   for (const bad of [
     "",
     "../owner.spec.ts",
@@ -56,6 +60,14 @@ test("historical fixture appends facts only and never fabricates accepted write 
   assert.match(sql, /INSERT INTO public\.chat_message/u);
   assert.doesNotMatch(sql, /UPDATE|DELETE|TRUNCATE|chat_write_receipt/u);
   assert.match(sql, /sports_event_publication/u);
+});
+
+test("isolated browser certifies a fresh production bundle before building the image", async () => {
+  const runner = await readFile(new URL("./phase7-e2e.mjs", import.meta.url), "utf8");
+  const start = runner.indexOf('export async function runIsolated');
+  const execution = runner.slice(start);
+  assert.ok(execution.indexOf('"build", "--configuration", "production"') < execution.indexOf('"up",'));
+  assert.ok(execution.includes('frontend/node_modules/@angular/cli/bin/ng.js'));
 });
 
 test("community normalization only accepts the exact public Arena lazy route", () => {

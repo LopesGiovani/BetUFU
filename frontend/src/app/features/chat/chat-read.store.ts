@@ -118,6 +118,10 @@ export class ChatReadStore {
     }
   }
 
+  refresh(): void {
+    if (this.target) void this.resync(this.generation);
+  }
+
   async older(): Promise<void> {
     const cursor = this.historyCursor();
     if (!cursor || this.historyLoading() || this.isResynchronizing()) return;

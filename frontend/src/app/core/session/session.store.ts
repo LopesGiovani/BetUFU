@@ -32,6 +32,9 @@ export class SessionStore {
 
   // Estado interno encapsulado por Signal
   private readonly state = signal<SessionState>(INITIAL_STATE);
+  private readonly epoch = signal(0);
+  private signingOut = false;
+  readonly revision = this.epoch.asReadonly();
 
   // Seletores públicos computados (Signals)
   readonly status = computed(() => this.state().status);
@@ -49,6 +52,9 @@ export class SessionStore {
    * Consulta o estado seguro da sessão atual no BFF (sem polling, chamada pontual).
    */
   async loadSession(): Promise<void> {
+    if (this.signingOut) return;
+    const epoch = this.epoch() + 1;
+    this.epoch.set(epoch);
     this.state.update((s) => ({
       ...s,
       status: 'checking',
@@ -57,6 +63,7 @@ export class SessionStore {
 
     try {
       const response: SessionStateResponse = await firstValueFrom(this.sessionService.getSession());
+      if (epoch !== this.epoch()) return;
 
       if (response.authenticated) {
         this.state.set({
@@ -79,6 +86,7 @@ export class SessionStore {
         });
       }
     } catch (err: unknown) {
+      if (epoch !== this.epoch()) return;
       // Qualquer erro de transporte ou rejeição trata como expirada (fail-closed)
       this.state.set({
         status: 'expired',
@@ -95,10 +103,16 @@ export class SessionStore {
    * Encerra exclusivamente a sessão do dispositivo atual no BFF.
    */
   async logoutCurrentDevice(): Promise<CurrentDeviceLogoutResponse | null> {
+    if (this.signingOut) return null;
+    this.signingOut = true;
+    const epoch = this.epoch() + 1;
+    this.epoch.set(epoch);
+    this.state.set(INITIAL_STATE);
     try {
       const response: CurrentDeviceLogoutResponse = await firstValueFrom(
         this.sessionService.logoutCurrentSession(),
       );
+      if (epoch !== this.epoch()) return null;
 
       this.state.set({
         status: 'logged_out',
@@ -111,6 +125,7 @@ export class SessionStore {
 
       return response;
     } catch (err: unknown) {
+      if (epoch !== this.epoch()) return null;
       // Mesmo com erro de rede no logout remoto, limpa o estado local no cliente
       this.state.set({
         status: 'logged_out',
@@ -121,6 +136,8 @@ export class SessionStore {
         error: err instanceof Error ? err.message : 'Erro ao processar logout',
       });
       return null;
+    } finally {
+      this.signingOut = false;
     }
   }
 
@@ -128,6 +145,7 @@ export class SessionStore {
    * Redefine o store para o estado inicial limpo.
    */
   reset(): void {
+    this.epoch.update((epoch) => epoch + 1);
     this.state.set(INITIAL_STATE);
   }
 }
