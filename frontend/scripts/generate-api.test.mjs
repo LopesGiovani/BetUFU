@@ -318,6 +318,132 @@ test('generated community models contain no reporter, original text or supplied 
   assert.match(await readFile(join(root, 'chat-report-command.ts'), 'utf8'), /DISCURSO_DE_ODIO/u);
 });
 
+const MODERATION_SLICE = 4;
+const moderationModels = [
+  ['ChatModerationCommand', 'Command', ['clientCommandId', 'reason'], 1],
+  ['ChatModerationCase', 'CaseSummary', ['caseId', 'messageId', 'eventId', 'competitionId', 'status', 'openedAt'], 1],
+  ['ChatModerationCaseReceipt', 'CaseReceipt', ['caseId', 'status', 'recordedAt'], 1],
+  ['ChatModerationOpenCommand', null, ['reportId'], 1],
+  ['ChatModerationReportEvidence', 'ReportEvidence', ['reportId', 'reason', 'reportedAt'], 2],
+  ['ChatModerationEvidence', 'ModerationEvidence', ['caseId', 'messageId', 'originalBody', 'reports'], 2],
+  ['ChatModerationForwardReceipt', 'ForwardReceipt', ['caseId', 'forwardedAt'], 2],
+  ['ChatSanctionCommand', 'SanctionCommand', ['clientCommandId', 'reason', 'kind'], 3],
+  ['ChatSanctionSummary', 'SanctionSummary', ['sanctionId', 'kind', 'reason', 'effectiveFrom', 'effectiveUntil', 'active', 'reviewStatus'], 3],
+  ['ChatSanctionSuggestion', 'SanctionSuggestion', ['caseId', 'suggestedKind'], 3],
+  ['ChatReviewCommand', 'ReviewCommand', ['clientCommandId', 'reason', 'decision'], 4],
+  ['ChatReviewReceipt', 'ReviewReceipt', ['reviewId', 'sanctionId', 'status', 'reason', 'recordedAt'], 4],
+];
+const moderationOperations = [
+  ['/api/v1/chat/moderation/cases', 'get', 'getChatModerationCases', 'ChatModerationCase', null, 200, 1],
+  ['/api/v1/chat/moderation/cases', 'post', 'openChatModerationCase', 'ChatModerationCaseReceipt', 'ChatModerationOpenCommand', 201, 1],
+  ['/api/v1/chat/moderation/cases/{caseId}/remove', 'post', 'removeChatModerationMessage', 'ChatModerationCaseReceipt', 'ChatModerationCommand', 200, 1],
+  ['/api/v1/chat/moderation/cases/{caseId}/forward', 'post', 'forwardChatModerationCase', 'ChatModerationForwardReceipt', 'ChatModerationCommand', 200, 2],
+  ['/api/v1/chat/moderation/cases/{caseId}/evidence', 'get', 'getChatModerationEvidence', 'ChatModerationEvidence', null, 200, 2],
+  ['/api/v1/chat/me/sanctions', 'get', 'getOwnChatSanctions', 'ChatSanctionSummary', null, 200, 3],
+  ['/api/v1/chat/moderation/cases/{caseId}/sanctions/suggestion', 'get', 'suggestChatSanction', 'ChatSanctionSuggestion', null, 200, 3],
+  ['/api/v1/chat/moderation/cases/{caseId}/sanctions', 'post', 'confirmChatSanction', 'ChatSanctionSummary', 'ChatSanctionCommand', 201, 3],
+  ['/api/v1/chat/me/sanctions/{sanctionId}/reviews', 'post', 'requestChatSanctionReview', 'ChatReviewReceipt', 'ChatModerationCommand', 201, 4],
+  ['/api/v1/chat/moderation/reviews', 'get', 'getPendingChatReviews', 'ChatReviewReceipt', null, 200, 4],
+  ['/api/v1/chat/moderation/reviews/{reviewId}/decisions', 'post', 'decideChatSanctionReview', 'ChatReviewReceipt', 'ChatReviewCommand', 200, 4],
+];
+
+function assertModerationContract(source) {
+  for (const [path, method, id, response, request, status, slice] of moderationOperations) {
+    if (slice > MODERATION_SLICE) continue;
+    const route = source.split(`  ${path}:\n`)[1]?.split(/\n  \S/u)[0];
+    assert.ok(route, `missing ${path}`);
+    const op = route.split(`    ${method}:\n`)[1]?.split(/\n    (?:get|post):/u)[0];
+    assert.ok(op, `missing ${method} ${path}`);
+    assert.match(op, new RegExp(`operationId: ${id}\\b`, 'u'));
+    assert.match(op, /security: \[\{cookieSession: \[\]\}\]/u);
+    assert.match(op, /private, no-store/u);
+    assert.match(op, new RegExp(`"${status}":[\\s\\S]*?application/json:[\\s\\S]*?#/components/schemas/${response}\\b`, 'u'));
+    if (request) assert.match(op, new RegExp(`requestBody:[\\s\\S]*?required: true[\\s\\S]*?#/components/schemas/${request}\\b`, 'u'));
+    for (const code of [400, 401, 403, 404, 409]) assert.match(op, new RegExp(`"${code}":`, 'u'));
+    assert.doesNotMatch(op, /ChatCommandReceipt|text\/plain|name: (?:actorId|ownerId|scopeRef)/u);
+    if (id === 'getChatModerationEvidence') {
+      assert.match(op, /name: reason\n\s+in: query\n\s+required: true/u);
+      assert.match(op, /appends an audit fact/u);
+    }
+    if (['suggestChatSanction', 'confirmChatSanction', 'getPendingChatReviews', 'decideChatSanctionReview'].includes(id))
+      assert.match(op, /summary: General administrator exclusively/u);
+  }
+  for (const [name, , fields, slice] of moderationModels) {
+    if (slice > MODERATION_SLICE) continue;
+    const model = source.split(`    ${name}:\n`)[1]?.split(/\n    \S/u)[0];
+    assert.ok(model, `missing ${name}`);
+    assert.match(model, /additionalProperties: false/u);
+    assert.deepEqual([...model.matchAll(/^        (\w+):/gmu)].map(m => m[1]), fields);
+    assert.match(model, new RegExp(`required: \\[${fields.join(', ')}\\]`, 'u'));
+    assert.doesNotMatch(model, /reporterId|actorId|issuer|subject|email|hmac|scopeRef/u);
+    if (name !== 'ChatModerationEvidence') assert.doesNotMatch(model, /originalBody/u);
+    if (fields.includes('clientCommandId')) assert.match(model, /pattern: '\^\[0-9a-f\]/u);
+    if (fields.includes('reason') && name !== 'ChatModerationReportEvidence') assert.match(model, /minLength: 1, maxLength: 280/u);
+  }
+  assert.doesNotMatch(source, /\/chat\/moderation\/messages\/\{.*\}\/removals|\/chat\/moderation\/cases\/\{.*\}\/escalations/u);
+  if (MODERATION_SLICE >= 3) {
+    assert.match(source, /effectiveUntil: \{type: \[string, "null"\], format: date-time\}/u);
+    for (const name of ['ChatSanctionCommand', 'ChatSanctionSummary', 'ChatSanctionSuggestion'])
+      assert.match(source.split(`    ${name}:\n`)[1]?.split(/\n    \S/u)[0], /CHAT_SUSPENSION_24H, CHAT_SUSPENSION_7D, CHAT_BAN/u);
+  }
+  if (MODERATION_SLICE >= 4) assert.match(source.split('    ChatReviewCommand:\n')[1]?.split(/\n    \S/u)[0], /enum: \[MAINTAIN, ANNUL\]/u);
+}
+
+test('moderation contract follows certified routes, distinct closed DTOs and private authority', async () => {
+  const source = (await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8')).replaceAll('\r\n', '\n');
+  assertModerationContract(source);
+  const mutations = [
+    source.replace('operationId: openChatModerationCase', 'operationId: obsoleteAlias'),
+    source.replace(/(operationId: getChatModerationCases\n[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u, '$1[]'),
+    source.replace('      required: [reportId]\n', '      required: [reportId, actorId]\n'),
+    source.replace('schema: {$ref: "#/components/schemas/ChatModerationCaseReceipt"}', 'schema: {$ref: "#/components/schemas/ChatCommandReceipt"}'),
+    source.replace('        competitionId: {type:', '        reporterId: {type:'),
+  ];
+  if (MODERATION_SLICE >= 2) mutations.push(source.replace(/(name: reason\n\s+in: query\n\s+required: )true/u, '$1false'));
+  if (MODERATION_SLICE >= 3) mutations.push(source.replace('General administrator exclusively confirms', 'Any moderator confirms'));
+  if (MODERATION_SLICE >= 4) mutations.push(source.replace('enum: [MAINTAIN, ANNUL]', 'enum: [MAINTAIN, ANNUL, IGNORE]'));
+  for (const mutant of mutations) {
+    assert.notEqual(mutant, source, 'mutation must actually change the contract');
+    assert.throws(() => assertModerationContract(mutant));
+  }
+});
+
+test('moderation generated models match Java record fields and omit reporter identities', async () => {
+  const java = await readFile(join(projectRoot, 'backend/src/main/java/br/com/betufu/chat/internal/ChatModerationModels.java'), 'utf8');
+  for (const [name, record, fields, slice] of moderationModels) {
+    if (slice > MODERATION_SLICE) continue;
+    const file = name.replace(/([a-z])([A-Z])/gu, '$1-$2').toLowerCase() + '.ts';
+    const model = await readFile(join(projectRoot, 'frontend/src/app/api/generated/model', file), 'utf8');
+    assert.deepEqual([...model.matchAll(/^    (\w+)\??:/gmu)].map(m => m[1]), fields);
+    assert.ok(PUBLIC_GENERATOR_MODELS.includes(name));
+    if (record) {
+      const signature = java.match(new RegExp(`record ${record}\\(([\\s\\S]*?)\\)`, 'u'))?.[1];
+      assert.ok(signature, `missing producer record ${record}`);
+      assert.deepEqual(signature.split(',').map(field => field.trim().split(/\s+/u).at(-1)), fields);
+    }
+  }
+});
+
+test('moderation generated service preserves request types, response types and mandatory evidence reason', async () => {
+  const service = await readFile(join(projectRoot, 'frontend/src/app/api/generated/api/chat.service.ts'), 'utf8');
+  for (const [path, method, id, response, request, , slice] of moderationOperations) {
+    if (slice > MODERATION_SLICE) continue;
+    const op = generatedOperation(service, id);
+    const type = ['getChatModerationCases', 'getOwnChatSanctions', 'getPendingChatReviews'].includes(id) ? `Array<${response}>` : response;
+    assert.ok(op.includes(`request<${type}>('${method}'`), id);
+    const generatedPath = op.match(/localVarPath = `([^`]+)`/u)?.[1]
+      ?.replace(/\$\{this\.configuration\.encodeParam\(\{name: "(\w+)"[^}]+\}\)\}/gu, '{$1}');
+    assert.equal(generatedPath, path, id);
+    if (request) assert.match(op, new RegExp(`body: ${request.charAt(0).toLowerCase() + request.slice(1)}\\b`, 'u'));
+    if (id === 'getChatModerationEvidence') {
+      assert.match(op, /reason === null \|\| reason === undefined/u);
+      assert.match(op, /localVarQueryParameters.*|addToHttpParams/u);
+      assert.match(op, /'reason'/u);
+    }
+    assert.doesNotMatch(op, /set\('(?:Authorization|Cookie)'/u);
+  }
+});
+
 function testContract(engineBytes) {
   return Object.freeze({
     version: '7.24.0',
@@ -1153,7 +1279,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, '9BB66884F67583582824EED26BA105B3A8776CE87F26092C0E361BAA4DF19FAF');
+  assert.equal(manifest.digest, 'E0F2DF3EC108FDEA1B380B300612B2D1704B936635445D40924CA696C21285E3');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,

@@ -21,6 +21,18 @@ import { BetufuProblemDetails } from '../model/betufu-problem-details';
 // @ts-ignore
 import { ChatCommandReceipt } from '../model/chat-command-receipt';
 // @ts-ignore
+import { ChatModerationCase } from '../model/chat-moderation-case';
+// @ts-ignore
+import { ChatModerationCaseReceipt } from '../model/chat-moderation-case-receipt';
+// @ts-ignore
+import { ChatModerationCommand } from '../model/chat-moderation-command';
+// @ts-ignore
+import { ChatModerationEvidence } from '../model/chat-moderation-evidence';
+// @ts-ignore
+import { ChatModerationForwardReceipt } from '../model/chat-moderation-forward-receipt';
+// @ts-ignore
+import { ChatModerationOpenCommand } from '../model/chat-moderation-open-command';
+// @ts-ignore
 import { ChatMuteCommand } from '../model/chat-mute-command';
 // @ts-ignore
 import { ChatMuteState } from '../model/chat-mute-state';
@@ -31,6 +43,16 @@ import { ChatReportCommand } from '../model/chat-report-command';
 // @ts-ignore
 import { ChatReportReceipt } from '../model/chat-report-receipt';
 // @ts-ignore
+import { ChatReviewCommand } from '../model/chat-review-command';
+// @ts-ignore
+import { ChatReviewReceipt } from '../model/chat-review-receipt';
+// @ts-ignore
+import { ChatSanctionCommand } from '../model/chat-sanction-command';
+// @ts-ignore
+import { ChatSanctionSuggestion } from '../model/chat-sanction-suggestion';
+// @ts-ignore
+import { ChatSanctionSummary } from '../model/chat-sanction-summary';
+// @ts-ignore
 import { ChatSendRequest } from '../model/chat-send-request';
 
 // @ts-ignore
@@ -39,8 +61,29 @@ import { Configuration }                                     from '../configurat
 import { BaseService } from '../api.base.service';
 
 
+export interface ConfirmChatSanctionRequestParams {
+    caseId: string;
+    chatSanctionCommand: ChatSanctionCommand;
+}
+
+export interface DecideChatSanctionReviewRequestParams {
+    reviewId: string;
+    chatReviewCommand: ChatReviewCommand;
+}
+
+export interface ForwardChatModerationCaseRequestParams {
+    caseId: string;
+    chatModerationCommand: ChatModerationCommand;
+}
+
 export interface GetAccountChatMuteRequestParams {
     participantId: string;
+}
+
+export interface GetChatModerationEvidenceRequestParams {
+    caseId: string;
+    /** Nonblank access justification; every successful access appends an audit fact. */
+    reason: string;
 }
 
 export interface GetEventChatRequestParams {
@@ -69,16 +112,30 @@ export interface GetGlobalChatChangesRequestParams {
     limit?: number;
 }
 
+export interface OpenChatModerationCaseRequestParams {
+    chatModerationOpenCommand: ChatModerationOpenCommand;
+}
+
 export interface RemoveAccountChatMuteRequestParams {
     participantId: string;
     /** Quoted canonical account version from ETag, e.g. \&quot;1\&quot;. */
     ifMatch: string;
 }
 
+export interface RemoveChatModerationMessageRequestParams {
+    caseId: string;
+    chatModerationCommand: ChatModerationCommand;
+}
+
 export interface ReportChatMessageRequestParams {
     messageId: string;
     idempotencyKey: string;
     chatReportCommand: ChatReportCommand;
+}
+
+export interface RequestChatSanctionReviewRequestParams {
+    sanctionId: string;
+    chatModerationCommand: ChatModerationCommand;
 }
 
 export interface SendEventChatMessageRequestParams {
@@ -99,6 +156,10 @@ export interface SetAccountChatMuteRequestParams {
     chatMuteCommand: ChatMuteCommand;
 }
 
+export interface SuggestChatSanctionRequestParams {
+    caseId: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -107,6 +168,225 @@ export class ChatService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
+    }
+
+    /**
+     * General administrator exclusively confirms the current suggested kind with exact command replay and conflict detection
+     * General administrator exclusively confirms the current suggested kind with exact command replay and conflict detection. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint post /api/v1/chat/moderation/cases/{caseId}/sanctions
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public confirmChatSanction(requestParameters: ConfirmChatSanctionRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatSanctionSummary>;
+    public confirmChatSanction(requestParameters: ConfirmChatSanctionRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatSanctionSummary>>;
+    public confirmChatSanction(requestParameters: ConfirmChatSanctionRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatSanctionSummary>>;
+    public confirmChatSanction(requestParameters: ConfirmChatSanctionRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const caseId = requestParameters?.caseId;
+        if (caseId === null || caseId === undefined) {
+            throw new Error('Required parameter caseId was null or undefined when calling confirmChatSanction.');
+        }
+        const chatSanctionCommand = requestParameters?.chatSanctionCommand;
+        if (chatSanctionCommand === null || chatSanctionCommand === undefined) {
+            throw new Error('Required parameter chatSanctionCommand was null or undefined when calling confirmChatSanction.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/cases/${this.configuration.encodeParam({name: "caseId", value: caseId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/sanctions`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatSanctionSummary>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatSanctionCommand,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * General administrator exclusively maintains or annuls a sanction by appending a review decision
+     * General administrator exclusively maintains or annuls a sanction by appending a review decision. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint post /api/v1/chat/moderation/reviews/{reviewId}/decisions
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public decideChatSanctionReview(requestParameters: DecideChatSanctionReviewRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatReviewReceipt>;
+    public decideChatSanctionReview(requestParameters: DecideChatSanctionReviewRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatReviewReceipt>>;
+    public decideChatSanctionReview(requestParameters: DecideChatSanctionReviewRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatReviewReceipt>>;
+    public decideChatSanctionReview(requestParameters: DecideChatSanctionReviewRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const reviewId = requestParameters?.reviewId;
+        if (reviewId === null || reviewId === undefined) {
+            throw new Error('Required parameter reviewId was null or undefined when calling decideChatSanctionReview.');
+        }
+        const chatReviewCommand = requestParameters?.chatReviewCommand;
+        if (chatReviewCommand === null || chatReviewCommand === undefined) {
+            throw new Error('Required parameter chatReviewCommand was null or undefined when calling decideChatSanctionReview.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/reviews/${this.configuration.encodeParam({name: "reviewId", value: reviewId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/decisions`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatReviewReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatReviewCommand,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Scoped moderator or general administrator forwards a case without imposing a sanction
+     * Scoped moderator or general administrator forwards a case without imposing a sanction. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint post /api/v1/chat/moderation/cases/{caseId}/forward
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public forwardChatModerationCase(requestParameters: ForwardChatModerationCaseRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatModerationForwardReceipt>;
+    public forwardChatModerationCase(requestParameters: ForwardChatModerationCaseRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatModerationForwardReceipt>>;
+    public forwardChatModerationCase(requestParameters: ForwardChatModerationCaseRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatModerationForwardReceipt>>;
+    public forwardChatModerationCase(requestParameters: ForwardChatModerationCaseRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const caseId = requestParameters?.caseId;
+        if (caseId === null || caseId === undefined) {
+            throw new Error('Required parameter caseId was null or undefined when calling forwardChatModerationCase.');
+        }
+        const chatModerationCommand = requestParameters?.chatModerationCommand;
+        if (chatModerationCommand === null || chatModerationCommand === undefined) {
+            throw new Error('Required parameter chatModerationCommand was null or undefined when calling forwardChatModerationCase.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/cases/${this.configuration.encodeParam({name: "caseId", value: caseId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/forward`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatModerationForwardReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatModerationCommand,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
     }
 
     /**
@@ -212,6 +492,135 @@ export class ChatService extends BaseService {
         return this.httpClient.request<ChatMuteState>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * List cases visible to a scoped moderator or general administrator
+     * List cases visible to a scoped moderator or general administrator. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint get /api/v1/chat/moderation/cases
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getChatModerationCases(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<Array<ChatModerationCase>>;
+    public getChatModerationCases(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<ChatModerationCase>>>;
+    public getChatModerationCases(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<ChatModerationCase>>>;
+    public getChatModerationCases(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/cases`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<ChatModerationCase>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Read restricted evidence as an authorized scoped moderator or general administrator with audited justification
+     * Read restricted evidence as an authorized scoped moderator or general administrator with audited justification. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint get /api/v1/chat/moderation/cases/{caseId}/evidence
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getChatModerationEvidence(requestParameters: GetChatModerationEvidenceRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatModerationEvidence>;
+    public getChatModerationEvidence(requestParameters: GetChatModerationEvidenceRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatModerationEvidence>>;
+    public getChatModerationEvidence(requestParameters: GetChatModerationEvidenceRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatModerationEvidence>>;
+    public getChatModerationEvidence(requestParameters: GetChatModerationEvidenceRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const caseId = requestParameters?.caseId;
+        if (caseId === null || caseId === undefined) {
+            throw new Error('Required parameter caseId was null or undefined when calling getChatModerationEvidence.');
+        }
+        const reason = requestParameters?.reason;
+        if (reason === null || reason === undefined) {
+            throw new Error('Required parameter reason was null or undefined when calling getChatModerationEvidence.');
+        }
+
+        let localVarQueryParameters = new OpenApiHttpParams(this.encoder);
+
+        localVarQueryParameters = this.addToHttpParams(
+            localVarQueryParameters,
+            'reason',
+            <any>reason,
+            QueryParamStyle.Form,
+            true,
+        );
+
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/cases/${this.configuration.encodeParam({name: "caseId", value: caseId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/evidence`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatModerationEvidence>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters.toHttpParams(),
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -543,6 +952,183 @@ export class ChatService extends BaseService {
     }
 
     /**
+     * Current owner reads private sanctions including with inactive enrollment
+     * Current owner reads private sanctions including with inactive enrollment. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint get /api/v1/chat/me/sanctions
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getOwnChatSanctions(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<Array<ChatSanctionSummary>>;
+    public getOwnChatSanctions(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<ChatSanctionSummary>>>;
+    public getOwnChatSanctions(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<ChatSanctionSummary>>>;
+    public getOwnChatSanctions(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/me/sanctions`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<ChatSanctionSummary>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * General administrator exclusively reads pending private reviews
+     * General administrator exclusively reads pending private reviews. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint get /api/v1/chat/moderation/reviews
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public getPendingChatReviews(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<Array<ChatReviewReceipt>>;
+    public getPendingChatReviews(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<ChatReviewReceipt>>>;
+    public getPendingChatReviews(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<ChatReviewReceipt>>>;
+    public getPendingChatReviews(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/reviews`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<ChatReviewReceipt>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Open the canonical case of a report visible to a scoped moderator or general administrator
+     * Open the canonical case of a report visible to a scoped moderator or general administrator. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint post /api/v1/chat/moderation/cases
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public openChatModerationCase(requestParameters: OpenChatModerationCaseRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatModerationCaseReceipt>;
+    public openChatModerationCase(requestParameters: OpenChatModerationCaseRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatModerationCaseReceipt>>;
+    public openChatModerationCase(requestParameters: OpenChatModerationCaseRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatModerationCaseReceipt>>;
+    public openChatModerationCase(requestParameters: OpenChatModerationCaseRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const chatModerationOpenCommand = requestParameters?.chatModerationOpenCommand;
+        if (chatModerationOpenCommand === null || chatModerationOpenCommand === undefined) {
+            throw new Error('Required parameter chatModerationOpenCommand was null or undefined when calling openChatModerationCase.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/cases`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatModerationCaseReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatModerationOpenCommand,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Remove a current-account participant mute
      * Stale versions return409; refetch before another attempt. Only a committed response confirms persistence.
      * @endpoint delete /api/v1/chat/me/mutes/{participantId}
@@ -598,6 +1184,79 @@ export class ChatService extends BaseService {
         return this.httpClient.request<ChatMuteState>('delete', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Scoped moderator or general administrator removes a message by appending a fact and preserving its original
+     * Scoped moderator or general administrator removes a message by appending a fact and preserving its original. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint post /api/v1/chat/moderation/cases/{caseId}/remove
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public removeChatModerationMessage(requestParameters: RemoveChatModerationMessageRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatModerationCaseReceipt>;
+    public removeChatModerationMessage(requestParameters: RemoveChatModerationMessageRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatModerationCaseReceipt>>;
+    public removeChatModerationMessage(requestParameters: RemoveChatModerationMessageRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatModerationCaseReceipt>>;
+    public removeChatModerationMessage(requestParameters: RemoveChatModerationMessageRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const caseId = requestParameters?.caseId;
+        if (caseId === null || caseId === undefined) {
+            throw new Error('Required parameter caseId was null or undefined when calling removeChatModerationMessage.');
+        }
+        const chatModerationCommand = requestParameters?.chatModerationCommand;
+        if (chatModerationCommand === null || chatModerationCommand === undefined) {
+            throw new Error('Required parameter chatModerationCommand was null or undefined when calling removeChatModerationMessage.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/cases/${this.configuration.encodeParam({name: "caseId", value: caseId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/remove`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatModerationCaseReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatModerationCommand,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -678,6 +1337,79 @@ export class ChatService extends BaseService {
             {
                 context: localVarHttpContext,
                 body: chatReportCommand,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Current sanction owner requests private review including with inactive enrollment; pending review keeps the sanction effective
+     * Current sanction owner requests private review including with inactive enrollment; pending review keeps the sanction effective. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint post /api/v1/chat/me/sanctions/{sanctionId}/reviews
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public requestChatSanctionReview(requestParameters: RequestChatSanctionReviewRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatReviewReceipt>;
+    public requestChatSanctionReview(requestParameters: RequestChatSanctionReviewRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatReviewReceipt>>;
+    public requestChatSanctionReview(requestParameters: RequestChatSanctionReviewRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatReviewReceipt>>;
+    public requestChatSanctionReview(requestParameters: RequestChatSanctionReviewRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const sanctionId = requestParameters?.sanctionId;
+        if (sanctionId === null || sanctionId === undefined) {
+            throw new Error('Required parameter sanctionId was null or undefined when calling requestChatSanctionReview.');
+        }
+        const chatModerationCommand = requestParameters?.chatModerationCommand;
+        if (chatModerationCommand === null || chatModerationCommand === undefined) {
+            throw new Error('Required parameter chatModerationCommand was null or undefined when calling requestChatSanctionReview.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/me/sanctions/${this.configuration.encodeParam({name: "sanctionId", value: sanctionId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/reviews`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatReviewReceipt>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: chatModerationCommand,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -907,6 +1639,65 @@ export class ChatService extends BaseService {
             {
                 context: localVarHttpContext,
                 body: chatMuteCommand,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * General administrator exclusively reads the next sanction step
+     * General administrator exclusively reads the next sanction step. The actor and authority scope come only from the current session. No supplied actor or scope is accepted. Successful responses use private, no-store.
+     * @endpoint get /api/v1/chat/moderation/cases/{caseId}/sanctions/suggestion
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     * @param options additional options
+     */
+    public suggestChatSanction(requestParameters: SuggestChatSanctionRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<ChatSanctionSuggestion>;
+    public suggestChatSanction(requestParameters: SuggestChatSanctionRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ChatSanctionSuggestion>>;
+    public suggestChatSanction(requestParameters: SuggestChatSanctionRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ChatSanctionSuggestion>>;
+    public suggestChatSanction(requestParameters: SuggestChatSanctionRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/problem+json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        const caseId = requestParameters?.caseId;
+        if (caseId === null || caseId === undefined) {
+            throw new Error('Required parameter caseId was null or undefined when calling suggestChatSanction.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/problem+json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v1/chat/moderation/cases/${this.configuration.encodeParam({name: "caseId", value: caseId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}/sanctions/suggestion`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ChatSanctionSuggestion>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,

@@ -8,6 +8,602 @@ servers:
   - url: /
 
 paths:
+  /api/v1/chat/me/sanctions/{sanctionId}/reviews:
+    post:
+      tags: [Chat]
+      operationId: requestChatSanctionReview
+      summary: Current sanction owner requests private review including with inactive enrollment; pending review keeps the sanction effective
+      security: [{cookieSession: []}]
+      description: >-
+        Current sanction owner requests private review including with inactive enrollment; pending review keeps the sanction effective. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      parameters:
+        - name: sanctionId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatModerationCommand"}
+      responses:
+        "201":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatReviewReceipt"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/reviews:
+    get:
+      tags: [Chat]
+      operationId: getPendingChatReviews
+      summary: General administrator exclusively reads pending private reviews
+      security: [{cookieSession: []}]
+      description: >-
+        General administrator exclusively reads pending private reviews. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: "#/components/schemas/ChatReviewReceipt"}}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/reviews/{reviewId}/decisions:
+    post:
+      tags: [Chat]
+      operationId: decideChatSanctionReview
+      summary: General administrator exclusively maintains or annuls a sanction by appending a review decision
+      security: [{cookieSession: []}]
+      description: >-
+        General administrator exclusively maintains or annuls a sanction by appending a review decision. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatReviewCommand"}
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatReviewReceipt"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/me/sanctions:
+    get:
+      tags: [Chat]
+      operationId: getOwnChatSanctions
+      summary: Current owner reads private sanctions including with inactive enrollment
+      security: [{cookieSession: []}]
+      description: >-
+        Current owner reads private sanctions including with inactive enrollment. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: "#/components/schemas/ChatSanctionSummary"}}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/cases/{caseId}/sanctions/suggestion:
+    get:
+      tags: [Chat]
+      operationId: suggestChatSanction
+      summary: General administrator exclusively reads the next sanction step
+      security: [{cookieSession: []}]
+      description: >-
+        General administrator exclusively reads the next sanction step. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatSanctionSuggestion"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/cases/{caseId}/sanctions:
+    post:
+      tags: [Chat]
+      operationId: confirmChatSanction
+      summary: General administrator exclusively confirms the current suggested kind with exact command replay and conflict detection
+      security: [{cookieSession: []}]
+      description: >-
+        General administrator exclusively confirms the current suggested kind with exact command replay and conflict detection. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatSanctionCommand"}
+      responses:
+        "201":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatSanctionSummary"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/cases/{caseId}/forward:
+    post:
+      tags: [Chat]
+      operationId: forwardChatModerationCase
+      summary: Scoped moderator or general administrator forwards a case without imposing a sanction
+      security: [{cookieSession: []}]
+      description: >-
+        Scoped moderator or general administrator forwards a case without imposing a sanction. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatModerationCommand"}
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatModerationForwardReceipt"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/cases/{caseId}/evidence:
+    get:
+      tags: [Chat]
+      operationId: getChatModerationEvidence
+      summary: Read restricted evidence as an authorized scoped moderator or general administrator with audited justification
+      security: [{cookieSession: []}]
+      description: >-
+        Read restricted evidence as an authorized scoped moderator or general administrator with audited justification. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+        - name: reason
+          in: query
+          required: true
+          description: Nonblank access justification; every successful access appends an audit fact.
+          schema: {type: string, minLength: 1, maxLength: 280, description: "Nonblank reason; Java enforces a maximum of 280 UTF-16 code units."}
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatModerationEvidence"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/cases:
+    get:
+      tags: [Chat]
+      operationId: getChatModerationCases
+      summary: List cases visible to a scoped moderator or general administrator
+      security: [{cookieSession: []}]
+      description: >-
+        List cases visible to a scoped moderator or general administrator. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: "#/components/schemas/ChatModerationCase"}}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+    post:
+      tags: [Chat]
+      operationId: openChatModerationCase
+      summary: Open the canonical case of a report visible to a scoped moderator or general administrator
+      security: [{cookieSession: []}]
+      description: >-
+        Open the canonical case of a report visible to a scoped moderator or general administrator. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatModerationOpenCommand"}
+      responses:
+        "201":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatModerationCaseReceipt"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/chat/moderation/cases/{caseId}/remove:
+    post:
+      tags: [Chat]
+      operationId: removeChatModerationMessage
+      summary: Scoped moderator or general administrator removes a message by appending a fact and preserving its original
+      security: [{cookieSession: []}]
+      description: >-
+        Scoped moderator or general administrator removes a message by appending a fact and preserving its original. The actor and authority scope come only from the current session.
+        No supplied actor or scope is accepted. Successful responses use private, no-store.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/ChatModerationCommand"}
+      responses:
+        "200":
+          description: Committed private response or current authorized view.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatModerationCaseReceipt"}
+        "400":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid command, denied authority, absent target or conflicting command.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
   /api/v1/chat/messages/{messageId}/reports:
     post:
       tags: [Chat]
@@ -4922,6 +5518,122 @@ components:
           type: array
           uniqueItems: true
           items: {type: string, format: uuid}
+
+    ChatModerationCommand:
+      type: object
+      additionalProperties: false
+      required: [clientCommandId, reason]
+      properties:
+        clientCommandId: {type: string, format: uuid, pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'}
+        reason: {type: string, minLength: 1, maxLength: 280, description: "Nonblank reason; Java enforces a maximum of 280 UTF-16 code units."}
+
+    ChatModerationCase:
+      type: object
+      additionalProperties: false
+      required: [caseId, messageId, eventId, competitionId, status, openedAt]
+      description: Scoped queue projection; no original body or reporter identity.
+      properties:
+        caseId: {type: string, format: uuid}
+        messageId: {type: string, format: uuid}
+        eventId: {type: [string, "null"], format: uuid}
+        competitionId: {type: [string, "null"], format: uuid}
+        status: {type: string, enum: [OPEN, IN_REVIEW, RESOLVED, ESCALATED]}
+        openedAt: {type: string, format: date-time}
+
+    ChatModerationCaseReceipt:
+      type: object
+      additionalProperties: false
+      required: [caseId, status, recordedAt]
+      properties:
+        caseId: {type: string, format: uuid}
+        status: {type: string, enum: [OPEN, IN_REVIEW, RESOLVED, ESCALATED]}
+        recordedAt: {type: string, format: date-time}
+
+    ChatModerationOpenCommand:
+      type: object
+      additionalProperties: false
+      required: [reportId]
+      properties:
+        reportId: {type: string, format: uuid, pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'}
+
+    ChatModerationReportEvidence:
+      type: object
+      additionalProperties: false
+      required: [reportId, reason, reportedAt]
+      properties:
+        reportId: {type: string, format: uuid}
+        reason: {type: string, enum: [DISCURSO_DE_ODIO, SPAM, OFENSA, ASSEDIO, FRAUDE]}
+        reportedAt: {type: string, format: date-time}
+
+    ChatModerationEvidence:
+      type: object
+      additionalProperties: false
+      required: [caseId, messageId, originalBody, reports]
+      description: Restricted audited JSON evidence for authorized scoped moderators and general administrators; never a public chat projection.
+      properties:
+        caseId: {type: string, format: uuid}
+        messageId: {type: string, format: uuid}
+        originalBody: {type: string}
+        reports: {type: array, items: {$ref: "#/components/schemas/ChatModerationReportEvidence"}}
+
+    ChatModerationForwardReceipt:
+      type: object
+      additionalProperties: false
+      required: [caseId, forwardedAt]
+      properties:
+        caseId: {type: string, format: uuid}
+        forwardedAt: {type: string, format: date-time}
+
+    ChatSanctionCommand:
+      type: object
+      additionalProperties: false
+      required: [clientCommandId, reason, kind]
+      properties:
+        clientCommandId: {type: string, format: uuid, pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'}
+        reason: {type: string, minLength: 1, maxLength: 280, description: "Nonblank reason; Java enforces a maximum of 280 UTF-16 code units."}
+        kind: {type: string, enum: [CHAT_SUSPENSION_24H, CHAT_SUSPENSION_7D, CHAT_BAN]}
+
+    ChatSanctionSummary:
+      type: object
+      additionalProperties: false
+      required: [sanctionId, kind, reason, effectiveFrom, effectiveUntil, active, reviewStatus]
+      description: Private sanction view for its owner; a ban has no expiry. No effects on credits, predictions or ranking.
+      properties:
+        sanctionId: {type: string, format: uuid}
+        kind: {type: string, enum: [CHAT_SUSPENSION_24H, CHAT_SUSPENSION_7D, CHAT_BAN]}
+        reason: {type: string, minLength: 1, maxLength: 280, description: "Nonblank reason; Java enforces a maximum of 280 UTF-16 code units."}
+        effectiveFrom: {type: string, format: date-time}
+        effectiveUntil: {type: [string, "null"], format: date-time}
+        active: {type: boolean}
+        reviewStatus: {type: string, enum: [NONE, PENDING, ANNULLED, MAINTAINED]}
+
+    ChatSanctionSuggestion:
+      type: object
+      additionalProperties: false
+      required: [caseId, suggestedKind]
+      properties:
+        caseId: {type: string, format: uuid}
+        suggestedKind: {type: string, enum: [CHAT_SUSPENSION_24H, CHAT_SUSPENSION_7D, CHAT_BAN]}
+
+    ChatReviewCommand:
+      type: object
+      additionalProperties: false
+      required: [clientCommandId, reason, decision]
+      properties:
+        clientCommandId: {type: string, format: uuid, pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'}
+        reason: {type: string, minLength: 1, maxLength: 280, description: "Nonblank reason; Java enforces a maximum of 280 UTF-16 code units."}
+        decision: {type: string, enum: [MAINTAIN, ANNUL]}
+
+    ChatReviewReceipt:
+      type: object
+      additionalProperties: false
+      required: [reviewId, sanctionId, status, reason, recordedAt]
+      properties:
+        reviewId: {type: string, format: uuid}
+        sanctionId: {type: string, format: uuid}
+        status: {type: string, enum: [PENDING, ANNULLED, MAINTAINED]}
+        reason: {type: string, minLength: 1, maxLength: 280, description: "Nonblank reason; Java enforces a maximum of 280 UTF-16 code units."}
+        recordedAt: {type: string, format: date-time}
 
     ChatCommandReceipt:
       type: object

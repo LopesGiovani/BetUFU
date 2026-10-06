@@ -257,6 +257,18 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'PublicOddsSummary',
   'PublicOddsView',
   'SportsRosterSnapshotForOdds',
+  'ChatModerationCommand',
+  'ChatModerationCase',
+  'ChatModerationCaseReceipt',
+  'ChatModerationOpenCommand',
+  'ChatModerationReportEvidence',
+  'ChatModerationEvidence',
+  'ChatModerationForwardReceipt',
+  'ChatSanctionCommand',
+  'ChatSanctionSummary',
+  'ChatSanctionSuggestion',
+  'ChatReviewCommand',
+  'ChatReviewReceipt',
 ]);
 export const PUBLIC_GENERATOR_GLOBAL_PROPERTY = [
   `apis=${PUBLIC_GENERATOR_API_TAGS.join(':')}`,
@@ -341,11 +353,23 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/betufu-problem-details.ts',
   'model/chat-command-receipt.ts',
   'model/chat-message.ts',
+  'model/chat-moderation-case-receipt.ts',
+  'model/chat-moderation-case.ts',
+  'model/chat-moderation-command.ts',
+  'model/chat-moderation-evidence.ts',
+  'model/chat-moderation-forward-receipt.ts',
+  'model/chat-moderation-open-command.ts',
+  'model/chat-moderation-report-evidence.ts',
   'model/chat-mute-command.ts',
   'model/chat-mute-state.ts',
   'model/chat-read-response.ts',
   'model/chat-report-command.ts',
   'model/chat-report-receipt.ts',
+  'model/chat-review-command.ts',
+  'model/chat-review-receipt.ts',
+  'model/chat-sanction-command.ts',
+  'model/chat-sanction-suggestion.ts',
+  'model/chat-sanction-summary.ts',
   'model/chat-send-request.ts',
   'model/create-odds-market-request.ts',
   'model/credit-balance-response.ts',
@@ -541,7 +565,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // 534B... acrescenta envio/recibo do chat e retryAt no plano 07-11.
 // 9BB6... publishes private reports and versioned account mutes in07-14.
 export const APPROVED_GENERATED_DIGEST =
-  '9BB66884F67583582824EED26BA105B3A8776CE87F26092C0E361BAA4DF19FAF';
+  'E0F2DF3EC108FDEA1B380B300612B2D1704B936635445D40924CA696C21285E3';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,
