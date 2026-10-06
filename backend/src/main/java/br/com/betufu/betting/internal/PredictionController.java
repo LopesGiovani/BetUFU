@@ -1,8 +1,10 @@
 package br.com.betufu.betting.internal;
 
 import br.com.betufu.betting.PredictionAcceptancePort;
+import br.com.betufu.betting.PredictionEmergencyPausePort;
 import br.com.betufu.platform.identity.OperationalIdentityLookup;
 import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,17 +16,22 @@ import org.springframework.web.bind.annotation.*;
 @Profile("runtime | integrated")
 @RequestMapping("/api/v1/me/predictions")
 public class PredictionController {
+  public record Availability(String state, boolean predictionsPaused, UUID revision) {}
+
   private final PredictionAcceptancePort acceptance;
   private final OperationalIdentityLookup identities;
   private final PredictionRepository repository;
+  private final ObjectProvider<PredictionEmergencyPausePort> pauses;
 
   public PredictionController(
       PredictionAcceptancePort acceptance,
       OperationalIdentityLookup identities,
-      PredictionRepository repository) {
+      PredictionRepository repository,
+      ObjectProvider<PredictionEmergencyPausePort> pauses) {
     this.acceptance = acceptance;
     this.identities = identities;
     this.repository = repository;
+    this.pauses = pauses;
   }
 
   @PostMapping
@@ -48,6 +55,28 @@ public class PredictionController {
     return repository
         .findByMarket(id, marketId)
         .<ResponseEntity<?>>map(ResponseEntity::ok)
+        .orElseGet(() -> ResponseEntity.notFound().build());
+  }
+
+  @GetMapping("/markets/{marketId}/availability")
+  public ResponseEntity<?> availability(@PathVariable UUID marketId) {
+    var pausePort = pauses.getIfAvailable();
+    if (pausePort == null) return ResponseEntity.notFound().build();
+    return pausePort
+        .findMarket(marketId)
+        .map(
+            market -> {
+              var marketState =
+                  pausePort.current(PredictionEmergencyPausePort.TargetKind.MARKET, marketId);
+              var eventState =
+                  pausePort.current(
+                      PredictionEmergencyPausePort.TargetKind.EVENT, market.eventId());
+              boolean paused = marketState.paused() || eventState.paused();
+              UUID revision =
+                  marketState.revision() != null ? marketState.revision() : eventState.revision();
+              return ResponseEntity.ok(
+                  new Availability(paused ? "PAUSED" : "AVAILABLE", paused, revision));
+            })
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 

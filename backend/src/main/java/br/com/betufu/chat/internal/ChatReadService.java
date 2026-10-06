@@ -1,5 +1,6 @@
 package br.com.betufu.chat.internal;
 
+import br.com.betufu.chat.ChatEmergencyPausePort;
 import br.com.betufu.chat.ChatEventPort;
 import br.com.betufu.chat.ChatIdentityPort;
 import br.com.betufu.chat.internal.ChatReadModels.*;
@@ -21,12 +22,45 @@ public class ChatReadService {
   private final ChatRepository repository;
   private final ChatEventPort events;
   private final ChatIdentityPort identities;
+  private final ChatEmergencyPausePort pauses;
+  private final ChatCommunityModels.Access access;
 
   public ChatReadService(
-      ChatRepository repository, ChatEventPort events, ChatIdentityPort identities) {
+      ChatRepository repository,
+      ChatEventPort events,
+      ChatIdentityPort identities,
+      ChatEmergencyPausePort pauses,
+      ChatCommunityModels.Access access) {
     this.repository = repository;
     this.events = events;
     this.identities = identities;
+    this.pauses = pauses;
+    this.access = access;
+  }
+
+  @Transactional(readOnly = true)
+  public ChatReadModels.Availability availability(
+      UUID eventId, boolean authenticated, String issuer, String subject, String sessionId) {
+    if (eventId == null && !authenticated)
+      throw new ApiProblemException(HttpStatus.UNAUTHORIZED, ApiErrorCode.UNAUTHORIZED);
+    Channel channel = resolveChannel(eventId, authenticated);
+    var channelState =
+        pauses.current(ChatEmergencyPausePort.TargetKind.CHANNEL, channel.channelId());
+    var eventState =
+        eventId == null
+            ? new ChatEmergencyPausePort.State(false, null)
+            : pauses.current(ChatEmergencyPausePort.TargetKind.EVENT, eventId);
+    var accountState =
+        authenticated
+            ? pauses.current(
+                ChatEmergencyPausePort.TargetKind.ACCOUNT, access.actor(issuer, subject, sessionId))
+            : new ChatEmergencyPausePort.State(false, null);
+    boolean paused = channelState.paused() || eventState.paused() || accountState.paused();
+    UUID revision =
+        channelState.revision() != null
+            ? channelState.revision()
+            : eventState.revision() != null ? eventState.revision() : accountState.revision();
+    return new ChatReadModels.Availability(paused ? "PAUSED" : "AVAILABLE", paused, revision);
   }
 
   @Transactional

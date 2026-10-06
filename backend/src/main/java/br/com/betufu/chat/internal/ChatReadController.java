@@ -1,6 +1,7 @@
 package br.com.betufu.chat.internal;
 
 import br.com.betufu.chat.internal.ChatReadModels.ChatReadResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
@@ -51,6 +52,35 @@ public class ChatReadController {
       @RequestParam(defaultValue = "50") int limit,
       @AuthenticationPrincipal OidcUser user) {
     return response(service.read(null, user != null, null, changeCursor, limit), true);
+  }
+
+  @GetMapping("/events/{eventId}/availability")
+  public ResponseEntity<ChatReadModels.Availability> eventAvailability(
+      @PathVariable UUID eventId,
+      @AuthenticationPrincipal OidcUser user,
+      HttpServletRequest request) {
+    return ResponseEntity.ok(
+        service.availability(eventId, user != null, issuer(user), subject(user), session(request)));
+  }
+
+  @GetMapping("/global/availability")
+  public ResponseEntity<ChatReadModels.Availability> globalAvailability(
+      @AuthenticationPrincipal OidcUser user, HttpServletRequest request) {
+    return ResponseEntity.ok(
+        service.availability(null, user != null, issuer(user), subject(user), session(request)));
+  }
+
+  private static String issuer(OidcUser user) {
+    return user == null ? null : user.getIssuer().toString();
+  }
+
+  private static String subject(OidcUser user) {
+    return user == null ? null : user.getSubject();
+  }
+
+  private static String session(HttpServletRequest request) {
+    var session = request.getSession(false);
+    return session == null ? null : session.getId();
   }
 
   private ResponseEntity<ChatReadResponse> response(ChatReadResponse body, boolean global) {

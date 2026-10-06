@@ -1,6 +1,7 @@
 package br.com.betufu.betting.internal;
 
 import br.com.betufu.betting.PredictionAcceptancePort;
+import br.com.betufu.betting.PredictionEmergencyPausePort;
 import br.com.betufu.betting.PredictionTicket;
 import br.com.betufu.ledger.CreditBalance;
 import br.com.betufu.ledger.CreditLedgerPort;
@@ -34,6 +35,7 @@ public class PredictionService implements PredictionAcceptancePort {
   private final CreditLedgerPort ledger;
   private final TransactionTemplate transactions;
   private final Clock clock;
+  private final PredictionEmergencyPausePort pauses;
 
   public PredictionService(
       PredictionRepository repository,
@@ -42,12 +44,25 @@ public class PredictionService implements PredictionAcceptancePort {
       CreditLedgerPort ledger,
       PlatformTransactionManager transactionManager,
       Clock clock) {
+    this(repository, odds, eligibility, ledger, transactionManager, clock, null);
+  }
+
+  @org.springframework.beans.factory.annotation.Autowired
+  public PredictionService(
+      PredictionRepository repository,
+      OddsForPredictionPort odds,
+      PredictionEligibilityPolicy eligibility,
+      CreditLedgerPort ledger,
+      PlatformTransactionManager transactionManager,
+      Clock clock,
+      PredictionEmergencyPausePort pauses) {
     this.repository = Objects.requireNonNull(repository);
     this.odds = Objects.requireNonNull(odds);
     this.eligibility = Objects.requireNonNull(eligibility);
     this.ledger = Objects.requireNonNull(ledger);
     this.transactions = new TransactionTemplate(Objects.requireNonNull(transactionManager));
     this.clock = Objects.requireNonNull(clock);
+    this.pauses = pauses;
   }
 
   @Override
@@ -71,11 +86,21 @@ public class PredictionService implements PredictionAcceptancePort {
       return existing.get().ticket();
     }
 
+    if (pauses != null) {
+      requireOpen(pauses.lock(PredictionEmergencyPausePort.TargetKind.ACCOUNT, identityId));
+    }
+
+    if (pauses != null) {
+      requireOpen(pauses.lock(PredictionEmergencyPausePort.TargetKind.MARKET, command.marketId()));
+    }
     OddsForPredictionPort.MarketSnapshot snapshot = odds.getSnapshot(command.marketId());
     Instant now = clock.instant();
     validateSnapshot(command, prepared, snapshot, now);
     if (!eligibility.isEligible(identityId, snapshot.competitionId())) {
       throw forbidden();
+    }
+    if (pauses != null) {
+      requireOpen(pauses.lock(PredictionEmergencyPausePort.TargetKind.EVENT, snapshot.eventId()));
     }
     if (repository.findByMarket(identityId, command.marketId()).isPresent()) {
       throw conflict();
@@ -201,6 +226,10 @@ public class PredictionService implements PredictionAcceptancePort {
 
   private static ApiProblemException conflict() {
     return new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.PREDICTION_CONFLICT);
+  }
+
+  private static void requireOpen(PredictionEmergencyPausePort.State state) {
+    if (state.paused()) throw forbidden();
   }
 
   private record PreparedCommand(String selection, BigDecimal stake) {}

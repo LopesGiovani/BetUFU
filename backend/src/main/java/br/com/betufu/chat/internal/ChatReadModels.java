@@ -29,6 +29,8 @@ public final class ChatReadModels {
     }
   }
 
+  public record Availability(String state, boolean messagesPaused, UUID revision) {}
+
   record Channel(UUID channelId, String kind, UUID eventId) {}
 
   record Fact(

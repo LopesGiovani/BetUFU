@@ -1,6 +1,7 @@
 package br.com.betufu.chat.internal;
 
 import br.com.betufu.chat.ChatEligibilityPort;
+import br.com.betufu.chat.ChatEmergencyPausePort;
 import br.com.betufu.chat.ChatEventPort;
 import br.com.betufu.chat.ChatWriteGuard;
 import br.com.betufu.platform.api.ApiErrorCode;
@@ -34,6 +35,7 @@ public class ChatWriteService {
   private final List<ChatWriteGuard> guards;
   private final ChatPushService push;
   private final ChatLifecycleService lifecycle;
+  private final ChatEmergencyPausePort pauses;
   private final Clock clock;
   private final ObjectProvider<SessionRepository<?>> sessions;
 
@@ -45,6 +47,7 @@ public class ChatWriteService {
       List<ChatWriteGuard> guards,
       ChatPushService push,
       ChatLifecycleService lifecycle,
+      ChatEmergencyPausePort pauses,
       Clock clock,
       ObjectProvider<SessionRepository<?>> sessions) {
     this.writes = writes;
@@ -54,6 +57,7 @@ public class ChatWriteService {
     this.guards = List.copyOf(guards);
     this.push = push;
     this.lifecycle = lifecycle;
+    this.pauses = pauses;
     this.clock = clock;
     this.sessions = sessions;
   }
@@ -79,6 +83,8 @@ public class ChatWriteService {
         throw new ApiProblemException(HttpStatus.CONFLICT, ApiErrorCode.STALE_VERSION);
       return old.ack();
     }
+
+    requireNotPaused(pauses.lock(ChatEmergencyPausePort.TargetKind.ACCOUNT, actor));
     validateText(text);
     if (!eligibility.lockActiveEnrollment(actor))
       throw new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
@@ -89,6 +95,10 @@ public class ChatWriteService {
         throw new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
       channel = channels.recoverEvent(eventId);
     }
+    if (eventId != null) {
+      requireNotPaused(pauses.lock(ChatEmergencyPausePort.TargetKind.EVENT, eventId));
+    }
+    requireNotPaused(pauses.lock(ChatEmergencyPausePort.TargetKind.CHANNEL, channel.channelId()));
     Instant guardTime = clock.instant().truncatedTo(ChronoUnit.MICROS);
     guards.forEach(guard -> guard.requireAllowed(actor, channel.channelId(), eventId, guardTime));
     lifecycle.requireWritable(eventId, guardTime);
@@ -114,6 +124,10 @@ public class ChatWriteService {
 
   private ApiProblemException invalid() {
     return new ApiProblemException(HttpStatus.BAD_REQUEST, ApiErrorCode.VALIDATION_FAILED);
+  }
+
+  private void requireNotPaused(ChatEmergencyPausePort.State state) {
+    if (state.paused()) throw new ApiProblemException(HttpStatus.FORBIDDEN, ApiErrorCode.FORBIDDEN);
   }
 
   private void requireCurrentSession(String id, String issuer, String subject) {

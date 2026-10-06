@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "plan": "07-21",
+  "wave": 9,
+  "status": "approved",
+  "authorized_stage": "implementation",
+  "head": "e2dcac934db9e4a7b637e9bac4b191303e605314",
+  "recorded_at": "2026-10-06T04:02:50.544Z",
+  "plan_sha256": "70b4f19acb17ad9860c664da25afd6ed8bff9e131c2b2751883dfd6ae421c7ee",
+  "decisions_sha256": "f9780da3a65a23c24e49b70712b79766741531d92c0b1c8cf6214bc9524f0e52",
+  "human_approval": {
+    "source": "owner",
+    "status": "approved",
+    "reference": "conversation:owner-continuous-phase7-wave2-through-completion-and-continue",
+    "statement": "Continuous owner authorization covers implementation, self-healing, tests, local commits and advancement. Lock and availability behavior follows the concrete operations port and existing chat/prediction services.",
+    "plans": [
+      "07-21"
+    ]
+  },
+  "scope": {
+    "paths": [
+      "docs/phase7-approvals/07-21.json",
+      "backend/src/main/java/br/com/betufu/chat/ChatEmergencyPausePort.java",
+      "backend/src/main/java/br/com/betufu/betting/PredictionEmergencyPausePort.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/EmergencyChatAdapter.java",
+      "backend/src/main/java/br/com/betufu/betting/internal/EmergencyPredictionAdapter.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatWriteService.java",
+      "backend/src/main/java/br/com/betufu/betting/internal/PredictionService.java",
+      "backend/src/main/java/br/com/betufu/betting/internal/PredictionController.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatReadController.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatReadService.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/ChatReadModels.java",
+      "backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java",
+      "backend/src/test/java/br/com/betufu/platform/operations/EmergencyPauseConcurrencyIT.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatPauseIT.java",
+      "backend/src/test/java/br/com/betufu/betting/PredictionAvailabilityIT.java"
+    ],
+    "commands": [
+      "node scripts/validate-phase7-approvals.mjs --plan 07-21 --stage implementation",
+      "node scripts/maven.mjs -f backend/pom.xml \"-Dtest=EmergencyPauseConcurrencyIT,ChatPauseIT,PredictionAvailabilityIT,ModulithArchitectureTests\" test",
+      "node scripts/maven.mjs -f backend/pom.xml verify",
+      "node --test scripts/*.test.mjs"
+    ],
+    "candidates": []
+  },
+  "baseline_hashes": {
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/STATE.md": "a78dadaba9b62cd82d151edec324c57c10c3ede4ba026565f4facf681d83a576",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-20-PLAN.md": "abd2e1aed33552d1a7dffc04e711fadbef7b9f900a8b380c996483fd69191000",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md": "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845",
+    ".planning/ROADMAP.md": "de5957434ccbc82d8fb1f0e7c2a744fd0f31355ed723fafd0e8b14df2954d6f1"
+  },
+  "candidate_hashes": {},
+  "candidate_scope": {
+    "tags": [],
+    "models": [],
+    "generated_paths": [],
+    "deleted_paths": []
+  },
+  "self_healing": {
+    "paths": []
+  }
+}
