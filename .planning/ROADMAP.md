@@ -613,8 +613,8 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-21-PLAN.md — Guards atomicos de chat e novos palpites.
 - [x] 07-24-PLAN.md — Direitos do titular e resposta operacional: V45/backend.
 
-**Wave 10 — Bloqueada pelas dependências explícitas dos planos**
-- [ ] 07-12-PLAN.md — Composer e fila volatil: tracer real de envio.
+**Wave 10 — Em execução; 07-12 concluído**
+- [x] 07-12-PLAN.md — Composer e fila volatil: tracer real de envio.
 - [ ] 07-22-PLAN.md — Contrato oficial de pausas e estados.
 - [ ] 07-27-PLAN.md — Retencao segregada, exports e supressoes: V46.
 
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 20/35 | Wave10 executing; next07-12 | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 21/35 | Wave10 executing; next07-22 | - |
