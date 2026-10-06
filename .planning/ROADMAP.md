@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 18 executados (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17/20/18). Waves 1-8 completas; Wave9 continua07-21. 07-18: contrato/client oficial de moderacao, gerador108/108, Angular455/455, Node936/936 e Maven1084/1084 (XML). V1-V44 preservadas; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 19 executados (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17/20/18/21). Waves 1-8 completas; Wave9 continua07-24. 07-21: guards atomicos de pausa e snapshots de disponibilidade; focal16/16, Maven2178/2178 e Node936/936. V1-V44 preservadas; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -610,7 +610,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 
 **Wave 9 - Em execucao autorizada; 07-18, 07-21 e 07-24**
 - [x] 07-18-PLAN.md — Contrato de moderacao e revisao privada.
-- [ ] 07-21-PLAN.md — Guards atomicos de chat e novos palpites.
+- [x] 07-21-PLAN.md — Guards atomicos de chat e novos palpites.
 - [ ] 07-24-PLAN.md — Direitos do titular e resposta operacional: V45/backend.
 
 **Wave 10 — Bloqueada pelas dependências explícitas dos planos**
