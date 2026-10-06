@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em 17 ondas, 102 tasks; 17 executados (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17/20). Waves 1-8 completas; Wave9 continua07-18. 07-20: pausas admin/backendV44, focal11/11, Node936/936 e Maven1084/1084 (XML). V1-V43 preservadas; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
+**Plans**: 35 planos em 17 ondas, 102 tasks; 18 executados (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17/20/18). Waves 1-8 completas; Wave9 continua07-21. 07-18: contrato/client oficial de moderacao, gerador108/108, Angular455/455, Node936/936 e Maven1084/1084 (XML). V1-V44 preservadas; legado pre-V41 e gates juridicos/institucionais/publicos pendentes. Fase nao certificada; ver SUMMARYs.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -609,7 +609,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-20-PLAN.md — Pausa e retomada admin-only: V44/backend.
 
 **Wave 9 - Em execucao autorizada; 07-18, 07-21 e 07-24**
-- [ ] 07-18-PLAN.md — Contrato de moderacao e revisao privada.
+- [x] 07-18-PLAN.md — Contrato de moderacao e revisao privada.
 - [ ] 07-21-PLAN.md — Guards atomicos de chat e novos palpites.
 - [ ] 07-24-PLAN.md — Direitos do titular e resposta operacional: V45/backend.
 
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 17/35 | Wave 9 executing; next 07-18 | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 18/35 | Wave 9 executing; next 07-21 | - |

@@ -4,21 +4,31 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase 7 plan 07-20 complete; next 07-18 Wave 9
-last_updated: "2026-10-06T02:02:18.2018464Z"
-last_activity: 2026-10-05
-last_activity_desc: Phase 7 emergency pause foundation verified; 17/35 plans complete
-state_head: 29e791b5cc23ad897a73b4719f59f6eabff72553
+stopped_at: Phase 7 plan 07-18 complete; next 07-21 Wave 9
+last_updated: "2026-10-06T03:22:08.095Z"
+last_activity: 2026-10-06
+last_activity_desc: Phase 7 official moderation and private review client verified; 18/35 plans complete
+state_head: a67f357facef44159b220d91e03947daa66d12f7
 state_head_role: verified_implementation_commit; closing documentation is its direct child
 current_wave: 9
-current_plan: "07-18"
+current_plan: "07-21"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 152
+  completed_plans: 153
 milestone_name: milestone
 ---
+
+## Phase 7 / Wave 9 / Plan 07-18 closeout - 2026-10-06
+
+- Technical commita67f357facef44159b220d91e03947daa66d12f7; eleven real moderation/sanction/review operations, twelve exact models and official Chat service.
+- Four certified slices15/14/14/13 primary paths; final union24. Candidate and official hashes match; cap15 unchanged.
+- Generator108/108, Angular455/455, Node936/936, Maven1084/1084;0fail/error/skip; lint/build pass.
+- Forty-six protected hashes preserve owner docs and V1-V44; no dependency, persistent database, seed/volume reset, push, worktree or Antigravity.
+- Partial RepoWise review plus full inline inventory/producer review; no functional defect. Test-helper complexity remains a maintenance cost.
+- Phase7 is18/35, global153/170; Waves1-8 complete; continue07-21 then07-24/Wave9. Browser and public/legal gates remain downstream.
+- Evidence: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-18-SUMMARY.md.
 
 ## Phase 7 / Wave 8 / Plan 07-20 closeout - 2026-10-05
 
@@ -1052,14 +1062,14 @@ Git - Fase 3 / Wave 17 (integrada, enviada e limpa, 2026-09-01): o 03-16 foi exe
 Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 **Valor central:** Tornar os jogos universitários da UFU mais envolventes por meio de uma competição social de palpites, justa, transparente e sem dinheiro real.
-**Current focus:** Phase 7 continuous inline execution; Wave 7, next 07-16.
+**Current focus:** Phase 7 continuous inline execution; Wave 9, next 07-21.
 
 ## Current Position
 
 Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 9 em execucao)
-Plan: 17/35 concluidos (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17/20), 17 ondas / 102 tasks; proximo 07-18
+Plan: 18/35 concluidos (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17/20/18), 17 ondas / 102 tasks; proximo 07-21
 Status: executing; Fase 6 passed; Waves 1-8 completas; demais ondas/gates pendentes
-Last activity: 2026-10-05 - pausas admin append-onlyV44; focal11/11, Node936/936, Maven1084/1084; sem push
+Last activity: 2026-10-06 - contrato/client moderacao; gerador108/108, Angular455/455, Node936/936, Maven1084/1084; sem push
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -1129,13 +1139,13 @@ Emenda de allowlist — Wave 7 (2026-08-22): o `02-23-PLAN.md` passou de 14 para
 | `db4177f` | `02-CONTEXT.md` e `02-DISCUSSION-LOG.md` da discussão da Fase 2. Hash preenchido na passada seguinte, conforme previsto. |
 | _(commit seguinte, sem hash próprio)_ | `02-UI-SPEC.md` aprovado, a emenda de `OPER-01` em `REQUIREMENTS.md` e este `STATE.md`. O hash não cabe dentro do próprio commit. |
 
-Progress: Fase 5: 8/8; Fase 6: 8/8; Fase 7: 7/35 executados; certificacao final pendente
+Progress: Fase 5: 8/8; Fase 6: 8/8; Fase 7: 18/35 executados; certificacao final pendente
 
 ## Métricas de desempenho
 
 **Velocidade:**
 
-- Total de planos concluídos: 131
+- Total de planos concluídos: 153
 - Duração média: não mensurada — os planos foram acompanhados em múltiplas interações
 - Tempo total de execução: não mensurado
 
@@ -1307,9 +1317,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-06T02:02:18.2018464Z
-Stopped at: Phase 7 plan 07-20 complete; continuous execution authorized; next 07-18
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-18-PLAN.md
+Last session: 2026-10-06T03:22:08.095Z
+Stopped at: Phase 7 plan 07-18 complete; continuous execution authorized; next 07-21
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-21-PLAN.md
 
 ## Accumulated Context
 
