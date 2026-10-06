@@ -249,7 +249,7 @@ class OperationalCapabilitiesIT {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.capabilities").isArray())
-        .andExpect(jsonPath("$.capabilities.length()").value(10))
+        .andExpect(jsonPath("$.capabilities.length()").value(11))
         .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
         .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_ROLES"))
         .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"))
@@ -259,7 +259,8 @@ class OperationalCapabilitiesIT {
         .andExpect(jsonPath("$.capabilities[6]").value("MANAGE_ODDS_MARKET"))
         .andExpect(jsonPath("$.capabilities[7]").value("PROPOSE_ODDS_OVERRIDE"))
         .andExpect(jsonPath("$.capabilities[8]").value("APPROVE_ODDS_OVERRIDE"))
-        .andExpect(jsonPath("$.capabilities[9]").value("AUTHORIZE_SETTLEMENT"));
+        .andExpect(jsonPath("$.capabilities[9]").value("AUTHORIZE_SETTLEMENT"))
+        .andExpect(jsonPath("$.capabilities[10]").value("MANAGE_EMERGENCY_PAUSES"));
   }
 
   @Test
@@ -375,7 +376,7 @@ class OperationalCapabilitiesIT {
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.capabilities").isArray())
-        .andExpect(jsonPath("$.capabilities.length()").value(10))
+        .andExpect(jsonPath("$.capabilities.length()").value(11))
         .andExpect(jsonPath("$.capabilities[0]").value("VIEW_OPERATIONAL_PANEL"))
         .andExpect(jsonPath("$.capabilities[1]").value("MANAGE_ROLES"))
         .andExpect(jsonPath("$.capabilities[2]").value("CORRECT_ENROLLMENT"))
@@ -385,7 +386,8 @@ class OperationalCapabilitiesIT {
         .andExpect(jsonPath("$.capabilities[6]").value("MANAGE_ODDS_MARKET"))
         .andExpect(jsonPath("$.capabilities[7]").value("PROPOSE_ODDS_OVERRIDE"))
         .andExpect(jsonPath("$.capabilities[8]").value("APPROVE_ODDS_OVERRIDE"))
-        .andExpect(jsonPath("$.capabilities[9]").value("AUTHORIZE_SETTLEMENT"));
+        .andExpect(jsonPath("$.capabilities[9]").value("AUTHORIZE_SETTLEMENT"))
+        .andExpect(jsonPath("$.capabilities[10]").value("MANAGE_EMERGENCY_PAUSES"));
   }
 
   @Test
@@ -448,7 +450,7 @@ class OperationalCapabilitiesIT {
                 .with(oidcPrincipalWithCustomIss(ISSUER, "admin-sub"))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.capabilities.length()").value(10));
+        .andExpect(jsonPath("$.capabilities.length()").value(11));
 
     // java.net.URL
     mockMvc
@@ -457,7 +459,7 @@ class OperationalCapabilitiesIT {
                 .with(oidcPrincipalWithCustomIss(URI.create(ISSUER).toURL(), "admin-sub"))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.capabilities.length()").value(10));
+        .andExpect(jsonPath("$.capabilities.length()").value(11));
 
     // java.net.URI
     mockMvc
@@ -466,7 +468,7 @@ class OperationalCapabilitiesIT {
                 .with(oidcPrincipalWithCustomIss(URI.create(ISSUER), "admin-sub"))
                 .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.capabilities.length()").value(10));
+        .andExpect(jsonPath("$.capabilities.length()").value(11));
   }
 
   @Test
@@ -528,7 +530,7 @@ class OperationalCapabilitiesIT {
 
     assertThat(body)
         .contains(
-            "\"capabilities\":[\"VIEW_OPERATIONAL_PANEL\",\"MANAGE_ROLES\",\"CORRECT_ENROLLMENT\",\"MANAGE_SPORTS_CATALOG\",\"BOOTSTRAP_SPORTS_COMPETITION\",\"VIEW_ODDS_MARKET\",\"MANAGE_ODDS_MARKET\",\"PROPOSE_ODDS_OVERRIDE\",\"APPROVE_ODDS_OVERRIDE\",\"AUTHORIZE_SETTLEMENT\"]")
+            "\"capabilities\":[\"VIEW_OPERATIONAL_PANEL\",\"MANAGE_ROLES\",\"CORRECT_ENROLLMENT\",\"MANAGE_SPORTS_CATALOG\",\"BOOTSTRAP_SPORTS_COMPETITION\",\"VIEW_ODDS_MARKET\",\"MANAGE_ODDS_MARKET\",\"PROPOSE_ODDS_OVERRIDE\",\"APPROVE_ODDS_OVERRIDE\",\"AUTHORIZE_SETTLEMENT\",\"MANAGE_EMERGENCY_PAUSES\"]")
         .doesNotContain(adminIdentityId.toString())
         .doesNotContain("admin_geral")
         .doesNotContain("ADMINISTRADOR_GERAL")

@@ -27,7 +27,8 @@ class OperationalCapabilitiesResponseTest {
           "MANAGE_ODDS_MARKET",
           "PROPOSE_ODDS_OVERRIDE",
           "APPROVE_ODDS_OVERRIDE",
-          "AUTHORIZE_SETTLEMENT");
+          "AUTHORIZE_SETTLEMENT",
+          "MANAGE_EMERGENCY_PAUSES");
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -67,6 +68,7 @@ class OperationalCapabilitiesResponseTest {
     assertThat(OperationalCapability.PROPOSE_ODDS_OVERRIDE.ordinal()).isEqualTo(7);
     assertThat(OperationalCapability.APPROVE_ODDS_OVERRIDE.ordinal()).isEqualTo(8);
     assertThat(OperationalCapability.AUTHORIZE_SETTLEMENT.ordinal()).isEqualTo(9);
+    assertThat(OperationalCapability.MANAGE_EMERGENCY_PAUSES.ordinal()).isEqualTo(10);
   }
 
   @Test

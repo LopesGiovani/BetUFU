@@ -1,0 +1,70 @@
+{
+    "schema_version":  1,
+    "plan":  "07-20",
+    "wave":  8,
+    "status":  "approved",
+    "authorized_stage":  "implementation",
+    "head":  "36a6df5188d3857df9c98714964e8c069199f569",
+    "recorded_at":  "2026-10-05T22:31:49.026Z",
+    "plan_sha256":  "abd2e1aed33552d1a7dffc04e711fadbef7b9f900a8b380c996483fd69191000",
+    "decisions_sha256":  "f9780da3a65a23c24e49b70712b79766741531d92c0b1c8cf6214bc9524f0e52",
+    "human_approval":  {
+                           "source":  "owner",
+                           "status":  "approved",
+                           "reference":  "conversation:owner-continuous-phase7-wave2-through-completion;owner-resume-as-before",
+                           "statement":  "Continuous owner authorization expressly includes V39+ migrations, inline implementation, tests/self-healing and local commits through all Phase7 waves. The reviewed V44 candidate digest is recorded for exact publication; no separate human digest reply or external approval is asserted. D-22..25 and consumer-owned target validation govern this stage.",
+                           "plans":  [
+                                         "07-20"
+                                     ]
+                       },
+    "scope":  {
+                  "paths":  [
+                                "docs/phase7-approvals/07-20.json",
+                                "backend/src/main/resources/db/migration/V44__emergency_pauses.sql",
+                                "backend/src/main/java/br/com/betufu/platform/operations/EmergencyPausePort.java",
+                                "backend/src/main/java/br/com/betufu/platform/operations/EmergencyPauseController.java",
+                                "backend/src/main/java/br/com/betufu/platform/operations/EmergencyPauseService.java",
+                                "backend/src/main/java/br/com/betufu/platform/operations/OperationalCapability.java",
+                                "backend/src/main/java/br/com/betufu/platform/operations/OperationalCapabilitiesService.java",
+                                "backend/src/test/java/br/com/betufu/platform/operations/EmergencyPauseIT.java",
+                                "backend/src/main/java/br/com/betufu/platform/security/SecurityConfiguration.java",
+                                "backend/src/main/java/br/com/betufu/identity/internal/EmergencyPauseTargetAdapter.java",
+                                "backend/src/main/java/br/com/betufu/sports/internal/EmergencyPauseTargetAdapter.java",
+                                "backend/src/main/java/br/com/betufu/odds/internal/EmergencyPauseTargetAdapter.java",
+                                "backend/src/main/java/br/com/betufu/chat/internal/EmergencyPauseTargetAdapter.java",
+                                "backend/src/test/java/br/com/betufu/platform/operations/OperationalCapabilitiesIT.java"
+                            ],
+                  "commands":  [
+                                   "node scripts/validate-phase7-approvals.mjs --plan 07-20 --stage implementation",
+                                   "node scripts/maven.mjs -f backend/pom.xml \"-Dtest=EmergencyPauseIT,ModulithArchitectureTests\" test",
+                                   "node scripts/maven.mjs -f backend/pom.xml verify",
+                                   "node --test scripts/*.test.mjs"
+                               ],
+                  "candidates":  [
+                                     ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-20-candidate/V44__emergency_pauses.sql"
+                                 ]
+              },
+    "baseline_hashes":  {
+                            "AGENTS.md":  "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+                            ".planning/STATE.md":  "180625f3e991b1308d01b1d208d5b0b072540791d44325a646c073ae5022dd4a",
+                            ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-20-PLAN.md":  "abd2e1aed33552d1a7dffc04e711fadbef7b9f900a8b380c996483fd69191000",
+                            ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md":  "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+                            ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md":  "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+                            ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md":  "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845"
+                        },
+    "candidate_hashes":  {
+                             ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-20-candidate/V44__emergency_pauses.sql":  "f377ccfed441324828a3754aaf1fd8974affe8e4ce6e658e62d71c1cecb49aa6"
+                         },
+    "self_healing":  {
+                         "reference":  "conversation:owner-continuous-phase7-wave2-through-completion;owner-resume-as-before",
+                         "baseline_commit":  "36a6df5188d3857df9c98714964e8c069199f569",
+                         "commands":  [
+                                          "node scripts/maven.mjs -f backend/pom.xml \"-Dtest=IdentityModuleTest,OperationalCapabilitiesResponseTest\" test"
+                                      ],
+                         "paths":  [
+                                       "backend/src/test/java/br/com/betufu/platform/operations/OperationalCapabilitiesResponseTest.java",
+                                       "backend/src/test/java/br/com/betufu/identity/IdentityModuleTest.java"
+                                   ],
+                         "reason":  "Aggregate failures: strict capability allowlist and isolated identity module JdbcTemplate fixture. Two supplemental test corrections under continuous owner self-healing authorization; validator cap preserved."
+                     }
+}

@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.test.ApplicationModuleTest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -102,6 +103,11 @@ class IdentityModuleTest {
 
   @TestConfiguration(proxyBeanMethods = false)
   static class TestIdentityInfrastructureConfiguration {
+
+    @Bean
+    JdbcTemplate jdbcTemplate() {
+      return mock(JdbcTemplate.class);
+    }
 
     @Bean
     LocalIdentityRepository localIdentityRepository() {

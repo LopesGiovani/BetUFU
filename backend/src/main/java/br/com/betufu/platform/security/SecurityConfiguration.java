@@ -242,6 +242,8 @@ public class SecurityConfiguration {
                     // Restringir por método mantém qualquer comando de mercado autenticado.
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/odds/**")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/predictions/markets/*/availability")
+                    .permitAll()
                     // Ranking vitalicio e uma leitura publica sanitizada, sem PII ou saldo.
                     .requestMatchers(HttpMethod.GET, "/api/v1/public/ranking/**")
                     .permitAll()

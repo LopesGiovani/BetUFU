@@ -113,6 +113,7 @@ public class OperationalCapabilitiesService {
     }
     if (isGlobalAdmin) {
       capabilities.add(OperationalCapability.AUTHORIZE_SETTLEMENT);
+      capabilities.add(OperationalCapability.MANAGE_EMERGENCY_PAUSES);
     }
 
     return new OperationalCapabilitiesResponse(capabilities);
