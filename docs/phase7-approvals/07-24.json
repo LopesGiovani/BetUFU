@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "plan": "07-24",
+  "wave": 9,
+  "status": "approved",
+  "authorized_stage": "implementation",
+  "head": "868d0dee3271ad02863d652b293aafde209b7776",
+  "recorded_at": "2026-10-06T00:10:00.000Z",
+  "plan_sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922",
+  "decisions_sha256": "c7739137753908c8f15ec6b419595dc43d53d1433682812ff0a8288e25c07b63",
+  "human_approval": {
+    "source": "owner",
+    "status": "approved",
+    "reference": "conversation:2026-10-06:owner-continuous-phase7-07-24",
+    "statement": "Owner ratified option 1 for implementation policy and authorized continuous inline Phase 7 execution on master, including migrations, tests, self-healing, two local commits per plan and advancement. The exact V45 candidate digest is recorded as execution evidence; no separate human digest reply is asserted. Retention by class, restricted export, audited expurgo and pseudonymization are approved for implementation; independent legal review and public-pilot launch remain blocked.",
+    "plans": [
+      "07-24"
+    ]
+  },
+  "scope": {
+    "paths": [
+      "docs/phase7-approvals/07-24.json",
+      "backend/src/main/resources/db/migration/V45__privacy_rights_cases.sql",
+      "backend/src/main/java/br/com/betufu/privacy/package-info.java",
+      "backend/src/main/java/br/com/betufu/privacy/PrivacySubjectPort.java",
+      "backend/src/main/java/br/com/betufu/privacy/internal/PrivacyRightsController.java",
+      "backend/src/main/java/br/com/betufu/privacy/internal/PrivacyRightsService.java",
+      "backend/src/main/java/br/com/betufu/privacy/internal/PrivacyRightsRepository.java",
+      "backend/src/main/java/br/com/betufu/privacy/internal/PrivacyRightsModels.java",
+      "backend/src/main/java/br/com/betufu/identity/internal/PrivacyIdentityAdapter.java",
+      "backend/src/main/java/br/com/betufu/sports/internal/privacy/SportsPrivacyAdapter.java",
+      "backend/src/test/java/br/com/betufu/privacy/PrivacyRightsIT.java"
+    ],
+    "commands": [
+      "node scripts/validate-phase7-approvals.mjs --plan 07-24 --stage implementation",
+      "node scripts/maven.mjs -f backend/pom.xml \"-Dtest=PrivacyRightsIT,PrivacyRightsHttpIT,PrivacyRightsWithoutSessionsIT,ModulithArchitectureTests\" test",
+      "node scripts/maven.mjs -f backend/pom.xml verify",
+      "node --test scripts/*.test.mjs"
+    ],
+    "candidates": [
+      ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-candidate/V45__privacy_rights_cases.sql"
+    ]
+  },
+  "baseline_hashes": {
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md": "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845",
+    "docs/development.md": "3708198177e4c0c303e92729f7f3641300c9d853fb944e972c006a3d65044c2d",
+    "docs/local-seed.md": "f6050cef490d6007b92185a366913cd5642e6e89fc8f3462eb3a02a093327673",
+    "docs/phase7-decisions.json": "c7739137753908c8f15ec6b419595dc43d53d1433682812ff0a8288e25c07b63",
+    "docs/phase7-privacy-policy.json": "6d395fcad6f791d9286c1662cac40dc0f83987b63d85b67d9a2a16822ae3d2d9"
+  },
+  "candidate_hashes": {
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-candidate/V45__privacy_rights_cases.sql": "03c95f44919a9b84a6d5cf8c3e833d47895583953ef71e1bb672fb79a68aed33"
+  },
+  "baseline_update": {
+    "reference": "conversation:owner-reverted-three-documents-and-instructed-ignore",
+    "absent_paths": [
+      "docs/manual-testing.md"
+    ],
+    "reason": "Owner restored development/local-seed and removed manual-testing; preservation snapshot reconciled without modifying owner documents."
+  },
+  "self_healing": {
+    "reason": "Inline review found missing HTTP authorization coverage and premature fulfillment without export; corrected inside existing allowlist and expanded the literal focal command.",
+    "human_reference": "conversation:owner-continuous-phase7-self-healing",
+    "details": [
+      "Added real authenticated HTTP tests, private response text and historical-state reconstruction",
+      "Revalidated session and general-administrator grant after PostgreSQL case lock waits",
+      "Blocked premature completion of rights requiring 07-27 execution/export evidence",
+      "Expanded focal selector inside the existing single test-file allowlist",
+      "Reconciled implementation-policy evidence to the current plan after the focal selector expansion; no business-policy change.",
+      "Made SessionRepository lazily available through ObjectProvider; absence always denies with401. Added real Spring context/HTTP proof with sessions explicitly excluded after68aggregate bootstrap errors in seven existing classes."
+    ]
+  }
+}

@@ -2,7 +2,8 @@
   "schema_version": 1,
   "status": "pending",
   "notes": [
-    "Preparation only; no legal review or launch authorization. Execution approval does not resolve substantive decisions. No automatic purge or modification of historical facts."
+    "Implementation policy approved by the owner for 07-24; public-pilot release and independent legal-counsel review remain pending.",
+    "Historical facts remain append-only. Expurgo is represented by an audited disposition event and removal from serving projections; UPDATE/DELETE of facts is forbidden."
   ],
   "legal_review": {
     "status": "pending",
@@ -32,7 +33,9 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["legal_hold"]
+      "holds": [
+        "legal_hold"
+      ]
     },
     "moderation_evidence": {
       "purpose": "Restricted original content needed to treat an actual moderation case",
@@ -52,7 +55,11 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["open_case", "pending_review", "legal_hold"]
+      "holds": [
+        "open_case",
+        "pending_review",
+        "legal_hold"
+      ]
     },
     "sanction_progression": {
       "purpose": "Minimum trace of decisions, reversals and progression without erasing active bans",
@@ -72,7 +79,11 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["legal_hold", "active_sanction", "progression"]
+      "holds": [
+        "legal_hold",
+        "active_sanction",
+        "progression"
+      ]
     },
     "athlete_without_account": {
       "purpose": "Sports profile of a holder without a platform account",
@@ -92,7 +103,9 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["legal_hold"]
+      "holds": [
+        "legal_hold"
+      ]
     },
     "ledger": {
       "purpose": "Historical virtual-credit accounting facts",
@@ -112,7 +125,9 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["legal_hold"]
+      "holds": [
+        "legal_hold"
+      ]
     },
     "audit": {
       "purpose": "Historical operation and access accountability",
@@ -132,7 +147,9 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["legal_hold"]
+      "holds": [
+        "legal_hold"
+      ]
     },
     "logs": {
       "purpose": "Operational and security diagnostics",
@@ -152,7 +169,9 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["legal_hold"]
+      "holds": [
+        "legal_hold"
+      ]
     },
     "backups": {
       "purpose": "Recovery of BETUFU, Keycloak and private objects; 30 days operational target, legal disposition pending",
@@ -172,7 +191,9 @@
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
-      "holds": ["legal_hold"]
+      "holds": [
+        "legal_hold"
+      ]
     }
   },
   "rights": {
@@ -309,5 +330,340 @@
     "legal_review": "pending",
     "holder_verification": "pending",
     "response_authority": "pending"
+  },
+  "implementation_gate": {
+    "status": "approved",
+    "authority": "owner",
+    "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+    "statement": "Implementation policy approved for 07-24: class retention, restricted export, audited expurgo and pseudonymization. Public-pilot release and independent counsel review remain pending.",
+    "policy": {
+      "status": "approved",
+      "legal_review": {
+        "status": "approved",
+        "authority": "owner",
+        "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+        "evidence": {
+          "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+          "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+        }
+      },
+      "classes": {
+        "common_messages": {
+          "purpose": "Authenticated chat participation and public match history",
+          "retention": {
+            "status": "proposed",
+            "days": 90,
+            "start_event": "message_created",
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "legal_hold"
+          ]
+        },
+        "moderation_evidence": {
+          "purpose": "Restricted original content needed to treat an actual moderation case",
+          "retention": {
+            "status": "proposed",
+            "days": 180,
+            "start_event": "case_closed",
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "open_case",
+            "pending_review",
+            "legal_hold"
+          ]
+        },
+        "sanction_progression": {
+          "purpose": "Minimum trace of decisions, reversals and progression without erasing active bans",
+          "retention": {
+            "status": "pending",
+            "days": null,
+            "start_event": null,
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "legal_hold",
+            "active_sanction",
+            "progression"
+          ]
+        },
+        "athlete_without_account": {
+          "purpose": "Sports profile of a holder without a platform account",
+          "retention": {
+            "status": "pending",
+            "days": null,
+            "start_event": null,
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "legal_hold"
+          ]
+        },
+        "ledger": {
+          "purpose": "Historical virtual-credit accounting facts",
+          "retention": {
+            "status": "pending",
+            "days": null,
+            "start_event": null,
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "legal_hold"
+          ]
+        },
+        "audit": {
+          "purpose": "Historical operation and access accountability",
+          "retention": {
+            "status": "pending",
+            "days": null,
+            "start_event": null,
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "legal_hold"
+          ]
+        },
+        "logs": {
+          "purpose": "Operational and security diagnostics",
+          "retention": {
+            "status": "pending",
+            "days": null,
+            "start_event": null,
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "legal_hold"
+          ]
+        },
+        "backups": {
+          "purpose": "Recovery of BETUFU, Keycloak and private objects; 30 days operational target, legal disposition pending",
+          "retention": {
+            "status": "proposed",
+            "days": 30,
+            "start_event": "snapshot_created",
+            "disposition": null,
+            "authority": {
+              "status": "pending",
+              "authority": null,
+              "reference": null,
+              "evidence": {
+                "path": null,
+                "sha256": null
+              }
+            }
+          },
+          "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
+          "holds": [
+            "legal_hold"
+          ]
+        }
+      },
+      "rights": {
+        "notice": {
+          "procedure": "Authenticated notice in the private rights case; requests without an account use an operator-opened case after out-of-band identity verification.",
+          "authority": {
+            "status": "approved",
+            "authority": "owner",
+            "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+            "evidence": {
+              "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+              "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+            }
+          }
+        },
+        "access": {
+          "procedure": "ADMINISTRADOR_GERAL verifies the holder, records the decision and returns a restricted export through the verified channel; no anonymous API exposes data.",
+          "authority": {
+            "status": "approved",
+            "authority": "owner",
+            "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+            "evidence": {
+              "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+              "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+            }
+          }
+        },
+        "correction": {
+          "procedure": "ADMINISTRADOR_GERAL verifies the requested correction, records the decision as a new append-only event and updates only current serving projections where permitted.",
+          "authority": {
+            "status": "approved",
+            "authority": "owner",
+            "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+            "evidence": {
+              "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+              "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+            }
+          }
+        },
+        "objection": {
+          "procedure": "ADMINISTRADOR_GERAL records and evaluates the objection; applicable processing is suspended while a hold or review is active.",
+          "authority": {
+            "status": "approved",
+            "authority": "owner",
+            "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+            "evidence": {
+              "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+              "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+            }
+          }
+        },
+        "deletion": {
+          "procedure": "ADMINISTRADOR_GERAL verifies the holder and applies class retention/holds; expurgo is an audited disposition event and projection removal, never UPDATE/DELETE of historical facts.",
+          "authority": {
+            "status": "approved",
+            "authority": "owner",
+            "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+            "evidence": {
+              "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+              "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+            }
+          }
+        },
+        "pseudonymization": {
+          "procedure": "ADMINISTRADOR_GERAL may append a pseudonymization/disposition event after retention and hold checks; integrity references remain without direct identifiers.",
+          "authority": {
+            "status": "approved",
+            "authority": "owner",
+            "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+            "evidence": {
+              "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+              "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+            }
+          }
+        }
+      },
+      "holder_verification": {
+        "account": "Authenticated session plus account ownership checks; IDOR and CSRF are denied.",
+        "athlete_without_account": "Only an operator-opened case after identity verification outside the system; store only a restricted proof reference and reply through the verified channel.",
+        "authority": {
+          "status": "approved",
+          "authority": "owner",
+          "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+          "evidence": {
+            "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+            "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+          }
+        }
+      },
+      "response_operator": {
+        "identity": "Only ADMINISTRADOR_GERAL may analyze and answer; every response is a new audited append-only event.",
+        "authority": {
+          "status": "approved",
+          "authority": "owner",
+          "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+          "evidence": {
+            "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+            "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+          }
+        }
+      },
+      "minimum_audit": {
+        "preserve_active_sanctions": true,
+        "preserve_progression": true,
+        "retention": {
+          "status": "approved",
+          "days": 1825,
+          "start_event": "audit_event_created",
+          "disposition": "Pseudonymize subject references through a new audited event; preserve the minimum accountability chain and all active sanctions.",
+          "authority": {
+            "status": "approved",
+            "authority": "owner",
+            "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+            "evidence": {
+              "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+              "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+            }
+          }
+        }
+      },
+      "restore": {
+        "reapply_current_suppressions_before_serving": true,
+        "authority": {
+          "status": "approved",
+          "authority": "owner",
+          "reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+          "evidence": {
+            "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md",
+            "sha256": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+          }
+        }
+      },
+      "external_dependencies": {
+        "legal_review": "owner-policy-approved; independent counsel and public-pilot authorization remain outside this gate",
+        "holder_verification": "approved: manual verified-holder procedure",
+        "response_authority": "approved: ADMINISTRADOR_GERAL only"
+      }
+    }
   }
 }
