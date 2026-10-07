@@ -24,6 +24,7 @@
     </div>
 
     <div class="header-actions">
+      <a class="chat-moderation-link" [routerLink]="chatModerationPath">Moderacao da comunidade</a>
       @if (canOpenSportsOperation()) {
         <a class="sports-operation-link" routerLink="/operacao/esportes"> Operação esportiva </a>
       }

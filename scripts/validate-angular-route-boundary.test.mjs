@@ -6,7 +6,15 @@ import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { APPROVED_GENERATED_FILES } from '../frontend/scripts/generate-api.mjs';
-import { normalizePhaseSevenRoutes } from './validate-angular-route-boundary.mjs';
+import { normalizePhaseSevenRoutes, normalizePhaseSevenPrivateRoutes } from './validate-angular-route-boundary.mjs';
+
+test('moderation routes require exact components, shells and ordered private guards', async () => {
+  const source = await readFile(new URL('../frontend/src/app/app.routes.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(normalizePhaseSevenPrivateRoutes(source), /chat-moderation-page\.component/);
+  for (const bad of [source.replace('authenticationGuard, profileCompletionGuard', 'profileCompletionGuard'), source.replace("path: 'conta/punicoes'", "path: 'conta/publica'"), source.replace("consoleVariant: 'personal'", "consoleVariant: 'operational'"), source.replace('ChatModerationPageComponent', 'OwnerPageComponent')]) {
+    assert.throws(() => normalizePhaseSevenPrivateRoutes(bad));
+  }
+});
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptsDirectory, '..');
@@ -482,7 +490,7 @@ test('aceita uma fixture canonica isolada', async () => {
 
 test('aceita rotas da Fase 6 com ranking publico e dois guards privados', async () => {
   await withFixture('phase-six-approved', async (fixtureRoot) => {
-    const source = await readFile(join(projectRoot, appRoutesPath), 'utf8');
+    const source = normalizePhaseSevenPrivateRoutes(await readFile(join(projectRoot, appRoutesPath), 'utf8'));
     assert.match(source, /path: 'conta\/historico'/u);
     assert.match(source, /path: 'ranking'/u);
     await overwriteText(fixtureRoot, appRoutesPath, source);
@@ -512,7 +520,7 @@ for (const [label, mutate, rule] of [
 ]) {
   test(`recusa rotas da Fase 6: ${label}`, async () => {
     await withFixture(`phase-six-${label}`, async (fixtureRoot) => {
-      const source = (await readFile(join(projectRoot, appRoutesPath), 'utf8')).replaceAll('\r\n', '\n');
+      const source = normalizePhaseSevenPrivateRoutes(await readFile(join(projectRoot, appRoutesPath), 'utf8')).replaceAll('\r\n', '\n');
       await overwriteText(fixtureRoot, appRoutesPath, source);
       await mutateText(fixtureRoot, appRoutesPath, mutate);
       expectValidationFailure(runValidator(fixtureRoot), rule);

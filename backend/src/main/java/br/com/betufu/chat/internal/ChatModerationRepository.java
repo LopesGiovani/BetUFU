@@ -83,7 +83,8 @@ public class ChatModerationRepository {
   Optional<CaseRow> lockCase(UUID caseId) {
     return jdbc
         .query(
-            "SELECT c.case_id,c.message_id,ch.event_id,c.status,c.opened_at FROM public.chat_moderation_case c JOIN public.chat_channel ch ON ch.channel_id=c.channel_id WHERE c.case_id=? FOR UPDATE",
+            // Only the mutable case needs a lock; the runtime cannot UPDATE immutable channels.
+            "SELECT c.case_id,c.message_id,ch.event_id,c.status,c.opened_at FROM public.chat_moderation_case c JOIN public.chat_channel ch ON ch.channel_id=c.channel_id WHERE c.case_id=? FOR UPDATE OF c",
             this::caseRow,
             caseId)
         .stream()

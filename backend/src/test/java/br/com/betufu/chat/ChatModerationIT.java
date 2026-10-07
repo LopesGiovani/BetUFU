@@ -18,6 +18,41 @@ class ChatModerationIT extends ChatCommunityFixture {
   @Autowired br.com.betufu.chat.internal.ChatReadService reads;
 
   @Test
+  void caseLockWorksWithoutUpdatePermissionOnAppendOnlyChannel() throws Exception {
+    UUID event = event(true);
+    UUID message = message(channel(event), "restricted role lock proof");
+    UUID caseId =
+        jdbc.queryForObject(
+            "INSERT INTO chat_moderation_case(message_id,channel_id) SELECT message_id,channel_id FROM chat_message WHERE message_id=? RETURNING case_id",
+            UUID.class,
+            message);
+    var runtime = runtime();
+    try (var connection =
+            java.sql.DriverManager.getConnection(
+                POSTGRESQL.getJdbcUrl(), POSTGRESQL.getUsername(), POSTGRESQL.getPassword());
+        var sql = connection.createStatement()) {
+      sql.execute("SET betufu.runtime_role='chat_community_runtime'");
+      for (String migration :
+          java.util.List.of(
+              "V39__chat_channels_and_messages.sql", "V43__chat_moderation_cases.sql")) {
+        try (var resource = getClass().getResourceAsStream("/db/migration/" + migration)) {
+          String source =
+              new String(resource.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+          sql.execute(source.substring(source.indexOf("DO $$")));
+        }
+      }
+    }
+    assertThat(
+            runtime.queryForObject(
+                "SELECT has_table_privilege(current_user,'chat_channel','UPDATE')", Boolean.class))
+        .isFalse();
+    var repository = new br.com.betufu.chat.internal.ChatModerationRepository(runtime);
+    var lock = repository.getClass().getDeclaredMethod("lockCase", UUID.class);
+    lock.setAccessible(true);
+    assertThat((java.util.Optional<?>) lock.invoke(repository, caseId)).isPresent();
+  }
+
+  @Test
   void scopedModeratorRemovesOnlyItsEventAndRetryKeepsOneImmutableFact() {
     UUID moderator = participant("moderator");
     UUID event = event(true);

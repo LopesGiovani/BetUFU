@@ -762,6 +762,8 @@ function approvedDynamicImportsFor(relativePath) {
       ...APPROVED_ROOT_STATE_ROUTES,
       ...APPROVED_PHASE_SIX_ROUTES,
       approvedRoute('comunidade', './features/chat/community-page.component', 'CommunityPageComponent'),
+      approvedRoute('conta/punicoes', './features/chat/chat-sanctions-page.component', 'ChatSanctionsPageComponent'),
+      approvedRoute('operacao/comunidade/moderacao', './features/chat/chat-moderation-page.component', 'ChatModerationPageComponent'),
     ];
   }
   if (relativePath === PATHS.development) {
@@ -1929,8 +1931,26 @@ export function normalizePhaseSevenRoutes(source) {
   return source.replace(route, '');
 }
 
+export function normalizePhaseSevenPrivateRoutes(source) {
+  if (!/chat-(?:sanctions|moderation)-page\.component/u.test(source)) return source;
+  const guard = /canActivateChild\s*:\s*\[\s*authenticationGuard\s*,\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*\[/u.exec(source);
+  expect(guard !== null, 'PHASE_SEVEN_PRIVATE_GUARDS', 'Moderacao e punicoes exigem sessao e perfil.');
+  const start = guard.index + guard[0].length;
+  let tail = source.slice(start);
+  for (const [path, variant, file, name] of [
+    ['conta/punicoes', 'personal', 'chat-sanctions-page', 'ChatSanctionsPageComponent'],
+    ['operacao/comunidade/moderacao', 'operational', 'chat-moderation-page', 'ChatModerationPageComponent'],
+  ]) {
+    const pattern = new RegExp(String.raw`^\s*\{\s*path\s*:\s*'${path}'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'${variant}'\s*\}\s*,\s*children\s*:\s*\[\s*\{\s*path\s*:\s*''\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'\./features/chat/${file}\.component'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*${name}\s*\}\s*\)\s*=>\s*${name}\s*,?\s*\)\s*,?\s*\}\s*,?\s*\]\s*,?\s*\}\s*,`, 'u');
+    const match = pattern.exec(tail);
+    expect(match !== null, 'PHASE_SEVEN_PRIVATE_ROUTE_SHAPE', 'Somente os shells e componentes privados exatos sao permitidos.');
+    tail = tail.slice(match[0].length);
+  }
+  return source.slice(0, start) + tail;
+}
+
 function validateRouteSources(sources) {
-  const seam = normalizePhaseSixRoutes(normalizePhaseSevenRoutes(stripScriptComments(sources.get(PATHS.seam))));
+  const seam = normalizePhaseSixRoutes(normalizePhaseSevenRoutes(normalizePhaseSevenPrivateRoutes(stripScriptComments(sources.get(PATHS.seam)))));
   const profileGuard = stripScriptComments(sources.get(PATHS.profileGuard));
   const development = stripScriptComments(sources.get(PATHS.development));
   const production = stripScriptComments(sources.get(PATHS.production));

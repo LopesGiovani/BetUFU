@@ -22,6 +22,7 @@ const SPEC_PLANS = Object.freeze({
   "frontend/e2e/phase7-chat-read.spec.ts": "07-08",
   "frontend/e2e/phase7-chat-write.spec.ts": "07-12",
   "frontend/e2e/phase7-chat-community.spec.ts": "07-15",
+  "frontend/e2e/phase7-moderation.spec.ts": "07-19",
 });
 export function specPlan(value) {
   if (!Object.hasOwn(SPEC_PLANS, value)) throw new Error("Unapproved browser spec");
@@ -583,6 +584,8 @@ export async function runIsolated(spec) {
       BETUFU_E2E_CHECKER_USERNAME: PERSONAS.find((p) => p.key === "checker")
         .username,
       BETUFU_E2E_CHECKER_PASSWORD: password,
+      BETUFU_E2E_MODERATOR_USERNAME: PERSONAS.find((p) => p.key === "moderator").username,
+      BETUFU_E2E_MODERATOR_PASSWORD: password,
     };
     await command(
       process.execPath,

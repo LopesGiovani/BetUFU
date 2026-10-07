@@ -22,6 +22,7 @@ import { OperationsPanelStore } from './operations-panel.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationsPanelPageComponent implements OnInit {
+  readonly chatModerationPath = '/operacao/comunidade/moderacao';
   readonly store = inject(OperationsPanelStore);
   private readonly adapter = inject(OperationsApiAdapter);
 

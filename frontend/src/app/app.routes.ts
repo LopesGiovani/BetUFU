@@ -107,6 +107,34 @@ export const APP_ROUTES: Routes = [
     canActivateChild: [authenticationGuard, profileCompletionGuard],
     children: [
       {
+        path: 'conta/punicoes',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'personal' },
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/chat/chat-sanctions-page.component').then(
+                ({ ChatSanctionsPageComponent }) => ChatSanctionsPageComponent,
+              ),
+          },
+        ],
+      },
+      {
+        path: 'operacao/comunidade/moderacao',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'operational' },
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/chat/chat-moderation-page.component').then(
+                ({ ChatModerationPageComponent }) => ChatModerationPageComponent,
+              ),
+          },
+        ],
+      },
+      {
         path: 'conta/historico',
         component: ConsoleShellComponent,
         data: { consoleVariant: 'personal' },
