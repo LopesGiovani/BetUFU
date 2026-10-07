@@ -287,6 +287,41 @@ class PrivacyRightsHttpIT {
   }
 
   @Test
+  void ownCaseListIsPrivatePagedAndReconstructsHistoryWithoutAdministratorExpansion()
+      throws Exception {
+    Session account = session("owner");
+    String first =
+        json.readTree(call(account, "POST", "", accountBody("ACCESS"), true).body())
+            .get("caseId")
+            .asString();
+    call(administrator, "POST", "/" + first + "/responses", responseBody("ANALYZE"), true);
+    String second =
+        json.readTree(call(account, "POST", "", accountBody("NOTICE"), true).body())
+            .get("caseId")
+            .asString();
+    call(session("other"), "POST", "", accountBody("ACCESS"), true);
+    jdbc.update("DELETE FROM privacy_rights_case_state WHERE case_id=?", UUID.fromString(first));
+    var list = call(account, "GET", "/me/cases?limit=1", null, true);
+    assertThat(list.statusCode()).isEqualTo(200);
+    assertThat(list.headers().firstValue("Cache-Control")).contains("private, no-store");
+    assertThat(list.headers().allValues("Vary")).contains("Cookie");
+    assertThat(json.readTree(list.body()).size()).isEqualTo(1);
+    assertThat(json.readTree(list.body()).get(0).get("caseId").asString()).isEqualTo(second);
+    var older = call(account, "GET", "/me/cases?limit=1&offset=1", null, true);
+    assertThat(older.statusCode()).isEqualTo(200);
+    assertThat(older.body())
+        .contains(first, "UNDER_REVIEW", "ANALYZED")
+        .doesNotContain("ownerIdentityId", "proofReference", "subjectRef", "issuer");
+    assertThat(call(administrator, "GET", "/me/cases", null, true).body()).isEqualTo("[]");
+    assertThat(call(account, "GET", "/me/cases?limit=101", null, true).statusCode()).isEqualTo(400);
+    assertThat(call(account, "GET", "/me/cases?limit=0", null, true).statusCode()).isEqualTo(400);
+    assertThat(call(account, "GET", "/me/cases?offset=-1", null, true).statusCode()).isEqualTo(400);
+    assertThat(call(null, "GET", "/me/cases", null, true).statusCode()).isEqualTo(401);
+    sessions.deleteById(account.getId());
+    assertThat(call(account, "GET", "/me/cases", null, true).statusCode()).isEqualTo(401);
+  }
+
+  @Test
   void ownersIncludingPausedAccountsRequestAndViewWhileThirdPartiesAreDenied() throws Exception {
     jdbc.update(
         "INSERT INTO emergency_pause_fact(target_kind,target_id,actor_identity_id,action,reason,client_command_id,recorded_at) VALUES ('ACCOUNT',?,?,'PAUSE','fixture',?,now())",
@@ -564,7 +599,12 @@ class PrivacyRightsHttpIT {
               + Base64.getEncoder().encodeToString(actor.getId().getBytes(StandardCharsets.UTF_8));
     var builder =
         HttpRequest.newBuilder(
-                URI.create("http://localhost:" + port + "/api/v1/privacy/requests" + path))
+                URI.create(
+                    "http://localhost:"
+                        + port
+                        + "/api/v1/privacy"
+                        + (path.startsWith("/me/") ? "" : "/requests")
+                        + path))
             .timeout(java.time.Duration.ofSeconds(30))
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")

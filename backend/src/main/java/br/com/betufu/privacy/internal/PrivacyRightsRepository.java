@@ -104,6 +104,19 @@ class PrivacyRightsRepository {
         .orElse("PENDING");
   }
 
+  List<CaseFact> ownCases(UUID ownerIdentityId, int limit, int offset) {
+    return jdbc.query(
+        """
+        SELECT case_id,subject_kind,subject_ref,owner_identity_id,request_kind,requested_at
+        FROM public.privacy_rights_case_fact WHERE owner_identity_id=?
+        ORDER BY requested_at DESC,case_id DESC LIMIT ? OFFSET ?
+        """,
+        this::caseFact,
+        ownerIdentityId,
+        limit,
+        offset);
+  }
+
   Optional<CaseFact> findCase(UUID caseId) {
     return jdbc
         .query(

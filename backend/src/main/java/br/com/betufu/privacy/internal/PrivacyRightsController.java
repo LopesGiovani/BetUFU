@@ -3,6 +3,7 @@ package br.com.betufu.privacy.internal;
 import br.com.betufu.platform.api.ApiErrorCode;
 import br.com.betufu.platform.api.ApiProblemException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
@@ -15,12 +16,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 
 @RestController
 @Profile("runtime | integrated")
-@RequestMapping("/api/v1/privacy/requests")
+@RequestMapping("/api/v1/privacy")
 class PrivacyRightsController {
   private final PrivacyRightsService service;
 
@@ -28,7 +30,20 @@ class PrivacyRightsController {
     this.service = service;
   }
 
-  @PostMapping
+  @GetMapping("/me/cases")
+  ResponseEntity<List<PrivacyRightsModels.CaseView>> ownCases(
+      @AuthenticationPrincipal OidcUser user,
+      @RequestParam(defaultValue = "50") int limit,
+      @RequestParam(defaultValue = "0") int offset,
+      HttpServletRequest request) {
+    requireUser(user);
+    return response(
+        HttpStatus.OK,
+        service.ownCases(
+            user.getIssuer().toString(), user.getSubject(), sessionId(request), limit, offset));
+  }
+
+  @PostMapping("/requests")
   ResponseEntity<PrivacyRightsModels.CaseReceipt> request(
       @AuthenticationPrincipal OidcUser user,
       @RequestBody JsonNode body,
@@ -48,7 +63,7 @@ class PrivacyRightsController {
             user.getIssuer().toString(), user.getSubject(), sessionId(request), command));
   }
 
-  @GetMapping("/{caseId}")
+  @GetMapping("/requests/{caseId}")
   ResponseEntity<PrivacyRightsModels.CaseView> view(
       @AuthenticationPrincipal OidcUser user,
       @PathVariable UUID caseId,
@@ -59,7 +74,7 @@ class PrivacyRightsController {
         service.view(user.getIssuer().toString(), user.getSubject(), sessionId(request), caseId));
   }
 
-  @PostMapping("/{caseId}/responses")
+  @PostMapping("/requests/{caseId}/responses")
   ResponseEntity<PrivacyRightsModels.ResponseReceipt> respond(
       @AuthenticationPrincipal OidcUser user,
       @PathVariable UUID caseId,
@@ -132,7 +147,7 @@ class PrivacyRightsController {
         .body(body);
   }
 
-  @PostMapping("/{caseId}/exports")
+  @PostMapping("/requests/{caseId}/exports")
   ResponseEntity<PrivacyRightsService.ExportArtifact> prepareExport(
       @AuthenticationPrincipal OidcUser user,
       @PathVariable UUID caseId,
@@ -144,7 +159,7 @@ class PrivacyRightsController {
             user.getIssuer().toString(), user.getSubject(), sessionId(request), caseId));
   }
 
-  @GetMapping("/{caseId}/exports/latest")
+  @GetMapping("/requests/{caseId}/exports/latest")
   ResponseEntity<PrivacyRightsService.ExportArtifact> downloadExport(
       @AuthenticationPrincipal OidcUser user,
       @PathVariable UUID caseId,

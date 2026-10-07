@@ -96,6 +96,7 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Group',
   'Achievement',
   'EmergencyPauses',
+  'PrivacyRights',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'ChatMuteCommand',
@@ -273,6 +274,14 @@ export const PUBLIC_GENERATOR_MODELS = Object.freeze([
   'EmergencyPauseAvailability',
   'EmergencyPauseCommand',
   'EmergencyPauseState',
+  'PrivacyRequest',
+  'PrivacyCaseReceipt',
+  'PrivacyTimelineItem',
+  'PrivacyCase',
+  'PrivacyResponseCommand',
+  'PrivacyResponseReceipt',
+  'PrivacyRestrictedRecord',
+  'PrivacyExport',
 ]);
 export const PUBLIC_GENERATOR_GLOBAL_PROPERTY = [
   `apis=${PUBLIC_GENERATOR_API_TAGS.join(':')}`,
@@ -326,6 +335,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/operational-panel.service.ts',
   'api/password-reset-recovery.service.ts',
   'api/prediction.service.ts',
+  'api/privacy-rights.service.ts',
   'api/profile.service.ts',
   'api/ranking.service.ts',
   'api/role.service.ts',
@@ -411,6 +421,14 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/password-reset-event-recovery-response.ts',
   'model/prediction-submit-request.ts',
   'model/prediction-ticket-response.ts',
+  'model/privacy-case-receipt.ts',
+  'model/privacy-case.ts',
+  'model/privacy-export.ts',
+  'model/privacy-request.ts',
+  'model/privacy-response-command.ts',
+  'model/privacy-response-receipt.ts',
+  'model/privacy-restricted-record.ts',
+  'model/privacy-timeline-item.ts',
   'model/private-group-created-response.ts',
   'model/private-group-invitation-request.ts',
   'model/private-group-invitation.ts',
@@ -575,7 +593,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // AE29... acrescenta o contrato de pausas administrativas e disponibilidade
 // minima publica da Fase 7, preservando as rotas reais dos produtores 07-22.
 export const APPROVED_GENERATED_DIGEST =
-  'AE29F51FB42941664FDFB6AC9A1EB5EDA02EAD9529C7782E9F08C58AC6760AA4';
+  'BBF8DE6CA2FEA7C26FBAFC9A3ABB11F15D7B14E34A4993121A625B1D83C9DA29';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

@@ -35,6 +35,99 @@ const FIXED_NONCE = '0123456789abcdef0123456789abcdef';
 const RAW_BASE_SERVICE =
   "export class BaseService {\r\n    protected basePath = 'http://localhost';\r\n}\r\n";
 
+const PRIVACY_OPERATIONS = [
+  ['/api/v1/privacy/requests', 'post', 'requestPrivacyRight', 'PrivacyCaseReceipt'],
+  ['/api/v1/privacy/me/cases', 'get', 'getOwnPrivacyCases', 'PrivacyCase'],
+  ['/api/v1/privacy/requests/{caseId}', 'get', 'getPrivacyCase', 'PrivacyCase'],
+  ['/api/v1/privacy/requests/{caseId}/responses', 'post', 'respondPrivacyCase', 'PrivacyResponseReceipt'],
+  ['/api/v1/privacy/requests/{caseId}/exports', 'post', 'preparePrivacyExport', 'PrivacyExport'],
+  ['/api/v1/privacy/requests/{caseId}/exports/latest', 'get', 'downloadPrivacyExport', 'PrivacyExport'],
+];
+const PRIVACY_FIELDS = {
+  PrivacyRequest: ['subjectKind', 'subjectRef', 'requestKind', 'proofReference', 'verifiedChannel'],
+  PrivacyCaseReceipt: ['caseId', 'state', 'requestedAt'],
+  PrivacyCase: ['caseId', 'subjectKind', 'requestKind', 'state', 'requestedAt', 'timeline'],
+  PrivacyTimelineItem: ['eventKind', 'occurredAt', 'responseText'],
+  PrivacyResponseCommand: ['decision', 'responseText'],
+  PrivacyResponseReceipt: ['caseId', 'state', 'eventKind', 'occurredAt'],
+  PrivacyExport: ['exportId', 'data', 'blockedClasses', 'complete'],
+  PrivacyRestrictedRecord: ['reference', 'fields'],
+};
+function assertPrivacyContract(source) {
+  for (const [path, method, id, model] of PRIVACY_OPERATIONS) {
+    const block = source.split(`  ${path}:\n`)[1]?.split(/\n  \S/u)[0];
+    assert.ok(block, `missing ${path}`);
+    assert.match(block, new RegExp(`^    ${method}:`, 'mu'));
+    assert.match(block, new RegExp(`operationId: ${id}\\b`, 'u'));
+    assert.match(block, /tags: \[PrivacyRights\]/u);
+    assert.match(block, /security: \[\{cookieSession: \[\]\}\]/u);
+    assert.match(block, /description: private, no-store/u);
+    assert.match(block, /description: Cookie/u);
+    assert.match(block, new RegExp(`#/components/schemas/${model}\\b`, 'u'));
+  }
+  for (const [name, fields] of Object.entries(PRIVACY_FIELDS)) {
+    const block = source.split(`    ${name}:\n`)[1]?.split(/\n    \S/u)[0];
+    assert.ok(block, `missing ${name}`);
+    assert.match(block, /additionalProperties: false/u);
+    assert.deepEqual(schemaFields(block), fields);
+    assert.match(block, new RegExp(`required: \\[${fields.join(', ')}\\]`, 'u'));
+  }
+  const request = source.split('    PrivacyRequest:\n')[1]?.split(/\n    \S/u)[0];
+  assert.match(request, /enum: \[NOTICE, ACCESS, CORRECTION, DELETION, OBJECTION, PSEUDONYMIZATION\]/u);
+  assert.match(request, /type: \[string, "null"\], format: uuid/u);
+  assert.match(request, /ACCOUNT requires null subjectRef and proofReference/u);
+  assert.match(source, /decision: \{type: string, enum: \[APPROVE, REJECT, ANALYZE\]\}/u);
+  assert.match(source, /maximum: 100, default: 50/u);
+  assert.doesNotMatch(source, /^  \/api\/v1\/privacy\/operations\//mu);
+  assert.doesNotMatch(source, /^  \/api\/v1\/privacy\/requests\/\{(?:id|caseId)\}\/export:/mu);
+}
+
+test('privacy contract mirrors real producers and keeps all reads session-private', async () => {
+  const source = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+  assertPrivacyContract(source);
+  const controller = await readFile(join(projectRoot, 'backend/src/main/java/br/com/betufu/privacy/internal/PrivacyRightsController.java'), 'utf8');
+  assert.match(controller, /@RequestMapping\("\/api\/v1\/privacy"\)/u);
+  for (const [path, method] of PRIVACY_OPERATIONS) {
+    const annotation = method === 'get' ? 'GetMapping' : 'PostMapping';
+    assert.ok(controller.includes(`@${annotation}("${path.replace('/api/v1/privacy', '')}")`));
+  }
+});
+
+test('privacy contract rejects anonymous reads, forged owners, omitted nulls and route aliases', async () => {
+  const source = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+  assertPrivacyContract(source);
+  const mutants = [
+    source.replace(/(operationId: getOwnPrivacyCases\n[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u, '$1[]'),
+    source.replace('required: [subjectKind, subjectRef, requestKind, proofReference, verifiedChannel]', 'required: [subjectKind, requestKind, verifiedChannel]'),
+    source.replace('    PrivacyCase:\n', '    PrivacyCase:\n      ownerIdentityId: {type: string}\n').replace('        timeline:', '        ownerIdentityId: {type: string}\n        timeline:'),
+    source.replace('/api/v1/privacy/requests/{caseId}/responses:', '/api/v1/privacy/operations/requests/{caseId}/responses:'),
+    source.replace('additionalProperties: false\n      required: [decision, responseText]', 'additionalProperties: true\n      required: [decision, responseText]'),
+    source.replace('APPROVE, REJECT, ANALYZE', 'APPROVE, REJECT, ANALYZE, DELETE_NOW'),
+  ];
+  for (const mutant of mutants) {
+    assert.notEqual(mutant, source, 'privacy mutation must change real bytes');
+    assert.throws(() => assertPrivacyContract(mutant));
+  }
+});
+
+test('privacy official generated client has exact private types and restricted JSON export', async () => {
+  assert.ok(PUBLIC_GENERATOR_API_TAGS.includes('PrivacyRights'));
+  for (const model of Object.keys(PRIVACY_FIELDS)) assert.ok(PUBLIC_GENERATOR_MODELS.includes(model));
+  const service = await readFile(join(projectRoot, 'frontend/src/app/api/generated/api/privacy-rights.service.ts'), 'utf8');
+  for (const [path, method, id] of PRIVACY_OPERATIONS) {
+    assert.ok(service.includes(`public ${id}(`));
+    assert.ok(service.includes(`this.httpClient.request<`) && service.includes(`'${method}'`));
+    assert.ok(service.includes(path.replace('{caseId}', '${this.configuration.encodeParam({name: "caseId", value: caseId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: "uuid"})}')));
+  }
+  assert.doesNotMatch(service, /http:\/\/localhost|Authorization|\.set\('Cookie'/u);
+  const exported = await readFile(join(projectRoot, 'frontend/src/app/api/generated/model/privacy-export.ts'), 'utf8');
+  assert.match(exported, /data: \{ \[key: string\]: Array<PrivacyRestrictedRecord>; \}/u);
+  const request = await readFile(join(projectRoot, 'frontend/src/app/api/generated/model/privacy-request.ts'), 'utf8');
+  assert.match(request, /subjectRef: string \| null/u);
+  assert.match(request, /proofReference: string \| null/u);
+  assert.doesNotMatch(request, /ownerIdentityId|clientCommandId|details/u);
+});
+
 function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex').toUpperCase();
 }
@@ -1300,6 +1393,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'Group',
     'Achievement',
     'EmergencyPauses',
+    'PrivacyRights',
   ]);
   for (const model of [
     'SettlementHistoryItem',
@@ -1418,7 +1512,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, 'AE29F51FB42941664FDFB6AC9A1EB5EDA02EAD9529C7782E9F08C58AC6760AA4');
+  assert.equal(manifest.digest, 'BBF8DE6CA2FEA7C26FBAFC9A3ABB11F15D7B14E34A4993121A625B1D83C9DA29');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,

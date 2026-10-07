@@ -89,6 +89,20 @@ class PrivacyRightsService {
     var fact = repository.findCase(caseId).orElseThrow(PrivacyRightsService::missing);
     boolean owner = actor.equals(fact.ownerIdentityId());
     if (!owner && !identities.isGeneralAdministrator(actor)) throw forbidden();
+    return caseView(fact);
+  }
+
+  @Transactional(readOnly = true)
+  List<PrivacyRightsModels.CaseView> ownCases(
+      String issuer, String subject, String sessionId, int limit, int offset) {
+    requireCurrentSession(issuer, subject, sessionId);
+    UUID actor = authenticated(issuer, subject);
+    if (limit < 1 || limit > 100 || offset < 0) throw invalid();
+    return repository.ownCases(actor, limit, offset).stream().map(this::caseView).toList();
+  }
+
+  private PrivacyRightsModels.CaseView caseView(PrivacyRightsRepository.CaseFact fact) {
+    UUID caseId = fact.caseId();
     return new PrivacyRightsModels.CaseView(
         fact.caseId(),
         fact.subjectKind(),

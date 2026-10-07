@@ -8,6 +8,331 @@ servers:
   - url: /
 
 paths:
+  /api/v1/privacy/requests/{caseId}/exports:
+    post:
+      tags: [PrivacyRights]
+      operationId: preparePrivacyExport
+      summary: Only current general administrator prepares a restricted ACCESS export; athlete reply uses verified operator channel
+      security: [{cookieSession: []}]
+      description: >-
+        Only current general administrator prepares a restricted ACCESS export; athlete reply uses verified operator channel. Current session and producer authorization govern every access, including revoked sessions.
+        No supplied account owner is accepted. Requesting a right never automatically deletes facts.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "201":
+          description: Private authorized response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/PrivacyExport"}
+        "400":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/privacy/requests/{caseId}/exports/latest:
+    get:
+      tags: [PrivacyRights]
+      operationId: downloadPrivacyExport
+      summary: Current owner or general administrator downloads latest private JSON export with current suppression applied
+      security: [{cookieSession: []}]
+      description: >-
+        Current owner or general administrator downloads latest private JSON export with current suppression applied. Current session and producer authorization govern every access, including revoked sessions.
+        No supplied account owner is accepted. Requesting a right never automatically deletes facts.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Private authorized response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/PrivacyExport"}
+        "400":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/privacy/requests/{caseId}/responses:
+    post:
+      tags: [PrivacyRights]
+      operationId: respondPrivacyCase
+      summary: Only current general administrator analyzes or responds; APPROVE requires fulfilled NOTICE or complete ACCESS export, other dispositions remain blocked
+      security: [{cookieSession: []}]
+      description: >-
+        Only current general administrator analyzes or responds; APPROVE requires fulfilled NOTICE or complete ACCESS export, other dispositions remain blocked. Current session and producer authorization govern every access, including revoked sessions.
+        No supplied account owner is accepted. Requesting a right never automatically deletes facts.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/PrivacyResponseCommand"}
+      responses:
+        "200":
+          description: Private authorized response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/PrivacyResponseReceipt"}
+        "400":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/privacy/me/cases:
+    get:
+      tags: [PrivacyRights]
+      operationId: getOwnPrivacyCases
+      summary: Current account owner lists only own cases with newest first pagination including while paused; administrator role never broadens this list
+      security: [{cookieSession: []}]
+      description: >-
+        Current account owner lists only own cases with newest first pagination including while paused; administrator role never broadens this list. Current session and producer authorization govern every access, including revoked sessions.
+        No supplied account owner is accepted. Requesting a right never automatically deletes facts.
+      parameters:
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 100, default: 50}
+        - name: offset
+          in: query
+          schema: {type: integer, minimum: 0, default: 0}
+      responses:
+        "200":
+          description: Private authorized response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: "#/components/schemas/PrivacyCase"}}
+        "400":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/privacy/requests/{caseId}:
+    get:
+      tags: [PrivacyRights]
+      operationId: getPrivacyCase
+      summary: Current owner or current general administrator reads a private case timeline
+      security: [{cookieSession: []}]
+      description: >-
+        Current owner or current general administrator reads a private case timeline. Current session and producer authorization govern every access, including revoked sessions.
+        No supplied account owner is accepted. Requesting a right never automatically deletes facts.
+      parameters:
+        - name: caseId
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Private authorized response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/PrivacyCase"}
+        "400":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
+  /api/v1/privacy/requests:
+    post:
+      tags: [PrivacyRights]
+      operationId: requestPrivacyRight
+      summary: Authenticated account owner requests a right or general administrator records an externally verified athlete request
+      security: [{cookieSession: []}]
+      description: >-
+        Authenticated account owner requests a right or general administrator records an externally verified athlete request. Current session and producer authorization govern every access, including revoked sessions.
+        No supplied account owner is accepted. Requesting a right never automatically deletes facts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/PrivacyRequest"}
+      responses:
+        "201":
+          description: Private authorized response.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/PrivacyCaseReceipt"}
+        "400":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "401":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "404":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "409":
+          description: Invalid request, missing session, denied authority, absent case or conflicting state.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+
   /api/v1/chat/me/sanctions/{sanctionId}/reviews:
     post:
       tags: [Chat]
@@ -5622,6 +5947,87 @@ components:
       description: Chave opaca obrigatória para repetição segura do comando de override.
 
   schemas:
+    PrivacyRestrictedRecord:
+      type: object
+      additionalProperties: false
+      required: [reference, fields]
+      description: Restricted producer-selected fields; never a public projection.
+      properties:
+        reference: {type: string}
+        fields: {type: object, additionalProperties: {type: string}}
+
+    PrivacyExport:
+      type: object
+      additionalProperties: false
+      required: [exportId, data, blockedClasses, complete]
+      description: Restricted JSON artifact from producer-owned privacy ports; partial exports cannot complete access. Download re-redacts suppressed chat bodies and moderation originals. No public artifact URL.
+      properties:
+        exportId: {type: string, format: uuid}
+        data: {type: object, additionalProperties: {type: array, items: {$ref: "#/components/schemas/PrivacyRestrictedRecord"}}}
+        blockedClasses: {type: array, items: {type: string, enum: [COMMON_MESSAGES, MODERATION_EVIDENCE, SANCTION_PROGRESSION, ATHLETE_WITHOUT_ACCOUNT, ENROLLMENT, LEDGER, SETTLEMENT, RIGHTS, IDENTITY, AUDIT, LOGS, BACKUPS]}}
+        complete: {type: boolean}
+
+    PrivacyResponseCommand:
+      type: object
+      additionalProperties: false
+      required: [decision, responseText]
+      properties:
+        decision: {type: string, enum: [APPROVE, REJECT, ANALYZE]}
+        responseText: {type: string, minLength: 1, maxLength: 2000, description: "Nonblank text without NUL; maximum 2000 Java UTF-16 units."}
+
+    PrivacyResponseReceipt:
+      type: object
+      additionalProperties: false
+      required: [caseId, state, eventKind, occurredAt]
+      properties:
+        caseId: {type: string, format: uuid}
+        state: {type: string, enum: [PENDING, UNDER_REVIEW, RESPONDED, REJECTED]}
+        eventKind: {type: string, enum: [ANALYZED, RESPONSE_SENT, REJECTED]}
+        occurredAt: {type: string, format: date-time}
+
+    PrivacyTimelineItem:
+      type: object
+      additionalProperties: false
+      required: [eventKind, occurredAt, responseText]
+      properties:
+        eventKind: {type: string, enum: [REQUESTED, IDENTITY_VERIFIED, ANALYZED, RESPONSE_SENT, EXPORT_READY, DISPOSITIONED, PSEUDONYMIZED, REJECTED]}
+        occurredAt: {type: string, format: date-time}
+        responseText: {type: [string, "null"], maxLength: 2000}
+
+    PrivacyCase:
+      type: object
+      additionalProperties: false
+      required: [caseId, subjectKind, requestKind, state, requestedAt, timeline]
+      description: Private owner or general administrator view reconstructed from immutable history; no subject, owner or proof references.
+      properties:
+        caseId: {type: string, format: uuid}
+        subjectKind: {type: string, enum: [ACCOUNT, ATHLETE_WITHOUT_ACCOUNT]}
+        requestKind: {type: string, enum: [NOTICE, ACCESS, CORRECTION, DELETION, OBJECTION, PSEUDONYMIZATION]}
+        state: {type: string, enum: [PENDING, UNDER_REVIEW, RESPONDED, REJECTED]}
+        requestedAt: {type: string, format: date-time}
+        timeline: {type: array, items: {$ref: "#/components/schemas/PrivacyTimelineItem"}}
+
+    PrivacyRequest:
+      type: object
+      additionalProperties: false
+      required: [subjectKind, subjectRef, requestKind, proofReference, verifiedChannel]
+      description: ACCOUNT requires null subjectRef and proofReference and AUTHENTICATED_SESSION; athlete without account requires a current general administrator, existing athlete and restricted proof via VERIFIED_OPERATOR_CHANNEL. Never public.
+      properties:
+        subjectKind: {type: string, enum: [ACCOUNT, ATHLETE_WITHOUT_ACCOUNT]}
+        subjectRef: {type: [string, "null"], format: uuid}
+        requestKind: {type: string, enum: [NOTICE, ACCESS, CORRECTION, DELETION, OBJECTION, PSEUDONYMIZATION]}
+        proofReference: {type: [string, "null"], minLength: 1}
+        verifiedChannel: {type: string, enum: [AUTHENTICATED_SESSION, VERIFIED_OPERATOR_CHANNEL]}
+
+    PrivacyCaseReceipt:
+      type: object
+      additionalProperties: false
+      required: [caseId, state, requestedAt]
+      properties:
+        caseId: {type: string, format: uuid}
+        state: {type: string, enum: [PENDING, UNDER_REVIEW, RESPONDED, REJECTED]}
+        requestedAt: {type: string, format: date-time}
+
     ChatSendRequest:
       type: object
       additionalProperties: false
