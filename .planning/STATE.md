@@ -4,21 +4,30 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase7 plan07-22 complete; Wave10 next07-27; owner ratified90/180 retention and blocked other-class expurgo
-last_updated: "2026-10-06T19:48:44.733Z"
-last_activity: 2026-10-06
-last_activity_desc: Phase7 emergency-pause contract verified;22/35 complete;07-27 retention policy ratified
-state_head: 24033c42ee2ad69102394463b51a6aa7ffb8ed63
-state_head_role: verified_implementation_commit; closing documentation is its direct child
-current_wave: 10
-current_plan: "07-27"
+stopped_at: Phase7 plan07-27 complete; Wave10 complete; next07-15 in Wave11
+last_updated: "2026-10-07T05:43:14Z"
+last_activity: 2026-10-07
+last_activity_desc: Phase7 V46 retention/export foundation verified;23/35 complete; Wave11 next07-15
+state_head: 3a397f25c3472aa76acaccdea4cdd95f8f795034
+state_head_role: verified_implementation_commit; documentary closeout is its direct child
+current_wave: 11
+current_plan: "07-15"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 157
+  completed_plans: 158
 milestone_name: milestone
 ---
+
+## Phase7 / Wave10 / Plan07-27 closeout - 2026-10-07
+
+- Technical commit `3a397f2`; V46 retention, suppression register, restricted partial exports and producer-owned privacy ports are implemented.
+- Common messages use 90 days from creation; moderation evidence uses 180 days after case closure. Open/reopened cases, pending review and holds block suppression; other classes remain `POLICY_BLOCKED`.
+- Focal privacy/architecture82/82, literal privacy46/46, Maven verify2248/2248 and Node937/937; zero failures/errors/skips. Chat push timeout was self-healed by shared input advisory locks with exclusive retention apply locking.
+- Candidate/governed V46 SHA256 `BF7C08C2AFB762F6A17F257368A2D282D36051245194D61E9584E02F738691A5`; protected documents and V1-V45 unchanged. No owner data, seed, volume, dependency, push, worktree or Antigravity change.
+- Phase7 is23/35, global158/170; Wave10 complete. Continue with Wave11 07-15, 07-25, 07-29 and 07-33.
+- Evidence: `.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-27-SUMMARY.md`.
 
 ## Phase7 / Wave10 / Plan07-22 closeout - 2026-10-06
 

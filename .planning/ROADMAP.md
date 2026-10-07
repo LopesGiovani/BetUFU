@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em17 ondas,102 tasks;22 executados. Waves1-9 completas; Wave10 tem07-12/22 concluidos e segue07-27 com retencao90/180 ratificada e expurgo das demais classes bloqueado. 07-22: contrato oficial de pausas/disponibilidade; focal111/111, Maven1101/1101, Node937/937, Angular483/483; generator/lint/build verdes. V1-V45 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
+**Plans**: 35 planos em17 ondas,102 tasks;23 executados. Waves1-10 completas; Wave11 segue07-15,07-25,07-29 e07-33. 07-27 entregou V46 com retencao90/180 ratificada, supressoes append-only e expurgo das demais classes bloqueado. V1-V45 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -613,12 +613,12 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-21-PLAN.md — Guards atomicos de chat e novos palpites.
 - [x] 07-24-PLAN.md — Direitos do titular e resposta operacional: V45/backend.
 
-**Wave 10 — Em execução; 07-12 concluído**
+**Wave 10 - Concluida; 07-12, 07-22 e 07-27**
 - [x] 07-12-PLAN.md — Composer e fila volatil: tracer real de envio.
 - [x] 07-22-PLAN.md — Contrato oficial de pausas e estados.
-- [ ] 07-27-PLAN.md — Retencao segregada, exports e supressoes: V46.
+- [x] 07-27-PLAN.md — Retencao segregada, exports e supressoes: V46.
 
-**Wave 11 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 11 - Proxima; dependencias de 07-27 satisfeitas**
 - [ ] 07-15-PLAN.md — Denunciar e silenciar: tracer multi-dispositivo.
 - [ ] 07-25-PLAN.md — Contrato oficial de Privacidade da conta.
 - [ ] 07-29-PLAN.md — Restore real isolado e supressao antes de servir.
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 22/35 | Wave10; next07-27;90/180 policy ratified | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 23/35 | Wave11; next07-15; V46 retention foundation verified | - |
