@@ -4,21 +4,30 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase7 plan07-27 complete; Wave10 complete; next07-15 in Wave11
-last_updated: "2026-10-07T05:43:14Z"
+stopped_at: Phase7 plan07-15 complete; Wave11 next07-25
+last_updated: "2026-10-07T07:51:52Z"
 last_activity: 2026-10-07
-last_activity_desc: Phase7 V46 retention/export foundation verified;23/35 complete; Wave11 next07-15
-state_head: 3a397f25c3472aa76acaccdea4cdd95f8f795034
+last_activity_desc: Phase7 private mute/report controls verified;24/35 complete; Wave11 next07-25
+state_head: 840a663fd3b220c37569c77e4f97127da471fdd5
 state_head_role: verified_implementation_commit; documentary closeout is its direct child
 current_wave: 11
-current_plan: "07-15"
+current_plan: "07-25"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 158
+  completed_plans: 159
 milestone_name: milestone
 ---
+
+## Phase7 / Wave11 / Plan07-15 closeout - 2026-10-07
+
+- Technical commit `840a663`; generated-API report dialog, optimistic private account mute, STOMP owner-session resync, rollback/version retry and logout cancellation are implemented.
+- Angular500/500, Node938/938, browser2/2 (20.4s, explicit exit0), Maven1124/1124 (361Surefire +763Failsafe);zero failures/errors/skips. Generator/lint/build passed; existing style-budget warnings remain.
+- Final review fixed queued-hint retry ordering with a discriminating RED1/12 -> GREEN12/12 test. Group timing cascade recovered through isolated9/9 and aggregate500/500 without source/timeout changes.
+- Fifteen frozen paths,50protected paths; owner document state and applied migrations preserved. No dependency, owner database/seed/volume, push, worktree or Antigravity change.
+- Phase7 is24/35;global159/170. Wave11 continues07-25,07-29,07-33 under continuous authority. Legal/public-pilot gates remain separate.
+- Evidence: `.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-15-SUMMARY.md` and `.git/gsd/phase7/07-15-frozen.json`.
 
 ## Phase7 / Wave10 / Plan07-27 closeout - 2026-10-07
 
@@ -1365,9 +1374,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-06T16:41:08.631Z
-Stopped at: Phase7 plan07-24 complete; Wave9 complete; continuous execution authorized; next07-12
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-12-PLAN.md
+Last session: 2026-10-07T07:51:52Z
+Stopped at: Phase7 plan07-15 complete; Wave11 next07-25; continuous execution authorized
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-25-PLAN.md
 
 ## Accumulated Context
 
