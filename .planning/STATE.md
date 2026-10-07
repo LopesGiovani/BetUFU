@@ -4,21 +4,30 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase7 plan07-15 complete; Wave11 next07-25
-last_updated: "2026-10-07T07:51:52Z"
+stopped_at: Phase7 plan07-25 complete; Wave11 next07-29
+last_updated: "2026-10-07T13:11:06.134Z"
 last_activity: 2026-10-07
-last_activity_desc: Phase7 private mute/report controls verified;24/35 complete; Wave11 next07-25
-state_head: 840a663fd3b220c37569c77e4f97127da471fdd5
+last_activity_desc: Phase7 private rights API/client verified;25/35 complete; Wave11 next07-29
+state_head: 2f82a1b03e9839b20e6459a1c5d8d53926623d2f
 state_head_role: verified_implementation_commit; documentary closeout is its direct child
 current_wave: 11
-current_plan: "07-25"
+current_plan: "07-29"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 159
+  completed_plans: 160
 milestone_name: milestone
 ---
+
+## Phase7 / Wave11 / Plan07-25 closeout - 2026-10-07
+
+- Technical commit 2f82a1b; six real private rights operations, eight generated DTOs and missing bounded own-case list are implemented.
+- Generator114/114, Angular500/500, Node938/938 and Maven1157/1157 (392Surefire+765Failsafe);zero failures/errors/skips. Generator/lint/build passed; existing style-budget warnings remain.
+- Four bounded contract slices and a producer prerequisite reconcile25technical paths;50protected paths are unchanged. Owner documents, applied migrations, seeds and volumes preserved.
+- Initial Node child-process timeout recovered in isolated and full repeat without timeout/source weakening; backend own-list test discriminated404 ->200.
+- Phase7 is25/35;global160/170. Wave11 continues07-29 then07-33 under continuous authority. Browser privacy remains07-26; legal/public-pilot gates remain separate.
+- Evidence: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-25-SUMMARY.md and .git/gsd/phase7/07-25-frozen.json.
 
 ## Phase7 / Wave11 / Plan07-15 closeout - 2026-10-07
 
@@ -1374,9 +1383,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-07T07:51:52Z
-Stopped at: Phase7 plan07-15 complete; Wave11 next07-25; continuous execution authorized
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-25-PLAN.md
+Last session: 2026-10-07T13:11:06.134Z
+Stopped at: Phase7 plan07-25 complete; Wave11 next07-29; continuous execution authorized
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-29-PLAN.md
 
 ## Accumulated Context
 
