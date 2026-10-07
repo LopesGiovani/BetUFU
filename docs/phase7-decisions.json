@@ -470,11 +470,14 @@
       "evidence_hashes": {}
     },
     "rules_preference": {
-      "status": "pending",
+      "status": "approved",
       "description": "Storage/module/FK/retention and rules dismissal sync failure policy",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "human_reference": "conversation:2026-10-07:owner-ratified-chat-rules-preference",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-33-PLAN.md": "8f39f26c5395e9b275d570f6243b640f277addbe143ee247035206619203422c"
+      },
+      "statement": "Conta resolvida no servidor no modulo chat; FK local_identity; GET/POST dismissed boolean-only; inativa/pausada pode dispensar; falha de sincronizacao permanece explicita; fechar nao e aceite juridico nem reabre por versao no piloto."
     }
   },
   "plan_gates": {

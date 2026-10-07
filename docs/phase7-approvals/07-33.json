@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "plan": "07-33",
+  "wave": 11,
+  "status": "approved",
+  "authorized_stage": "implementation",
+  "head": "0031845e596a7b07b8a8ee3ed2c97e08bb2cae41",
+  "recorded_at": "2026-10-07T14:17:56.338Z",
+  "plan_sha256": "8f39f26c5395e9b275d570f6243b640f277addbe143ee247035206619203422c",
+  "decisions_sha256": "609c83a5757c1a5a4907e220bd4a06a85a201dfdb8d7cd6548ba5fa21168f125",
+  "human_approval": {
+    "source": "owner",
+    "status": "approved",
+    "reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+    "statement": "Autorizo a execucao continua da Fase 7, incluindo a proposta ratificada de preferencia de regras por conta, V47 apos V46, testes reais, self-healing, dois commits locais e avanco entre waves, sem push, worktree ou Antigravity.",
+    "plans": [
+      "07-33"
+    ]
+  },
+  "operational_approval": {
+    "source": "owner",
+    "reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+    "statement": "Ratifico armazenamento no modulo chat, FK de identidade, GET/POST boolean-only, conta resolvida no servidor, disponibilidade para conta inativa/pausada, sem aceite juridico e sem reabertura automatica por versao no piloto.",
+    "scope": "candidate-and-implementation-of-07-33-only"
+  },
+  "scope": {
+    "paths": [
+      "docs/phase7-approvals/07-33.json",
+      "backend/src/main/resources/db/migration/V47__chat_rules_dismissals.sql",
+      "backend/src/main/java/br/com/betufu/chat/ChatRulesPreferencePort.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/preferences/ChatRulesPreferenceRepository.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/preferences/ChatRulesPreferenceService.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/preferences/ChatRulesPreferenceController.java",
+      "backend/src/main/java/br/com/betufu/chat/internal/privacy/ChatPrivacyAdapter.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatRulesPreferenceSchemaIT.java",
+      "backend/src/test/java/br/com/betufu/chat/ChatRulesPreferenceIT.java"
+    ],
+    "commands": [
+      "node scripts/validate-phase7-approvals.mjs --plan 07-33 --stage implementation",
+      "node scripts/maven.mjs -f backend/pom.xml \"-Dtest=ChatRulesPreferenceSchemaIT,ChatRulesPreferenceIT,ModulithArchitectureTests\" test",
+      "node scripts/maven.mjs -f backend/pom.xml verify",
+      "node --test scripts/*.test.mjs"
+    ],
+    "candidates": [
+      ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-33-candidate/V47__chat_rules_dismissals.sql"
+    ]
+  },
+  "baseline_hashes": {
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md": "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-UI-SPEC.md": "e3390c32a462f232c0ada7efca97cd26479ac92d6916d106cefc761e79ed3650",
+    "docs/development.md": "3708198177e4c0c303e92729f7f3641300c9d853fb944e972c006a3d65044c2d",
+    "docs/local-seed.md": "f6050cef490d6007b92185a366913cd5642e6e89fc8f3462eb3a02a093327673",
+    "backend/src/main/resources/db/migration/V1__create_local_identity.sql": "56f9ad3eaab4e06efd785cdae2acd9ab53668717a424487b0acba67b958e8c18",
+    "backend/src/main/resources/db/migration/V46__privacy_retention_and_suppressions.sql": "bf7c08c2afb762f6a17f257368a2d282d36051245194d61e9584e02f738691a5",
+    "docs/phase7-decisions.json": "609c83a5757c1a5a4907e220bd4a06a85a201dfdb8d7cd6548ba5fa21168f125",
+    ".planning/STATE.md": "5431af42b35ab891e8e83f9162af8e16cb99f9fa053f716f97e44a90c8190c00",
+    ".planning/ROADMAP.md": "0c1845741917c2ca56865e3898f490c48738e8217ee2c187aa372980c601888c"
+  },
+  "candidate_hashes": {
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-33-candidate/V47__chat_rules_dismissals.sql": "3e1578fa50dea880d250d525295b17316a188a7dabf888c4bb4baa0aab220823"
+  },
+  "closeout_authorization": {
+    "reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+    "documentation_paths": [
+      ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-33-SUMMARY.md",
+      ".planning/STATE.md",
+      ".planning/ROADMAP.md"
+    ],
+    "local_commits": [
+      "feat(07-33): publish account-scoped chat rules preference",
+      "docs(07-33): finalize plan 07-33 summary and update state"
+    ],
+    "push": false
+  }
+}

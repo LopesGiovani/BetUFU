@@ -1,5 +1,6 @@
 package br.com.betufu.chat.internal.privacy;
 
+import br.com.betufu.chat.ChatRulesPreferencePort;
 import br.com.betufu.chat.internal.ChatPushService;
 import br.com.betufu.privacy.PrivacyRestrictedRecordsPort;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -16,10 +18,20 @@ import org.springframework.stereotype.Component;
 public class ChatPrivacyAdapter implements PrivacyRestrictedRecordsPort.Chat {
   private final JdbcTemplate jdbc;
   private final ObjectProvider<ChatPushService> push;
+  private final ObjectProvider<ChatRulesPreferencePort> rulesPreferences;
 
   public ChatPrivacyAdapter(JdbcTemplate jdbc, ObjectProvider<ChatPushService> push) {
+    this(jdbc, push, null);
+  }
+
+  @Autowired
+  public ChatPrivacyAdapter(
+      JdbcTemplate jdbc,
+      ObjectProvider<ChatPushService> push,
+      ObjectProvider<ChatRulesPreferencePort> rulesPreferences) {
     this.jdbc = jdbc;
     this.push = push;
+    this.rulesPreferences = rulesPreferences;
   }
 
   @Override
@@ -189,6 +201,22 @@ public class ChatPrivacyAdapter implements PrivacyRestrictedRecordsPort.Chat {
     return jdbc.queryForObject(
         "SELECT COALESCE(max(change_cursor),0) FROM chat_privacy_suppression_projection",
         Long.class);
+  }
+
+  /**
+   * Exposes only the boolean preference to privacy workflows; no popup text or account id leaks.
+   */
+  public boolean rulesDismissed(UUID identityId) {
+    if (identityId == null) return false;
+    if (rulesPreferences != null) {
+      var port = rulesPreferences.getIfAvailable();
+      if (port != null) return port.dismissed(identityId);
+    }
+    return Boolean.TRUE.equals(
+        jdbc.queryForObject(
+            "SELECT EXISTS(SELECT 1 FROM chat_rules_dismissal WHERE owner_identity_id=?)",
+            Boolean.class,
+            identityId));
   }
 
   @Override
