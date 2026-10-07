@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em17 ondas,102 tasks;26 executados. Waves1-10 completas; Wave11 segue07-33. 07-29 restaurou os tres substratos em isolamento e reaplicou supressao posterior ao snapshot antes de servir. V1-V46 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
+**Plans**: 35 planos em17 ondas,102 tasks;27 executados. Waves1-11 completas; Wave12 segue07-19. 07-29 restaurou os tres substratos em isolamento e reaplicou supressao posterior ao snapshot antes de servir. V1-V46 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -622,7 +622,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-15-PLAN.md — Denunciar e silenciar: tracer multi-dispositivo.
 - [x] 07-25-PLAN.md — Contrato oficial de Privacidade da conta.
 - [x] 07-29-PLAN.md — Restore real isolado e supressao antes de servir.
-- [ ] 07-33-PLAN.md — Proposta de preferência de regras por conta: backend e V47 após V46.
+- [x] 07-33-PLAN.md — Proposta de preferência de regras por conta: backend e V47 após V46.
 
 **Wave 12 — Bloqueada pelas dependências explícitas dos planos**
 - [ ] 07-19-PLAN.md — Console e punicoes da conta: tracer integrado.
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 26/35 | Wave11; next07-33; isolated restore and suppression reconciliation verified | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 27/35 | Wave12; next07-19; account rules preference verified | - |
