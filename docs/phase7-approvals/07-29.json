@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "plan": "07-29",
+  "wave": 11,
+  "status": "approved",
+  "authorized_stage": "implementation",
+  "head": "0ae2eca8045f27ba9e9dbf01471d5c7bca3f6a56",
+  "recorded_at": "2026-10-07T13:17:42.360Z",
+  "plan_sha256": "2f86bf5e8246d68780e2bcca30d98d271ff2032934b534bacf10982d2d669077",
+  "decisions_sha256": "e29595f641193144bfb91d49e06df38b8c683fe399e39aa1c27434ad9a0f0638",
+  "human_approval": {
+    "source": "owner",
+    "status": "approved",
+    "reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+    "statement": "Aprovo expressamente o avanco autonomo e a execucao continua da Fase 7, direta e inline na master, incluindo restore isolado, arquivos, testes Maven/Node, self-healing, dois commits locais por plano e formalizacao. Sem push, Antigravity ou worktrees. Parar somente em bloqueio fatal de ambiente ou contradicao de regra de negocio.",
+    "plans": [
+      "07-29"
+    ]
+  },
+  "operational_approval": {
+    "source": "owner",
+    "reference": "conversation:2026-10-04:owner-local-backup-policy",
+    "statement": "Autorizado",
+    "scope": "isolated-local-proof-only"
+  },
+  "scope": {
+    "paths": [
+      "docs/phase7-approvals/07-29.json",
+      "scripts/phase7-restore.mjs",
+      "scripts/phase7-restore.test.mjs",
+      "infra/backup/compose.phase7-restore.yaml",
+      "docs/phase7-restore-report.json",
+      "docs/phase7-suppression-register.json"
+    ],
+    "commands": [
+      "node scripts/validate-phase7-approvals.mjs --plan 07-29 --stage implementation",
+      "node scripts/phase7-restore.mjs --policy infra/backup/phase7-backup-policy.json --isolated",
+      "node scripts/maven.mjs -f backend/pom.xml verify",
+      "node --test scripts/*.test.mjs"
+    ],
+    "candidates": []
+  },
+  "baseline_hashes": {
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md": "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md": "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845",
+    "docs/development.md": "3708198177e4c0c303e92729f7f3641300c9d853fb944e972c006a3d65044c2d",
+    "docs/local-seed.md": "f6050cef490d6007b92185a366913cd5642e6e89fc8f3462eb3a02a093327673",
+    "backend/src/main/resources/db/migration/V1__create_local_identity.sql": "56f9ad3eaab4e06efd785cdae2acd9ab53668717a424487b0acba67b958e8c18",
+    "backend/src/main/resources/db/migration/V38__create_achievement_awards.sql": "f7cb6126f937f78a3091c4ce16929ab5c5f24dde80c173d74bf972ec1a12eafc",
+    "backend/src/main/resources/db/migration/V46__privacy_retention_and_suppressions.sql": "bf7c08c2afb762f6a17f257368a2d282d36051245194d61e9584e02f738691a5",
+    "infra/backup/phase7-backup-policy.json": "bd064016986dbaec195ba3c2ad3461ff411ec3754a2ca2cb0952df1ed2b1b5c7",
+    "scripts/phase7-backup.mjs": "2a57b4d73013e15084dc8f0c3ea845f2a845142c83dceeb20f87b7dad62145bc",
+    "scripts/phase7-backup.test.mjs": "bda38e1b61a2a11a44f71b37968ae26512f01de5195df01547cfaf5420ec062f",
+    "docs/phase7-suppression-register.json": "0277abd6f114f226d8848e34e5c366db675da0e5826000196c65bb45b9c1a194",
+    ".planning/STATE.md": "90c0c5785fa80b0afa94307bb9b8731c576435f862387bbe544784fda13cfbba",
+    ".planning/ROADMAP.md": "f4ceab1e17a1aac40ceb3bd92b12b63e9bc4e58ee8a50dec74879ce7e3bc1739",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-28-SUMMARY.md": "48d31c945e3eb48de704849cea04cf99944a93e01d6b4379c7c9e84b34da517f"
+  },
+  "candidate_hashes": {},
+  "closeout_authorization": {
+    "reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+    "documentation_paths": [
+      ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-29-SUMMARY.md",
+      ".planning/STATE.md",
+      ".planning/ROADMAP.md"
+    ],
+    "local_commits": [
+      "feat(07-29): prove isolated restore and suppression reconciliation",
+      "docs(07-29): finalize plan 07-29 summary and update state"
+    ],
+    "push": false
+  },
+  "notes": [
+    "Only disposable resources created by the restore runner may be cleaned up.",
+    "A current independent suppression register is required before any restored serving or login.",
+    "Local evidence does not certify cloud availability, legal retention or public launch."
+  ]
+}

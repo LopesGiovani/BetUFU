@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "scope": "isolated-local-proof",
+  "run_id": "betufu-phase7-restore-20f86060220b6644",
+  "status": "passed",
+  "source_run_id": "betufu-phase7-backup-7c003a2bc291392b",
+  "snapshot_id": "snapshot-4774d474883b57de",
+  "substrates": {
+    "betufu": {
+      "restored": true,
+      "chat_facts": 1
+    },
+    "keycloak": {
+      "restored": true,
+      "users": 3
+    },
+    "private-objects": {
+      "restored": true,
+      "nonempty": true
+    }
+  },
+  "suppression": {
+    "register_current": true,
+    "captured_after_snapshot_at": 1791380329614,
+    "applied_before_serving": true,
+    "suppressed_record_id": "6ebd55ab-fc29-4455-8f4b-1908e0e06fd2",
+    "served_after_reconciliation": 0
+  },
+  "rpo": 18.351,
+  "rto": 12.48,
+  "serving_state": "released-after-independent-register-reconciliation",
+  "limitations": [
+    "Isolated local proof; production provider, key custody and cloud availability remain pending.",
+    "Keycloak database restoration and user presence are proven; no password is copied into the report."
+  ],
+  "cleanup": "only-owned-compose-project-volumes-and-network"
+}

@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: restore-local-only
+    labels:
+      br.com.betufu.phase7-restore: "${RESTORE_RUN}"
+      com.docker.compose.service: postgres
+    volumes:
+      - restore-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  keycloak:
+    image: betufu/keycloak:26.7.1-password-listener@sha256:165f3d4f0c102bdfc7ab9adb1e726fe30734c5833107efd04571f1b3615e62c8
+    command: ["start-dev", "--http-port=8080", "--http-enabled=true"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: restore-local-only
+      KC_HOSTNAME_STRICT: "false"
+      KC_BOOTSTRAP_ADMIN_USERNAME: restore-admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: restore-local-admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      br.com.betufu.phase7-restore: "${RESTORE_RUN}"
+      com.docker.compose.service: keycloak
+
+  seaweedfs:
+    image: docker.io/chrislusf/seaweedfs:4.41@sha256:43b768cd62b00d132439cda881b93fd1adebf1b315e996e794087743821d771d
+    command: ["server", "-dir=/data", "-s3", "-s3.port=8333"]
+    labels:
+      br.com.betufu.phase7-restore: "${RESTORE_RUN}"
+      com.docker.compose.service: seaweedfs
+    volumes:
+      - restore-seaweedfs:/data
+
+volumes:
+  restore-postgres:
+    name: ${RESTORE_RUN}-postgres
+    labels:
+      br.com.betufu.phase7-restore: "${RESTORE_RUN}"
+  restore-seaweedfs:
+    name: ${RESTORE_RUN}-seaweedfs
+    labels:
+      br.com.betufu.phase7-restore: "${RESTORE_RUN}"
