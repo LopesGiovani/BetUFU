@@ -90,7 +90,7 @@ class PrivacyRightsRepository {
   String historicalState(UUID caseId) {
     return jdbc
         .query(
-            "SELECT event_kind FROM public.privacy_rights_case_event WHERE case_id=? ORDER BY occurred_at DESC,event_id DESC LIMIT 1",
+            "SELECT event_kind FROM public.privacy_rights_case_event WHERE case_id=? AND event_kind IN ('REQUESTED','RESPONSE_SENT','REJECTED','ANALYZED') ORDER BY occurred_at DESC,event_id DESC LIMIT 1",
             (rs, row) ->
                 switch (rs.getString(1)) {
                   case "RESPONSE_SENT" -> "RESPONDED";

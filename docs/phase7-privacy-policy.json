@@ -3,7 +3,8 @@
   "status": "pending",
   "notes": [
     "Implementation policy approved by the owner for 07-24; public-pilot release and independent legal-counsel review remain pending.",
-    "Historical facts remain append-only. Expurgo is represented by an audited disposition event and removal from serving projections; UPDATE/DELETE of facts is forbidden."
+    "Historical facts remain append-only. Expurgo is represented by an audited disposition event and removal from serving projections; UPDATE/DELETE of facts is forbidden.",
+    "Owner ratified90/180 days for serving suppression only; all other class expurgo remains blocked. No physical erasure, key destruction or launch approval."
   ],
   "legal_review": {
     "status": "pending",
@@ -18,39 +19,41 @@
     "common_messages": {
       "purpose": "Authenticated chat participation and public match history",
       "retention": {
-        "status": "proposed",
+        "status": "approved",
         "days": 90,
         "start_event": "message_created",
-        "disposition": null,
+        "disposition": "PURGED_FROM_PROJECTION",
         "authority": {
-          "status": "pending",
-          "authority": null,
-          "reference": null,
+          "status": "approved",
+          "authority": "owner",
+          "reference": "conversation:2026-10-06:owner-retention-90-180",
           "evidence": {
-            "path": null,
-            "sha256": null
+            "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-27-PLAN.md",
+            "sha256": "a43dfc674b786e26de54e4c552c029cf48b9e0ef2207320b713eb6743bbd2cdf"
           }
         }
       },
       "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
       "holds": [
+        "open_case",
+        "pending_review",
         "legal_hold"
       ]
     },
     "moderation_evidence": {
       "purpose": "Restricted original content needed to treat an actual moderation case",
       "retention": {
-        "status": "proposed",
+        "status": "approved",
         "days": 180,
         "start_event": "case_closed",
-        "disposition": null,
+        "disposition": "PURGED_FROM_PROJECTION",
         "authority": {
-          "status": "pending",
-          "authority": null,
-          "reference": null,
+          "status": "approved",
+          "authority": "owner",
+          "reference": "conversation:2026-10-06:owner-retention-90-180",
           "evidence": {
-            "path": null,
-            "sha256": null
+            "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-27-PLAN.md",
+            "sha256": "a43dfc674b786e26de54e4c552c029cf48b9e0ef2207320b713eb6743bbd2cdf"
           }
         }
       },
@@ -351,39 +354,41 @@
         "common_messages": {
           "purpose": "Authenticated chat participation and public match history",
           "retention": {
-            "status": "proposed",
+            "status": "approved",
             "days": 90,
             "start_event": "message_created",
-            "disposition": null,
+            "disposition": "PURGED_FROM_PROJECTION",
             "authority": {
-              "status": "pending",
-              "authority": null,
-              "reference": null,
+              "status": "approved",
+              "authority": "owner",
+              "reference": "conversation:2026-10-06:owner-retention-90-180",
               "evidence": {
-                "path": null,
-                "sha256": null
+                "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-27-PLAN.md",
+                "sha256": "a43dfc674b786e26de54e4c552c029cf48b9e0ef2207320b713eb6743bbd2cdf"
               }
             }
           },
           "rights": "Manual verified-holder review; legal exemptions and pseudonymization policy pending",
           "holds": [
+            "open_case",
+            "pending_review",
             "legal_hold"
           ]
         },
         "moderation_evidence": {
           "purpose": "Restricted original content needed to treat an actual moderation case",
           "retention": {
-            "status": "proposed",
+            "status": "approved",
             "days": 180,
             "start_event": "case_closed",
-            "disposition": null,
+            "disposition": "PURGED_FROM_PROJECTION",
             "authority": {
-              "status": "pending",
-              "authority": null,
-              "reference": null,
+              "status": "approved",
+              "authority": "owner",
+              "reference": "conversation:2026-10-06:owner-retention-90-180",
               "evidence": {
-                "path": null,
-                "sha256": null
+                "path": ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-27-PLAN.md",
+                "sha256": "a43dfc674b786e26de54e4c552c029cf48b9e0ef2207320b713eb6743bbd2cdf"
               }
             }
           },
@@ -663,7 +668,19 @@
         "legal_review": "owner-policy-approved; independent counsel and public-pilot authorization remain outside this gate",
         "holder_verification": "approved: manual verified-holder procedure",
         "response_authority": "approved: ADMINISTRADOR_GERAL only"
+      },
+      "retention_scope": {
+        "reference": "conversation:2026-10-06:owner-retention-90-180",
+        "other_classes_expurgo": "blocked",
+        "preserve_append_only_facts": true,
+        "preserve_sanctions_and_minimum_audit": true
       }
     }
+  },
+  "retention_scope": {
+    "reference": "conversation:2026-10-06:owner-retention-90-180",
+    "other_classes_expurgo": "blocked",
+    "preserve_append_only_facts": true,
+    "preserve_sanctions_and_minimum_audit": true
   }
 }

@@ -131,4 +131,28 @@ class PrivacyRightsController {
         .header(HttpHeaders.VARY, "Cookie")
         .body(body);
   }
+
+  @PostMapping("/{caseId}/exports")
+  ResponseEntity<PrivacyRightsService.ExportArtifact> prepareExport(
+      @AuthenticationPrincipal OidcUser user,
+      @PathVariable UUID caseId,
+      HttpServletRequest request) {
+    requireUser(user);
+    return response(
+        HttpStatus.CREATED,
+        service.prepareExport(
+            user.getIssuer().toString(), user.getSubject(), sessionId(request), caseId));
+  }
+
+  @GetMapping("/{caseId}/exports/latest")
+  ResponseEntity<PrivacyRightsService.ExportArtifact> downloadExport(
+      @AuthenticationPrincipal OidcUser user,
+      @PathVariable UUID caseId,
+      HttpServletRequest request) {
+    requireUser(user);
+    return response(
+        HttpStatus.OK,
+        service.downloadExport(
+            user.getIssuer().toString(), user.getSubject(), sessionId(request), caseId));
+  }
 }

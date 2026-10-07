@@ -436,11 +436,12 @@
       "source": "owner",
       "human_reference": "conversation:2026-10-06:owner-legal-gate-option-1",
       "evidence_hashes": {
-        "docs/phase7-privacy-policy.json": "6d395fcad6f791d9286c1662cac40dc0f83987b63d85b67d9a2a16822ae3d2d9",
+        "docs/phase7-privacy-policy.json": "fb3fed2fa9536a3a223dc6d042381ce5207d9be5dde0dc0f34f403e81f00c089",
         ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
       },
       "authorization_basis": "explicit-owner-decision",
-      "statement": "Option 1 approved: complete legal/privacy gate for implementation. Retention is defined per data class; access, correction, objection, deletion, export and pseudonymization require verified-holder review by ADMINISTRADOR_GERAL. Expurgo is an audited disposition/projection operation and never mutates append-only facts. This does not authorize public pilot launch or claim independent legal-counsel review."
+      "statement": "Option 1 approved: complete legal/privacy gate for implementation. Retention is defined per data class; access, correction, objection, deletion, export and pseudonymization require verified-holder review by ADMINISTRADOR_GERAL. Expurgo is an audited disposition/projection operation and never mutates append-only facts. This does not authorize public pilot launch or claim independent legal-counsel review.",
+      "retention_reference": "conversation:2026-10-06:owner-retention-90-180"
     },
     "institutional": {
       "status": "pending",

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "status": "operational-destination-pending",
+  "source": "privacy_suppression_fact",
+  "contract": "Fetch current register through restricted PrivacyRetentionService.currentRegister; store independently of database snapshots, with access controls and authenticated SHA-256 manifest; reapply before serving restored data.",
+  "policy_reference": "conversation:2026-10-06:owner-retention-90-180",
+  "contains_live_suppression_records": false,
+  "records": [],
+  "notes": [
+    "This versioned contract contains no production personal data and is not evidence that an empty live register was verified.",
+    "Operational storage, credentials and publication remain pending. 07-29 must exercise an independently current register after its snapshot in isolation.",
+    "Runtime cannot insert suppression or hold facts. No automatic retention application or physical fact deletion is enabled.",
+    "Retention activation requires DBA provisioning of betufu_privacy_retention as NOLOGIN, with explicit schema grants and separate operator membership; Flyway stays NOCREATEROLE. If absent, apply is denied."
+  ]
+}

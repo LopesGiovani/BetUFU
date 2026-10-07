@@ -191,6 +191,17 @@ public class ChatModerationRepository {
   }
 
   EvidenceRow evidence(UUID caseId) {
+    UUID messageId =
+        jdbc.queryForObject(
+            "SELECT message_id FROM chat_moderation_case WHERE case_id=?", UUID.class, caseId);
+    if (Boolean.TRUE.equals(
+        jdbc.queryForObject(
+            "SELECT EXISTS(SELECT FROM chat_privacy_suppression_projection WHERE data_class='MODERATION_EVIDENCE' AND message_id=?)",
+            Boolean.class,
+            messageId)))
+      throw new br.com.betufu.platform.api.ApiProblemException(
+          org.springframework.http.HttpStatus.GONE,
+          br.com.betufu.platform.api.ApiErrorCode.NOT_FOUND);
     var header =
         jdbc.queryForObject(
             "SELECT c.case_id,c.message_id,m.author_identity_id,m.body FROM public.chat_moderation_case c JOIN public.chat_message m ON m.message_id=c.message_id WHERE c.case_id=?",
