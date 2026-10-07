@@ -18,7 +18,7 @@ export const APP_ROUTES: Routes = [
       {
         path: 'comunidade',
         loadComponent: () =>
-          import('./features/chat/chat-panel.component').then(
+          import('./features/chat/community-page.component').then(
             ({ CommunityPageComponent }) => CommunityPageComponent,
           ),
       },

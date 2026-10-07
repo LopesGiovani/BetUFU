@@ -761,7 +761,7 @@ function approvedDynamicImportsFor(relativePath) {
       ...APPROVED_ODDS_OPERATION_ROUTES,
       ...APPROVED_ROOT_STATE_ROUTES,
       ...APPROVED_PHASE_SIX_ROUTES,
-      approvedRoute('comunidade', './features/chat/chat-panel.component', 'CommunityPageComponent'),
+      approvedRoute('comunidade', './features/chat/community-page.component', 'CommunityPageComponent'),
     ];
   }
   if (relativePath === PATHS.development) {
@@ -1918,7 +1918,7 @@ function normalizePhaseSixRoutes(source) {
 }
 
 export function normalizePhaseSevenRoutes(source) {
-  const route = /\{\s*path\s*:\s*'comunidade'\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'\.\/features\/chat\/chat-panel\.component'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*CommunityPageComponent\s*\}\s*\)\s*=>\s*CommunityPageComponent\s*,?\s*\)\s*,?\s*\}\s*,/u;
+  const route = /\{\s*path\s*:\s*'comunidade'\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'\.\/features\/chat\/community-page\.component'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*CommunityPageComponent\s*\}\s*\)\s*=>\s*CommunityPageComponent\s*,?\s*\)\s*,?\s*\}\s*,/u;
   if (!/path\s*:\s*'comunidade'/u.test(source)) return source;
   const matches = [...source.matchAll(new RegExp(route.source, 'gu'))];
   const publicStart = source.search(/component\s*:\s*ArenaShellComponent/u);

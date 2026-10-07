@@ -41,6 +41,7 @@ test("only the approved Phase7 browser spec is accepted", () => {
   assert.equal(specPlan(spec), "07-08");
   assert.equal(specPlan("frontend/e2e/phase7-chat-write.spec.ts"), "07-12");
   assert.equal(approvedSpec("frontend/e2e/phase7-chat-write.spec.ts"), "frontend/e2e/phase7-chat-write.spec.ts");
+  assert.equal(specPlan("frontend/e2e/phase7-chat-community.spec.ts"), "07-15");
   for (const bad of [
     "",
     "../owner.spec.ts",
@@ -72,7 +73,7 @@ test("isolated browser certifies a fresh production bundle before building the i
 
 test("community normalization only accepts the exact public Arena lazy route", () => {
   const route =
-    "{ path: 'comunidade', loadComponent: () => import('./features/chat/chat-panel.component').then(({ CommunityPageComponent }) => CommunityPageComponent), },";
+    "{ path: 'comunidade', loadComponent: () => import('./features/chat/community-page.component').then(({ CommunityPageComponent }) => CommunityPageComponent), },";
   const source =
     "{ component: ArenaShellComponent, children: [" +
     route +
@@ -80,7 +81,8 @@ test("community normalization only accepts the exact public Arena lazy route", (
   assert.doesNotMatch(normalizePhaseSevenRoutes(source), /comunidade/u);
   assert.equal(normalizePhaseSevenRoutes("legacy"), "legacy");
   for (const bad of [
-    source.replace("chat-panel.component", "owner.component"),
+    source.replace("community-page.component", "owner.component"),
+    source.replace("community-page.component", "chat-panel.component"),
     source.replace("CommunityPageComponent", "PrivateComponent"),
     source.replace(route, route + route),
     "{ component: ArenaShellComponent, children: [] }, { path: 'entrar' }," +

@@ -6,6 +6,7 @@ import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { APPROVED_GENERATED_FILES } from '../frontend/scripts/generate-api.mjs';
+import { normalizePhaseSevenRoutes } from './validate-angular-route-boundary.mjs';
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptsDirectory, '..');
@@ -488,6 +489,19 @@ test('aceita rotas da Fase 6 com ranking publico e dois guards privados', async 
     const result = runValidator(fixtureRoot);
     assert.equal(result.status, 0, result.stderr);
   });
+});
+
+test('normaliza somente a pagina Comunidade aprovada na Arena publica', async () => {
+  const source = await readFile(join(projectRoot, appRoutesPath), 'utf8');
+  assert.match(source, /community-page\.component/u);
+  assert.doesNotMatch(normalizePhaseSevenRoutes(source), /path:\s*'comunidade'/u);
+  for (const invalid of [
+    source.replace('community-page.component', 'chat-panel.component'),
+    source.replace('community-page.component', 'other-page.component'),
+    source.replaceAll('CommunityPageComponent', 'OtherPageComponent'),
+  ]) {
+    assert.throws(() => normalizePhaseSevenRoutes(invalid), /PHASE_SEVEN_PUBLIC_COMMUNITY/u);
+  }
 });
 
 for (const [label, mutate, rule] of [

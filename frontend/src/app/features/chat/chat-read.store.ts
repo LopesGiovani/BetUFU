@@ -42,6 +42,7 @@ export class ChatReadStore {
   private readonly csrf = inject(HttpXsrfTokenExtractor);
   private readonly session = inject(SessionStore);
   private readonly state = signal<ReadState>(EMPTY);
+  private readonly pushHint = signal(0);
   private readonly cancel = new Subject<void>();
   private generation = 0;
   private target: { eventId: string | null; authenticated: boolean } | null = null;
@@ -73,6 +74,7 @@ export class ChatReadStore {
         return 'Somente leitura';
     }
   });
+  readonly pushRevision = this.pushHint.asReadonly();
 
   constructor() {
     window.addEventListener('offline', this.offline);
@@ -321,11 +323,13 @@ export class ChatReadStore {
         buffer = buffer.slice(end + 1);
         if (frame.startsWith('CONNECTED\n')) {
           this.attempts = 0;
+          this.pushHint.update((revision) => revision + 1);
           const destination =
             this.target!.eventId === null ? '/chat/global' : `/chat/events/${this.target!.eventId}`;
           socket.send(`SUBSCRIBE\nid:read\ndestination:${destination}\nack:auto\n\n\0`);
           this.state.update((s) => ({ ...s, connection: 'live' }));
         } else if (frame.startsWith('MESSAGE\n')) {
+          this.pushHint.update((revision) => revision + 1);
           // Every hint rebuilds the window, even when its sequence is lower than a prior hint.
           void this.resync(generation);
         } else if (frame.startsWith('ERROR\n')) socket.close(1008);

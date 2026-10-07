@@ -21,6 +21,7 @@ const privateValues = new Set();
 const SPEC_PLANS = Object.freeze({
   "frontend/e2e/phase7-chat-read.spec.ts": "07-08",
   "frontend/e2e/phase7-chat-write.spec.ts": "07-12",
+  "frontend/e2e/phase7-chat-community.spec.ts": "07-15",
 });
 export function specPlan(value) {
   if (!Object.hasOwn(SPEC_PLANS, value)) throw new Error("Unapproved browser spec");

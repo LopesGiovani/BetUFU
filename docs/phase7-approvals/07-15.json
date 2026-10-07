@@ -1,0 +1,72 @@
+{
+    "schema_version":  1,
+    "plan":  "07-15",
+    "wave":  11,
+    "status":  "approved",
+    "authorized_stage":  "implementation",
+    "head":  "84b9c26fb17e0aaf95b991dad2a8cd29eeb1cdc2",
+    "recorded_at":  "2026-10-07T06:00:00.000Z",
+    "plan_sha256":  "8da8503958dd5c35a5cfde22adfaf08edb6b33a82f1b1b062be3936c8d1602c9",
+    "decisions_sha256":  "e29595f641193144bfb91d49e06df38b8c683fe399e39aa1c27434ad9a0f0638",
+    "human_approval":  {
+                           "source":  "owner",
+                           "status":  "approved",
+                           "reference":  "conversation:owner-continuous-phase7-wave2-through-completion-and-continue",
+                           "statement":  "Continuous owner authorization covers inline Phase 7 execution on master, UI mute/report implementation, self-healing, tests, local commits and advancement. STOMP remains the governing transport; private mute state is owner-only and cleared on logout.",
+                           "plans":  [
+                                         "07-15"
+                                     ]
+                       },
+    "scope":  {
+                  "paths":  [
+                                "docs/phase7-approvals/07-15.json",
+                                "frontend/src/app/features/chat/chat-community-api.adapter.ts",
+                                "frontend/src/app/features/chat/chat-personal-mute.store.ts",
+                                "frontend/src/app/features/chat/chat-personal-mute.store.spec.ts",
+                                "frontend/src/app/features/chat/chat-panel.component.ts",
+                                "frontend/src/app/features/chat/community-page.component.ts",
+                                "frontend/src/app/features/chat/chat-read.store.ts",
+                                "frontend/src/app/features/chat/chat-panel.component.spec.ts",
+                                "frontend/e2e/phase7-chat-community.spec.ts",
+                                "scripts/phase7-e2e.mjs",
+                                "frontend/src/app/app.routes.ts",
+                                "scripts/validate-angular-route-boundary.mjs",
+                                "scripts/validate-angular-route-boundary.test.mjs",
+                                "scripts/phase7-e2e.test.mjs"
+                            ],
+                  "commands":  [
+                                   "node scripts/validate-phase7-approvals.mjs --plan 07-15 --stage implementation",
+                                   "node scripts/phase7-e2e.mjs --isolated --spec frontend/e2e/phase7-chat-community.spec.ts",
+                                   "node scripts/maven.mjs -f backend/pom.xml verify",
+                                   "node --test scripts/*.test.mjs"
+                               ],
+                  "candidates":  [
+
+                                 ]
+              },
+    "baseline_hashes":  {
+                            "AGENTS.md":  "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+                            ".planning/STATE.md":  "63df06055cca8f7097c3171ef178675a0686ccbb6f8260ffc8323da9c6a82865",
+                            ".planning/ROADMAP.md":  "8180cba81fecb5da73d303267761fff9965984bc1d5d2a81cc5619aebcd3c9e8",
+                            ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md":  "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf",
+                            ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-RESEARCH.md":  "a9205096bf8ea583e9a086300f4cbc24a920adbbf700777907755dd69b3f09cd",
+                            ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-VALIDATION.md":  "e53c4a2274027e0b39eda157b81c09f76f417e8c9fe5eb7412d3797ad0d08845",
+                            "docs/phase7-decisions.json":  "e29595f641193144bfb91d49e06df38b8c683fe399e39aa1c27434ad9a0f0638"
+                        },
+    "candidate_hashes":  {
+
+                         },
+    "closeout_authorization":  {
+                                   "reference":  "conversation:owner-continuous-phase7-wave2-through-completion-and-continue",
+                                   "documentation_paths":  [
+                                                               ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-15-SUMMARY.md",
+                                                               ".planning/STATE.md",
+                                                               ".planning/ROADMAP.md"
+                                                           ],
+                                   "local_commits":  [
+                                                         "feat(07-15): implement private mute and report community controls",
+                                                         "docs(07-15): finalize plan 07-15 summary and update state"
+                                                     ],
+                                   "push":  false
+                               }
+}
