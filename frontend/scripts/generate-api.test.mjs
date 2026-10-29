@@ -35,6 +35,70 @@ const FIXED_NONCE = '0123456789abcdef0123456789abcdef';
 const RAW_BASE_SERVICE =
   "export class BaseService {\r\n    protected basePath = 'http://localhost';\r\n}\r\n";
 
+function assertRulesPreferenceContract(source) {
+  for (const [suffix, method, id] of [
+    ['', 'get', 'getChatRulesPreference'],
+    ['/dismiss', 'post', 'dismissChatRulesPreference'],
+  ]) {
+    const block = source.split(`  /api/v1/chat/rules/preference${suffix}:\n`)[1]?.split(/\n  \S/u)[0];
+    assert.ok(block);
+    assert.match(block, new RegExp(`^    ${method}:`, 'mu'));
+    assert.match(block, new RegExp(`operationId: ${id}\\b`, 'u'));
+    assert.match(block, /tags: \[ChatRulesPreference\]/u);
+    assert.match(block, /security: \[\{cookieSession: \[\]\}\]/u);
+    assert.match(block, /description: private, no-store/u);
+    assert.match(block, /description: Cookie/u);
+    assert.match(block, /#\/components\/schemas\/ChatRulesPreference/u);
+    assert.doesNotMatch(block, /parameters:|requestBody:|accountId/u);
+  }
+  const schema = source.split('    ChatRulesPreference:\n')[1]?.split(/\n    \S/u)[0];
+  assert.ok(schema);
+  assert.match(schema, /additionalProperties: false/u);
+  assert.match(schema, /required: \[dismissed\]/u);
+  assert.deepEqual(schemaFields(schema), ['dismissed']);
+  assert.match(schema, /dismissed: \{type: boolean\}/u);
+  assert.match(source, /Dismissal is not legal consent/u);
+}
+
+test('rules preference contract is boolean-only, session-private and matches the producer', async () => {
+  const source = await readFile(join(projectRoot, 'backend/openapi/betufu.yaml'), 'utf8');
+  assertRulesPreferenceContract(source);
+  const controller = await readFile(join(projectRoot, 'backend/src/main/java/br/com/betufu/chat/internal/preferences/ChatRulesPreferenceController.java'), 'utf8');
+  assert.match(controller, /@RequestMapping\("\/api\/v1\/chat\/rules\/preference"\)/u);
+  assert.match(controller, /@PostMapping\("\/dismiss"\)/u);
+  assert.match(controller, /record Dismissed\(boolean dismissed\)/u);
+  assert.match(controller, /CACHE_CONTROL, "private, no-store"/u);
+  assert.match(controller, /VARY, "Cookie"/u);
+  for (const mutant of [
+    source.replace(/(operationId: getChatRulesPreference[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u, '$1[]'),
+    source.replace(/(operationId: dismissChatRulesPreference[\s\S]*?security: )\[\{cookieSession: \[\]\}\]/u, '$1[]'),
+    source.replace('required: [dismissed]', 'required: []'),
+    source.replace('dismissed: {type: boolean}', 'dismissed: {type: string}'),
+    source.replace('dismissed: {type: boolean}', 'dismissed: {type: boolean}\n        accountId: {type: string}'),
+    source.replace('operationId: dismissChatRulesPreference', 'requestBody: {}\n      operationId: dismissChatRulesPreference'),
+  ]) {
+    assert.notEqual(mutant, source);
+    assert.throws(() => assertRulesPreferenceContract(mutant));
+  }
+});
+
+test('rules preference official client exposes only the private boolean and parameterless operations', async () => {
+  assert.ok(PUBLIC_GENERATOR_API_TAGS.includes('ChatRulesPreference'));
+  assert.ok(PUBLIC_GENERATOR_MODELS.includes('ChatRulesPreference'));
+  const root = join(projectRoot, 'frontend/src/app/api/generated');
+  const service = await readFile(join(root, 'api/chat-rules-preference.service.ts'), 'utf8');
+  for (const operation of ['getChatRulesPreference', 'dismissChatRulesPreference']) {
+    assert.ok(service.includes(`public ${operation}(`));
+    assert.match(service, new RegExp(`public ${operation}\\(observe\\?: 'body'`, 'u'));
+  }
+  assert.ok(service.includes('/api/v1/chat/rules/preference'));
+  assert.ok(service.includes('/api/v1/chat/rules/preference/dismiss'));
+  assert.doesNotMatch(service, /accountId|http:\/\/localhost|Authorization/u);
+  const model = await readFile(join(root, 'model/chat-rules-preference.ts'), 'utf8');
+  assert.match(model, /dismissed: boolean;/u);
+  assert.doesNotMatch(model, /dismissed\?:|accountId|\[key:/u);
+});
+
 const PRIVACY_OPERATIONS = [
   ['/api/v1/privacy/requests', 'post', 'requestPrivacyRight', 'PrivacyCaseReceipt'],
   ['/api/v1/privacy/me/cases', 'get', 'getOwnPrivacyCases', 'PrivacyCase'],
@@ -1394,6 +1458,7 @@ test('geracao seleciona catalogo, organizacoes, atletas, elencos, importacao tab
     'Achievement',
     'EmergencyPauses',
     'PrivacyRights',
+    'ChatRulesPreference',
   ]);
   for (const model of [
     'SettlementHistoryItem',
@@ -1512,7 +1577,7 @@ test('inventario ratificado inclui odds, saldo, palpites e barrels atualizados',
     'model/sports-roster-snapshot-for-odds.ts',
   ];
 
-  assert.equal(manifest.digest, 'BBF8DE6CA2FEA7C26FBAFC9A3ABB11F15D7B14E34A4993121A625B1D83C9DA29');
+  assert.equal(manifest.digest, '72A2ACF318B8A1DBD1785F035AF322F136F761BA24167D00ED58077EB5790F38');
   assert.deepEqual(
     oddsFiles.filter((path) => manifest.files.includes(path)),
     oddsFiles,

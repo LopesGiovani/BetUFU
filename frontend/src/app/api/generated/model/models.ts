@@ -27,6 +27,7 @@ export * from './chat-report-command';
 export * from './chat-report-receipt';
 export * from './chat-review-command';
 export * from './chat-review-receipt';
+export * from './chat-rules-preference';
 export * from './chat-sanction-command';
 export * from './chat-sanction-suggestion';
 export * from './chat-sanction-summary';

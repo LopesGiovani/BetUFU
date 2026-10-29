@@ -97,8 +97,10 @@ export const PUBLIC_GENERATOR_API_TAGS = Object.freeze([
   'Achievement',
   'EmergencyPauses',
   'PrivacyRights',
+  'ChatRulesPreference',
 ]);
 export const PUBLIC_GENERATOR_MODELS = Object.freeze([
+  'ChatRulesPreference',
   'ChatMuteCommand',
   'ChatMuteState',
   'ChatReportCommand',
@@ -320,6 +322,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'api/athlete-link.service.ts',
   'api/athlete-media.service.ts',
   'api/athlete-public-profile.service.ts',
+  'api/chat-rules-preference.service.ts',
   'api/chat.service.ts',
   'api/credit-correction.service.ts',
   'api/credit-ledger.service.ts',
@@ -382,6 +385,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
   'model/chat-report-receipt.ts',
   'model/chat-review-command.ts',
   'model/chat-review-receipt.ts',
+  'model/chat-rules-preference.ts',
   'model/chat-sanction-command.ts',
   'model/chat-sanction-suggestion.ts',
   'model/chat-sanction-summary.ts',
@@ -593,7 +597,7 @@ export const APPROVED_GENERATED_FILES = Object.freeze([
 // AE29... acrescenta o contrato de pausas administrativas e disponibilidade
 // minima publica da Fase 7, preservando as rotas reais dos produtores 07-22.
 export const APPROVED_GENERATED_DIGEST =
-  'BBF8DE6CA2FEA7C26FBAFC9A3ABB11F15D7B14E34A4993121A625B1D83C9DA29';
+  '72A2ACF318B8A1DBD1785F035AF322F136F761BA24167D00ED58077EB5790F38';
 const APPROVED_GENERATED_MANIFEST = Object.freeze({
   files: APPROVED_GENERATED_FILES,
   digest: APPROVED_GENERATED_DIGEST,

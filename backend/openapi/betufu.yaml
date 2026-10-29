@@ -5924,6 +5924,66 @@ paths:
             application/problem+json:
               schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
 
+  /api/v1/chat/rules/preference:
+    get:
+      tags: [ChatRulesPreference]
+      operationId: getChatRulesPreference
+      summary: Read the current account's private chat-rules dismissal preference
+      security: [{cookieSession: []}]
+      description: private, no-store. The account is resolved from the authenticated session; no account identifier is accepted.
+      responses:
+        "200":
+          description: Private account preference.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatRulesPreference"}
+        "401":
+          description: Missing or expired session.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Operation is not allowed for this session.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+  /api/v1/chat/rules/preference/dismiss:
+    post:
+      tags: [ChatRulesPreference]
+      operationId: dismissChatRulesPreference
+      summary: Dismiss the current account's chat-rules popup
+      security: [{cookieSession: []}]
+      description: private, no-store. Dismissal is not legal consent and the account is resolved from the authenticated session.
+      responses:
+        "200":
+          description: Private account preference after idempotent dismissal.
+          headers:
+            Cache-Control:
+              schema: {type: string}
+              description: private, no-store
+            Vary:
+              schema: {type: string}
+              description: Cookie
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/ChatRulesPreference"}
+        "401":
+          description: Missing or expired session.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
+        "403":
+          description: Operation is not allowed for this session.
+          content:
+            application/problem+json:
+              schema: {$ref: "#/components/schemas/BetufuProblemDetails"}
 components:
   parameters:
     IdempotencyKey:
@@ -5947,6 +6007,12 @@ components:
       description: Chave opaca obrigatória para repetição segura do comando de override.
 
   schemas:
+    ChatRulesPreference:
+      type: object
+      additionalProperties: false
+      required: [dismissed]
+      properties:
+        dismissed: {type: boolean}
     PrivacyRestrictedRecord:
       type: object
       additionalProperties: false
