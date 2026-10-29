@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em17 ondas,102 tasks;29 executados. Waves1-12 completas; Wave13 segue07-23. 07-29 restaurou os tres substratos em isolamento e reaplicou supressao posterior ao snapshot antes de servir. V1-V47 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
+**Plans**: 35 planos em17 ondas,102 tasks;30 executados. Waves1-13 completas; Wave14 segue07-26 e07-35. 07-29 restaurou os tres substratos em isolamento e reaplicou supressao posterior ao snapshot antes de servir. V1-V47 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -629,7 +629,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 - [x] 07-34-PLAN.md — Contrato privado gerado da preferência de regras, após 07-25/33.
 
 **Wave 13 — Bloqueada pelas dependências explícitas dos planos**
-- [ ] 07-23-PLAN.md — Pausas operacionais e estados: tracer real.
+- [x] 07-23-PLAN.md — Pausas operacionais e estados: tracer real.
 
 **Wave 14 — Bloqueada pelas dependências explícitas dos planos**
 - [ ] 07-26-PLAN.md — Privacidade na conta: tracer titular/operacao.
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 29/35 | Wave13; next07-23; private preference contract verified | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 30/35 | Wave14; next07-26; operational pauses verified | - |
