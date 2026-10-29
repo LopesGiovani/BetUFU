@@ -765,6 +765,8 @@ function approvedDynamicImportsFor(relativePath) {
       approvedRoute('conta/punicoes', './features/chat/chat-sanctions-page.component', 'ChatSanctionsPageComponent'),
       approvedRoute('operacao/comunidade/moderacao', './features/chat/chat-moderation-page.component', 'ChatModerationPageComponent'),
       approvedRoute('operacao/pausas', './features/operations/emergency-pause-page.component', 'EmergencyPausePageComponent'),
+      approvedRoute('conta/privacidade', './features/privacy/privacy-rights-page.component', 'PrivacyRightsPageComponent'),
+      approvedRoute('operacao/privacidade', './features/privacy/privacy-operations-page.component', 'PrivacyOperationsPageComponent'),
     ];
   }
   if (relativePath === PATHS.development) {
@@ -1933,12 +1935,14 @@ export function normalizePhaseSevenRoutes(source) {
 }
 
 export function normalizePhaseSevenPrivateRoutes(source) {
-  if (!/(?:chat-(?:sanctions|moderation)|emergency-pause)-page\.component/u.test(source)) return source;
+  if (!/(?:chat-(?:sanctions|moderation)|emergency-pause|privacy-(?:rights|operations))-page\.component/u.test(source)) return source;
   const guard = /canActivateChild\s*:\s*\[\s*authenticationGuard\s*,\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*\[/u.exec(source);
   expect(guard !== null, 'PHASE_SEVEN_PRIVATE_GUARDS', 'Moderacao e punicoes exigem sessao e perfil.');
   const start = guard.index + guard[0].length;
   let tail = source.slice(start);
   for (const [path, variant, file, name] of [
+    ...(source.includes("'conta/privacidade'") ? [['conta/privacidade', 'personal', 'privacy/privacy-rights-page', 'PrivacyRightsPageComponent']] : []),
+    ...(source.includes("'operacao/privacidade'") ? [['operacao/privacidade', 'operational', 'privacy/privacy-operations-page', 'PrivacyOperationsPageComponent']] : []),
     ...(source.includes("'operacao/pausas'") ? [['operacao/pausas', 'operational', 'operations/emergency-pause-page', 'EmergencyPausePageComponent']] : []),
     ['conta/punicoes', 'personal', 'chat/chat-sanctions-page', 'ChatSanctionsPageComponent'],
     ['operacao/comunidade/moderacao', 'operational', 'chat/chat-moderation-page', 'ChatModerationPageComponent'],

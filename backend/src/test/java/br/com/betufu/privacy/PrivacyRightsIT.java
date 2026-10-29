@@ -477,7 +477,7 @@ class PrivacyRightsHttpIT {
         connection.setAutoCommit(false);
         try (var statement =
             connection.prepareStatement(
-                "SELECT case_id FROM privacy_rights_case_fact WHERE case_id=? FOR UPDATE")) {
+                "SELECT pg_advisory_xact_lock(hashtextextended('privacy_rights_case_fact:' || CAST(? AS text),0))")) {
           statement.setObject(1, UUID.fromString(caseId));
           statement.executeQuery().close();
         }
@@ -502,7 +502,7 @@ class PrivacyRightsHttpIT {
           if (waiting) break;
           Thread.sleep(25);
         }
-        assertThat(waiting).as("actual privacy row-lock wait").isTrue();
+        assertThat(waiting).as("actual privacy transaction-lock wait").isTrue();
         if (revokeRole)
           jdbc.update(
               "UPDATE operational_role_grant SET status='REVOGADO' WHERE identity_id=?", admin);

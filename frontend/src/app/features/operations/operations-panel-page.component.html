@@ -25,6 +25,7 @@
 
     <div class="header-actions">
       @if (canManagePauses()) {
+        <a class="chat-moderation-link" [routerLink]="privacyOperationsPath">Privacidade dos titulares</a>
         <a class="chat-moderation-link" routerLink="/operacao/pausas">Pausas de emergencia</a>
       }
       <a class="chat-moderation-link" [routerLink]="chatModerationPath">Moderacao da comunidade</a>

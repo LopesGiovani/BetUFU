@@ -24,6 +24,7 @@ const SPEC_PLANS = Object.freeze({
   "frontend/e2e/phase7-chat-community.spec.ts": "07-15",
   "frontend/e2e/phase7-moderation.spec.ts": "07-19",
   "frontend/e2e/phase7-operations.spec.ts": "07-23",
+  "frontend/e2e/phase7-privacy.spec.ts": "07-26",
 });
 export function specPlan(value) {
   if (!Object.hasOwn(SPEC_PLANS, value)) throw new Error("Unapproved browser spec");
@@ -369,7 +370,7 @@ CURRENT_TIMESTAMP(6)-interval '1 hour'+i*interval '3 seconds'
 FROM public.chat_channel c CROSS JOIN generate_series(1,60) i;`;
 }
 
-async function provision(compose, run, config, password) {
+async function provision(compose, run, config, password, plan) {
   const keycloak = config.services.keycloak.environment;
   const base = "http://127.0.0.1:8281";
   const request = async (path, init = {}) => {
@@ -455,6 +456,9 @@ async function provision(compose, run, config, password) {
   const roles = `INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid("e2e:checker:global"))},${sql(checkerId)},'ADMINISTRADOR_GERAL',NULL,'VIGENTE');`;
   const id = await ownedService(compose, run, "postgres");
   const pg = config.services.postgres.environment;
+  const privateAthlete = plan === "07-26"
+    ? `INSERT INTO public.sports_athlete(athlete_id,name,slug) VALUES (${sql(stableUuid("athlete:e2e-without-account"))},'Atleta sem conta isolado','e2e-without-account');`
+    : "";
   await command(
     "docker",
     [
@@ -470,7 +474,7 @@ async function provision(compose, run, config, password) {
       "-d",
       pg.BETUFU_DB_NAME,
     ],
-    { input: seed + "\n" + roles + "\n" + profiles + "\n" + chatHistorySql() },
+    { input: seed + "\n" + roles + "\n" + profiles + "\n" + chatHistorySql() + "\n" + privateAthlete },
   );
 }
 
@@ -569,7 +573,7 @@ export async function runIsolated(spec) {
       await ownedService(compose, run, service);
     const password = secret();
     privateValues.add(password);
-    await provision(compose, run, config, password);
+    await provision(compose, run, config, password, specPlan(spec));
     let channels = "{}";
     if (specPlan(spec) === "07-23") {
       const postgres = await ownedService(compose, run, "postgres");
@@ -585,6 +589,7 @@ export async function runIsolated(spec) {
       BETUFU_E2E_ISOLATED_RUN: run,
       BETUFU_E2E_CHANNELS: channels,
       BETUFU_E2E_STUDENT_ID: stableUuid("identity:student"),
+      BETUFU_E2E_PRIVATE_ATHLETE_ID: stableUuid("athlete:e2e-without-account"),
       BETUFU_E2E_USERNAME: PERSONAS.find((p) => p.key === "student").username,
       BETUFU_E2E_PASSWORD: password,
       BETUFU_E2E_OTHER_USERNAME: PERSONAS.find((p) => p.key === "athlete")

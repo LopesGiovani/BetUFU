@@ -95,6 +95,7 @@ const SPORTS_OPERATION_DESTINATIONS: readonly OperationalNavigationItem[] = Obje
 ]);
 
 const PERSONAL_DESTINATIONS = Object.freeze([
+  Object.freeze({ label: 'Privacidade', path: '/conta/privacidade' }),
   Object.freeze({ label: 'Punicoes da conta', path: '/conta/punicoes' }),
   Object.freeze({ label: 'Moderacao conforme seu escopo', path: '/operacao/comunidade/moderacao' }),
   Object.freeze({ label: 'Historico de liquidacoes', path: '/conta/historico' }),

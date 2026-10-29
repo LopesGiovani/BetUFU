@@ -107,6 +107,18 @@ export const APP_ROUTES: Routes = [
     canActivateChild: [authenticationGuard, profileCompletionGuard],
     children: [
       {
+        path: 'conta/privacidade',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'personal' },
+        children: [{ path: '', loadComponent: () => import('./features/privacy/privacy-rights-page.component').then(({ PrivacyRightsPageComponent }) => PrivacyRightsPageComponent) }],
+      },
+      {
+        path: 'operacao/privacidade',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'operational' },
+        children: [{ path: '', loadComponent: () => import('./features/privacy/privacy-operations-page.component').then(({ PrivacyOperationsPageComponent }) => PrivacyOperationsPageComponent) }],
+      },
+      {
         path: 'operacao/pausas',
         component: ConsoleShellComponent,
         data: { consoleVariant: 'operational' },

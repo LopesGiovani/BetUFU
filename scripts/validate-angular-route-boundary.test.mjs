@@ -30,6 +30,18 @@ test('emergency pause route accepts only its approved component, shell and order
   await validateAngularRouteBoundary();
 });
 
+test('privacy routes reject swapped components, public aliases and missing private guards', async () => {
+  const source = await readFile(new URL('../frontend/src/app/app.routes.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(normalizePhaseSevenPrivateRoutes(source), /privacy-(?:rights|operations)-page\.component/u);
+  for (const bad of [
+    source.replace('PrivacyRightsPageComponent', 'PrivacyOperationsPageComponent'),
+    source.replace("path: 'conta/privacidade'", "path: 'privacidade-publica'"),
+    source.replace("path: 'operacao/privacidade'", "path: 'operacao/qualquer'"),
+    source.replace('authenticationGuard, profileCompletionGuard', 'authenticationGuard'),
+  ]) assert.throws(() => normalizePhaseSevenPrivateRoutes(bad));
+  await validateAngularRouteBoundary();
+});
+
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptsDirectory, '..');
 const validatorPath = join(scriptsDirectory, 'validate-angular-route-boundary.mjs');

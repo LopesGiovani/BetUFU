@@ -78,13 +78,12 @@ class PrivacyRightsRepository {
   }
 
   Optional<CaseFact> lockCase(UUID caseId) {
-    return jdbc
-        .query(
-            "SELECT case_id,subject_kind,subject_ref,owner_identity_id,request_kind,requested_at FROM public.privacy_rights_case_fact WHERE case_id=? FOR UPDATE",
-            this::caseFact,
-            caseId)
-        .stream()
-        .findFirst();
+    // Historical facts deny UPDATE, which PostgreSQL also requires for row locks.
+    jdbc.query(
+        "SELECT pg_advisory_xact_lock(hashtextextended('privacy_rights_case_fact:' || CAST(? AS text),0))",
+        rs -> {},
+        caseId.toString());
+    return findCase(caseId);
   }
 
   String historicalState(UUID caseId) {
