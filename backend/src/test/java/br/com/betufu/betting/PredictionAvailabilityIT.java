@@ -28,7 +28,8 @@ class PredictionAvailabilityIT {
     ObjectProvider<PredictionEmergencyPausePort> provider = mock(ObjectProvider.class);
     when(provider.getIfAvailable()).thenReturn(pauses);
 
-    var response = new PredictionController(null, null, null, provider).availability(marketId);
+    var response =
+        new PredictionController(null, null, null, provider).availability(null, marketId);
     var body = (PredictionController.Availability) response.getBody();
     assertThat(response.getStatusCode().value()).isEqualTo(200);
     assertThat(body.state()).isEqualTo("PAUSED");
@@ -52,7 +53,8 @@ class PredictionAvailabilityIT {
     ObjectProvider<PredictionEmergencyPausePort> provider = mock(ObjectProvider.class);
     when(provider.getIfAvailable()).thenReturn(pauses);
 
-    var response = new PredictionController(null, null, null, provider).availability(marketId);
+    var response =
+        new PredictionController(null, null, null, provider).availability(null, marketId);
 
     assertThat(response.getStatusCode().value()).isEqualTo(200);
     assertThat(response.getBody())

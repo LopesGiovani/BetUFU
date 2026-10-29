@@ -59,7 +59,9 @@ public class PredictionController {
   }
 
   @GetMapping("/markets/{marketId}/availability")
-  public ResponseEntity<?> availability(@PathVariable UUID marketId) {
+  public ResponseEntity<?> availability(
+      @AuthenticationPrincipal(errorOnInvalidType = false) OidcUser user,
+      @PathVariable UUID marketId) {
     var pausePort = pauses.getIfAvailable();
     if (pausePort == null) return ResponseEntity.notFound().build();
     return pausePort
@@ -71,9 +73,19 @@ public class PredictionController {
               var eventState =
                   pausePort.current(
                       PredictionEmergencyPausePort.TargetKind.EVENT, market.eventId());
-              boolean paused = marketState.paused() || eventState.paused();
+              UUID identityId = resolve(user);
+              var accountState =
+                  identityId == null
+                      ? new PredictionEmergencyPausePort.State(false, null)
+                      : pausePort.current(
+                          PredictionEmergencyPausePort.TargetKind.ACCOUNT, identityId);
+              boolean paused = marketState.paused() || eventState.paused() || accountState.paused();
               UUID revision =
-                  marketState.revision() != null ? marketState.revision() : eventState.revision();
+                  marketState.revision() != null
+                      ? marketState.revision()
+                      : eventState.revision() != null
+                          ? eventState.revision()
+                          : accountState.revision();
               return ResponseEntity.ok(
                   new Availability(paused ? "PAUSED" : "AVAILABLE", paused, revision));
             })

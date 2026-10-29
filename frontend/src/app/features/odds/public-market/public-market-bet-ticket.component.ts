@@ -17,6 +17,7 @@ import { contextualLoginUrl } from '../../../core/session/contextual-login-url';
 import { PublicMarketSelection } from './public-market-api.adapter';
 import { BettingSelection } from './public-market-betting-api.adapter';
 import { PublicMarketBettingStore } from './public-market-betting.store';
+import { EmergencyPauseStore } from '../../operations/emergency-pause.store';
 
 @Component({
   selector: 'app-public-market-bet-ticket',
@@ -28,6 +29,16 @@ import { PublicMarketBettingStore } from './public-market-betting.store';
 })
 export class PublicMarketBetTicketComponent implements OnInit, OnChanges {
   readonly store = inject(PublicMarketBettingStore);
+  private readonly pause = inject(EmergencyPauseStore, { optional: true });
+  readonly availabilityLabel = computed(() => ({
+    unknown: 'Verificando disponibilidade', available: '',
+    paused: 'Novos palpites pausados temporariamente.',
+    error: 'Nao foi possivel verificar a disponibilidade.',
+  })[this.store.availability()]);
+
+  retryAvailability() {
+    void this.pause?.refresh();
+  }
   private readonly router = inject(Router);
 
   @Input({ required: true }) marketId = '';

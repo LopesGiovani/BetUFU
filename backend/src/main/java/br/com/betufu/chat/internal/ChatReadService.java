@@ -38,7 +38,7 @@ public class ChatReadService {
     this.access = access;
   }
 
-  @Transactional(readOnly = true)
+  @Transactional
   public ChatReadModels.Availability availability(
       UUID eventId, boolean authenticated, String issuer, String subject, String sessionId) {
     if (eventId == null && !authenticated)
@@ -46,20 +46,14 @@ public class ChatReadService {
     Channel channel = resolveChannel(eventId, authenticated);
     var channelState =
         pauses.current(ChatEmergencyPausePort.TargetKind.CHANNEL, channel.channelId());
-    var eventState =
-        eventId == null
-            ? new ChatEmergencyPausePort.State(false, null)
-            : pauses.current(ChatEmergencyPausePort.TargetKind.EVENT, eventId);
     var accountState =
         authenticated
             ? pauses.current(
                 ChatEmergencyPausePort.TargetKind.ACCOUNT, access.actor(issuer, subject, sessionId))
             : new ChatEmergencyPausePort.State(false, null);
-    boolean paused = channelState.paused() || eventState.paused() || accountState.paused();
+    boolean paused = channelState.paused() || accountState.paused();
     UUID revision =
-        channelState.revision() != null
-            ? channelState.revision()
-            : eventState.revision() != null ? eventState.revision() : accountState.revision();
+        channelState.revision() != null ? channelState.revision() : accountState.revision();
     return new ChatReadModels.Availability(paused ? "PAUSED" : "AVAILABLE", paused, revision);
   }
 

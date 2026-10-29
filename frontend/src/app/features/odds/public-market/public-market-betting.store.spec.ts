@@ -109,6 +109,8 @@ describe('PublicMarketBettingStore', () => {
     const session = {
       loadSession: vi.fn().mockResolvedValue(undefined),
       isAuthenticated: authenticated,
+      revision: signal(0),
+      isChecking: signal(false),
     };
     const enrollment = {
       loadEnrollment: vi.fn().mockResolvedValue(undefined),
@@ -128,6 +130,7 @@ describe('PublicMarketBettingStore', () => {
       ],
     });
     const store = TestBed.inject(PublicMarketBettingStore);
+    store.setAvailability('available');
     store.configure(MARKET_ID, {
       marketVersionId: VERSION_1,
       publicationId: PUBLICATION_1,
@@ -152,6 +155,82 @@ describe('PublicMarketBettingStore', () => {
       },
     };
   }
+
+  it('blocks new submissions until availability is confirmed', async () => {
+    const { store, api } = setup();
+    store.setAvailability('unknown');
+    await store.load();
+    expect(store.canSubmit()).toBe(false);
+    expect(await store.submit('HOME', 10, false)).toBe('ignored');
+    expect(api.submit).not.toHaveBeenCalled();
+  });
+
+  it('blocks unknown, error and pause, preserves receipts and never overrides the deadline on resume', async () => {
+    const { store, api, advanceTo } = setup();
+    await store.load();
+    for (const value of ['unknown', 'error', 'paused'] as const) {
+      store.setAvailability(value);
+      expect(store.canSubmit()).toBe(false);
+      expect(await store.submit('HOME', 10, false)).toBe('ignored');
+    }
+    expect(api.submit).not.toHaveBeenCalled();
+    store.setAvailability('available');
+    expect(store.canSubmit()).toBe(true);
+    advanceTo('2026-09-15T12:00:00Z');
+    store.setAvailability('paused');
+    store.setAvailability('available');
+    expect(store.status()).toBe('closed');
+    expect(store.canSubmit()).toBe(false);
+  });
+
+  it('keeps an accepted receipt during pause or failed availability', async () => {
+    const { store } = setup();
+    await store.load();
+    await store.submit('HOME', 10, false);
+    const ticket = store.ownTicket();
+    for (const value of ['paused', 'unknown', 'error'] as const) {
+      store.setAvailability(value);
+      expect(store.ownTicket()).toBe(ticket);
+      expect(store.status()).toBe('success');
+    }
+  });
+
+  it('hides private state immediately on logout and ignores the previous account POST', async () => {
+    const { store, api, session } = setup();
+    await store.load();
+    let finish!: (value: BettingTicket) => void;
+    api.submit.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const pending = store.submit('HOME', 10, false);
+    session.isAuthenticated.set(false);
+    session.revision.update((value) => value + 1);
+    expect(store.balanceValue()).toBeNull();
+    expect(store.ownTicket()).toBeNull();
+    expect(store.canSubmit()).toBe(false);
+    TestBed.tick();
+    session.isAuthenticated.set(true);
+    session.revision.update((value) => value + 1);
+    TestBed.tick();
+    await Promise.resolve(); await Promise.resolve();
+    finish(acceptedTicket());
+    expect(await pending).toBe('ignored');
+    expect(store.ownTicket()).toBeNull();
+  });
+
+  it('ignores an old account balance load after a new session has loaded', async () => {
+    const { store, api, session } = setup();
+    let finish!: (value: { balance: number; scale: number; minimumStake: number; rulesVersion: string }) => void;
+    api.getBalance.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const pending = store.load();
+    await Promise.resolve(); await Promise.resolve();
+    session.revision.update((value) => value + 1);
+    api.getBalance.mockResolvedValue({ balance: 200, scale: 2, minimumStake: 10, rulesVersion: 'credits-v1' });
+    TestBed.tick();
+    await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+    finish({ balance: 999, scale: 2, minimumStake: 10, rulesVersion: 'credits-v1' });
+    await pending;
+    expect(store.balanceValue()?.balance).toBe(200);
+    expect(store.ownTicket()).toBeNull();
+  });
 
   it('aplica deadline no instante exato antes de sessao e elegibilidade', async () => {
     const before = setup({ authenticated: false, now: '2026-09-15T11:59:59.999Z' });

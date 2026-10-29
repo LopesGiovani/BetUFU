@@ -45,6 +45,9 @@ public interface EmergencyPausePort {
 
   record State(boolean paused, UUID currentPauseId) {}
 
+  /** Minimal transaction-local invalidation; no reason or actor crosses this boundary. */
+  record Changed(Kind kind, UUID targetId, UUID relatedEventId) {}
+
   /** Caller transaction must retain the target lock until its command commits. */
   State lockState(Kind kind, UUID targetId);
 

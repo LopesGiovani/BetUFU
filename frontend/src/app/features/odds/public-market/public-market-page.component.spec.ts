@@ -14,6 +14,9 @@ import { PublicMarketBettingApiAdapter } from './public-market-betting-api.adapt
 import { PublicMarketBettingStore } from './public-market-betting.store';
 import { PublicMarketPageComponent } from './public-market-page.component';
 import { PublicMarketStore } from './public-market.store';
+import { signal } from '@angular/core';
+import { EmergencyPauseStore } from '../../operations/emergency-pause.store';
+import { ChatReadStore } from '../../chat/chat-read.store';
 
 const MARKET_ID = 'm1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c';
 
@@ -67,7 +70,7 @@ describe('PublicMarketPageComponent', () => {
         PublicMarketBettingStore,
         {
           provide: SessionStore,
-          useValue: { loadSession: vi.fn().mockResolvedValue(undefined), isAuthenticated: () => false },
+          useValue: { loadSession: vi.fn().mockResolvedValue(undefined), isAuthenticated: () => false, revision: signal(0), isChecking: signal(false) },
         },
         {
           provide: EnrollmentStore,
@@ -90,6 +93,10 @@ describe('PublicMarketPageComponent', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => MARKET_ID } } } },
       ],
     }).compileComponents();
+    TestBed.overrideComponent(PublicMarketPageComponent, { set: { providers: [
+      { provide: EmergencyPauseStore, useValue: { availability: signal('available'), open: vi.fn(), clear: vi.fn(), refresh: vi.fn() } },
+      { provide: ChatReadStore, useValue: { pushRevision: signal(0), open: vi.fn(), close: vi.fn() } },
+    ] } });
     const fixture = TestBed.createComponent(PublicMarketPageComponent);
     fixture.detectChanges();
     await fixture.whenStable();

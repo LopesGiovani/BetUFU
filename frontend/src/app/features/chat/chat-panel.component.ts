@@ -21,6 +21,7 @@ import { ChatWriteApiAdapter } from './chat-write-api.adapter';
 import { ChatPersonalMuteStore } from './chat-personal-mute.store';
 import { ChatCommunityApiAdapter, type ChatReportReason } from './chat-community-api.adapter';
 import type { ChatMessage } from '../../api/generated/model/chat-message';
+import { EmergencyPauseStore } from '../operations/emergency-pause.store';
 
 @Component({
   selector: 'app-chat-panel',
@@ -32,6 +33,7 @@ import type { ChatMessage } from '../../api/generated/model/chat-message';
     ChatOutboxStore,
     ChatCommunityApiAdapter,
     ChatPersonalMuteStore,
+    EmergencyPauseStore,
   ],
   template: `
     <section
@@ -150,20 +152,26 @@ import type { ChatMessage } from '../../api/generated/model/chat-message';
           {{ pending() > 0 ? 'Novas mensagens (' + pending() + ')' : 'Ir ao fim' }}
         </button>
         @if (session.isAuthenticated()) {
+          @if (pause.notice()) {
+            <p class="chat-readonly" role="status">{{ pause.notice() }}</p>
+            @if (pause.availability() === 'error') {
+              <button class="chat-action" type="button" (click)="pause.refresh()">Tentar novamente</button>
+            }
+          }
           <form class="chat-composer" (submit)="send($event)">
             <label [for]="titleId() + '-draft'">Sua mensagem</label>
             <textarea
               [id]="titleId() + '-draft'"
               [value]="draft()"
               (input)="edit($event)"
-              [disabled]="!outbox.canCompose()"
+              [disabled]="!outbox.canCompose() || pause.availability() !== 'available'"
               [attr.aria-describedby]="titleId() + '-counter'"
               rows="2"></textarea>
             <p [id]="titleId() + '-counter'">{{ characters() }}/280 caracteres</p>
             <button
               class="chat-action"
               type="submit"
-              [disabled]="!outbox.canCompose() || !validDraft()">
+              [disabled]="!outbox.canCompose() || !validDraft() || pause.availability() !== 'available'">
               Enviar mensagem
             </button>
             <p class="chat-readonly">
@@ -414,6 +422,7 @@ export class ChatPanelComponent {
   readonly session = inject(SessionStore);
   readonly outbox = inject(ChatOutboxStore);
   readonly mute = inject(ChatPersonalMuteStore);
+  readonly pause = inject(EmergencyPauseStore);
   private readonly communityApi = inject(ChatCommunityApiAdapter);
   readonly visibleMessages = computed(() => {
     const muted = this.mute.participantIds();
@@ -469,6 +478,8 @@ export class ChatPanelComponent {
       const eventId = this.eventId();
       const authenticated = this.session.isAuthenticated();
       untracked(() => {
+        if (!this.session.isChecking() && (eventId !== null || authenticated)) this.pause.open('chat', eventId);
+        else this.pause.clear();
         this.draft.set('');
         this.cancelReport();
         if (authenticated) {
@@ -480,7 +491,7 @@ export class ChatPanelComponent {
     });
     effect(() => {
       const revision = this.store.pushRevision();
-      if (revision > 0) untracked(() => void this.mute.refresh());
+      if (revision > 0) untracked(() => { void this.mute.refresh(); void this.pause.refresh(); });
     });
     effect(() => {
       const revision = this.outbox.acknowledgements();
@@ -542,6 +553,7 @@ export class ChatPanelComponent {
   }
   send(event: Event): void {
     event.preventDefault();
+    if (this.pause.availability() !== 'available') return;
     if (this.outbox.enqueue(this.draft())) this.draft.set('');
   }
 

@@ -107,6 +107,12 @@ export const APP_ROUTES: Routes = [
     canActivateChild: [authenticationGuard, profileCompletionGuard],
     children: [
       {
+        path: 'operacao/pausas',
+        component: ConsoleShellComponent,
+        data: { consoleVariant: 'operational' },
+        children: [{ path: '', loadComponent: () => import('./features/operations/emergency-pause-page.component').then(({ EmergencyPausePageComponent }) => EmergencyPausePageComponent) }],
+      },
+      {
         path: 'conta/punicoes',
         component: ConsoleShellComponent,
         data: { consoleVariant: 'personal' },

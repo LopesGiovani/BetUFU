@@ -4,6 +4,13 @@
   [attr.aria-busy]="store.status() === 'loading'">
   <h2 id="bet-ticket-heading">Palpite neste mercado</h2>
 
+  @if (store.availability() !== 'available' && store.status() !== 'visitor') {
+    <p role="status" aria-live="polite">{{ availabilityLabel() }}</p>
+    @if (store.availability() === 'error') {
+      <button type="button" class="quiet" (click)="retryAvailability()">Tentar novamente</button>
+    }
+  }
+
   @if (store.status() === 'success' && store.ownTicket(); as ticket) {
     <div class="receipt" role="status" aria-live="polite">
       <h3>Palpite registrado</h3>
@@ -108,7 +115,7 @@
           <strong class="numeric">{{ balance.balance | number: '1.2-2' }}</strong> creditos
         </p>
 
-        <fieldset>
+        <fieldset [disabled]="!store.canSubmit()">
           <legend>Escolha do resultado</legend>
           <div class="selection-grid">
             @for (item of store.selections(); track item.code) {
@@ -129,6 +136,7 @@
         <label for="stake">Creditos do palpite</label>
         <input
           id="stake"
+          [disabled]="!store.canSubmit()"
           type="number"
           [min]="balance.minimumStake"
           [max]="balance.balance"
@@ -146,7 +154,7 @@
           <p id="stake-error" class="field-error" role="alert">{{ message }}</p>
         }
 
-        <button type="button" class="quiet" (click)="useAllIn()">Usar saldo total</button>
+        <button type="button" class="quiet" [disabled]="!store.canSubmit()" (click)="useAllIn()">Usar saldo total</button>
 
         <dl class="calculation">
           <div>

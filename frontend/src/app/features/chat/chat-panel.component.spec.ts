@@ -7,6 +7,7 @@ import { ChatOutboxStore } from './chat-outbox.store';
 import { SessionStore } from '../../core/session/session.store';
 import { ChatPersonalMuteStore } from './chat-personal-mute.store';
 import { ChatCommunityApiAdapter } from './chat-community-api.adapter';
+import { EmergencyPauseStore } from '../operations/emergency-pause.store';
 import { of, Subject, throwError } from 'rxjs';
 import type { ChatMessage } from '../../api/generated/model/chat-message';
 
@@ -40,6 +41,7 @@ async function community(authenticated = true) {
   TestBed.overrideComponent(ChatPanelComponent, {
     set: {
       providers: [
+        { provide: EmergencyPauseStore, useValue: { availability: signal('available'), notice: signal(null), open: vi.fn(), clear: vi.fn(), refresh: vi.fn() } },
         {
           provide: ChatReadStore,
           useValue: {
@@ -132,6 +134,7 @@ describe('chat composer', () => {
       set: {
         providers: [
           { provide: ChatReadStore, useValue: read },
+          { provide: EmergencyPauseStore, useValue: { availability: signal('available'), notice: signal(null), open: vi.fn(), clear: vi.fn(), refresh: vi.fn() } },
           { provide: ChatOutboxStore, useValue: outbox },
           {
             provide: ChatPersonalMuteStore,

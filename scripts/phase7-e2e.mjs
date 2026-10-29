@@ -23,6 +23,7 @@ const SPEC_PLANS = Object.freeze({
   "frontend/e2e/phase7-chat-write.spec.ts": "07-12",
   "frontend/e2e/phase7-chat-community.spec.ts": "07-15",
   "frontend/e2e/phase7-moderation.spec.ts": "07-19",
+  "frontend/e2e/phase7-operations.spec.ts": "07-23",
 });
 export function specPlan(value) {
   if (!Object.hasOwn(SPEC_PLANS, value)) throw new Error("Unapproved browser spec");
@@ -569,10 +570,21 @@ export async function runIsolated(spec) {
     const password = secret();
     privateValues.add(password);
     await provision(compose, run, config, password);
+    let channels = "{}";
+    if (specPlan(spec) === "07-23") {
+      const postgres = await ownedService(compose, run, "postgres");
+      const pg = config.services.postgres.environment;
+      channels = (await command("docker", ["exec", postgres, "psql", "-X", "-At", "-v", "ON_ERROR_STOP=1",
+        "-U", pg.POSTGRES_USER, "-d", pg.BETUFU_DB_NAME, "-c",
+        "SELECT json_object_agg(COALESCE(event_id::text,'global'),channel_id) FROM public.chat_channel",
+      ])).trim();
+    }
     const childEnv = {
       ...process.env,
       BETUFU_E2E_BASE_URL: "http://localhost:4300",
       BETUFU_E2E_ISOLATED_RUN: run,
+      BETUFU_E2E_CHANNELS: channels,
+      BETUFU_E2E_STUDENT_ID: stableUuid("identity:student"),
       BETUFU_E2E_USERNAME: PERSONAS.find((p) => p.key === "student").username,
       BETUFU_E2E_PASSWORD: password,
       BETUFU_E2E_OTHER_USERNAME: PERSONAS.find((p) => p.key === "athlete")

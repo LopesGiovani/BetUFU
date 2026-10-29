@@ -85,6 +85,7 @@ class PredictionControllerIT {
   @Autowired private PredictionAcceptancePort acceptance;
   @Autowired private OperationalIdentityLookup identities;
   @Autowired private PredictionRepository repository;
+  @Autowired private PredictionEmergencyPausePort pauses;
   @Autowired private ClientRegistrationRepository clientRegistrations;
 
   @Autowired
@@ -95,7 +96,7 @@ class PredictionControllerIT {
 
   @BeforeEach
   void setUp() {
-    Mockito.reset(acceptance, identities, repository);
+    Mockito.reset(acceptance, identities, repository, pauses);
     mockMvc =
         MockMvcBuilders.webAppContextSetup(applicationContext)
             .addFilters(springSecurityFilterChain)
@@ -238,6 +239,45 @@ class PredictionControllerIT {
     verify(repository).findByMarket(identityId, marketId);
   }
 
+  @Test
+  void availabilityIncludesOnlyTheAuthenticatedAccountsPause() throws Exception {
+    UUID owner = resolvedIdentity();
+    UUID marketId = UUID.randomUUID();
+    UUID eventId = UUID.randomUUID();
+    UUID revision = UUID.randomUUID();
+    when(pauses.findMarket(marketId))
+        .thenReturn(Optional.of(new PredictionEmergencyPausePort.Market(marketId, eventId, true)));
+    when(pauses.current(PredictionEmergencyPausePort.TargetKind.MARKET, marketId))
+        .thenReturn(new PredictionEmergencyPausePort.State(false, null));
+    when(pauses.current(PredictionEmergencyPausePort.TargetKind.EVENT, eventId))
+        .thenReturn(new PredictionEmergencyPausePort.State(false, null));
+    when(pauses.current(PredictionEmergencyPausePort.TargetKind.ACCOUNT, owner))
+        .thenReturn(new PredictionEmergencyPausePort.State(true, revision));
+    String path = PATH + "/markets/" + marketId + "/availability";
+
+    mockMvc
+        .perform(get(path))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.predictionsPaused").value(false));
+    String body =
+        mockMvc
+            .perform(get(path).with(oidcUser()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.state").value("PAUSED"))
+            .andExpect(jsonPath("$.predictionsPaused").value(true))
+            .andExpect(jsonPath("$.revision").value(revision.toString()))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    assertThat(body).doesNotContain(owner.toString(), ISSUER, SUBJECT);
+
+    when(identities.findIdentityId(ISSUER, SUBJECT)).thenReturn(Optional.empty());
+    mockMvc
+        .perform(get(path).with(oidcUser()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.predictionsPaused").value(false));
+  }
+
   private UUID resolvedIdentity() {
     UUID identityId = UUID.randomUUID();
     when(identities.findIdentityId(ISSUER, SUBJECT)).thenReturn(Optional.of(identityId));
@@ -267,6 +307,11 @@ class PredictionControllerIT {
   @TestConfiguration(proxyBeanMethods = false)
   @EnableAutoConfiguration
   static class TestApplication {
+    @Bean
+    PredictionEmergencyPausePort predictionEmergencyPausePort() {
+      return Mockito.mock(PredictionEmergencyPausePort.class);
+    }
+
     @Bean
     PredictionAcceptancePort predictionAcceptancePort() {
       return Mockito.mock(PredictionAcceptancePort.class);

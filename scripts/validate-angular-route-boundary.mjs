@@ -764,6 +764,7 @@ function approvedDynamicImportsFor(relativePath) {
       approvedRoute('comunidade', './features/chat/community-page.component', 'CommunityPageComponent'),
       approvedRoute('conta/punicoes', './features/chat/chat-sanctions-page.component', 'ChatSanctionsPageComponent'),
       approvedRoute('operacao/comunidade/moderacao', './features/chat/chat-moderation-page.component', 'ChatModerationPageComponent'),
+      approvedRoute('operacao/pausas', './features/operations/emergency-pause-page.component', 'EmergencyPausePageComponent'),
     ];
   }
   if (relativePath === PATHS.development) {
@@ -1932,16 +1933,17 @@ export function normalizePhaseSevenRoutes(source) {
 }
 
 export function normalizePhaseSevenPrivateRoutes(source) {
-  if (!/chat-(?:sanctions|moderation)-page\.component/u.test(source)) return source;
+  if (!/(?:chat-(?:sanctions|moderation)|emergency-pause)-page\.component/u.test(source)) return source;
   const guard = /canActivateChild\s*:\s*\[\s*authenticationGuard\s*,\s*profileCompletionGuard\s*\]\s*,\s*children\s*:\s*\[/u.exec(source);
   expect(guard !== null, 'PHASE_SEVEN_PRIVATE_GUARDS', 'Moderacao e punicoes exigem sessao e perfil.');
   const start = guard.index + guard[0].length;
   let tail = source.slice(start);
   for (const [path, variant, file, name] of [
-    ['conta/punicoes', 'personal', 'chat-sanctions-page', 'ChatSanctionsPageComponent'],
-    ['operacao/comunidade/moderacao', 'operational', 'chat-moderation-page', 'ChatModerationPageComponent'],
+    ...(source.includes("'operacao/pausas'") ? [['operacao/pausas', 'operational', 'operations/emergency-pause-page', 'EmergencyPausePageComponent']] : []),
+    ['conta/punicoes', 'personal', 'chat/chat-sanctions-page', 'ChatSanctionsPageComponent'],
+    ['operacao/comunidade/moderacao', 'operational', 'chat/chat-moderation-page', 'ChatModerationPageComponent'],
   ]) {
-    const pattern = new RegExp(String.raw`^\s*\{\s*path\s*:\s*'${path}'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'${variant}'\s*\}\s*,\s*children\s*:\s*\[\s*\{\s*path\s*:\s*''\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'\./features/chat/${file}\.component'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*${name}\s*\}\s*\)\s*=>\s*${name}\s*,?\s*\)\s*,?\s*\}\s*,?\s*\]\s*,?\s*\}\s*,`, 'u');
+    const pattern = new RegExp(String.raw`^\s*\{\s*path\s*:\s*'${path}'\s*,\s*component\s*:\s*ConsoleShellComponent\s*,\s*data\s*:\s*\{\s*consoleVariant\s*:\s*'${variant}'\s*\}\s*,\s*children\s*:\s*\[\s*\{\s*path\s*:\s*''\s*,\s*loadComponent\s*:\s*\(\s*\)\s*=>\s*import\s*\(\s*'\./features/${file}\.component'\s*\)\s*\.then\s*\(\s*\(\s*\{\s*${name}\s*\}\s*\)\s*=>\s*${name}\s*,?\s*\)\s*,?\s*\}\s*,?\s*\]\s*,?\s*\}\s*,`, 'u');
     const match = pattern.exec(tail);
     expect(match !== null, 'PHASE_SEVEN_PRIVATE_ROUTE_SHAPE', 'Somente os shells e componentes privados exatos sao permitidos.');
     tail = tail.slice(match[0].length);

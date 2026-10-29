@@ -6,7 +6,7 @@ import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { APPROVED_GENERATED_FILES } from '../frontend/scripts/generate-api.mjs';
-import { normalizePhaseSevenRoutes, normalizePhaseSevenPrivateRoutes } from './validate-angular-route-boundary.mjs';
+import { normalizePhaseSevenRoutes, normalizePhaseSevenPrivateRoutes, validateAngularRouteBoundary } from './validate-angular-route-boundary.mjs';
 
 test('moderation routes require exact components, shells and ordered private guards', async () => {
   const source = await readFile(new URL('../frontend/src/app/app.routes.ts', import.meta.url), 'utf8');
@@ -14,6 +14,20 @@ test('moderation routes require exact components, shells and ordered private gua
   for (const bad of [source.replace('authenticationGuard, profileCompletionGuard', 'profileCompletionGuard'), source.replace("path: 'conta/punicoes'", "path: 'conta/publica'"), source.replace("consoleVariant: 'personal'", "consoleVariant: 'operational'"), source.replace('ChatModerationPageComponent', 'OwnerPageComponent')]) {
     assert.throws(() => normalizePhaseSevenPrivateRoutes(bad));
   }
+});
+
+test('emergency pause route accepts only its approved component, shell and ordered private guards', async () => {
+  const source = await readFile(new URL('../frontend/src/app/app.routes.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(normalizePhaseSevenPrivateRoutes(source), /emergency-pause-page\.component/u);
+  for (const invalid of [
+    source.replace('EmergencyPausePageComponent', 'OwnerPageComponent'),
+    source.replace('operations/emergency-pause-page.component', 'operations/role-admin-page.component'),
+    source.replace("path: 'operacao/pausas'", "path: 'pausas-publicas'"),
+    source.replace("consoleVariant: 'operational'", "consoleVariant: 'personal'"),
+    source.replace('authenticationGuard, profileCompletionGuard', 'profileCompletionGuard, authenticationGuard'),
+    source.replace('authenticationGuard, profileCompletionGuard', 'authenticationGuard'),
+  ]) assert.throws(() => normalizePhaseSevenPrivateRoutes(invalid));
+  await validateAngularRouteBoundary();
 });
 
 const scriptsDirectory = dirname(fileURLToPath(import.meta.url));

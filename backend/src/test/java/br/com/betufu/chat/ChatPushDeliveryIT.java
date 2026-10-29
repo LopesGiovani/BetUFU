@@ -8,6 +8,67 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.support.TransactionTemplate;
 
 class ChatPushDeliveryIT extends ChatPushFixture {
+  @org.springframework.beans.factory.annotation.Autowired
+  br.com.betufu.platform.operations.EmergencyPauseService pauses;
+
+  @Test
+  void realPauseInvalidatesAfterCommitAndRolledBackResumeIsSilent() throws Exception {
+    jdbc.update(
+        "INSERT INTO operational_role_grant(identity_id,role_name,status) VALUES (?, 'ADMINISTRADOR_GERAL', 'VIGENTE')",
+        author);
+    var owner = session("reader");
+    try (Wire wire = connected(owner)) {
+      wire.subscribe("/chat/global", "0");
+      wire.message();
+      var receipt =
+          new TransactionTemplate(transactions)
+              .execute(
+                  status -> {
+                    var fact =
+                        pauses.command(
+                            "https://idp.invalid",
+                            "reader",
+                            owner.getId(),
+                            new br.com.betufu.platform.operations.EmergencyPausePort.Command(
+                                UUID.randomUUID(),
+                                br.com.betufu.platform.operations.EmergencyPausePort.Kind.CHANNEL,
+                                global,
+                                br.com.betufu.platform.operations.EmergencyPausePort.Action.PAUSE,
+                                "Emergency containment",
+                                null));
+                    try {
+                      assertThat(wire.frames.poll(200, TimeUnit.MILLISECONDS)).isNull();
+                    } catch (InterruptedException interrupted) {
+                      throw new IllegalStateException(interrupted);
+                    }
+                    return fact;
+                  });
+      assertThat(wire.message()).contains("resyncRequired").doesNotContain("Emergency containment");
+      new TransactionTemplate(transactions)
+          .executeWithoutResult(
+              status -> {
+                pauses.command(
+                    "https://idp.invalid",
+                    "reader",
+                    owner.getId(),
+                    new br.com.betufu.platform.operations.EmergencyPausePort.Command(
+                        UUID.randomUUID(),
+                        br.com.betufu.platform.operations.EmergencyPausePort.Kind.CHANNEL,
+                        global,
+                        br.com.betufu.platform.operations.EmergencyPausePort.Action.RESUME,
+                        "Rolled back resume",
+                        receipt.factId()));
+                status.setRollbackOnly();
+              });
+      assertThat(wire.frames.poll(300, TimeUnit.MILLISECONDS)).isNull();
+      assertThat(
+              pauses
+                  .state(br.com.betufu.platform.operations.EmergencyPausePort.Kind.CHANNEL, global)
+                  .paused())
+          .isTrue();
+    }
+  }
+
   @Test
   void boundedDeliveryQueueClosesSubscriberDuringABurst() throws Exception {
     UUID event = event(true);

@@ -8,6 +8,43 @@ import org.junit.jupiter.api.Test;
 
 /** Proves the chat guard consumes the same operational pause projection as administrators. */
 class ChatPauseIT extends ChatWriteFixture {
+  @org.springframework.beans.factory.annotation.Autowired
+  br.com.betufu.chat.internal.ChatReadService reads;
+
+  @Test
+  void eventPauseLeavesChatIndependentAndChannelPauseStillBlocksNewMessages() throws Exception {
+    UUID event = event(true);
+    var owner = session("reader");
+    jdbc.update(
+        "INSERT INTO emergency_pause_fact(target_kind,target_id,actor_identity_id,action,reason,client_command_id,recorded_at) VALUES ('EVENT',?,?, 'PAUSE','event fixture',?,CURRENT_TIMESTAMP)",
+        event,
+        author,
+        UUID.randomUUID());
+    assertThat(
+            reads
+                .availability(event, true, "https://idp.invalid", "reader", owner.getId())
+                .messagesPaused())
+        .isFalse();
+    assertThat(post(owner, event, UUID.randomUUID(), "chat remains independent").statusCode())
+        .isEqualTo(201);
+    UUID channel =
+        jdbc.queryForObject(
+            "SELECT channel_id FROM chat_channel WHERE event_id=?", UUID.class, event);
+    jdbc.update(
+        "INSERT INTO emergency_pause_fact(target_kind,target_id,actor_identity_id,action,reason,client_command_id,recorded_at) VALUES ('CHANNEL',?,?, 'PAUSE','channel fixture',?,CURRENT_TIMESTAMP)",
+        channel,
+        author,
+        UUID.randomUUID());
+    assertThat(
+            reads
+                .availability(event, true, "https://idp.invalid", "reader", owner.getId())
+                .messagesPaused())
+        .isTrue();
+    clock.advanceSeconds(3);
+    assertThat(post(owner, event, UUID.randomUUID(), "channel independently paused").statusCode())
+        .isEqualTo(403);
+  }
+
   @BeforeEach
   void eligible() {
     jdbc.update(

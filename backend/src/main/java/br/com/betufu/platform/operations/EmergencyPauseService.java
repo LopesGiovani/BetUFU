@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,17 +29,20 @@ public class EmergencyPauseService implements EmergencyPausePort {
   private final ObjectProvider<SessionRepository<?>> sessions;
   private final Map<Kind, TargetLookup> targets;
   private final Clock clock;
+  private final ApplicationEventPublisher events;
 
   public EmergencyPauseService(
       Persistence repository,
       OperationalIdentityLookup identities,
       ObjectProvider<SessionRepository<?>> sessions,
       List<TargetLookup> targets,
-      Clock clock) {
+      Clock clock,
+      ApplicationEventPublisher events) {
     this.repository = repository;
     this.identities = identities;
     this.sessions = sessions;
     this.clock = clock;
+    this.events = events;
     var mappings = new EnumMap<Kind, TargetLookup>(Kind.class);
     for (var lookup : targets)
       if (mappings.put(lookup.kind(), lookup) != null)
@@ -54,7 +58,7 @@ public class EmergencyPauseService implements EmergencyPausePort {
     requireTarget(command.kind(), command.targetId());
     State state = lockState(command.kind(), command.targetId());
     administrator(issuer, subject, sessionId);
-    requireTarget(command.kind(), command.targetId());
+    Target target = requireTarget(command.kind(), command.targetId());
     var prior = repository.command(actor, command.clientCommandId());
     if (prior.isPresent()) {
       Receipt old = prior.get();
@@ -75,6 +79,7 @@ public class EmergencyPauseService implements EmergencyPausePort {
         command.kind(),
         command.targetId(),
         command.action() == Action.PAUSE ? new State(true, fact.factId()) : new State(false, null));
+    events.publishEvent(new Changed(command.kind(), command.targetId(), target.relatedEventId()));
     return fact;
   }
 
@@ -102,7 +107,7 @@ public class EmergencyPauseService implements EmergencyPausePort {
         : new State(false, null);
   }
 
-  private void requireTarget(Kind kind, UUID targetId) {
+  private Target requireTarget(Kind kind, UUID targetId) {
     var lookup = targets.get(kind);
     Target target = lookup == null ? null : lookup.find(targetId).orElse(null);
     if (target == null) throw problem(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
@@ -111,6 +116,7 @@ public class EmergencyPauseService implements EmergencyPausePort {
       if (events == null || events.find(target.relatedEventId()).isEmpty())
         throw problem(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
     }
+    return target;
   }
 
   private UUID administrator(String issuer, String subject, String sessionId) {

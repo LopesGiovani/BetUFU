@@ -95,9 +95,6 @@ public class ChatWriteService {
         throw new ApiProblemException(HttpStatus.NOT_FOUND, ApiErrorCode.NOT_FOUND);
       channel = channels.recoverEvent(eventId);
     }
-    if (eventId != null) {
-      requireNotPaused(pauses.lock(ChatEmergencyPausePort.TargetKind.EVENT, eventId));
-    }
     requireNotPaused(pauses.lock(ChatEmergencyPausePort.TargetKind.CHANNEL, channel.channelId()));
     Instant guardTime = clock.instant().truncatedTo(ChronoUnit.MICROS);
     guards.forEach(guard -> guard.requireAllowed(actor, channel.channelId(), eventId, guardTime));

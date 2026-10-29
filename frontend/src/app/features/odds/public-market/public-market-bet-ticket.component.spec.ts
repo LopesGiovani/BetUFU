@@ -20,6 +20,19 @@ const VERSION_1 = '22222222-2222-4222-8222-222222222222';
 const PUBLICATION_1 = '33333333-3333-4333-8333-333333333333';
 
 describe('PublicMarketBetTicketComponent', () => {
+  it('disables the real form for pause, unknown and error while retaining an accepted receipt', async () => {
+    const { fixture } = await render();
+    const store = fixture.componentInstance.store;
+    for (const value of ['paused', 'unknown', 'error'] as const) {
+      store.setAvailability(value); fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('fieldset').disabled).toBe(true);
+      expect(fixture.nativeElement.querySelector('#stake').disabled).toBe(true);
+      expect(fixture.nativeElement.querySelector('button[type="submit"]').disabled).toBe(true);
+    }
+    store.setAvailability('available'); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('fieldset').disabled).toBe(false);
+  });
+
   async function render(
     authenticated = true,
     currentUrl = `/odds/mercados/${MARKET_ID}`,
@@ -65,6 +78,8 @@ describe('PublicMarketBetTicketComponent', () => {
           useValue: {
             loadSession: vi.fn().mockResolvedValue(undefined),
             isAuthenticated: () => authenticated,
+            revision: signal(0),
+            isChecking: signal(false),
           },
         },
         {
@@ -88,6 +103,7 @@ describe('PublicMarketBetTicketComponent', () => {
     }).compileComponents();
     vi.spyOn(TestBed.inject(Router), 'url', 'get').mockReturnValue(currentUrl);
     const fixture = TestBed.createComponent(PublicMarketBetTicketComponent);
+    fixture.componentInstance.store.setAvailability('available');
     fixture.componentRef.setInput('marketId', MARKET_ID);
     fixture.componentRef.setInput('marketVersionId', VERSION_1);
     fixture.componentRef.setInput('publicationId', PUBLICATION_1);

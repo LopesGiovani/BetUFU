@@ -4,15 +4,22 @@ import {
   OnInit,
   inject,
   signal,
+  effect,
+  untracked,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PublicMarketStore } from './public-market.store';
 import { PublicMarketBetTicketComponent } from './public-market-bet-ticket.component';
+import { PublicMarketBettingStore } from './public-market-betting.store';
+import { EmergencyPauseStore } from '../../operations/emergency-pause.store';
+import { ChatReadStore } from '../../chat/chat-read.store';
+import { SessionStore } from '../../../core/session/session.store';
 
 @Component({
   selector: 'app-public-market-page',
   standalone: true,
   imports: [RouterLink, PublicMarketBetTicketComponent],
+  providers: [EmergencyPauseStore, ChatReadStore, PublicMarketBettingStore],
   templateUrl: './public-market-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
@@ -83,6 +90,30 @@ export class PublicMarketPageComponent implements OnInit {
   readonly store = inject(PublicMarketStore);
   private readonly route = inject(ActivatedRoute);
   readonly explanationOpen = signal(false);
+  private readonly pause = inject(EmergencyPauseStore);
+  private readonly push = inject(ChatReadStore);
+  private readonly session = inject(SessionStore);
+  private readonly betting = inject(PublicMarketBettingStore);
+
+  constructor() {
+    effect(() => {
+      this.session.revision();
+      const checking = this.session.isChecking();
+      const authenticated = this.session.isAuthenticated();
+      const market = this.store.snapshot();
+      untracked(() => {
+        if (market && !checking) {
+          this.pause.open('market', market.marketId);
+          this.push.open(market.eventId, authenticated);
+        } else { this.pause.clear(); this.push.close(); }
+      });
+    });
+    effect(() => {
+      const revision = this.push.pushRevision();
+      if (revision > 0) untracked(() => void this.pause.refresh());
+    });
+    effect(() => this.betting.setAvailability(this.pause.availability()));
+  }
 
   ngOnInit(): void {
     void this.store.loadMarket(this.route.snapshot.paramMap.get('marketId') ?? '');

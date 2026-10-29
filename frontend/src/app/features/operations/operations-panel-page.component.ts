@@ -34,6 +34,7 @@ export class OperationsPanelPageComponent implements OnInit {
       !this.store.isError() &&
       this.capabilities().includes(OperationalCapability.ManageSportsCatalog),
   );
+  readonly canManagePauses = computed(() => this.capabilities().includes(OperationalCapability.ManageRoles));
 
   ngOnInit(): void {
     void this.store.loadPanel();

@@ -1,10 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { OddsMarketState } from '../../../api/generated/model/odds-market-state';
 import { SessionStore } from '../../../core/session/session.store';
 import { AppClock } from '../../../core/time/app-clock';
 import { EnrollmentStore } from '../../enrollment/enrollment.store';
+import type { PauseAvailability } from '../../operations/emergency-pause-api.adapter';
 import { PublicMarketApiAdapter, PublicMarketSelection } from './public-market-api.adapter';
 import {
   BettingBalance,
@@ -45,30 +46,52 @@ export class PublicMarketBettingStore {
   private readonly publicMarket = inject(PublicMarketApiAdapter);
   private readonly clock = inject(AppClock);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sessionEpoch = signal(this.session.revision());
+  private sessionAuthenticated = this.session.isAuthenticated();
+  private readonly currentSession = computed(
+    () => this.session.isAuthenticated() && this.session.revision() === this.sessionEpoch(),
+  );
   private readonly state = signal<BettingState>('visitor');
   private readonly balance = signal<BettingBalance | null>(null);
   private readonly ticket = signal<BettingTicket | null>(null);
   private readonly message = signal<string | null>(null);
   private readonly market = signal<BettingMarketSnapshot | null>(null);
+  readonly availability = signal<PauseAvailability>('unknown');
   private marketId = '';
   private requestSequence = 0;
   private activeLoadMarketId: string | null = null;
   private loadedMarketId: string | null = null;
   private cancelDeadlineTransition: (() => void) | null = null;
 
-  readonly status = computed(() => this.state());
-  readonly balanceValue = computed(() => this.balance());
-  readonly ownTicket = computed(() => this.ticket());
-  readonly errorMessage = computed(() => this.message());
+  readonly status = computed(() => this.currentSession() ? this.state() : (this.marketUnavailableState() ?? 'visitor'));
+  readonly balanceValue = computed(() => this.currentSession() ? this.balance() : null);
+  readonly ownTicket = computed(() => this.currentSession() ? this.ticket() : null);
+  readonly errorMessage = computed(() => this.currentSession() ? this.message() : null);
   readonly marketSnapshot = computed(() => this.market());
   readonly selections = computed(() => this.market()?.selections ?? []);
   readonly canSubmit = computed(
-    () => ['eligible', 'stale'].includes(this.state()) && this.balance() !== null,
+    () => this.currentSession() && this.availability() === 'available' && ['eligible', 'stale'].includes(this.state()) && this.balance() !== null,
   );
   readonly requiresReconfirmation = computed(() => this.state() === 'stale');
 
   constructor() {
     this.destroyRef.onDestroy(() => this.cancelDeadlineTransition?.());
+    effect(() => {
+      const revision = this.session.revision();
+      const authenticated = this.session.isAuthenticated();
+      untracked(() => {
+        if (revision === this.sessionEpoch() && authenticated === this.sessionAuthenticated) return;
+        this.clearPrivateState();
+        this.sessionEpoch.set(revision);
+        this.sessionAuthenticated = authenticated;
+        this.availability.set('unknown');
+        if (authenticated && this.marketId) void this.load();
+      });
+    });
+  }
+
+  setAvailability(value: PauseAvailability): void {
+    this.availability.set(value);
   }
 
   configure(marketId: string, snapshot: BettingMarketSnapshot): void {
@@ -79,9 +102,7 @@ export class PublicMarketBettingStore {
     );
     this.scheduleDeadline();
     if (changedMarket) {
-      this.balance.set(null);
-      this.ticket.set(null);
-      this.message.set(null);
+      this.clearPrivateState();
       this.state.set('loading');
     }
     const unavailable = this.marketUnavailableState();
@@ -105,21 +126,20 @@ export class PublicMarketBettingStore {
   }
 
   async load(): Promise<void> {
+    if (this.session.isChecking()) return;
     const requestId = ++this.requestSequence;
     const loadingMarketId = this.marketId;
     this.activeLoadMarketId = loadingMarketId;
     this.state.set(this.marketUnavailableState() ?? 'loading');
     this.message.set(null);
     try {
-      await this.session.loadSession();
-      if (requestId !== this.requestSequence) return;
       if (!this.session.isAuthenticated()) {
         this.setVisitor();
         return;
       }
       await this.loadAuthenticatedState(requestId);
     } catch (error: unknown) {
-      if (requestId !== this.requestSequence) return;
+      if (!this.isCurrentRequest(requestId)) return;
       const unavailable = this.marketUnavailableState();
       if (unavailable) {
         this.state.set(unavailable);
@@ -128,7 +148,7 @@ export class PublicMarketBettingStore {
       }
       this.applyError(error, 'Nao foi possivel carregar os creditos agora.');
     } finally {
-      if (requestId === this.requestSequence) {
+      if (this.isCurrentRequest(requestId)) {
         this.activeLoadMarketId = null;
         this.loadedMarketId = loadingMarketId;
       }
@@ -153,6 +173,7 @@ export class PublicMarketBettingStore {
     }
 
     this.state.set('loading');
+    const requestId = ++this.requestSequence;
     const key = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
     try {
       const accepted = await this.api.submit(
@@ -166,22 +187,26 @@ export class PublicMarketBettingStore {
         },
         key,
       );
+      if (!this.isCurrentRequest(requestId)) return 'ignored';
       this.ticket.set(accepted);
       this.state.set('success');
       this.message.set(null);
       return 'success';
     } catch (error: unknown) {
+      if (!this.isCurrentRequest(requestId)) return 'ignored';
       if (this.isStaleConflict(error)) {
         let refreshed: boolean;
         try {
-          refreshed = await this.refreshPublicSnapshot();
+          refreshed = await this.refreshPublicSnapshot(requestId);
         } catch (refreshError: unknown) {
+          if (!this.isCurrentRequest(requestId)) return 'ignored';
           this.applyError(
             refreshError,
             'Nao foi possivel atualizar as odds agora. Tente novamente.',
           );
           return 'error';
         }
+        if (!this.isCurrentRequest(requestId)) return 'ignored';
         if (!refreshed) {
           this.state.set('error');
           this.message.set('Nao foi possivel atualizar as odds agora. Tente novamente.');
@@ -248,7 +273,7 @@ export class PublicMarketBettingStore {
 
   private async loadOwnTicketForUnavailableMarket(requestId: number): Promise<void> {
     const ticket = await this.api.getOwnTicket(this.marketId);
-    if (requestId !== this.requestSequence) return;
+    if (!this.isCurrentRequest(requestId)) return;
     this.ticket.set(ticket);
     this.balance.set(null);
     this.message.set(null);
@@ -262,7 +287,7 @@ export class PublicMarketBettingStore {
     }
 
     await this.enrollment.loadEnrollment();
-    if (requestId !== this.requestSequence) return;
+    if (!this.isCurrentRequest(requestId)) return;
     if (this.marketUnavailableState()) {
       await this.loadOwnTicketForUnavailableMarket(requestId);
       return;
@@ -280,7 +305,7 @@ export class PublicMarketBettingStore {
       this.api.getBalance(),
       this.api.getOwnTicket(this.marketId),
     ]);
-    if (requestId !== this.requestSequence) return;
+    if (!this.isCurrentRequest(requestId)) return;
     this.balance.set(balance);
     this.ticket.set(ticket);
     this.state.set(ticket ? 'success' : this.availableState(balance));
@@ -316,8 +341,9 @@ export class PublicMarketBettingStore {
     return typeof code === 'string' ? code : null;
   }
 
-  private async refreshPublicSnapshot(): Promise<boolean> {
+  private async refreshPublicSnapshot(requestId: number): Promise<boolean> {
     const refreshed = await firstValueFrom(this.publicMarket.fetchMarket(this.marketId));
+    if (!this.isCurrentRequest(requestId)) return false;
     if (!refreshed || refreshed.marketId !== this.marketId) return false;
     this.market.set(
       Object.freeze({
@@ -346,6 +372,20 @@ export class PublicMarketBettingStore {
     }
     this.state.set('error');
     this.message.set(fallback);
+  }
+
+  private isCurrentRequest(requestId: number): boolean {
+    return requestId === this.requestSequence && this.currentSession();
+  }
+
+  private clearPrivateState(): void {
+    this.requestSequence++;
+    this.activeLoadMarketId = null;
+    this.loadedMarketId = null;
+    this.balance.set(null);
+    this.ticket.set(null);
+    this.message.set(null);
+    this.state.set(this.marketUnavailableState() ?? 'visitor');
   }
 
   private submissionErrorMessage(error: unknown): string {

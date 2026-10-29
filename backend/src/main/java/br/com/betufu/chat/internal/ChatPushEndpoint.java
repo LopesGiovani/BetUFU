@@ -50,6 +50,7 @@ public class ChatPushEndpoint extends TextWebSocketHandler {
   private final Map<String, Connection> connections = new ConcurrentHashMap<>();
   private final ObjectProvider<SessionRepository<?>> repositories;
   private final ChatReadService reads;
+  private final br.com.betufu.chat.ChatEligibilityPort eligibility;
   private final ObjectMapper mapper;
   private final StompEncoder encoder = new StompEncoder();
   private final ThreadPoolExecutor deliveries =
@@ -68,9 +69,11 @@ public class ChatPushEndpoint extends TextWebSocketHandler {
       ObjectProvider<SessionRepository<?>> repositories,
       ChatReadService reads,
       ChatPushService push,
+      br.com.betufu.chat.ChatEligibilityPort eligibility,
       ObjectMapper mapper) {
     this.repositories = repositories;
     this.reads = reads;
+    this.eligibility = eligibility;
     this.mapper = mapper;
     push.listen(this::changed);
     guard.scheduleWithFixedDelay(this::checkConnections, 1, 1, TimeUnit.SECONDS);
@@ -217,6 +220,12 @@ public class ChatPushEndpoint extends TextWebSocketHandler {
   }
 
   private boolean matches(Connection connection, ChatPushService.Change change) {
+    if (change.accountId() != null)
+      return connection.principal != null
+          && eligibility
+              .findActor(connection.principal.issuer(), connection.principal.subject())
+              .filter(change.accountId()::equals)
+              .isPresent();
     if (change.issuer() == null) return Objects.equals(change.eventId(), connection.eventId);
     return connection.principal != null
         && change.issuer().equals(connection.principal.issuer())
