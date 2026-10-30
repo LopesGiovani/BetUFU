@@ -11,7 +11,7 @@ import { ChatPanelComponent } from './chat-panel.component';
       <p class="community-kicker">Arena / Comunidade</p>
       <h1 id="community-title">Comunidade</h1>
       <p>Uma conversa sobre os jogos universitarios.</p>
-      <app-chat-panel />
+      <app-chat-panel [automaticRules]="true" />
     </section>
   `,
   styles: `

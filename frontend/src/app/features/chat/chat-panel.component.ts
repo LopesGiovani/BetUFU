@@ -22,10 +22,12 @@ import { ChatPersonalMuteStore } from './chat-personal-mute.store';
 import { ChatCommunityApiAdapter, type ChatReportReason } from './chat-community-api.adapter';
 import type { ChatMessage } from '../../api/generated/model/chat-message';
 import { EmergencyPauseStore } from '../operations/emergency-pause.store';
+import { ChatRulesDialogComponent } from './chat-rules-dialog.component';
 
 @Component({
   selector: 'app-chat-panel',
   standalone: true,
+  imports: [ChatRulesDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     ChatReadStore,
@@ -46,6 +48,7 @@ import { EmergencyPauseStore } from '../operations/emergency-pause.store';
         <h2 [id]="titleId()">{{ heading() }}</h2>
         <p class="chat-connection" role="status">{{ store.connectionLabel() }}</p>
       </header>
+      <app-chat-rules-dialog [automatic]="automaticRules()" />
       @if (eventId() === null && !session.isAuthenticated()) {
         @if (session.isChecking()) {
           <p role="status">Verificando sessão</p>
@@ -418,6 +421,7 @@ import { EmergencyPauseStore } from '../operations/emergency-pause.store';
 })
 export class ChatPanelComponent {
   readonly eventId = input<string | null>(null);
+  readonly automaticRules = input(false);
   readonly store = inject(ChatReadStore);
   readonly session = inject(SessionStore);
   readonly outbox = inject(ChatOutboxStore);

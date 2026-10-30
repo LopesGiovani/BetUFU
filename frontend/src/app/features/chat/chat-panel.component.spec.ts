@@ -243,7 +243,7 @@ describe('personal chat controls', () => {
     trigger.focus();
     fixture.componentInstance.openReport(MESSAGE);
     fixture.detectChanges();
-    const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;
+    const dialog = fixture.nativeElement.querySelector('dialog.chat-dialog') as HTMLDialogElement;
     dialog.dispatchEvent(new Event('cancel'));
     await fixture.whenStable();
     expect(api.report).not.toHaveBeenCalled();
@@ -255,7 +255,7 @@ describe('personal chat controls', () => {
     const { fixture } = await community();
     fixture.componentInstance.openReport(MESSAGE);
     await fixture.whenStable();
-    const dialog = fixture.nativeElement.querySelector('dialog') as HTMLDialogElement;
+    const dialog = fixture.nativeElement.querySelector('dialog.chat-dialog') as HTMLDialogElement;
     const first = dialog.querySelector('select')!;
     const last = dialog.querySelector('button:last-child') as HTMLButtonElement;
     last.focus();

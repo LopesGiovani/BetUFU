@@ -25,6 +25,7 @@ const SPEC_PLANS = Object.freeze({
   "frontend/e2e/phase7-moderation.spec.ts": "07-19",
   "frontend/e2e/phase7-operations.spec.ts": "07-23",
   "frontend/e2e/phase7-privacy.spec.ts": "07-26",
+  "frontend/e2e/phase7-chat-rules.spec.ts": "07-35",
 });
 export function specPlan(value) {
   if (!Object.hasOwn(SPEC_PLANS, value)) throw new Error("Unapproved browser spec");
