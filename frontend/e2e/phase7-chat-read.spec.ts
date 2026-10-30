@@ -1,3 +1,4 @@
+import { handleIntegratedRules } from './phase7.setup';
 import { expect, test, type Page } from '@playwright/test';
 import { execFile } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -11,6 +12,8 @@ function setting(name: string): string {
 }
 
 async function login(page: Page, prefix = 'BETUFU_E2E'): Promise<void> {
+  if (process.env['BETUFU_E2E_INTEGRATED'] === 'true' && prefix === 'BETUFU_E2E') prefix = 'BETUFU_E2E_READER';
+  await handleIntegratedRules(page);
   await page.goto('/');
   await page.locator('a.arena-nav__login:visible').click();
   await page.getByLabel('Endereço de email').fill(setting(`${prefix}_USERNAME`));
@@ -90,7 +93,7 @@ test('chat real: descoberta, historico, STOMP, reconexao e logout em cada viewpo
   await expect(page.locator('.chat-connection')).toHaveText('Ao vivo');
   expect(await page.locator('.chat-message img, .chat-message script').count()).toBe(0);
   await expect(page.locator('.chat-message').last()).toContainText('<img');
-  await expect(page.locator('.chat-login')).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Entrar na conta', exact: true })).toHaveAttribute(
     'href',
     `/login/start?returnTo=${encodeURIComponent(`/eventos/${eventId}`)}`,
   );
@@ -166,6 +169,8 @@ test('chat real: descoberta, historico, STOMP, reconexao e logout em cada viewpo
     expect(reads).toHaveLength(0);
 
     await login(page);
+    if (process.env['BETUFU_E2E_INTEGRATED'] === 'true')
+      await post(page, '/api/v1/chat/global/messages', `Leitor isolado ${randomUUID()}`);
     await page.locator('a[href="/comunidade"]:visible').click();
     await expect(page.locator('.chat-message')).toHaveCount(50);
     await expect(page.locator('.chat-own').first()).toContainText('Você');
@@ -179,7 +184,7 @@ test('chat real: descoberta, historico, STOMP, reconexao e logout em cada viewpo
       process.execPath,
       [
         resolve(process.cwd(), '../scripts/phase7-e2e.mjs'),
-        'release-student',
+        process.env['BETUFU_E2E_INTEGRATED'] === 'true' ? 'release-reader' : 'release-student',
         setting('BETUFU_E2E_ISOLATED_RUN'),
       ],
       { windowsHide: true },

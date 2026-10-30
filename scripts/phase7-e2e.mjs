@@ -26,6 +26,7 @@ const SPEC_PLANS = Object.freeze({
   "frontend/e2e/phase7-operations.spec.ts": "07-23",
   "frontend/e2e/phase7-privacy.spec.ts": "07-26",
   "frontend/e2e/phase7-chat-rules.spec.ts": "07-35",
+  "frontend/e2e/phase7-integrated.spec.ts": "07-31",
 });
 export function specPlan(value) {
   if (!Object.hasOwn(SPEC_PLANS, value)) throw new Error("Unapproved browser spec");
@@ -320,7 +321,7 @@ export async function expireIsolatedSessions(run) {
 }
 
 export async function releaseIsolatedStudentEnrollment(run, persona = "student") {
-  if (!["student", "athlete"].includes(persona)) throw new Error("Unapproved eligibility persona");
+  if (!["student", "athlete", "reader", "muter"].includes(persona)) throw new Error("Unapproved eligibility persona");
   requireRun(run);
   const id = (
     await command("docker", [
@@ -405,7 +406,10 @@ async function provision(compose, run, config, password, plan) {
   const loadPersonas = plan === "07-30" ? Array.from({ length: 50 }, (_, index) => ({
     key: `load-${index}`, username: `phase7-load-${index}@example.invalid`,
     email: `phase7-load-${index}@example.invalid`, nickname: `carga-${index}`,
-  })) : [];
+  })) : plan === "07-31" ? [{ key: "reader", username: "phase7-reader@example.invalid",
+    email: "phase7-reader@example.invalid", nickname: "leitor-isolado" },
+    { key: "muter", username: "phase7-muter@example.invalid",
+      email: "phase7-muter@example.invalid", nickname: "silenciador-isolado" }] : [];
   for (const persona of [...PERSONAS, ...loadPersonas]) {
     await request("/admin/realms/betufu-local/users", {
       method: "POST",
@@ -461,7 +465,7 @@ async function provision(compose, run, config, password, plan) {
   const roles = `INSERT INTO public.operational_role_grant(grant_id,identity_id,role_name,scope_ref,status) VALUES (${sql(stableUuid("e2e:checker:global"))},${sql(checkerId)},'ADMINISTRADOR_GERAL',NULL,'VIGENTE');`;
   const id = await ownedService(compose, run, "postgres");
   const pg = config.services.postgres.environment;
-  const privateAthlete = plan === "07-26"
+  const privateAthlete = ["07-26", "07-31"].includes(plan)
     ? `INSERT INTO public.sports_athlete(athlete_id,name,slug) VALUES (${sql(stableUuid("athlete:e2e-without-account"))},'Atleta sem conta isolado','e2e-without-account');`
     : "";
   const loadEnrollment = loadPersonas.map(persona => {
@@ -493,7 +497,7 @@ INSERT INTO public.credit_ledger_entry(identity_id,entry_type,direction,amount,s
   return loadPersonas;
 }
 
-export async function runIsolated(spec, loadWorkload) {
+export async function runIsolated(spec, loadWorkload, project) {
   let plan;
   if (spec === null && typeof loadWorkload === "function") {
     // Durable, owner-ratified local profile supports later CI runs after plan commits.
@@ -507,6 +511,14 @@ export async function runIsolated(spec, loadWorkload) {
     const { validatePhase7Approvals } = await import("./validate-phase7-approvals.mjs");
     await validatePhase7Approvals({ plan: specPlan(spec), stage: "implementation" });
     plan = specPlan(spec);
+  }
+  const integrated = spec === "frontend/e2e/phase7-integrated.spec.ts";
+  if (project !== undefined && (!integrated || !["phase7-desktop", "phase7-320px"].includes(project)))
+    throw new Error("Unapproved isolated project");
+  if (integrated && project === undefined) {
+    for (const viewport of ["phase7-desktop", "phase7-320px"])
+      await runIsolated(spec, undefined, viewport);
+    return;
   }
   const run = `betufu-phase7-e2e-${randomBytes(8).toString("hex")}`;
   const directory = await mkdtemp(resolve(tmpdir(), "betufu-phase7-e2e-"));
@@ -600,7 +612,7 @@ export async function runIsolated(spec, loadWorkload) {
     privateValues.add(password);
     const loadPersonas = await provision(compose, run, config, password, plan);
     let channels = "{}";
-    if (plan === "07-23") {
+    if (["07-23", "07-31"].includes(plan)) {
       const postgres = await ownedService(compose, run, "postgres");
       const pg = config.services.postgres.environment;
       channels = (await command("docker", ["exec", postgres, "psql", "-X", "-At", "-v", "ON_ERROR_STOP=1",
@@ -628,6 +640,15 @@ export async function runIsolated(spec, loadWorkload) {
       BETUFU_E2E_CHECKER_PASSWORD: password,
       BETUFU_E2E_MODERATOR_USERNAME: PERSONAS.find((p) => p.key === "moderator").username,
       BETUFU_E2E_MODERATOR_PASSWORD: password,
+      ...(integrated ? {
+        BETUFU_E2E_INTEGRATED: "true",
+        BETUFU_E2E_PROJECT: project,
+        BETUFU_PLAYWRIGHT_OUTPUT_DIR: resolve(directory, "results"),
+        BETUFU_E2E_READER_USERNAME: "phase7-reader@example.invalid",
+        BETUFU_E2E_READER_PASSWORD: password,
+        BETUFU_E2E_MUTER_USERNAME: "phase7-muter@example.invalid",
+        BETUFU_E2E_MUTER_PASSWORD: password,
+      } : {}),
     };
     if (loadWorkload) await loadWorkload({ run, users: loadPersonas, password });
     else await command(
@@ -635,7 +656,9 @@ export async function runIsolated(spec, loadWorkload) {
       [
         resolve(ROOT, "frontend/node_modules/@playwright/test/cli.js"),
         "test",
-        "--config=" + resolve(directory, "playwright.config.mjs"),
+        "--config=" + (integrated
+          ? resolve(ROOT, "frontend/playwright.phase7.config.ts")
+          : resolve(directory, "playwright.config.mjs")),
       ],
       { cwd: resolve(ROOT, "frontend"), env: childEnv, visible: true },
     );
@@ -749,6 +772,10 @@ if (
       await releaseIsolatedStudentEnrollment(args[1]);
     else if (args.length === 2 && args[0] === "release-athlete")
       await releaseIsolatedStudentEnrollment(args[1], "athlete");
+    else if (args.length === 2 && args[0] === "release-reader")
+      await releaseIsolatedStudentEnrollment(args[1], "reader");
+    else if (args.length === 2 && args[0] === "release-muter")
+      await releaseIsolatedStudentEnrollment(args[1], "muter");
     else {
       if (args.length !== 3 || args[0] !== "--isolated" || args[1] !== "--spec")
         throw new Error("Invalid isolated operation");

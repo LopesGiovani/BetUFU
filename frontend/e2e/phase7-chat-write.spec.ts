@@ -1,3 +1,4 @@
+import { handleIntegratedRules } from './phase7.setup';
 import { expect, test, type Page } from '@playwright/test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -10,6 +11,7 @@ function setting(name: string): string {
   return value;
 }
 async function login(page: Page, prefix: string) {
+  await handleIntegratedRules(page);
   await page.goto('/');
   await page.locator('a.arena-nav__login:visible').click();
   await Promise.race([

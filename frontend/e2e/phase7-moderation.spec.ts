@@ -1,3 +1,4 @@
+import { handleIntegratedRules } from './phase7.setup';
 import { expect, test, type Page, type BrowserContext } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -7,6 +8,7 @@ function setting(name: string) {
   return value;
 }
 async function login(page: Page, prefix: string) {
+  await handleIntegratedRules(page);
   await page.goto('/');
   await page.locator('a.arena-nav__login:visible').click();
   await page.locator('#username').fill(setting(`${prefix}_USERNAME`));
@@ -45,7 +47,7 @@ test('scoped moderator forwards, administrator sanctions, owner requests review 
     const agenda = await (await page.request.get('/api/v1/public/sports/events')).json();
     const eventId = agenda.items[info.project.name === 'phase7-320px' ? 1 : 0].eventId;
     const messages = await (await page.request.get(`/api/v1/chat/events/${eventId}`)).json();
-    const target = messages.messages.find((m: { removed: boolean }) => !m.removed);
+    const target = messages.messages.find((m: { removed: boolean; text: string }) => !m.removed && m.text.startsWith('Historico '));
     const original = target.text;
     const roles = ['BETUFU_E2E_MODERATOR', 'BETUFU_E2E_ADMIN', 'BETUFU_E2E_OTHER'];
     const pages: Page[] = [];

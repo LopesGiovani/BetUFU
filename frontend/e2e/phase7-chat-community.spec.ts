@@ -1,3 +1,4 @@
+import { handleIntegratedRules } from './phase7.setup';
 import { expect, test, type Page, type BrowserContext } from '@playwright/test';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -9,6 +10,9 @@ function setting(name: string): string {
   return value;
 }
 async function login(page: Page, prefix: string): Promise<void> {
+  if (process.env['BETUFU_E2E_INTEGRATED'] === 'true' && prefix === 'BETUFU_E2E_OTHER')
+    prefix = 'BETUFU_E2E_MUTER';
+  await handleIntegratedRules(page);
   await page.goto('/');
   await Promise.race([
     page.locator('a.arena-nav__account:visible').waitFor(),
@@ -61,7 +65,9 @@ test('real community: private mute push, rollback, cross-channel scope, report a
   const publicResponse = await page.context().request.get('/api/v1/chat/global');
   expect(publicResponse.status()).toBe(200);
   const publicBody = await publicResponse.json();
-  const target = publicBody.messages.find((m: { removed: boolean }) => !m.removed);
+  const target = publicBody.messages.find(
+    (m: { removed: boolean; text: string }) => !m.removed && m.text.startsWith('Historico '),
+  );
   expect(target).toBeTruthy();
   expect(JSON.stringify(publicBody)).not.toMatch(/reporter|reason|participantIds|reportId/);
   const id = target.messageId as string;
@@ -166,7 +172,7 @@ test('real community: private mute push, rollback, cross-channel scope, report a
       process.execPath,
       [
         resolve(process.cwd(), '../scripts/phase7-e2e.mjs'),
-        'release-athlete',
+        process.env['BETUFU_E2E_INTEGRATED'] === 'true' ? 'release-muter' : 'release-athlete',
         setting('BETUFU_E2E_ISOLATED_RUN'),
       ],
       { windowsHide: true },
@@ -174,7 +180,11 @@ test('real community: private mute push, rollback, cross-channel scope, report a
     await owner.goto('/comunidade');
     await expect(owner.getByRole('textbox', { name: 'Sua mensagem', exact: true })).toBeDisabled();
     // A different reason for an already-reported occurrence correctly conflicts; use a new occurrence.
-    const inactiveTarget = publicBody.messages[info.project.name === 'phase7-320px' ? 2 : 1];
+    const inactiveTarget = publicBody.messages.find(
+      (m: { removed: boolean; text: string; messageId: string }) =>
+        !m.removed && m.text.startsWith('Historico ') && m.messageId !== id,
+    );
+    expect(inactiveTarget).toBeTruthy();
     const inactiveMessage = owner.locator(`[data-message-id="${inactiveTarget.messageId}"]`);
     await inactiveMessage.locator('summary').click();
     await inactiveMessage.getByRole('button', { name: 'Denunciar mensagem', exact: true }).click();

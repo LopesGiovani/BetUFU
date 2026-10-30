@@ -46,10 +46,11 @@ test("only the approved Phase7 browser spec is accepted", () => {
   assert.equal(specPlan("frontend/e2e/phase7-operations.spec.ts"), "07-23");
   assert.equal(specPlan("frontend/e2e/phase7-privacy.spec.ts"), "07-26");
   assert.equal(specPlan("frontend/e2e/phase7-chat-rules.spec.ts"), "07-35");
+  assert.equal(specPlan("frontend/e2e/phase7-integrated.spec.ts"), "07-31");
   for (const bad of [
     "",
     "../owner.spec.ts",
-    "frontend/e2e/phase7-integrated.spec.ts",
+    "frontend/e2e/phase7-integrated.spec.ts;echo",
     spec + ";echo",
   ])
     assert.throws(() => approvedSpec(bad));

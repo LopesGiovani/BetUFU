@@ -1,3 +1,4 @@
+import { handleIntegratedRules } from './phase7.setup';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
@@ -5,6 +6,7 @@ test.use({ actionTimeout: 15_000 });
 const ROOT = '/api/v1/privacy';
 function setting(key: string) { const value = process.env[key]; if (!value) throw new Error(`Missing isolated ${key}`); return value; }
 async function login(page: Page, prefix: string) {
+  await handleIntegratedRules(page);
   await page.goto('/'); await page.locator('a.arena-nav__login:visible').click();
   await page.locator('#username').fill(setting(`${prefix}_USERNAME`)); await page.locator('#password').fill(setting(`${prefix}_PASSWORD`));
   await page.getByRole('button', { name: 'Entrar', exact: true }).click(); await expect(page.locator('a.arena-nav__account:visible')).toBeVisible();
