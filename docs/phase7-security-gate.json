@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "produced_at": "2026-10-30T21:31:26.556Z",
+  "head": "159001436ca03fafd8aeec7240c3a62a31527b2f",
+  "inputs": {
+    "backend/pom.xml": "cc62cc702c46f5f5b4f9654474b01ebecc5248b7d6eda1548e3dd99f28650624",
+    "frontend/package-lock.json": "4e40dcaac216281c1a1a56df9823ef28b22af533bec6fe006cd0d072fa7dd2b8"
+  },
+  "scans": [
+    {
+      "ecosystem": "Maven",
+      "status": "passed",
+      "packages": 239
+    },
+    {
+      "ecosystem": "npm",
+      "status": "passed",
+      "packages": 623
+    }
+  ],
+  "findings": [],
+  "public_launch_authorized": false,
+  "method": "Resolved Maven/npm versions queried against OSV; no severity exemptions",
+  "limitations": [
+    "Dependency vulnerability scan; not an external application pentest or institutional approval"
+  ]
+}

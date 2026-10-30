@@ -10,7 +10,7 @@
     "build:production": "ng build --configuration production",
     "generate:api": "node scripts/generate-api.mjs",
     "generate:api:check": "node scripts/generate-api.mjs --check",
-    "test": "ng test",
+    "test": "ng test --isolate",
     "lint": "eslint \"src/**/*.{ts,html}\"",
     "lint:fix": "eslint \"src/**/*.{ts,html}\" --fix",
     "format": "prettier --write \"src/**/*.{ts,html,scss}\"",
@@ -19,20 +19,20 @@
   "private": true,
   "packageManager": "npm@10.9.8",
   "dependencies": {
-    "@angular/common": "22.1.7",
-    "@angular/compiler": "22.1.7",
-    "@angular/core": "22.1.7",
-    "@angular/forms": "22.1.7",
-    "@angular/platform-browser": "22.1.7",
-    "@angular/router": "22.1.7",
+    "@angular/common": "22.2.4",
+    "@angular/compiler": "22.2.4",
+    "@angular/core": "22.2.4",
+    "@angular/forms": "22.2.4",
+    "@angular/platform-browser": "22.2.4",
+    "@angular/router": "22.2.4",
     "rxjs": "7.8.2",
     "tslib": "2.8.1"
   },
   "devDependencies": {
-    "@angular/build": "22.1.7",
-    "@angular/cli": "22.1.7",
-    "@angular/compiler-cli": "22.1.7",
-    "@openapitools/openapi-generator-cli": "2.40.1",
+    "@angular/build": "22.2.5",
+    "@angular/cli": "22.2.5",
+    "@angular/compiler-cli": "22.2.4",
+    "@openapitools/openapi-generator-cli": "2.42.0",
     "@playwright/test": "1.62.1",
     "angular-eslint": "22.2.0",
     "eslint": "10.9.1",
@@ -41,6 +41,11 @@
     "prettier": "3.9.6",
     "typescript": "6.0.3",
     "typescript-eslint": "8.69.0",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
+  },
+  "overrides": {
+    "get-uri": {
+      "basic-ftp": "6.2.4"
+    }
   }
 }

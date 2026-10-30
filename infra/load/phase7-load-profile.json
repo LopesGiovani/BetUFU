@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "scope": "isolated-local-proof",
+  "concurrent_users": 50,
+  "duration_seconds": 300,
+  "mix_percent": { "chat_read": 60, "navigation": 20, "predictions": 20 },
+  "slo": { "p95_ms": 1000, "error_rate_percent": 1, "integrity_violations": 0 },
+  "think_ms": 1000,
+  "prediction_dataset": "Eight seeded events; first submissions then genuine same-key retries; report distinguishes acceptance and replay",
+  "authority_reference": "request_user_input_async:call_eb33ae3b9af2403f80aef51d073a80a9:item0",
+  "public_launch_authorized": false
+}

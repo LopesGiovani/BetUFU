@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
-import { randomBytes } from "node:crypto";
+import { randomBytes, createHmac } from "node:crypto";
 import {
   mkdtemp,
   readFile,
@@ -402,7 +402,11 @@ async function provision(compose, run, config, password, plan) {
     "content-type": "application/json",
   };
   const personas = [];
-  for (const persona of PERSONAS) {
+  const loadPersonas = plan === "07-30" ? Array.from({ length: 50 }, (_, index) => ({
+    key: `load-${index}`, username: `phase7-load-${index}@example.invalid`,
+    email: `phase7-load-${index}@example.invalid`, nickname: `carga-${index}`,
+  })) : [];
+  for (const persona of [...PERSONAS, ...loadPersonas]) {
     await request("/admin/realms/betufu-local/users", {
       method: "POST",
       headers,
@@ -460,6 +464,15 @@ async function provision(compose, run, config, password, plan) {
   const privateAthlete = plan === "07-26"
     ? `INSERT INTO public.sports_athlete(athlete_id,name,slug) VALUES (${sql(stableUuid("athlete:e2e-without-account"))},'Atleta sem conta isolado','e2e-without-account');`
     : "";
+  const loadEnrollment = loadPersonas.map(persona => {
+    const identity = sql(stableUuid(`identity:${persona.key}`));
+    const hmac = createHmac("sha256", Buffer.from(config.services.backend.environment.BETUFU_MATRICULA_HMAC_KEY_V1, "base64"))
+      .update(persona.key).digest("hex");
+    // Owned eligibility/initial-grant substrate only; accepted predictions still use the real API.
+    return `INSERT INTO public.ufu_enrollment(enrollment_id,identity_id,matricula_hmac,hmac_version,status) VALUES (${sql(stableUuid(`enrollment:${persona.key}`))},${identity},decode(${sql(hmac)},'hex'),1,'ATIVO');
+INSERT INTO public.credit_account(identity_id,balance) VALUES (${identity},1000.00);
+INSERT INTO public.credit_ledger_entry(identity_id,entry_type,direction,amount,source_type,source_id,idempotency_key) VALUES (${identity},'GRANT_INITIAL','CREDIT',1000.00,'SYSTEM',${identity},${sql(`credit:initial-grant:${stableUuid(`identity:${persona.key}`)}`)});`;
+  }).join("\n");
   await command(
     "docker",
     [
@@ -475,15 +488,26 @@ async function provision(compose, run, config, password, plan) {
       "-d",
       pg.BETUFU_DB_NAME,
     ],
-    { input: seed + "\n" + roles + "\n" + profiles + "\n" + chatHistorySql() + "\n" + privateAthlete },
+    { input: seed + "\n" + roles + "\n" + profiles + "\n" + loadEnrollment + "\n" + chatHistorySql() + "\n" + privateAthlete },
   );
+  return loadPersonas;
 }
 
-export async function runIsolated(spec) {
-  approvedSpec(spec);
-  const { validatePhase7Approvals } =
-    await import("./validate-phase7-approvals.mjs");
-  await validatePhase7Approvals({ plan: specPlan(spec), stage: "implementation" });
+export async function runIsolated(spec, loadWorkload) {
+  let plan;
+  if (spec === null && typeof loadWorkload === "function") {
+    // Durable, owner-ratified local profile supports later CI runs after plan commits.
+    // It grants no publication or owner-resource authority.
+    const { validateLoadAuthority } = await import("./phase7-load.mjs");
+    await validateLoadAuthority();
+    plan = "07-30";
+  } else {
+    if (loadWorkload !== undefined) throw new Error("Unapproved isolated workload");
+    approvedSpec(spec);
+    const { validatePhase7Approvals } = await import("./validate-phase7-approvals.mjs");
+    await validatePhase7Approvals({ plan: specPlan(spec), stage: "implementation" });
+    plan = specPlan(spec);
+  }
   const run = `betufu-phase7-e2e-${randomBytes(8).toString("hex")}`;
   const directory = await mkdtemp(resolve(tmpdir(), "betufu-phase7-e2e-"));
   const secret = () => randomBytes(24).toString("hex");
@@ -548,7 +572,7 @@ export async function runIsolated(spec) {
   await writeFile(resolve(directory, "nginx.conf"), nginx, { mode: 0o600 });
   await writeFile(
     resolve(directory, "playwright.config.mjs"),
-    browserConfig(spec, directory),
+    browserConfig(spec ?? "frontend/e2e/phase7-chat-read.spec.ts", directory),
     { mode: 0o600 },
   );
   const configPath = resolve(directory, "compose.json");
@@ -574,9 +598,9 @@ export async function runIsolated(spec) {
       await ownedService(compose, run, service);
     const password = secret();
     privateValues.add(password);
-    await provision(compose, run, config, password, specPlan(spec));
+    const loadPersonas = await provision(compose, run, config, password, plan);
     let channels = "{}";
-    if (specPlan(spec) === "07-23") {
+    if (plan === "07-23") {
       const postgres = await ownedService(compose, run, "postgres");
       const pg = config.services.postgres.environment;
       channels = (await command("docker", ["exec", postgres, "psql", "-X", "-At", "-v", "ON_ERROR_STOP=1",
@@ -605,7 +629,8 @@ export async function runIsolated(spec) {
       BETUFU_E2E_MODERATOR_USERNAME: PERSONAS.find((p) => p.key === "moderator").username,
       BETUFU_E2E_MODERATOR_PASSWORD: password,
     };
-    await command(
+    if (loadWorkload) await loadWorkload({ run, users: loadPersonas, password });
+    else await command(
       process.execPath,
       [
         resolve(ROOT, "frontend/node_modules/@playwright/test/cli.js"),

@@ -10,7 +10,9 @@
     "D-40 describes the earlier planning session. The current owner instruction separately authorizes only Wave 1 execution and its two local commits.",
     "Approved targets (RPO/RTO/50 users) are decisions, not measured readiness evidence.",
     "The validator checks local records and digests; it cannot authenticate a conversation or resist an operator rewriting both evidence and hashes. Human references remain reviewable.",
-    "Plan gate mappings are consumer obligations derived from CONTEXT/RESEARCH/PLAN; prepare-candidates and implementation authorities remain separate."
+    "Plan gate mappings are consumer obligations derived from CONTEXT/RESEARCH/PLAN; prepare-candidates and implementation authorities remain separate.",
+    "Subsequent owner replies request_user_input_async:call_eb33ae3b9af2403f80aef51d073a80a9 authorize remaining local technical completion only. Institutional approval/publication are still pending; publication_plan_gates retain their original obligations.",
+    "Owner explicitly authorized dependency remediation in the three manifests: request_user_input_async:call_e17e31501bfe4d25a5c33969e69d223f:item0. No vulnerability exemption or public-launch approval is implied."
   ],
   "decisions": [
     {
@@ -463,11 +465,29 @@
       "statement": "Owner answered Autorizado to the proposed private local encrypted backup proof; public-pilot policy remains pending."
     },
     "load_profile": {
-      "status": "pending",
-      "description": "50 concurrent users: mix, duration, environment, SLO and error rate",
+      "status": "approved",
       "source": "owner",
-      "human_reference": null,
-      "evidence_hashes": {}
+      "description": "Ratified isolated local50-user/300s reference workload",
+      "human_reference": "request_user_input_async:call_eb33ae3b9af2403f80aef51d073a80a9:item0",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-30-PLAN.md": "379ab7db7e57c140989272a48fd551f84e708bcc796571bbb677ae0f517ef2be"
+      },
+      "scope": "isolated-local-proof",
+      "parameters": {
+        "concurrent_users": 50,
+        "duration_seconds": 300,
+        "mix_percent": {
+          "chat_read": 60,
+          "navigation": 20,
+          "predictions": 20
+        },
+        "slo": {
+          "p95_ms": 1000,
+          "error_rate_percent": 1,
+          "integrity_violations": 0
+        }
+      },
+      "statement": "Owner: Ratificar esse perfil local. Measurement remains required; this decision is not evidence of capacity."
     },
     "rules_preference": {
       "status": "approved",
@@ -478,6 +498,18 @@
         ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-33-PLAN.md": "8f39f26c5395e9b275d570f6243b640f277addbe143ee247035206619203422c"
       },
       "statement": "Conta resolvida no servidor no modulo chat; FK local_identity; GET/POST dismissed boolean-only; inativa/pausada pode dispensar; falha de sincronizacao permanece explicita; fechar nao e aceite juridico nem reabre por versao no piloto."
+    },
+    "local_technical_scope": {
+      "status": "approved",
+      "source": "owner",
+      "description": "Complete remaining Phase7 technical work locally; publication remains blocked",
+      "human_reference": "request_user_input_async:call_eb33ae3b9af2403f80aef51d073a80a9:item1",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-30-PLAN.md": "379ab7db7e57c140989272a48fd551f84e708bcc796571bbb677ae0f517ef2be"
+      },
+      "scope": "isolated-local-technical-only",
+      "public_launch_authorized": false,
+      "statement": "Owner: Concluir parte t?cnica local; manter publica??o bloqueada. Do not approve institutional identity or infer deployment authority."
     }
   },
   "plan_gates": {
@@ -554,9 +586,9 @@
     ],
     "07-30": [
       "legal",
-      "institutional",
       "backup_operations",
-      "load_profile"
+      "load_profile",
+      "local_technical_scope"
     ],
     "07-31": [
       "protocol",
@@ -567,7 +599,41 @@
       "moderation_policy",
       "mute_policy",
       "legal",
+      "rules_preference",
+      "local_technical_scope"
+    ],
+    "07-32": [
+      "protocol",
+      "ui",
+      "mvp_story",
+      "writing_contract",
+      "lifecycle",
+      "moderation_policy",
+      "mute_policy",
+      "legal",
+      "backup_operations",
+      "load_profile",
+      "rules_preference",
+      "local_technical_scope"
+    ],
+    "07-33": [
       "rules_preference"
+    ],
+    "07-34": [
+      "rules_preference"
+    ],
+    "07-35": [
+      "ui",
+      "mvp_story",
+      "rules_preference"
+    ]
+  },
+  "publication_plan_gates": {
+    "07-30": [
+      "legal",
+      "institutional",
+      "backup_operations",
+      "load_profile"
     ],
     "07-32": [
       "protocol",
@@ -581,17 +647,6 @@
       "institutional",
       "backup_operations",
       "load_profile",
-      "rules_preference"
-    ],
-    "07-33": [
-      "rules_preference"
-    ],
-    "07-34": [
-      "rules_preference"
-    ],
-    "07-35": [
-      "ui",
-      "mvp_story",
       "rules_preference"
     ]
   }

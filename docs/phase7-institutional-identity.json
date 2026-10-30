@@ -2,7 +2,8 @@
   "schema_version": 1,
   "status": "pending",
   "notes": [
-    "Preparation only; no legal review or launch authorization. Execution approval does not resolve substantive decisions. No automatic purge or modification of historical facts."
+    "Preparation only; no legal review or launch authorization. Execution approval does not resolve substantive decisions. No automatic purge or modification of historical facts.",
+    "Owner explicitly authorized local technical completion only: request_user_input_async:call_eb33ae3b9af2403f80aef51d073a80a9:item1. Publication/public pilot remain blocked; no institutional facts or authority supplied."
   ],
   "public_name": "BETUFU",
   "legal_identity": null,
@@ -22,5 +23,7 @@
   "external_dependencies": {
     "institutional_identity": "pending",
     "domain_email_infrastructure": "pending"
-  }
+  },
+  "local_technical_scope": "authorized",
+  "public_launch_authorized": false
 }
