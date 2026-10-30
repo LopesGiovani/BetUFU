@@ -4,21 +4,29 @@ milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
 status: executing
-stopped_at: Phase7 plan07-26 complete; Wave14 next07-35
-last_updated: "2026-10-29T12:31:47.732Z"
+stopped_at: Phase7 plan07-35 complete; Wave15 next07-30
+last_updated: "2026-10-30T00:15:51.648Z"
 last_activity: 2026-10-29
-last_activity_desc: Phase7 private rights journey verified;31/35 complete; Wave14 next07-35
-state_head: 19c746a000589283d6568b8f6b2253066b92e7ce
+last_activity_desc: Phase7 rules journey verified;32/35 complete; Wave15 next07-30; local-only completion ratified
+state_head: c11d2e2704133b5ae0cd46680402896b74bc2f61
 state_head_role: verified_implementation_commit; documentary closeout is its direct child
-current_wave: 14
-current_plan: "07-35"
+current_wave: 15
+current_plan: "07-30"
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 170
-  completed_plans: 166
+  completed_plans: 167
 milestone_name: milestone
 ---
+
+## Phase7 / Wave14 / Plan07-35 closeout - 2026-10-29
+
+- Technical commitc11d2e2; accessible account-synchronized rules popup delivered through the official client, with honest offline errors and session isolation.
+- Maven1136 fresh XML tests(361Surefire+775Failsafe),Node946/946,Angular533/533,browser2/2 with exit0; generator/lint/build/Spotless passed.
+- Twelve technical paths frozen;61 protected hashes preserved. Stale bytecode was cleaned; externally interrupted verification was repeated fully. V1-V47, owner document state, seeds and owner volumes unchanged. No push/worktree/Antigravity/dependency change.
+- Phase7 is32/35;global167/170. Wave14 complete; continue07-30/Wave15 then31/32. Owner ratified local50-user/300s profile(60/20/20,p95<=1s,error<=1%,zero integrity violations) and local technical completion only; publication/public pilot remain blocked. Governed gate transcription is next; preference export composition remains final integration work.
+- Evidence:.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-35-SUMMARY.md and .git/gsd/phase7/07-35-frozen.json.
 
 ## Phase7 / Wave14 / Plan07-26 closeout - 2026-10-29
 
@@ -1183,10 +1191,10 @@ Consulte: .planning/PROJECT.md (atualizado em 2026-08-26)
 
 ## Current Position
 
-Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave 9 em execucao)
-Plan: 18/35 concluidos (07-01/02/03/04/28/05/06/07/08/09/10/11/13/14/16/17/20/18), 17 ondas / 102 tasks; proximo 07-21
-Status: executing; Fase 6 passed; Waves 1-8 completas; demais ondas/gates pendentes
-Last activity: 2026-10-06 - contrato/client moderacao; gerador108/108, Angular455/455, Node936/936, Maven1084/1084; sem push
+Phase: 7 of 9 (Comunidade Moderada e Prontidao do Piloto; Wave15)
+Plan: 32/35 complete; next07-30, then07-31/32
+Status: executing; Waves1-14 complete; remaining scope is local technical completion, public launch blocked
+Last activity: 2026-10-29 - rules popup verified; Maven1136,Angular533,Node946,browser2/2; no push
 
 GitHub: milestones das Fases 1 e 2 encerrados; milestone da Fase 3 aberto com tracking e 17 issues de plano.
 Git — Fase 3 / Wave 11 (concluida, enviada e limpa, 2026-08-31): o 03-10 foi executado na `worktree-agent-03-10` sobre `b2fce12`. Os commits tecnico `cf478b1` e documental `8e7109d` foram integrados por fast-forward na `master`; Maven focal, Node, Angular e builds passaram. A worktree e a branch exatas foram removidas e `origin/master` foi sincronizada.
@@ -1434,9 +1442,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-29T00:43:54.738Z
-Stopped at: Phase7 plan07-34 complete; Wave13 next07-23; continuous execution authorized
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-23-PLAN.md
+Last session: 2026-10-30T00:15:51.648Z
+Stopped at: Phase7 plan07-35 complete; Wave15 next07-30; continuous local technical execution authorized
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-30-PLAN.md
 
 ## Accumulated Context
 

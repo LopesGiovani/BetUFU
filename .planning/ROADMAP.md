@@ -573,7 +573,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em17 ondas,102 tasks;31 executados. Waves1-13 completas; Wave14 concluiu07-26 e segue07-35. 07-29 restaurou os tres substratos em isolamento e reaplicou supressao posterior ao snapshot antes de servir. V1-V47 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
+**Plans**: 35 planos em17 ondas,102 tasks;32 executados. Waves1-14 completas; Wave15 segue07-30, depois07-31/32. Fechamento restante limitado a parte tecnica local por decisao explicita; publicacao/piloto publico bloqueados. 07-29 restaurou os tres substratos em isolamento e reaplicou supressao posterior ao snapshot antes de servir. V1-V47 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
 
 **Wave 1**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
@@ -633,7 +633,7 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 
 **Wave 14 — Bloqueada pelas dependências explícitas dos planos**
 - [x] 07-26-PLAN.md — Privacidade na conta: tracer titular/operacao.
-- [ ] 07-35-PLAN.md — Popup de regras acessível e jornada real entre contas/dispositivos.
+- [x] 07-35-PLAN.md — Popup de regras acessível e jornada real entre contas/dispositivos.
 
 **Wave 15 — Bloqueada pelas dependências explícitas dos planos**
 - [ ] 07-30-PLAN.md — CI, publicacao e carga de referencia50.
@@ -671,4 +671,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 31/35 | Wave14; next07-35; private rights journey verified | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 32/35 | Wave15; next07-30; local technical scope; public launch blocked | - |
