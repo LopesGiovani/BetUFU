@@ -47,6 +47,8 @@ public interface PrivacyRestrictedRecordsPort {
   interface Chat extends PrivacyRestrictedRecordsPort {
     record Target(DataClass dataClass, UUID recordId, Instant start, boolean blocked) {}
 
+    boolean rulesDismissed(UUID identityId);
+
     List<Target> retentionTargets();
 
     void lockRetentionTargets();

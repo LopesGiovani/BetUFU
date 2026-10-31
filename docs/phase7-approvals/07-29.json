@@ -4,10 +4,10 @@
   "wave": 11,
   "status": "approved",
   "authorized_stage": "implementation",
-  "head": "0ae2eca8045f27ba9e9dbf01471d5c7bca3f6a56",
-  "recorded_at": "2026-10-07T13:17:42.360Z",
+  "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+  "recorded_at": "2026-10-30T22:35:36.540Z",
   "plan_sha256": "2f86bf5e8246d68780e2bcca30d98d271ff2032934b534bacf10982d2d669077",
-  "decisions_sha256": "e29595f641193144bfb91d49e06df38b8c683fe399e39aa1c27434ad9a0f0638",
+  "decisions_sha256": "2fa45f12d44a9e337e3644471453646674168fb213e9e8e7351f23941d0aab36",
   "human_approval": {
     "source": "owner",
     "status": "approved",
@@ -53,9 +53,8 @@
     "infra/backup/phase7-backup-policy.json": "bd064016986dbaec195ba3c2ad3461ff411ec3754a2ca2cb0952df1ed2b1b5c7",
     "scripts/phase7-backup.mjs": "2a57b4d73013e15084dc8f0c3ea845f2a845142c83dceeb20f87b7dad62145bc",
     "scripts/phase7-backup.test.mjs": "bda38e1b61a2a11a44f71b37968ae26512f01de5195df01547cfaf5420ec062f",
-    "docs/phase7-suppression-register.json": "0277abd6f114f226d8848e34e5c366db675da0e5826000196c65bb45b9c1a194",
-    ".planning/STATE.md": "90c0c5785fa80b0afa94307bb9b8731c576435f862387bbe544784fda13cfbba",
-    ".planning/ROADMAP.md": "f4ceab1e17a1aac40ceb3bd92b12b63e9bc4e58ee8a50dec74879ce7e3bc1739",
+    ".planning/STATE.md": "bf7cb71802a5033c08d7a7df600473c6aa03506f49dfac1a6b3f0d3e0a6d93b3",
+    ".planning/ROADMAP.md": "6de72a7e91524710d711c56b35c5fa6f31f520fab521a86d641ce2b0bfed6540",
     ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-28-SUMMARY.md": "48d31c945e3eb48de704849cea04cf99944a93e01d6b4379c7c9e84b34da517f"
   },
   "candidate_hashes": {},
@@ -76,5 +75,10 @@
     "Only disposable resources created by the restore runner may be cleaned up.",
     "A current independent suppression register is required before any restored serving or login.",
     "Local evidence does not certify cloud availability, legal retention or public launch."
-  ]
+  ],
+  "reexecution": {
+    "original_head": "0ae2eca8045f27ba9e9dbf01471d5c7bca3f6a56",
+    "reference": "conversation:continuous-phase7-07-32-final-real-reruns",
+    "scope": "Exact existing owned local proof only; original committed approval preserved in history"
+  }
 }

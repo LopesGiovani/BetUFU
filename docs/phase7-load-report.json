@@ -2,15 +2,15 @@
   "schema_version": 1,
   "scope": "isolated-local-proof",
   "status": "passed",
-  "produced_at": "2026-10-30T21:25:26.705Z",
-  "run_id": "betufu-phase7-e2e-8c11f6fefe5b84d9",
-  "source_digest": "0f477565a68da646d9fa573ba19ea732c5104519e5decae657cf0913f460573b",
+  "produced_at": "2026-10-31T14:03:39.306Z",
+  "run_id": "betufu-phase7-e2e-08152f853dfcdea8",
+  "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7",
   "profile_sha256": "0924a975159faf3110e3690e9aab1f4c432030281bf3aa9afe5a0dd0f1d52af1",
   "actual_users": 50,
   "concurrent_peak": 50,
-  "duration_seconds": 300.94828590000003,
+  "duration_seconds": 300.8757162,
   "counts": {
-    "chat_read": 8827,
+    "chat_read": 8814,
     "navigation": 2900,
     "predictions": 2900
   },
@@ -25,9 +25,9 @@
     "Bounded seeded markets; new accepted predictions and genuine idempotent replays counted separately"
   ],
   "metrics": {
-    "requests": 14627,
-    "p95_ms": 28.32890000002226,
+    "requests": 14614,
+    "p95_ms": 39.180200000002515,
     "error_rate_percent": 0,
-    "requests_per_second": 48.60303475813882
+    "requests_per_second": 48.571550354983415
   }
 }

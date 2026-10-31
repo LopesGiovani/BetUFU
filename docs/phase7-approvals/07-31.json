@@ -4,8 +4,8 @@
   "wave": 16,
   "status": "approved",
   "authorized_stage": "implementation",
-  "head": "007144ec67a7e02a7aba47525d5c09d2b6acb74c",
-  "recorded_at": "2026-10-30T21:40:06.656Z",
+  "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+  "recorded_at": "2026-10-30T22:35:36.506Z",
   "plan_sha256": "c4f78018307ab175af607e700b108dc75723d2983c67402bf858904ef3cf2576",
   "decisions_sha256": "2fa45f12d44a9e337e3644471453646674168fb213e9e8e7351f23941d0aab36",
   "human_approval": {
@@ -42,8 +42,8 @@
   },
   "baseline_hashes": {
     "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
-    ".planning/STATE.md": "2f62aee819322d5bcb6c134286d5b1b02cd2ff786d9117b1b2c971fd8cb9d6ae",
-    ".planning/ROADMAP.md": "f5372dedf8e580b360cf23af81fc62777cc1c95af096e53d117feb2d448d05f9",
+    ".planning/STATE.md": "bf7cb71802a5033c08d7a7df600473c6aa03506f49dfac1a6b3f0d3e0a6d93b3",
+    ".planning/ROADMAP.md": "6de72a7e91524710d711c56b35c5fa6f31f520fab521a86d641ce2b0bfed6540",
     ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-23-PLAN.md": "8c680978d4dfb58b4873a389a3ecdce0686d07625392b31ad20cb5cf978ef26f",
     "docs/development.md": "3708198177e4c0c303e92729f7f3641300c9d853fb944e972c006a3d65044c2d",
     "docs/local-seed.md": "f6050cef490d6007b92185a366913cd5642e6e89fc8f3462eb3a02a093327673",
@@ -122,5 +122,10 @@
       ".planning/ROADMAP.md"
     ],
     "push": false
+  },
+  "reexecution": {
+    "original_head": "007144ec67a7e02a7aba47525d5c09d2b6acb74c",
+    "reference": "conversation:continuous-phase7-07-32-final-real-reruns",
+    "scope": "Exact existing owned local proof only; original committed approval preserved in history"
   }
 }

@@ -1,0 +1,1589 @@
+{
+  "schema_version": 1,
+  "status": "passed-local",
+  "scope": "isolated-local-technical-only",
+  "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+  "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7",
+  "produced_at": "2026-10-31T14:12:01.553Z",
+  "public_launch_authorized": false,
+  "publication_status": "blocked",
+  "commands": [
+    {
+      "label": "focal",
+      "command": "node scripts/maven.mjs -f backend/pom.xml -Dtest=Phase7ConcurrencyIT,Phase7PrivacyIT,Phase7CertificationIT,ModulithArchitectureTests test",
+      "exit": 0,
+      "started_at": "2026-10-31T13:25:01.059Z",
+      "ended_at": "2026-10-31T13:25:48.381Z",
+      "log": ".git/gsd/phase7/07-32-focal-proof.log",
+      "log_sha256": "08424e38d74a0b122452034edc4737a362178844185ba8402855881716f29e79",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "clean",
+      "command": "node scripts/maven.mjs -f backend/pom.xml clean",
+      "exit": 0,
+      "started_at": "2026-10-31T13:25:49.763Z",
+      "ended_at": "2026-10-31T13:25:52.399Z",
+      "log": ".git/gsd/phase7/07-32-clean-proof.log",
+      "log_sha256": "8b3f7807561b6ed6b6649ebb653e7526bd0d29a70fd223ea66729ee55e97a1be",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "maven",
+      "command": "node scripts/maven.mjs -f backend/pom.xml verify",
+      "exit": 0,
+      "started_at": "2026-10-31T13:25:53.803Z",
+      "ended_at": "2026-10-31T13:43:15.901Z",
+      "log": ".git/gsd/phase7/07-32-maven-proof.log",
+      "log_sha256": "8635b65c4081fc3b0821b2bc0251144db0a73443ef0fa2fe1e52ffe226d876d6",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "node",
+      "command": "node --test scripts/*.test.mjs",
+      "exit": 0,
+      "started_at": "2026-10-31T13:43:17.401Z",
+      "ended_at": "2026-10-31T13:47:32.173Z",
+      "log": ".git/gsd/phase7/07-32-node-proof.log",
+      "log_sha256": "74f5170a7247e45efe6f5a3032111e934a20ac3a29cf4fa017020409756a3fc3",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "angular",
+      "command": "npm --prefix frontend test -- --watch=false",
+      "exit": 0,
+      "started_at": "2026-10-31T13:47:33.497Z",
+      "ended_at": "2026-10-31T13:49:15.740Z",
+      "log": ".git/gsd/phase7/07-32-angular-proof.log",
+      "log_sha256": "1731fc1bbb34accbd25225da45a92c13075451ebcaecb39878677fa0edc8f7d7",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "generator",
+      "command": "npm --prefix frontend run generate:api:check",
+      "exit": 0,
+      "started_at": "2026-10-31T13:49:17.012Z",
+      "ended_at": "2026-10-31T13:49:20.763Z",
+      "log": ".git/gsd/phase7/07-32-generator-proof.log",
+      "log_sha256": "e22531902204903aa27508f08c17216dfa24b8bf23998e0dc6bb9e63af14c7d5",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "lint",
+      "command": "npm --prefix frontend run lint",
+      "exit": 0,
+      "started_at": "2026-10-31T13:49:22.103Z",
+      "ended_at": "2026-10-31T13:49:32.456Z",
+      "log": ".git/gsd/phase7/07-32-lint-proof.log",
+      "log_sha256": "49073d95fba3f891474cedef6b1a612eedaff5cd74fdbc0e7c79f6f792cb253b",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "build",
+      "command": "npm --prefix frontend run build:production",
+      "exit": 0,
+      "started_at": "2026-10-31T13:49:33.692Z",
+      "ended_at": "2026-10-31T13:49:43.229Z",
+      "log": ".git/gsd/phase7/07-32-build-proof.log",
+      "log_sha256": "67ab04b1e3ed16d47422c5be978701f3780e12153165e69b804cc722de48d089",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "spotless",
+      "command": "node scripts/maven.mjs -f backend/pom.xml spotless:check",
+      "exit": 0,
+      "started_at": "2026-10-31T13:49:44.617Z",
+      "ended_at": "2026-10-31T13:49:47.508Z",
+      "log": ".git/gsd/phase7/07-32-spotless-proof.log",
+      "log_sha256": "8b3f7807561b6ed6b6649ebb653e7526bd0d29a70fd223ea66729ee55e97a1be",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "browser",
+      "command": "node scripts/phase7-e2e.mjs --isolated --spec frontend/e2e/phase7-integrated.spec.ts",
+      "exit": 0,
+      "started_at": "2026-10-31T13:54:42.988Z",
+      "ended_at": "2026-10-31T14:02:12.081Z",
+      "log": ".git/gsd/phase7/07-32-browser-proof.log",
+      "log_sha256": "a416a82026f6826beef36fe7de9ac6fc0a567f0d975e15212cb681a9e6791706",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "load",
+      "command": "node scripts/phase7-load.mjs --profile infra/load/phase7-load-profile.json --isolated",
+      "exit": 0,
+      "started_at": "2026-10-31T14:02:14.858Z",
+      "ended_at": "2026-10-31T14:09:46.178Z",
+      "log": ".git/gsd/phase7/07-32-load-proof.log",
+      "log_sha256": "683875f41aa5ed718a8a87f05309545d453b2ec75627993c72cce551c1c0ef02",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "restore",
+      "command": "node scripts/phase7-restore.mjs --policy infra/backup/phase7-backup-policy.json --isolated",
+      "exit": 0,
+      "started_at": "2026-10-31T14:09:48.984Z",
+      "ended_at": "2026-10-31T14:11:44.934Z",
+      "log": ".git/gsd/phase7/07-32-restore-proof.log",
+      "log_sha256": "271d323aab935b9c218cdcde938910159b7fb7eef6783bff4c64b6e75f3c1857",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "publication",
+      "command": "node scripts/phase7-quality.mjs --publication",
+      "exit": 1,
+      "started_at": "2026-10-31T14:11:47.786Z",
+      "ended_at": "2026-10-31T14:11:47.866Z",
+      "log": ".git/gsd/phase7/07-32-publication-proof.log",
+      "log_sha256": "1eec258cc1029c32463b6bbd04f97979fe818c4fabd015e5587921a4d73b8c03",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    },
+    {
+      "label": "diff",
+      "command": "git diff --check",
+      "exit": 0,
+      "started_at": "2026-10-31T14:11:49.839Z",
+      "ended_at": "2026-10-31T14:11:49.930Z",
+      "log": ".git/gsd/phase7/07-32-diff-proof.log",
+      "log_sha256": "cebfbf594d96e49609434c753791f1bdbf388b6fd6679bb2417dc8c2a84a3e26",
+      "head": "e5e1f625ef975a48aa6cc9e5f9f3a8fd852f1641",
+      "source_digest": "8218776f15354188b65129f03c79e393c0b0eaf8bac2d05e39eb9f3bc362dbb7"
+    }
+  ],
+  "requirements": {
+    "CHAT-01": [
+      "maven",
+      "browser"
+    ],
+    "CHAT-02": [
+      "maven",
+      "browser"
+    ],
+    "CHAT-03": [
+      "maven",
+      "browser"
+    ],
+    "CHAT-04": [
+      "maven",
+      "browser"
+    ],
+    "CHAT-05": [
+      "maven",
+      "browser"
+    ],
+    "CHAT-06": [
+      "maven",
+      "browser"
+    ],
+    "RT-01": [
+      "maven",
+      "browser"
+    ],
+    "INTE-05": [
+      "maven",
+      "browser"
+    ],
+    "PRIV-03": [
+      "node",
+      "publication"
+    ],
+    "PRIV-04": [
+      "publication"
+    ],
+    "PRIV-05": [
+      "maven",
+      "browser",
+      "publication"
+    ],
+    "OPS-04": [
+      "restore"
+    ],
+    "TEST-03": [
+      "maven",
+      "node",
+      "angular",
+      "generator",
+      "browser"
+    ],
+    "TEST-05": [
+      "maven",
+      "node",
+      "generator",
+      "spotless"
+    ],
+    "UX-01": [
+      "browser"
+    ],
+    "UX-02": [
+      "angular",
+      "browser"
+    ]
+  },
+  "requirement_limits": {
+    "PRIV-03": "Publication refusal verified; public publication not certified",
+    "PRIV-04": "Legitimate institutional identity remains pending",
+    "PRIV-05": "Local rights flows verified; independent legal review and other class policies remain pending"
+  },
+  "gates": {
+    "protocol": {
+      "status": "approved",
+      "description": "Server-push protocol and RT-01/IDEN-04 reconciliation",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-04:owner-protocol-stomp",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-03-SUMMARY.md": "085bf0feab254e5005d8a95b84dafc86c1e68a0cc96c2562d4a33b55814f7c41"
+      },
+      "statement": "Manter WebSocket/STOMP conforme RT-01. Recorded owner reply in 07-03-SUMMARY; SSE proposal superseded. Session/origin/domain authorization and CONNECT CSRF retained."
+    },
+    "ui": {
+      "status": "approved",
+      "description": "Reviewed UI contract, desktop/mobile/keyboard/focus",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-PLAN.md": "1cf299d7d4fa8b1167a09ed923e659f28d476d32ed6f3cdc9c6438629644eece",
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-UI-SPEC.md": "e3390c32a462f232c0ada7efca97cd26479ac92d6916d106cefc761e79ed3650"
+      },
+      "authorization_basis": "delegated-continuous-execution",
+      "statement": "Implement previously confirmed UI-D01..07 and existing Arena patterns under continuous execution authority; technical composition delegated. Draft/checker and full accessibility certification are not represented as independently approved or passed."
+    },
+    "mvp_story": {
+      "status": "approved",
+      "description": "Owner ratification of the actual user story; no invented persona",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-PLAN.md": "1cf299d7d4fa8b1167a09ed923e659f28d476d32ed6f3cdc9c6438629644eece",
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-UI-SPEC.md": "e3390c32a462f232c0ada7efca97cd26479ac92d6916d106cefc761e79ed3650"
+      },
+      "authorization_basis": "delegated-continuous-execution",
+      "statement": "Existing D-15/16 story: visitor discovers and reads published-event chat; authenticated participant discovers and reads private global chat. Continuous phase authority covers this implementation; no invented persona or separate owner reply."
+    },
+    "writing_contract": {
+      "status": "approved",
+      "description": "Unicode unit and authoritative rate-limit scope",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-04:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-09-PLAN.md": "5a2f549c74d312d819efca043e528dc6e509c25810c008b9ac45275e166e4399"
+      },
+      "statement": "Executor technical choice under explicit continuous owner authority:280Unicode code points, exact unnormalized text; one new accepted message per actor per3seconds across all channels. This records delegated implementation, not a separate owner answer.",
+      "authorization_basis": "delegated-continuous-execution",
+      "executor_choice": {
+        "unicode": "code-points",
+        "rate_scope": "actor-all-channels"
+      }
+    },
+    "lifecycle": {
+      "status": "approved",
+      "description": "Definitive producer timestamps, cancellation and pending compensation",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-05:owner-cancel-compensation-rule",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf"
+      },
+      "executor_choice": {
+        "cancellation": "confirmed-cancellation-starts-two-hour-chat-window",
+        "pending_compensation": "blocks-definitive-milestone-until-complete"
+      },
+      "statement": "Owner decision: cancelamento confirmado sem placar inicia a janela de duas horas para fechamento permanente do chat; compensacao pendente bloqueia o marco ate sua conclusao. Resultado, processamento completo e correcoes seguem D-30/D-31.",
+      "authorization_basis": "explicit-owner-decision"
+    },
+    "moderation_policy": {
+      "status": "approved",
+      "description": "Infraction/case identity, concurrency and reversal rules",
+      "source": "owner",
+      "human_reference": "conversation:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-CONTEXT.md": "855d6673d82a205d0404f2a4d2ff33f4f6dceb8f6e5968fc58268dd4bbe37ebf"
+      },
+      "authorization_basis": "delegated-continuous-execution",
+      "statement": "D-17/D-18/D-19 governam o bloco: moderador atua somente no escopo concedido; ADMINISTRADOR_GERAL aplica suspensoes globais; denuncia nao pune automaticamente; a unidade de caso impede dupla sancao; revisao e anulacao sao novos fatos auditados; nenhuma acao altera saldo, ranking ou historico financeiro."
+    },
+    "mute_policy": {
+      "status": "approved",
+      "description": "All chat channels; account version conflict refetch; only persisted writes acknowledged",
+      "source": "owner",
+      "human_reference": "conversation:owner-continuous-phase7-wave2-through-completion",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-13-PLAN.md": "aa2daa46b1fe3f9baa5b72e39281e9771fe624216e5c364dfab982c7215523bb"
+      },
+      "authorization_basis": "delegated-executor-choice-under-explicit-continuous-authority",
+      "statement": "Executor concretizes cross-channel scope and synchronization semantics in PLAN under continuous owner authority. No separate human policy answer claimed."
+    },
+    "legal": {
+      "status": "approved",
+      "description": "Owner-approved legal/privacy gate: retention by class, verified rights handling, restricted export, audited expurgo and pseudonymization.",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-06:owner-legal-gate-option-1",
+      "evidence_hashes": {
+        "docs/phase7-privacy-policy.json": "fb3fed2fa9536a3a223dc6d042381ce5207d9be5dde0dc0f34f403e81f00c089",
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922"
+      },
+      "authorization_basis": "explicit-owner-decision",
+      "statement": "Option 1 approved: complete legal/privacy gate for implementation. Retention is defined per data class; access, correction, objection, deletion, export and pseudonymization require verified-holder review by ADMINISTRADOR_GERAL. Expurgo is an audited disposition/projection operation and never mutates append-only facts. This does not authorize public pilot launch or claim independent legal-counsel review.",
+      "retention_reference": "conversation:2026-10-06:owner-retention-90-180"
+    },
+    "backup_operations": {
+      "status": "approved",
+      "description": "Three substrates, scheduling, destination, encryption/keys/access/expiry",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-04:owner-local-backup-policy",
+      "evidence_hashes": {
+        "infra/backup/phase7-backup-policy.json": "bd064016986dbaec195ba3c2ad3461ff411ec3754a2ca2cb0952df1ed2b1b5c7"
+      },
+      "scope": "isolated-local-proof",
+      "production_status": "pending",
+      "statement": "Owner answered Autorizado to the proposed private local encrypted backup proof; public-pilot policy remains pending."
+    },
+    "load_profile": {
+      "status": "approved",
+      "source": "owner",
+      "description": "Ratified isolated local50-user/300s reference workload",
+      "human_reference": "request_user_input_async:call_eb33ae3b9af2403f80aef51d073a80a9:item0",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-30-PLAN.md": "379ab7db7e57c140989272a48fd551f84e708bcc796571bbb677ae0f517ef2be"
+      },
+      "scope": "isolated-local-proof",
+      "parameters": {
+        "concurrent_users": 50,
+        "duration_seconds": 300,
+        "mix_percent": {
+          "chat_read": 60,
+          "navigation": 20,
+          "predictions": 20
+        },
+        "slo": {
+          "p95_ms": 1000,
+          "error_rate_percent": 1,
+          "integrity_violations": 0
+        }
+      },
+      "statement": "Owner: Ratificar esse perfil local. Measurement remains required; this decision is not evidence of capacity."
+    },
+    "rules_preference": {
+      "status": "approved",
+      "description": "Storage/module/FK/retention and rules dismissal sync failure policy",
+      "source": "owner",
+      "human_reference": "conversation:2026-10-07:owner-ratified-chat-rules-preference",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-33-PLAN.md": "8f39f26c5395e9b275d570f6243b640f277addbe143ee247035206619203422c"
+      },
+      "statement": "Conta resolvida no servidor no modulo chat; FK local_identity; GET/POST dismissed boolean-only; inativa/pausada pode dispensar; falha de sincronizacao permanece explicita; fechar nao e aceite juridico nem reabre por versao no piloto."
+    },
+    "local_technical_scope": {
+      "status": "approved",
+      "source": "owner",
+      "description": "Complete remaining Phase7 technical work locally; publication remains blocked",
+      "human_reference": "request_user_input_async:call_eb33ae3b9af2403f80aef51d073a80a9:item1",
+      "evidence_hashes": {
+        ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-30-PLAN.md": "379ab7db7e57c140989272a48fd551f84e708bcc796571bbb677ae0f517ef2be"
+      },
+      "scope": "isolated-local-technical-only",
+      "public_launch_authorized": false,
+      "statement": "Owner: Concluir parte t?cnica local; manter publica??o bloqueada. Do not approve institutional identity or infer deployment authority."
+    }
+  },
+  "security": {
+    "schema_version": 1,
+    "status": "passed",
+    "produced_at": "2026-10-30T21:31:26.556Z",
+    "head": "159001436ca03fafd8aeec7240c3a62a31527b2f",
+    "inputs": {
+      "backend/pom.xml": "cc62cc702c46f5f5b4f9654474b01ebecc5248b7d6eda1548e3dd99f28650624",
+      "frontend/package-lock.json": "4e40dcaac216281c1a1a56df9823ef28b22af533bec6fe006cd0d072fa7dd2b8"
+    },
+    "scans": [
+      {
+        "ecosystem": "Maven",
+        "status": "passed",
+        "packages": 239
+      },
+      {
+        "ecosystem": "npm",
+        "status": "passed",
+        "packages": 623
+      }
+    ],
+    "findings": [],
+    "public_launch_authorized": false,
+    "method": "Resolved Maven/npm versions queried against OSV; no severity exemptions",
+    "limitations": [
+      "Dependency vulnerability scan; not an external application pentest or institutional approval"
+    ]
+  },
+  "decisions": [
+    "D-01",
+    "D-02",
+    "D-03",
+    "D-04",
+    "D-05",
+    "D-06",
+    "D-07",
+    "D-08",
+    "D-09",
+    "D-10",
+    "D-11",
+    "D-12",
+    "D-13",
+    "D-14",
+    "D-15",
+    "D-16",
+    "D-17",
+    "D-18",
+    "D-19",
+    "D-20",
+    "D-21",
+    "D-22",
+    "D-23",
+    "D-24",
+    "D-25",
+    "D-26",
+    "D-27",
+    "D-28",
+    "D-29",
+    "D-30",
+    "D-31",
+    "D-32",
+    "D-33",
+    "D-34",
+    "D-35",
+    "D-36",
+    "D-37",
+    "D-38",
+    "D-39",
+    "D-40"
+  ],
+  "decision_evidence": {
+    "D-01": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-02": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-03": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-04": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-05": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-06": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-07": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-08": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-09": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-10": [
+      "restore"
+    ],
+    "D-11": [
+      "security",
+      "node"
+    ],
+    "D-12": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-13": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-14": [
+      "protected-artifacts"
+    ],
+    "D-15": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-16": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-17": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-18": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-19": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-20": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-21": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-22": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-23": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-24": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-25": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-26": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-27": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-28": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-29": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-30": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-31": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-32": [
+      "restore"
+    ],
+    "D-33": [
+      "load"
+    ],
+    "D-34": [
+      "security",
+      "node"
+    ],
+    "D-35": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-36": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-37": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-38": [
+      "restore"
+    ],
+    "D-39": [
+      "maven",
+      "node",
+      "browser"
+    ],
+    "D-40": [
+      "maven",
+      "node",
+      "browser"
+    ]
+  },
+  "maven": {
+    "surefire": {
+      "classes": 37,
+      "tests": 361,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "failsafe": {
+      "classes": 153,
+      "tests": 780,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "maven_classes": [
+    "BetufuApplicationSmokeTest",
+    "CurrentProfileResponseTest",
+    "IdentityModuleTest",
+    "RoleGuardTest",
+    "RoleScopeTest",
+    "ModuleDependencyRulesTest",
+    "ModulithArchitectureTests",
+    "OddsCalibrationFixtureTest",
+    "OddsContractArchitectureTest",
+    "OddsPricingModelTest",
+    "OddsPricingVolumeIndependenceTest",
+    "OddsReplayCorrectionTest",
+    "OddsResultTaxonomyTest",
+    "OddsSchemaReviewTest",
+    "DiagnosticServiceTest",
+    "DiagnosticStatusJsonTest",
+    "EnvironmentConfigurationTest",
+    "OperationalCapabilitiesResponseTest",
+    "OperationalPanelResponseTest",
+    "OperationalPanelServiceTest",
+    "FlywayPolicyTest",
+    "OidcTechnicalAuthorityMapperTest",
+    "ContextualLoginTargetPolicyTest",
+    "IdentitySessionTerminationServiceTest",
+    "OidcRevocationContractTest",
+    "SessionLifecycleServiceTest",
+    "SessionPolicyTest",
+    "PrivacyArchitectureTest",
+    "SettlementContractTest",
+    "SportsCsvParserTest",
+    "SportsOddsBoundaryArchitectureTest",
+    "SportsXlsxParserTest",
+    "EnrollmentEligibilityTest",
+    "HmacKeyFailClosedTest",
+    "MatriculaHmacTest",
+    "MatriculaNormalizerTest",
+    "ProfileEnrollmentStatusAdapterTest",
+    "AuditEventIT",
+    "AuditImmutabilityIT",
+    "AuditVocabularyIT",
+    "OddsAuditVocabularyIT",
+    "PredictionAcceptanceIT",
+    "PredictionAvailabilityIT",
+    "PredictionConcurrencyIT",
+    "PredictionConflictIT",
+    "PredictionControllerIT",
+    "PredictionEligibilityCorrectionIT",
+    "ChatEvidenceAccessIT",
+    "ChatLifecycleConcurrencyIT",
+    "ChatLifecycleIT",
+    "ChatModerationIT",
+    "ChatMuteIT",
+    "ChatPauseIT",
+    "ChatPushDeliveryIT",
+    "ChatPushSecurityIT",
+    "ChatReadIT",
+    "ChatReportIT",
+    "ChatReviewIT",
+    "ChatRulesPreferenceIT",
+    "ChatRulesPreferenceSchemaIT",
+    "ChatSanctionConcurrencyIT",
+    "ChatSanctionIT",
+    "ChatSchemaIT",
+    "ChatWriteConcurrencyIT",
+    "ChatWriteIT",
+    "Phase7CertificationIT",
+    "Phase7ConcurrencyIT",
+    "Phase7PrivacyIT",
+    "AdminSeedIdempotencyIT",
+    "LocalIdentityTracerIT",
+    "ProfileControllerIT",
+    "ProfilePersistenceIT",
+    "RoleAuthorizationMatrixIT",
+    "RoleChangeSessionTerminationIT",
+    "RoleGrantControllerIT",
+    "SelfRegistrationKeycloakIT",
+    "UserInfoOptOutIT",
+    "CreditBalanceControllerIT",
+    "CreditCorrectionConcurrencyIT",
+    "CreditCorrectionControllerIT",
+    "CreditCorrectionEvidenceIT",
+    "CreditCorrectionIT",
+    "CreditCorrectionSecurityIT",
+    "CreditLedgerConcurrencyIT",
+    "CreditLedgerIT",
+    "SettlementLedgerIT",
+    "OddsAuthorizationIT",
+    "OddsCalculationApplicationServiceIT",
+    "OddsCertificationIT",
+    "OddsForPredictionAdapterIT",
+    "OddsMarketIT",
+    "OddsMarketLifecycleIT",
+    "OddsMigrationIT",
+    "OddsOverrideConcurrencyIT",
+    "OddsOverrideIT",
+    "OddsOverrideSecurityIT",
+    "OddsPersistenceConcurrencyIT",
+    "OddsPersistenceIT",
+    "OddsPublicPrivacyIT",
+    "OddsPublicViewIT",
+    "Phase5CertificationIT",
+    "Phase5ConcurrencyIT",
+    "Phase5PrivacyIT",
+    "Phase6CertificationIT",
+    "Phase6ConcurrencyIT",
+    "Phase6PrivacyIT",
+    "ProblemDetailsIT",
+    "DiagnosticControllerIT",
+    "DiagnosticDegradationIT",
+    "HealthMetricsIT",
+    "ObservabilityIT",
+    "EmergencyPauseConcurrencyIT",
+    "EmergencyPauseIT",
+    "OddsOperationalCapabilitiesIT",
+    "OperationalCapabilitiesIT",
+    "OperationalPanelIT",
+    "AuthoritativeStorageIT",
+    "FlywayChecksumIT",
+    "FlywayMigrationIT",
+    "PostgresSemanticsIT",
+    "StompConnectSecurityIT",
+    "CsrfSecurityIT",
+    "CsrfSpaIT",
+    "ContextualLoginControllerIT",
+    "CurrentDeviceLogoutIT",
+    "IdentitySessionTerminationIT",
+    "OidcRevocationKeycloakIT",
+    "PasswordResetDeliveryRecoveryIT",
+    "PasswordResetEventInboxIT",
+    "PasswordResetHermeticTracerIT",
+    "PasswordResetSessionTerminationIT",
+    "PasswordResetTriggerSpikeIT",
+    "PrincipalNameIndexProbeIT",
+    "RedisSessionIT",
+    "SessionControllerIT",
+    "PrivacyRetentionIT",
+    "PrivacyRightsRepositoryIT",
+    "PrivacyExportIT",
+    "PrivacyRightsHttpIT",
+    "PrivacyRightsIT",
+    "PrivacyRightsWithoutSessionsIT",
+    "AchievementControllerIT",
+    "AchievementIdempotencyIT",
+    "AchievementIT",
+    "AchievementRevocationIT",
+    "GroupControllerIT",
+    "PrivateGroupAuthorizationIT",
+    "PrivateGroupIT",
+    "PrivateGroupMetricsIT",
+    "RankingCalculationIT",
+    "RankingControllerIT",
+    "RankingPrivacyIT",
+    "RankingSchemaIT",
+    "SettlementConcurrencyIT",
+    "SettlementControllerIT",
+    "SettlementExecutionIT",
+    "SettlementPresentationIT",
+    "SettlementRecoveryIT",
+    "SettlementSchemaIT",
+    "AthleteLinkProposalConcurrencyIT",
+    "AthleteLinkProposalIT",
+    "AthletePublicProfileIT",
+    "EnrollmentFingerprintCompatibilityIT",
+    "AthleteProfileMediaIT",
+    "SportsResultForOddsProducerIT",
+    "SportsResultForOddsTemporalIT",
+    "SportsAdministrativeOutcomeIT",
+    "SportsAthleteIT",
+    "SportsBracketIT",
+    "SportsCatalogIT",
+    "SportsEventResultConcurrencyIT",
+    "SportsEventResultIT",
+    "SportsEventRosterBindingIT",
+    "SportsOrganizationIT",
+    "SportsOutcomeAuthorityIT",
+    "SportsOutcomeConcurrencyIT",
+    "SportsPublicViewIT",
+    "SportsRosterBindingConcurrencyIT",
+    "SportsRosterConcurrencyIT",
+    "SportsRosterIT",
+    "SportsStandingsIT",
+    "SportsTabularImportIT",
+    "SportsTracerIT",
+    "EnrollmentAttemptLimiterIT",
+    "EnrollmentControllerIT",
+    "EnrollmentCorrectionAuthorizationIT",
+    "EnrollmentCorrectionIT",
+    "UfuEnrollmentConcurrencyIT",
+    "UfuEnrollmentRotationIT",
+    "UfuEnrollmentUniquenessIT"
+  ],
+  "node": {
+    "tests": 985,
+    "failures": 0,
+    "skipped": 0
+  },
+  "angular": {
+    "tests": 533,
+    "files": 85
+  },
+  "browser": {
+    "desktop": 13,
+    "mobile320": 13,
+    "owned_cleanup": 2
+  },
+  "restore": {
+    "schema_version": 1,
+    "scope": "isolated-local-proof",
+    "run_id": "betufu-phase7-restore-b941ea94286cf117",
+    "status": "passed",
+    "source_run_id": "betufu-phase7-backup-0e5a8cc98a4e1806",
+    "snapshot_id": "snapshot-d51ab1e042af21a1",
+    "substrates": {
+      "betufu": {
+        "restored": true,
+        "chat_facts": 1
+      },
+      "keycloak": {
+        "restored": true,
+        "users": 3
+      },
+      "private-objects": {
+        "restored": true,
+        "nonempty": true
+      }
+    },
+    "suppression": {
+      "register_current": true,
+      "captured_after_snapshot_at": 1793455895805,
+      "applied_before_serving": true,
+      "suppressed_record_id": "67481e0a-1015-4b26-a165-1653490351e3",
+      "served_after_reconciliation": 0
+    },
+    "rpo": 16.689,
+    "rto": 12.387,
+    "serving_state": "released-after-independent-register-reconciliation",
+    "limitations": [
+      "Isolated local proof; production provider, key custody and cloud availability remain pending.",
+      "Keycloak database restoration and user presence are proven; no password is copied into the report."
+    ],
+    "cleanup": "only-owned-compose-project-volumes-and-network"
+  },
+  "retention": {
+    "common_days": 90,
+    "evidence_days": 180,
+    "other_expurgo": "blocked",
+    "independent_legal_review": "pending"
+  },
+  "prohibitions": [
+    {
+      "plan": "07-01",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-02",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-03",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-04",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-05",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-06",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-07",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-08",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-09",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-10",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-11",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-12",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-13",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-14",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-15",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-16",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-17",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-18",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-19",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-20",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-21",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-22",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-23",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-24",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-25",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-26",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-27",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-28",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-29",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-30",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-31",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-32",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-33",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-34",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    },
+    {
+      "plan": "07-35",
+      "status": "reviewed-local",
+      "evidence": [
+        "maven",
+        "browser",
+        "publication"
+      ],
+      "descriptor": "Historical planning status is superseded only by these bounded execution proofs; no public-launch waiver"
+    }
+  ],
+  "artifacts": {
+    ".git/gsd/phase7/07-32-focal-proof.log": "08424e38d74a0b122452034edc4737a362178844185ba8402855881716f29e79",
+    ".git/gsd/phase7/07-32-clean-proof.log": "8b3f7807561b6ed6b6649ebb653e7526bd0d29a70fd223ea66729ee55e97a1be",
+    ".git/gsd/phase7/07-32-maven-proof.log": "8635b65c4081fc3b0821b2bc0251144db0a73443ef0fa2fe1e52ffe226d876d6",
+    ".git/gsd/phase7/07-32-node-proof.log": "74f5170a7247e45efe6f5a3032111e934a20ac3a29cf4fa017020409756a3fc3",
+    ".git/gsd/phase7/07-32-angular-proof.log": "1731fc1bbb34accbd25225da45a92c13075451ebcaecb39878677fa0edc8f7d7",
+    ".git/gsd/phase7/07-32-generator-proof.log": "e22531902204903aa27508f08c17216dfa24b8bf23998e0dc6bb9e63af14c7d5",
+    ".git/gsd/phase7/07-32-lint-proof.log": "49073d95fba3f891474cedef6b1a612eedaff5cd74fdbc0e7c79f6f792cb253b",
+    ".git/gsd/phase7/07-32-build-proof.log": "67ab04b1e3ed16d47422c5be978701f3780e12153165e69b804cc722de48d089",
+    ".git/gsd/phase7/07-32-spotless-proof.log": "8b3f7807561b6ed6b6649ebb653e7526bd0d29a70fd223ea66729ee55e97a1be",
+    ".git/gsd/phase7/07-32-browser-proof.log": "a416a82026f6826beef36fe7de9ac6fc0a567f0d975e15212cb681a9e6791706",
+    ".git/gsd/phase7/07-32-load-proof.log": "683875f41aa5ed718a8a87f05309545d453b2ec75627993c72cce551c1c0ef02",
+    ".git/gsd/phase7/07-32-restore-proof.log": "271d323aab935b9c218cdcde938910159b7fb7eef6783bff4c64b6e75f3c1857",
+    ".git/gsd/phase7/07-32-publication-proof.log": "1eec258cc1029c32463b6bbd04f97979fe818c4fabd015e5587921a4d73b8c03",
+    ".git/gsd/phase7/07-32-diff-proof.log": "cebfbf594d96e49609434c753791f1bdbf388b6fd6679bb2417dc8c2a84a3e26",
+    "backend/target/surefire-reports/TEST-br.com.betufu.BetufuApplicationSmokeTest.xml": "afc92baac68c578a7ce38385ee96cb887df6636c09ea3fcf7ce6dcaa23239bac",
+    "backend/target/surefire-reports/TEST-br.com.betufu.identity.CurrentProfileResponseTest.xml": "5a0a10e8a15644e314fd8e549a3d2e791efb7c9a0df746a558f368dc2e4c9a04",
+    "backend/target/surefire-reports/TEST-br.com.betufu.identity.IdentityModuleTest.xml": "2a1384b9675188bd4a5df06b7aceb30684b8ea53237f511a8ceaeb6006f367b6",
+    "backend/target/surefire-reports/TEST-br.com.betufu.identity.RoleGuardTest.xml": "1f75800dcd87e0aebdc43d412cfbeca7d04c8af93ee7916aa6f28ee482f3bf65",
+    "backend/target/surefire-reports/TEST-br.com.betufu.identity.RoleScopeTest.xml": "f1b8acdc3369a1c0787d3c6318dcd15a3b9751c0d2a150a90e72c4d52f743aa2",
+    "backend/target/surefire-reports/TEST-br.com.betufu.ModuleDependencyRulesTest.xml": "d159140f43b7ff49d88424f9a5bc92c46b104d8a1f68978cdeafc5f0ad356824",
+    "backend/target/surefire-reports/TEST-br.com.betufu.ModulithArchitectureTests.xml": "6d48941e21827e60887635d8a8e27ca96f72f82e9b9eabdeded54000142be8f4",
+    "backend/target/surefire-reports/TEST-br.com.betufu.odds.OddsCalibrationFixtureTest.xml": "bb0b10e406f3c22e208a3b2b99ae64eb03a549b0b4f924e944c68e31ce1391e8",
+    "backend/target/surefire-reports/TEST-br.com.betufu.odds.OddsContractArchitectureTest.xml": "d3aa2f6d00b91815d4d79b99121cb7808fcefbfd295a444c7f89fa863c4d65be",
+    "backend/target/surefire-reports/TEST-br.com.betufu.odds.OddsPricingModelTest.xml": "a187707c26778fa3a645df0237929d9abec0e099f74080487abe56789ac891e3",
+    "backend/target/surefire-reports/TEST-br.com.betufu.odds.OddsPricingVolumeIndependenceTest.xml": "d62dd6be91b5ac1479e889dc80db14bb29ab393e83a215818a4d8541686f174b",
+    "backend/target/surefire-reports/TEST-br.com.betufu.odds.OddsReplayCorrectionTest.xml": "9f65bf0271555ab666c293f3ea7ae30cd1a300f59fb9ae04052818b6ce86e75b",
+    "backend/target/surefire-reports/TEST-br.com.betufu.odds.OddsResultTaxonomyTest.xml": "3ba50bb3d8aa67d2fc0377d9af877166c8bc36c9746552e620c1e64cb4174156",
+    "backend/target/surefire-reports/TEST-br.com.betufu.odds.OddsSchemaReviewTest.xml": "6fd8d58906eec2de1eccb1c2164c07a604383beb5a697dd487368a39c098a7be",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.diagnostic.DiagnosticServiceTest.xml": "3979d953935f09c6bb908c41130f6333fff49d8162c8f130a7e4ef13b0c7ca33",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.diagnostic.DiagnosticStatusJsonTest.xml": "53408d11b2786ea15a03f19cb40bbcc63232ad86a9f1dac70f9e219217405203",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.EnvironmentConfigurationTest.xml": "3a9f98a1f880ea7a09ed76edee7fe17498bb73f3dc8fc8cba9a1946f051c9add",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.operations.OperationalCapabilitiesResponseTest.xml": "68a46708b53984b89ecaad6a74743429dcab254e0b0a81da1d3656e5690ea00e",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.operations.OperationalPanelResponseTest.xml": "de6a364c5070353b4ec517e890c1342b00350230969e56a88b88daf5ab866a54",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.operations.OperationalPanelServiceTest.xml": "3ec80e9473376a6a2bc56d16e69a6ea76ef25df651b4308d97cbddcd411dcc83",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.persistence.FlywayPolicyTest.xml": "10dc67e5882d610c12ef0b3f0da256f94420451b66fa4cdeb0460a491300df6c",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.security.OidcTechnicalAuthorityMapperTest.xml": "a732b7d94f5b752fc1f7196e0ba9248e34c22964fdf0ea2f4d2304fe5baa35c3",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.session.ContextualLoginTargetPolicyTest.xml": "cdd5b4fe283205ce4a931649b81282525004ad38af86709a4556eaca816020e2",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.session.IdentitySessionTerminationServiceTest.xml": "469fa6eda88b631f4212d0aac294c019ad613e1f07145d36d1ab930a1e3a0ffa",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.session.OidcRevocationContractTest.xml": "02b05922ff0385e6829ec00849a3add23f2aca7a45a5d1a5e8c307799ba5a4ce",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.session.SessionLifecycleServiceTest.xml": "0f77c19ffb7270a4e2b3da474cb331a8e17074eec92fc5615e87f75a705622ae",
+    "backend/target/surefire-reports/TEST-br.com.betufu.platform.session.SessionPolicyTest.xml": "e998da412557b5c11bb4c88af5b38e1ed47fef80955472056c4b34b0921e5d64",
+    "backend/target/surefire-reports/TEST-br.com.betufu.PrivacyArchitectureTest.xml": "4aea14a47ef3e4f363f540c6f26475038354d46d285eb477285605b4864dae96",
+    "backend/target/surefire-reports/TEST-br.com.betufu.settlement.SettlementContractTest.xml": "d79848517782c6b9b044162649eba0954455df016c5293d284d08afdf0de891d",
+    "backend/target/surefire-reports/TEST-br.com.betufu.sports.SportsCsvParserTest.xml": "7c0a5e0f191f02fa08308cc29c9b4acfe67830be48ffb8474ff4f25ea0e71260",
+    "backend/target/surefire-reports/TEST-br.com.betufu.sports.SportsOddsBoundaryArchitectureTest.xml": "a01fd2505607094b75ea710c1ac73db01e9763456236a32b866595294023da5c",
+    "backend/target/surefire-reports/TEST-br.com.betufu.sports.SportsXlsxParserTest.xml": "761e8200daf6f49055dd55991251d701e5621d3fcd826a52e6f27dcb472c18c5",
+    "backend/target/surefire-reports/TEST-br.com.betufu.verification.EnrollmentEligibilityTest.xml": "4175785ddef23ed1484160d2b1b44a395c8c10e534a1d32ad004029e609a2351",
+    "backend/target/surefire-reports/TEST-br.com.betufu.verification.HmacKeyFailClosedTest.xml": "836be58686842ba51b8d005a4facbdd575f6b79e3d805f3be759b610d157c0d4",
+    "backend/target/surefire-reports/TEST-br.com.betufu.verification.MatriculaHmacTest.xml": "92f26fcc2c40190a8224a16523502be3f26ad6a45ad1308e3a5248d4d1654a7a",
+    "backend/target/surefire-reports/TEST-br.com.betufu.verification.MatriculaNormalizerTest.xml": "b2207790f45720c2788f9f42a14034eb1ec450f55015016525f7e2a7bbc833c6",
+    "backend/target/surefire-reports/TEST-br.com.betufu.verification.ProfileEnrollmentStatusAdapterTest.xml": "618838602be2335a213fb105a60e2f5fdc3b5af1d913f59db18327719085f919",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.audit.AuditEventIT.xml": "a0ed04450427cb5cf850f6fdaf2deca9e112186e82cbc7f6a00f59b7b5cacf17",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.audit.AuditImmutabilityIT.xml": "d020cfd5166bb3913a035772480ccd24991577436a46012053a9f53ee3d67b04",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.audit.AuditVocabularyIT.xml": "5780dca8ba52004475ef93adf812996ec489caaf15df84fac8e6f17bdbea2382",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.audit.OddsAuditVocabularyIT.xml": "1d090d60b10fb5a1a8747345fd150c9fd856369887f0d59bb3a5cccc457aad3b",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.betting.PredictionAcceptanceIT.xml": "33db1843e0fa86b3f9795ee61e32197875047910a6f30281659a0d298e31b19c",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.betting.PredictionAvailabilityIT.xml": "0a8b825ca76b21f55a7623a45ef6d3603364104a88c95c85a9a154f5b5b041e7",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.betting.PredictionConcurrencyIT.xml": "223f37e8448db35a0fc5d70129abf23541ae03a88df6f5fc00b59c0b7b5c44d4",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.betting.PredictionConflictIT.xml": "6d2b8cd7bf5aa68a53f8affa52d76cea026cb3eef3be9ad9e8326021ac522e2d",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.betting.PredictionControllerIT.xml": "4b3c416ca58d6fdde7d9475870c6fa9aa23726cb7a10c83162d3a0cabc966868",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.betting.PredictionEligibilityCorrectionIT.xml": "af6610b44d8fd86bc4db3575da85ed929a90a3f3541b1613bcfb6e3bb6d6ee87",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatEvidenceAccessIT.xml": "53567ac09615410a7fe45cb3c6deb5a2e13e4fc60a46fc1a541747f26e9654c2",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatLifecycleConcurrencyIT.xml": "b5d2435771dbf5caad6c2fbe8c877486a225e3fa78bb93d28f98d2e1184844c8",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatLifecycleIT.xml": "a1d760d2e4d1d54ec3e002ede448ac1b79fa1db4e2778aa51cf17926d46e655e",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatModerationIT.xml": "27bcdbe91192b960122e645ec620f036352bc0cda7a0d21ba63b5d95b1252792",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatMuteIT.xml": "ee3b51ae93b52a314f7321ef56c4ec24434af2a532a0691bc2a716bc2a12b37a",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatPauseIT.xml": "865f97060fde48e593772d87b8afea90569ada872b3442e47d1d39855f90ac50",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatPushDeliveryIT.xml": "49f9fdd528f570dd034c1618fbd17ad7cf24954777d0ec1ffec5482165ffc251",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatPushSecurityIT.xml": "53a5fec4165b631b3facffe19704554c2e88e2d1130703074212be37926c0984",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatReadIT.xml": "efc66838e0d1de897d8a772524d7818edfcc4e77904cea3d23b9ef011ac12810",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatReportIT.xml": "d743b22e8ea610c80606551510ecf632369ba1a6a0f77fcb2cb0464a44b98db5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatReviewIT.xml": "489d545270d5091d6e624fadece56e468b20dc0b8f001d14fec166bbf5910868",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatRulesPreferenceIT.xml": "f9bd182bb5092a28be51b51d8660775e666b903dc3ad6e78cfd94ac66ce426d5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatRulesPreferenceSchemaIT.xml": "1ae636666396d40013bc132e0b52079c811343e3560c56adc99d61c9daa1c243",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatSanctionConcurrencyIT.xml": "e2349e282fa5847fdd090d944ca0fca998bf08a4a90ad110d963b1bbbedfb1c1",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatSanctionIT.xml": "fb7547332b624bd8d6a3363aa50bbc5392d54af7e839ced2cec8bd596d4ad2ad",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatSchemaIT.xml": "26e9f68d6aab3e77343e7fb9e84f8aad291bf73d5c5259da62e0c119554d7035",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatWriteConcurrencyIT.xml": "d6810830e6cd5646236f56c9a2541b6124d9d5033d925c19cd46272f29e0fd9a",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.ChatWriteIT.xml": "5dac10485400b541e75244a11a0e309dc5319952181773ab824206f7a62eeb34",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.Phase7CertificationIT.xml": "fd98b638b98afc174f9c2c24678886a9b1b0c95da51ed5bf70e9d5d89424d23e",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.Phase7ConcurrencyIT.xml": "fca79156cb26c46f3a7f5ad0f4b5ed9b6a3830220805c68faebaf224d6f2113f",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.chat.Phase7PrivacyIT.xml": "c9cdd1630843e6c79d2c53e659c7706ca3ab6088ba33f3844d8f4b679ca18d13",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.AdminSeedIdempotencyIT.xml": "122c5fe77416b61cbb5d63aba3df87438476746d0fbe184fcefaea5815391218",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.LocalIdentityTracerIT.xml": "cc8d2944e13a0466acfd71c44ef827e1feb1983e8a076fbed920514907017020",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.ProfileControllerIT.xml": "c43a842fad7fbbf21e1d639ebcc3bcc745dcb4dd0dfaa08e8d964270780327f3",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.ProfilePersistenceIT.xml": "e24b979b07a7de976bb8556d8a9eaa8b6b2ccee1f25d1b4f09b5330c8f1b5031",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.RoleAuthorizationMatrixIT.xml": "1a59af15b85860d1eb27859cd2419624e2c6ecc61784454a02e89e08c1ca3909",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.RoleChangeSessionTerminationIT.xml": "546e5854d7faa9463c8c7b28008a0f5bf7007a417094583220a41123149fb464",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.RoleGrantControllerIT.xml": "86362937a82f03e35de7ec3f739cc1df67aa5c80929b10033b89ba1c3865ccad",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.SelfRegistrationKeycloakIT.xml": "a1c41e22b82f6e84a0ea9c170f97cc2566ef9966523eb6b730e1e264dca5da48",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.identity.UserInfoOptOutIT.xml": "0badb5d12988eb52b9f40c77caa5b2bfb86c92ca6ab66d138e1850f4281ebae8",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditBalanceControllerIT.xml": "ff3d6f06f8a700b65e90581585cc30a79d64c4fb0988d3dd6635e6c21e46662f",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditCorrectionConcurrencyIT.xml": "6d835e3c609c1084e1333fbc7850e9e8c24a29d8710df35d9f9afc36d1dd5e66",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditCorrectionControllerIT.xml": "0649cafca90baaf11cc6af329deb01ec83bdabf22007242e260ad7f81acb0863",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditCorrectionEvidenceIT.xml": "2f8abf07e37ffdb6bf6a612136c06f77deae3170311630ff168c1e3f9bf73358",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditCorrectionIT.xml": "9f2e4eb5cc65bc6a0ea70b5dadce9860c20ac1182887a32ce457aeb8874332f1",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditCorrectionSecurityIT.xml": "ce1511141470e96f7f0cb2cfdff5001085023ed0967602189c00cec4490119ec",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditLedgerConcurrencyIT.xml": "df6171249bee993aa9c34ae7103012e89eca54b44350cc76e557fdcdb2e77ac0",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.CreditLedgerIT.xml": "c009cb169cf1e6c43ccf6867b0088876cf11a226b6164febfbff3c5b2ecb195b",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ledger.SettlementLedgerIT.xml": "e731df07fc8f8f3cfc709a30782dbbd975362810ad00ac58fdeeb6183cb6c1ba",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsAuthorizationIT.xml": "96105896f44fa627496f978c0715314fd18bdfb95fa46526cde48a1c37dc2519",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsCalculationApplicationServiceIT.xml": "06b441800d09fa8dc59ffbe9cf6cd2d7146b7e44ce90a631cd59b1300ae6cd7b",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsCertificationIT.xml": "13ddbac302e09d321984b273edc81f228089c2a33683adcb2ad5656bb7e7a94e",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsForPredictionAdapterIT.xml": "163705335455d54fd141915c4c46af7b2675c676b332b0737ce4f94bb3e354b0",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsMarketIT.xml": "a9442fe805d482080b96e646aafd3c422cedaa37967a4bdad2ec6bf442a90d45",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsMarketLifecycleIT.xml": "810585ab01c8d7af76dff353cda9a9d257da12b5a4d8af12bb82cfeb1f1637b9",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsMigrationIT.xml": "26b738fbcf499d785a722c52d6d8247ff59f4fbed6713ec66e123687846e7b9c",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsOverrideConcurrencyIT.xml": "82d714547039f35ba2d5dab32a9cde992587f3c870f59b12798b4b700979c28c",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsOverrideIT.xml": "98fe430fda854d8b7166ff53c1df8c66bd776e0a521aa5c1db182c9e55f0d6e7",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsOverrideSecurityIT.xml": "9371500ee3fafdc5e0ed27727afec2ed2dae8cc0f8ccc89e61d3c364f61a6e42",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsPersistenceConcurrencyIT.xml": "3dfb4cf2822ba981b660cf314142b1f12468b68ecc44b1af3217a71e5382fe65",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsPersistenceIT.xml": "ee92a5b78b1e87f8049eedc25a53473cabb8846a1664579f273ff1fe1e4264d5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsPublicPrivacyIT.xml": "ebcdcc9b75731ce15c45cf69d130636e7e0759a2a421c28dc57bd60506fac719",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.odds.OddsPublicViewIT.xml": "31d91f2d363e75cfd34a857d9bd06f513275ffbdb90778be441a57a562f5a036",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.phase5.Phase5CertificationIT.xml": "6f727682285f67ee8c4783c11e1274b51591938fdf2c6a089b73bd9175975308",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.phase5.Phase5ConcurrencyIT.xml": "e2a08c7092a17688cf3c3b469aa3166d562fd5fdc8603ef89f26c1fdecefb3a6",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.phase5.Phase5PrivacyIT.xml": "487513b1f1bdacd5a465a20ccc69a5ec63cd0b3e95b98c8f5ad105c2ad6e81a1",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.phase6.Phase6CertificationIT.xml": "2bf4cfde9c6f729a2f6bec7b19da6d6032afb9526e299719625cd8d5e2afa40c",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.phase6.Phase6ConcurrencyIT.xml": "2f286b961456349d9d7e650e629ebf6d736e3cb9d1df2b2c27af5733f1aff880",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.phase6.Phase6PrivacyIT.xml": "1a356830a3b84d42a4c408fd0b5cf4d481693061ae09c02a1c8b088ab9b9ef82",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.api.ProblemDetailsIT.xml": "f0b924d324056f3caf85333b2b9bf6813ee67ae30e1d64605f8a5b5f50a5cd7f",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.diagnostic.DiagnosticControllerIT.xml": "084d24f85af99a004a9ddf6ae99d35583519bc2f0ea04a756b66d442f0c9ca4e",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.diagnostic.DiagnosticDegradationIT.xml": "902f2303099ee086c3c1d2d922e69323805809e07089eba1e40187e90bc7aaa7",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.observability.HealthMetricsIT.xml": "fc2fa82c6ca9930ea5b494f52e897065ef216a26b9d77357c7bf091936664b9a",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.observability.ObservabilityIT.xml": "f2ac234fffc5aef221b441c41963fbe64e453df4747b2dd7268fc4048e6bf426",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.operations.EmergencyPauseConcurrencyIT.xml": "c0f1c0e97f2fb41fe15d8f867ef20f97e276706c187e5bae35969274350d9dcf",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.operations.EmergencyPauseIT.xml": "825fe60a6dd63faf61fecb33885e6fd7429adf07ee9fb998b042e7ec0e7b8347",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.operations.OddsOperationalCapabilitiesIT.xml": "5fc0420a81466d51fe271b8bb68efede648b77b67239a953f38e6cd282d717fb",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.operations.OperationalCapabilitiesIT.xml": "86ddc73bff2a0ace0c36a930ea77c1ec5d461d9125e207998418cf2c452689c0",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.operations.OperationalPanelIT.xml": "625e806d0740cf82b25865c3625331192d79b43575657ce7e96c770542853eeb",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.persistence.AuthoritativeStorageIT.xml": "7c781af317364d3a7aee146f4e43cdf1a936df7fdc7569f0e2456de9aaacb5b5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.persistence.FlywayChecksumIT.xml": "71390ad61c293d9613f330e48f98b0bc02d8d728c5d52de53528e6939f7cab7b",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.persistence.FlywayMigrationIT.xml": "8d205c640d67bb49a03ed979f8b9b11e6370decbc00a6df785350ebc699e4873",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.persistence.PostgresSemanticsIT.xml": "569b7db19ace72bc7b33d5769a5fda5049e0b392211d56a97ea2f6fee624f549",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.realtime.StompConnectSecurityIT.xml": "84d9000f712f7eb98e9bdeef61fef8116fc2f88bf9b1e9706b97b14a2db04565",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.security.CsrfSecurityIT.xml": "b2c584c04a501fa0ca882534f2b5afc87ad9680f9ebdddc6b226248347f279db",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.security.CsrfSpaIT.xml": "f6dc8846ac3c101bf277d46216ad27ebbf9efe70de8883e8f55c6db2404a809d",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.ContextualLoginControllerIT.xml": "494b1437b690288ca2509f0c5fc75bc0d7cb7a15787ff59aa98fa43daf911ae4",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.CurrentDeviceLogoutIT.xml": "db702973d5b9606d630a5e43d12cc1d15e251c6abeef2be1c9ef55aa4495cca7",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.IdentitySessionTerminationIT.xml": "78b950f6ec8ddb5898bff573cd253a7afab1047cb0eb49c91bbcd8ef8a041c8f",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.OidcRevocationKeycloakIT.xml": "c8efabe6e4ba0e219228f8496f0ee518285c944995441a59a52b4617a41b910f",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.passwordreset.PasswordResetDeliveryRecoveryIT.xml": "98bf078130efaecd01506f1def4fd7196c667191d2e2f6ce96adae43bb61ab68",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.passwordreset.PasswordResetEventInboxIT.xml": "aed3a1d4dbd24d076b49e50e7cbd7a213a578da197a8263c7a9f4cdf6e8dcdfd",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.passwordreset.PasswordResetHermeticTracerIT.xml": "740f84106c64855b5c80c267fe65296e250a96a12bc2bb859bf27b9ff13738b8",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.PasswordResetSessionTerminationIT.xml": "45cfb324dcc98c63da0821920c50b5604e5eeda118c5e6367dd006cfa96d1804",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.PasswordResetTriggerSpikeIT.xml": "c2ba7133139fabf4f74876dcdf280599b3b2b2706f5a8421bdef84c7ca58113a",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.PrincipalNameIndexProbeIT.xml": "04dce7689410d365b27911b2436e33f3c510d2544c2c19e3f4d1868e9307b488",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.RedisSessionIT.xml": "956ce7bc49cee2bfc4b18e0d14d7751f18584cb57baa05c2d624b467a3c51d77",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.platform.session.SessionControllerIT.xml": "e07ba3d793a451c05d6e6efb50fafa220cc02ae0429353afe633d767ffecd7b8",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.privacy.internal.PrivacyRetentionIT.xml": "96923eedc0a5b3648e228d2431708917ee61322f6bf2dbf8e502196ea663e696",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.privacy.internal.PrivacyRightsRepositoryIT.xml": "7478cbfaabc64faee27ed0598fb6674ee0edf810f079c531dfc1370bf0b9b751",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.privacy.PrivacyExportIT.xml": "eef50ae7a927cddc0c8b8715688eb5fa9796fd08a37d80b61ebb45ecd37673ba",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.privacy.PrivacyRightsHttpIT.xml": "01f5f4623f4f8b0bf9909d00b09a3ea28ac90b2435a96e7fe726508273b0e3e8",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.privacy.PrivacyRightsIT.xml": "91257f57c171504bb6cfc4e08208b804e9ae000e4fbf4e9a1bd2e2300c1b4f99",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.privacy.PrivacyRightsWithoutSessionsIT.xml": "87708323dfdad55d67469ab7419c20e44c27065a834a24ba627ca447d4aa7152",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.AchievementControllerIT.xml": "ea0b49473418489c920a25f552c012f36c4db5c59267973c7084990038e5306d",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.AchievementIdempotencyIT.xml": "e38a3c12804767e81d07c06071da053ed76cdadafd9c2779fc37dbfcfae12c31",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.AchievementIT.xml": "9c614da716c6e9f8dd636aee1abcd41e82bc99b8ef5949705af28e6c822aaa38",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.AchievementRevocationIT.xml": "8d8dbbfd067b35f9b05546b05e849ca048cf4d3f23d498f0be9c86ed17252315",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.GroupControllerIT.xml": "279dca5140f24f8c1a0aba9c9056ba2862d0d6e5521916217b9e57b547e59ed5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.PrivateGroupAuthorizationIT.xml": "a0bd4b9f33c71abff7f4c4276d9719eba543d080f16d700d54862b9bc30429e0",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.PrivateGroupIT.xml": "b4d0fff86cdeb90b42511e80271180fc95ad02a50c8fd1d5204e2b9e152c2798",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.PrivateGroupMetricsIT.xml": "cacc522ab0fbc5ece7157fdcccda4fe6c1343166665de137483f03334bb0c8bd",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.RankingCalculationIT.xml": "4e2285a023fade96bb2548b209bd22f8aeb02d4e785ad05653005c4423132189",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.RankingControllerIT.xml": "dc7ac6bb5a4f3fcd2c840cae3c3224d3d8958db82a2a9542d4fe483f05822b7f",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.RankingPrivacyIT.xml": "828b9fbf2bcc4bc0412092708170615650519f62ef669c4e2753b0942b468383",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.ranking.RankingSchemaIT.xml": "001f090115f3a4cb3c92ecd2b94598da00cca5868dbfeb3504e00066ee45eeed",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.settlement.SettlementConcurrencyIT.xml": "046e1ee37bd7a0fd34aff9c963e6916b7718ab48ed2ea7d5f91480d0c65f2dec",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.settlement.SettlementControllerIT.xml": "1e193f304a125ee5b37270e0244217e1dbd524094a99c28c1e169a5e28a8780f",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.settlement.SettlementExecutionIT.xml": "1fc2a33fba8ddf5f06ea8c0d5fe75e2628fad2c1dba4080792934583a6b122e2",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.settlement.SettlementPresentationIT.xml": "c65f8ceff5933a6043f846b4eade09ff9409dabd846bf28631974d9c283ab712",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.settlement.SettlementRecoveryIT.xml": "8c6600c51f7bd13ce1ed1a08b68238db64a4d00498dd13f22341b9d779bc83f5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.settlement.SettlementSchemaIT.xml": "c6e988776078b29ea266febeca9dfe838e4f0ac40636dcb03d471fda5ebbf4dc",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.AthleteLinkProposalConcurrencyIT.xml": "09ae4c8d0a58ab7a55fe59024d1060c25c5251e98874f1a121c3bf6b25e956e2",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.AthleteLinkProposalIT.xml": "c72aee2182ddf070f26a0e54edac4ed91f17808ab4aef6820abfbada6b00e1f8",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.AthletePublicProfileIT.xml": "5f115504fc64cfc539a050c78ea580b85210d74dde624bbca6e6ee78dd503cf2",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.EnrollmentFingerprintCompatibilityIT.xml": "bde0a752610d9ba261925d55db03d276c144aacf9fb71364c1d99dffa7b2d8b2",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.internal.media.AthleteProfileMediaIT.xml": "cc15032b8bdff983bb9e8165db0d546d39bf8d03e01b3c65b657407086afa010",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.internal.odds.SportsResultForOddsProducerIT.xml": "22cafbc907b90e6d53475029765b7ef549f483b131c761897f995512226e471b",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.internal.odds.SportsResultForOddsTemporalIT.xml": "1bdde80dca655d660846d916995bcb1c14795114dc506e21ac67ca808919b337",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsAdministrativeOutcomeIT.xml": "f21227a942e38ffbde31bf08ede4cb213d72c6f787cb29a3305f10816dbfee99",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsAthleteIT.xml": "562b0d360370019d943b08f5749012c613fd5b4391ce86fe1173a22026f3ed64",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsBracketIT.xml": "da4457cd9ad1d03673baf9038c35504229a9eed14e9eb84c46b30c71edf3f7b6",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsCatalogIT.xml": "4cfc47fe9f06b80328bdda803e0a678c4558d7d739e8787917e703a9c8523e4e",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsEventResultConcurrencyIT.xml": "08f1d7ff02fb96cab15d17dc582093e12b8735d0e15aa9abb8cd4a812a2f58ea",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsEventResultIT.xml": "c1ea0350f0ee679d808f419120b284e55be1b2a4b53e38b793c2014de5176479",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsEventRosterBindingIT.xml": "bd1b35392935f407a58334db7c470d0d85758dea2b808d54720f19c1e86334d5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsOrganizationIT.xml": "3f9b0f6bba6c35fad5b8a8c1a8899d5c4a03f83fa7224ab365cc6d66b6b873f6",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsOutcomeAuthorityIT.xml": "6f3866db7eb622633df5ba58fb84ed26f5fa935208321f0f39bf5c5783acc2cd",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsOutcomeConcurrencyIT.xml": "d5e5d1b3a2e4ce64cce0c5b014375a6bd0adf3c462b6e3e664124d1a8242f630",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsPublicViewIT.xml": "45335a548e224fd9a33f026595492afc283d4d7038eb58359a2252cd7964e4ac",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsRosterBindingConcurrencyIT.xml": "8926845d8256efcb05b7a679d57ed999a67538f047be6f21e2bd79522bab0ea7",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsRosterConcurrencyIT.xml": "1af04f6fef9845507303c119c3c09dc91f0c222bc97bc1553d668912c6c74ca1",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsRosterIT.xml": "107dfc6e6cddcc08c28d4e2bc2a603aff8a3a0e4d96fbdf1f4c19241f6728887",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsStandingsIT.xml": "4086bf4facb600e63a30bef5fdca20300b950ef71e3ed95364068350112abc10",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsTabularImportIT.xml": "17f94ef8b96eac917e2380cc7de9b79c58a1fd40316d8a39b55ffcd0072ee0e1",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.sports.SportsTracerIT.xml": "ec4826fb6414bd18284e8555eb175c82fb3804f2c8e8d9026959654b8a769d0d",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.verification.EnrollmentAttemptLimiterIT.xml": "7608f25092aec8a2f41df638ef041ef31b2b2859a0a36187b6d03b46241ad00e",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.verification.EnrollmentControllerIT.xml": "4154f69f9d73438b8d3c7573e9f79f78c749be2b315a7b6e23be079b83441349",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.verification.EnrollmentCorrectionAuthorizationIT.xml": "b8d9e978903705ee6cfc6a6beefe22132101ac0349a82046c24174a13fe2fe5e",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.verification.EnrollmentCorrectionIT.xml": "363a9ec8b137d3ad4ec56cfb4c55d678c2ffbfdcea26aaa55591fd65cbc76cb3",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.verification.UfuEnrollmentConcurrencyIT.xml": "9cf4f705061a522ee382445e1ec5de57294c9d6056f92c0e90cd76e6871f7914",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.verification.UfuEnrollmentRotationIT.xml": "4b78de3fd3df447447a16f060ca33c3bd569f85b1a7e6c6aa5727018782f63a5",
+    "backend/target/failsafe-reports/TEST-br.com.betufu.verification.UfuEnrollmentUniquenessIT.xml": "62c5c90763f071b77a4f061201c60babb577eb23445080a68b6d32be439f6706",
+    "AGENTS.md": "8c63b63628e5e6f843390cda7e5d950bfc7afce3f694f9ca336824e7d7e9d82d",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-23-PLAN.md": "8c680978d4dfb58b4873a389a3ecdce0686d07625392b31ad20cb5cf978ef26f",
+    "docs/development.md": "3708198177e4c0c303e92729f7f3641300c9d853fb944e972c006a3d65044c2d",
+    "docs/local-seed.md": "f6050cef490d6007b92185a366913cd5642e6e89fc8f3462eb3a02a093327673",
+    "backend/openapi/betufu.yaml": "99808ba4caec6da7595fcb828dcb9f77a44911017a92d2e95e98012ce1217f53",
+    "frontend/scripts/generate-api.mjs": "5767668fe9c380e208be6b8413acd87d81e6793daa260f36a5666c38407822cd",
+    "frontend/scripts/generate-api.test.mjs": "dc551de78135a0a830c0dd7d64304ebab1cd04033ec72d66ea16a474a96204e1",
+    "backend/src/main/resources/db/migration/V10__expand_sports_catalog_and_venues.sql": "315512503e97b66782e40aeed0ba021c4022975cc325219e7fab286f34b90e44",
+    "backend/src/main/resources/db/migration/V11__create_sports_organizations_and_teams.sql": "fff447bda702b6e2b9d22a79383bcef9a81644bb521c5de931f7db9fb1764c08",
+    "backend/src/main/resources/db/migration/V12__create_sports_athletes.sql": "1a66e4da2144289fdb09f591d621b7af017f8fedd202881c838bd7dec41b80ca",
+    "backend/src/main/resources/db/migration/V13__create_athlete_link_proposals.sql": "0b73e2d399231751f349ddfe184d805344a7f6420545e6075cc22fd4c2dc10b4",
+    "backend/src/main/resources/db/migration/V14__harden_athlete_link_proposals.sql": "a800c8a4df97410cc36e535e778955784e7a8d3215430b4ff37e00460a52faa3",
+    "backend/src/main/resources/db/migration/V15__create_sports_rosters.sql": "5c8c2f99d6acd5f7b871ee4d1b2197eab1e3356f6311479c598c8c446b66dfa3",
+    "backend/src/main/resources/db/migration/V16__create_event_result_versions.sql": "cf8f9a00199af090a2be5944026ad6b459235493298f1d40e09f2a428aaa349d",
+    "backend/src/main/resources/db/migration/V17__create_sports_brackets.sql": "c9d7ecd1f51e34c0e31a1f2fffcf439e44f252435eeed4def9f023a572123eca",
+    "backend/src/main/resources/db/migration/V18__create_sports_standings.sql": "c2f529080b4e346685c5164f3f527243f2d32179e2eb6be36a2d81bb30d4e9b0",
+    "backend/src/main/resources/db/migration/V19__create_athlete_public_profiles.sql": "f8036e81091d6c1e8f235e1898e05bfa58cde7afc971cb2e0a22835ce6a3331e",
+    "backend/src/main/resources/db/migration/V1__create_local_identity.sql": "56f9ad3eaab4e06efd785cdae2acd9ab53668717a424487b0acba67b958e8c18",
+    "backend/src/main/resources/db/migration/V20__create_athlete_profile_media.sql": "80fb0b08ed54636717c6d57b70595d4e1d8b1e2cb8c6b344da67ed06bba7eaa6",
+    "backend/src/main/resources/db/migration/V21__associate_competitions_and_sports.sql": "103367f2bae3eaaedbe330709d7f116411071d437dd25b32a8e4fa358da70e21",
+    "backend/src/main/resources/db/migration/V22__allow_generic_event_format.sql": "9568dbdc5bcf27a47f00c21b6187de95444762f74ff4c110080b45029f1338e5",
+    "backend/src/main/resources/db/migration/V23__add_roster_affiliation_period.sql": "fed4d38a826bedaf68429711c7ca13f11412268fb111267831cf910aa2504ddc",
+    "backend/src/main/resources/db/migration/V24__create_event_lifecycle_history.sql": "a1d400558cb3596b6e2c178f702b1f7c6d8aca515d91d595290dd617b233b256",
+    "backend/src/main/resources/db/migration/V25__create_odds_market_lineage.sql": "216fc7dcd426a08ee391b5f3da7d23303bfe93268143de4f53ed7d1c1d18850f",
+    "backend/src/main/resources/db/migration/V26__extend_odds_governance_audit.sql": "61590b53fb50f86398fd26dbcd865927179395213b8a5a12a041b8c3f573aa33",
+    "backend/src/main/resources/db/migration/V27__create_sports_outcome_authority.sql": "6bea5b46e11a52294809ef21fe6f8db1b542651fc8f0303c1b9f834c607ca9f9",
+    "backend/src/main/resources/db/migration/V28__bind_event_roster_publication.sql": "ccee8d1a579dd175380db98fcb9088c0c07a065a6cc89fd696c5cac9657eaa27",
+    "backend/src/main/resources/db/migration/V29__create_virtual_credit_ledger.sql": "d84f77372eaf859e25b09ee976fa52ab16596ea65dc522c349af8714eca64e61",
+    "backend/src/main/resources/db/migration/V2__add_platform_guards.sql": "7f2d8952a33f5a0746dd32703002b6f06436058ea4938e654da74c63044218cf",
+    "backend/src/main/resources/db/migration/V30__create_prediction_records.sql": "bcb9731dac52fe362ee4381ff58aa784af73b6f1c3536b29a2cc0443b0482c4d",
+    "backend/src/main/resources/db/migration/V31__create_odds_publication_selections.sql": "1db6e1ce197dff9f12ed9f293b78956bbfd9de8e6e17772b07bc66662a4ab204",
+    "backend/src/main/resources/db/migration/V32__backfill_eligible_virtual_credit_grants.sql": "850eb3de83bd308d2b9e301bbc9f1bc6e2485653df3fc7343b6c548a125f91d7",
+    "backend/src/main/resources/db/migration/V33__create_settlement_foundation.sql": "4e3fb0314cf7fab31b2f618115843c44b46060fe134051c6ac258832408dee52",
+    "backend/src/main/resources/db/migration/V34__add_settlement_processing_state.sql": "fe8257a77938cb102050a5e214486dfcd30eaf3d67be02a08bb3a259188e1e85",
+    "backend/src/main/resources/db/migration/V35__create_credit_correction_cases.sql": "b8541baf59a689afe8f5a2621a4143261889feca8ccfdddd3e14a92278344e7d",
+    "backend/src/main/resources/db/migration/V36__create_ranking_projection.sql": "f35eacc28ce465d5ebddbeca9522b0112d6b6876b678a06a8e70280787a7d835",
+    "backend/src/main/resources/db/migration/V37__create_private_groups.sql": "cf1034e0f13bec8c5b4f9d1d04771ba50707e651ff9e383126fdfe573d89f4e7",
+    "backend/src/main/resources/db/migration/V38__create_achievement_awards.sql": "f7cb6126f937f78a3091c4ce16929ab5c5f24dde80c173d74bf972ec1a12eafc",
+    "backend/src/main/resources/db/migration/V39__chat_channels_and_messages.sql": "e0b9a9005e8dfe13f1d7786b4d145dfa50412928c12804e7eed436ec65041a0b",
+    "backend/src/main/resources/db/migration/V3__create_betufu_profile.sql": "6321fbcb3d1babd19c6cb487eb5368a9e82edeb5763d85104aa07f8087405e5f",
+    "backend/src/main/resources/db/migration/V40__chat_writing.sql": "1c4fd6192ca7ff0192de2c56f31de8bc3543e5436cb505fa6429cf0b6f1a79f4",
+    "backend/src/main/resources/db/migration/V41__chat_definitive_lifecycle.sql": "820aebe54d305b51db5b2e0c3c607234b7d6b0049f4652357be8f0edf9fb5347",
+    "backend/src/main/resources/db/migration/V42__chat_reports_and_mutes.sql": "720ac40c9febfd112211d228d97e0c18d6d1a61a71a89580342c20797ab90db6",
+    "backend/src/main/resources/db/migration/V43__chat_moderation_cases.sql": "9fc8ee740832a7d58d1a3e5142e5b9b15ed0e389b54938d8b613c6e8db27e981",
+    "backend/src/main/resources/db/migration/V44__emergency_pauses.sql": "f377ccfed441324828a3754aaf1fd8974affe8e4ce6e658e62d71c1cecb49aa6",
+    "backend/src/main/resources/db/migration/V45__privacy_rights_cases.sql": "03c95f44919a9b84a6d5cf8c3e833d47895583953ef71e1bb672fb79a68aed33",
+    "backend/src/main/resources/db/migration/V46__privacy_retention_and_suppressions.sql": "bf7c08c2afb762f6a17f257368a2d282d36051245194d61e9584e02f738691a5",
+    "backend/src/main/resources/db/migration/V47__chat_rules_dismissals.sql": "3e1578fa50dea880d250d525295b17316a188a7dabf888c4bb4baa0aab220823",
+    "backend/src/main/resources/db/migration/V4__create_audit_event.sql": "b95a43ba32e5084e6139edff05d848cb2efe3bcfb59c6a634fe76bfd3233ba8d",
+    "backend/src/main/resources/db/migration/V5__create_ufu_enrollment.sql": "ccd138a0540fa3f5526018b7a3fa77110cc1d9e1c8ad58d6e1b3c18c7c776755",
+    "backend/src/main/resources/db/migration/V6__create_operational_role_grant.sql": "91a224f027cbb711bb9f3364ca8d77bd112cfbab2c7d7f422baa734be0a992a7",
+    "backend/src/main/resources/db/migration/V7__enforce_operational_role_scope.sql": "5fe19f7043de03ebfc0b39558dd186b64d79deedd50440dc2b89774ef9280471",
+    "backend/src/main/resources/db/migration/V8__add_password_reset_replay_audit_action.sql": "d893eee00b67fc2c6ba2a9317599c0de8fbff576873985f3c6e76e6a9b4e51dc",
+    "backend/src/main/resources/db/migration/V9__create_sports_tracer.sql": "f3ff62eab0f4f2fa16922de882c0023ab45bba3ca78c8b7eda6e2b9949d37773",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-26-PLAN.md": "f56a4f0872887b5e13849c7954ce8016cad02dac164aadac99ed1f326f141c66",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-35-PLAN.md": "a29197303771ebab4cae738946ecc29cf8f810dca5a593a6c2291f5b5fce0164",
+    "backend/pom.xml": "cc62cc702c46f5f5b4f9654474b01ebecc5248b7d6eda1548e3dd99f28650624",
+    "frontend/package.json": "50b2d7a46f0e862aee21a80b3286056282e04d16303521bbd8ecd4787fc9603b",
+    "frontend/package-lock.json": "4e40dcaac216281c1a1a56df9823ef28b22af533bec6fe006cd0d072fa7dd2b8",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-01-PLAN.md": "dbf03870348cb2093e15bc0b4a7cd06097f80f1e7b5a0b31713b3efe074c0ef6",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-02-PLAN.md": "6c8cdc008bbcfc17306d49e3f86b504485d4d546428cc4a18253c868ee150fc3",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-03-PLAN.md": "854a689d28f418d278135b9602cbc9e04e57447a18519b01d5adb481c1d7b2bd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-04-PLAN.md": "a54be8d2be0f8686b0e9f931c5b8cdfe21a4e38375e3fc0d5683c51758dce7ca",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-05-PLAN.md": "7abd12622cc259bc5cf32b8199884db2e732bb802b605fcf1207148c40aa2ec2",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-06-PLAN.md": "8750477661bc354491fe7f84e428860db5d67bf7bab3491bdc8e05d935cc9222",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-07-PLAN.md": "2bf262b422c7e0296ac02770459e915346c6abe445443117f00db85e5f4271d6",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-08-PLAN.md": "1cf299d7d4fa8b1167a09ed923e659f28d476d32ed6f3cdc9c6438629644eece",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-09-PLAN.md": "5a2f549c74d312d819efca043e528dc6e509c25810c008b9ac45275e166e4399",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-10-PLAN.md": "7148723027c3a09527f21a62b502f4f9977fa5b7af91c2b59198185192942611",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-11-PLAN.md": "5ecfc5cad563907d02966ea22efc6f880bb757ec235eaa7eaad30ccbe9451b20",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-12-PLAN.md": "840384000347fcc1c17e808905d43a36875ff16c6bbbc85538d896fd1f395421",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-13-PLAN.md": "aa2daa46b1fe3f9baa5b72e39281e9771fe624216e5c364dfab982c7215523bb",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-14-PLAN.md": "87672b652d579444cac4793542aaf862f08ead431ff946fb867e58a9a5123cb3",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-15-PLAN.md": "8da8503958dd5c35a5cfde22adfaf08edb6b33a82f1b1b062be3936c8d1602c9",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-16-PLAN.md": "b0b665bd721b4f44bf2243346431494fe9a2e236f06a2d0c4f4a48c697ed74df",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-17-PLAN.md": "60adc66b784c34765a3752b41a04f7ee689bf047d4a717e6a454fc1c28d8e9dc",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-18-PLAN.md": "0cffe469cc8fac3e76b660ce2c20b2f3ed754ffb9c8f7c536d59b71ae3dd9f59",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-19-PLAN.md": "f68181a8bce5ca6ecf370f2d696a1fefaaf4f7d078e249fed19aaa7f16044c85",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-20-PLAN.md": "abd2e1aed33552d1a7dffc04e711fadbef7b9f900a8b380c996483fd69191000",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-21-PLAN.md": "70b4f19acb17ad9860c664da25afd6ed8bff9e131c2b2751883dfd6ae421c7ee",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-22-PLAN.md": "6c0048c75657d5ce822d1434941ce5d31cff5d7c7deacf02b8097657ca7ab3f2",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-24-PLAN.md": "8e02cccf17b216d96fd1e350a967c92bcfdf6be36483cdeb6b8feb048b5f4922",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-25-PLAN.md": "70aa9d6e7bc3786ca0312034bd6cc049a5579ba07dd82d5d356f9667f094006c",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-27-PLAN.md": "a43dfc674b786e26de54e4c552c029cf48b9e0ef2207320b713eb6743bbd2cdf",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-28-PLAN.md": "ff9072f35445a9d2e3476a78f942a6f98ea382eacf46fee0631b6dfe6f55b53e",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-29-PLAN.md": "2f86bf5e8246d68780e2bcca30d98d271ff2032934b534bacf10982d2d669077",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-30-PLAN.md": "379ab7db7e57c140989272a48fd551f84e708bcc796571bbb677ae0f517ef2be",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-31-PLAN.md": "c4f78018307ab175af607e700b108dc75723d2983c67402bf858904ef3cf2576",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-32-PLAN.md": "48280adbeca11837c5d4ade502317d37135d95f0261c63fc2033eff063554cdd",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-33-PLAN.md": "8f39f26c5395e9b275d570f6243b640f277addbe143ee247035206619203422c",
+    ".planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-34-PLAN.md": "efe66277232272183eb5f69736a06b6cdbf44ddb89b7fe3add8653d1d9304cfd",
+    "docs/phase7-decisions.json": "2fa45f12d44a9e337e3644471453646674168fb213e9e8e7351f23941d0aab36",
+    "docs/phase7-privacy-policy.json": "fb3fed2fa9536a3a223dc6d042381ce5207d9be5dde0dc0f34f403e81f00c089",
+    "docs/phase7-security-gate.json": "6a07cbe5b71b7c2e3aa796ea9c32a995fd169d5b06efaaf1f884712f4fde73b1",
+    "docs/phase7-load-report.json": "38b172d2ebc478a2f5eb05a074c02faa0ad3f5676687f8c16daa1c8323c2b8f0",
+    "docs/phase7-restore-report.json": "50a96711a55ff4e82bd49adb6fa2394ca0d9e0ec0039427f1d98d15f0e501aa5",
+    "docs/phase7-suppression-register.json": "38c3d45d065d1a0e27aabc68a453a5acca0f397fbf4ac84d31f8df72d3cfaa67",
+    "docs/phase7-approvals/07-32.json": "da1fd910075d6fce8d90e645100f781f34c11ba9fc73c7133f06f13d72592a71",
+    "frontend/playwright.phase7.config.ts": "384913588992dc922ba66f6400644864980876c11facd4c565bd3fe437d156ca",
+    "infra/load/phase7-load-profile.json": "0924a975159faf3110e3690e9aab1f4c432030281bf3aa9afe5a0dd0f1d52af1"
+  },
+  "limits": [
+    "Local technical proof only; public pilot/institutional identity/independent legal review/production operations remain blocked",
+    "Dependency scan is not an external application pentest",
+    "Source digest plus approval base HEAD binds precommit evidence; at most the exact implementation/documentation commits may follow",
+    "Inline read-only review; no independent RepoWise or external review was available"
+  ]
+}

@@ -5,12 +5,12 @@
   "contract": "Fetch current register through restricted PrivacyRetentionService.currentRegister; store independently of database snapshots, with access controls and authenticated SHA-256 manifest; reapply before serving restored data.",
   "policy_reference": "conversation:2026-10-06:owner-retention-90-180",
   "contains_live_suppression_records": true,
-  "captured_after_snapshot_at": 1791380329614,
-  "source_snapshot_id": "snapshot-4774d474883b57de",
+  "captured_after_snapshot_at": 1793455895805,
+  "source_snapshot_id": "snapshot-d51ab1e042af21a1",
   "records": [
     {
       "data_class": "COMMON_MESSAGES",
-      "record_id": "6ebd55ab-fc29-4455-8f4b-1908e0e06fd2",
+      "record_id": "67481e0a-1015-4b26-a165-1653490351e3",
       "change_cursor": 2
     }
   ],

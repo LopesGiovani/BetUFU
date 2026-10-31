@@ -198,9 +198,39 @@ class PrivacyRightsService {
                             rs.getTimestamp(3).toInstant().toString())),
                 verified.identityId(),
                 verified.athleteId()));
-      } else if (candidates.size() == 1)
-        data.put(type.name(), candidates.getFirst().export(verified, type));
-      else blocked.add(type.name());
+      } else if (candidates.size() == 1) {
+        var records = candidates.getFirst().export(verified, type);
+        if (type == DataClass.IDENTITY && verified.identityId() != null) {
+          var chat =
+              producers.stream()
+                  .filter(PrivacyRestrictedRecordsPort.Chat.class::isInstance)
+                  .map(PrivacyRestrictedRecordsPort.Chat.class::cast)
+                  .toList();
+          if (chat.size() != 1) {
+            blocked.add(type.name());
+            continue;
+          }
+          String dismissed =
+              Boolean.toString(chat.getFirst().rulesDismissed(verified.identityId()));
+          if (records.isEmpty())
+            records =
+                List.of(
+                    new PrivacyRestrictedRecordsPort.RestrictedRecord(
+                        "chat-rules-preference", Map.of("chatRulesDismissed", dismissed)));
+          else
+            records =
+                records.stream()
+                    .map(
+                        record -> {
+                          var fields = new java.util.HashMap<>(record.fields());
+                          fields.put("chatRulesDismissed", dismissed);
+                          return new PrivacyRestrictedRecordsPort.RestrictedRecord(
+                              record.reference(), fields);
+                        })
+                    .toList();
+        }
+        data.put(type.name(), records);
+      } else blocked.add(type.name());
     }
     Map<String, Object> artifact =
         Map.of("data", data, "blockedClasses", blocked, "complete", blocked.isEmpty());

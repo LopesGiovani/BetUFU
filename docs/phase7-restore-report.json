@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "scope": "isolated-local-proof",
-  "run_id": "betufu-phase7-restore-20f86060220b6644",
+  "run_id": "betufu-phase7-restore-b941ea94286cf117",
   "status": "passed",
-  "source_run_id": "betufu-phase7-backup-7c003a2bc291392b",
-  "snapshot_id": "snapshot-4774d474883b57de",
+  "source_run_id": "betufu-phase7-backup-0e5a8cc98a4e1806",
+  "snapshot_id": "snapshot-d51ab1e042af21a1",
   "substrates": {
     "betufu": {
       "restored": true,
@@ -21,13 +21,13 @@
   },
   "suppression": {
     "register_current": true,
-    "captured_after_snapshot_at": 1791380329614,
+    "captured_after_snapshot_at": 1793455895805,
     "applied_before_serving": true,
-    "suppressed_record_id": "6ebd55ab-fc29-4455-8f4b-1908e0e06fd2",
+    "suppressed_record_id": "67481e0a-1015-4b26-a165-1653490351e3",
     "served_after_reconciliation": 0
   },
-  "rpo": 18.351,
-  "rto": 12.48,
+  "rpo": 16.689,
+  "rto": 12.387,
   "serving_state": "released-after-independent-register-reconciliation",
   "limitations": [
     "Isolated local proof; production provider, key custody and cloud availability remain pending.",
