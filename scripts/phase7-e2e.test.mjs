@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { stripApprovedStompCsrf } from "./validate-runtime-prerequisites.mjs";
 import { normalizePhaseSevenRoutes } from "./validate-angular-route-boundary.mjs";
 import {
@@ -139,6 +140,11 @@ test("clones seven services without mutating approved owner configuration", () =
   assertIsolated(config, run);
   assert.equal(config.volumes.data.name, `${run}-data`);
   assert.equal(config.services.backend.image, `betufu/backend:${run}`);
+  assert.equal(config.services.keycloak.image, `betufu/keycloak:${run}`);
+  assert.deepEqual(config.services.keycloak.build, {
+    context: resolve(import.meta.dirname, ".."),
+    dockerfile: "infra/keycloak/Dockerfile",
+  });
   assert.equal(
     config.services.backend.environment.BETUFU_PUBLIC_ORIGIN,
     "http://localhost:4300",

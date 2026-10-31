@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "status": "passed",
-  "produced_at": "2026-10-30T21:31:26.556Z",
-  "head": "159001436ca03fafd8aeec7240c3a62a31527b2f",
+  "produced_at": "2026-10-31T17:17:44.206Z",
+  "head": "ad892f2c2d409f3321ac01b067a79372811c991d",
   "inputs": {
     "backend/pom.xml": "cc62cc702c46f5f5b4f9654474b01ebecc5248b7d6eda1548e3dd99f28650624",
-    "frontend/package-lock.json": "4e40dcaac216281c1a1a56df9823ef28b22af533bec6fe006cd0d072fa7dd2b8"
+    "frontend/package-lock.json": "f7ab85478047837b6707fa14f45cb1c3c2124069eada84dd1382d3bb65262a25"
   },
   "scans": [
     {
@@ -16,7 +16,7 @@
     {
       "ecosystem": "npm",
       "status": "passed",
-      "packages": 623
+      "packages": 624
     }
   ],
   "findings": [],

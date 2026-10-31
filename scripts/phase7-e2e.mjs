@@ -123,9 +123,13 @@ export function isolatedConfig(source, run, directory) {
         throw new Error("Undeclared volume prohibited");
       }
     }
-    if (["backend", "frontend"].includes(name))
+    if (["backend", "frontend", "keycloak"].includes(name))
       service.image = `betufu/${name}:${run}`;
   }
+  config.services.keycloak.build = {
+    context: ROOT,
+    dockerfile: "infra/keycloak/Dockerfile",
+  };
   const bind = (sourcePath, target) => ({
     type: "bind",
     source: resolve(directory, sourcePath),
