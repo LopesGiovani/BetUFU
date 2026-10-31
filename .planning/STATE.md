@@ -3,22 +3,34 @@ gsd_state_version: 1.0
 milestone: v1.0
 current_phase: "7"
 current_phase_name: Comunidade Moderada e Prontidão do Piloto
-status: executing
-stopped_at: Phase7 plan07-31 complete; Wave17 next07-32; local technical scope
-last_updated: "2026-10-30T22:26:22.258Z"
-last_activity: 2026-10-30
-last_activity_desc: Phase7 integrated desktop/mobile26/26 and aggregates passed;34/35 complete; Wave17 next07-32
-state_head: f0dcc6fc0a62d3cb4ed55c0c5b9aa3f00e2a98e0
+status: complete
+completion_scope: isolated-local-technical-only
+public_launch_authorized: false
+stopped_at: Phase7 complete-local;35of35 plans;public launch blocked
+last_updated: "2026-10-31T14:15:28.474Z"
+last_activity: 2026-10-31
+last_activity_desc: Phase7 local certification passed;35of35 and170of170 plans;external launch gates pending
+state_head: e648d720a244c043b9c5cf75b39eceee428ea7c1
 state_head_role: verified_implementation_commit; documentary closeout is its direct child
 current_wave: 17
 current_plan: "07-32"
 progress:
   total_phases: 9
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 170
-  completed_plans: 169
+  completed_plans: 170
 milestone_name: milestone
 ---
+
+## Phase7 / Wave17 / Plan07-32 closeout - 2026-10-31
+
+- Technical commit e648d72; source-bound local certification maps16 requirements/40 decisions/35 prohibition dispositions. Restricted IDENTITY exports now include the account rules preference through a public consumer-owned port.
+- Fresh Maven1141 XML(361Surefire/37classes+780Failsafe/153classes),Node985/985,Angular533/533 in85files,focal16/16; generator/lint/build/Spotless/diff passed. Real Chrome26/26 passed after one unchanged complete repeat of a logout navigation race, retained in the evidence.
+- Final local50-user/300.8757162s load:14614requests,p95=39.1802ms,0%errors,zero integrity violations;300acceptances+2600replays. Three-substrate restore passed,RPO16.689s/RTO12.387s,post-snapshot suppression applied before serving.
+-15technical paths/61protected hashes frozen and reviewed inline. Validator policy-label defect fixed with a real-policy negative test; complete ladder rerun with final source digest. Old isolated suppression input archived before fresh proof. No guard/assertion weakened.
+- Phase7 is35/35;global170/170; all17waves complete in expressly ratified local technical scope. Public launch/pilot,institutional identity,independent legal review,other class expurgo policies and production operations remain blocked. PRIV-03/04/05 remain incomplete in full scope.
+- V1-V47,append-only facts,owner document hashes/absence state,seeds and owner volumes preserved. No push/worktree/Antigravity/subagent/dependency change. RepoWise unavailable; no independent external review claimed.
+- Evidence: docs/phase7-certification.json,.planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-32-SUMMARY.md,07-VALIDATION.md and .git/gsd/phase7/07-32-frozen.json. Next action: owner review and separately resolve external launch gates; no automatic publication.
 
 ## Phase7 / Wave16 / Plan07-31 closeout - 2026-10-30
 
@@ -1461,9 +1473,9 @@ não é uma instrução operacional vigente.
 
 ## Session Continuity
 
-Last session: 2026-10-30T22:26:22.258Z
-Stopped at: Phase7 plan07-31 complete; Wave17 next07-32; continuous local technical execution authorized
-Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-32-PLAN.md
+Last session: 2026-10-31T14:15:28.474Z
+Stopped at: Phase7 complete-local; no remaining implementation plan; public launch blocked
+Resume file: .planning/phases/07-comunidade-moderada-e-prontid-o-do-piloto/07-32-SUMMARY.md
 
 ## Accumulated Context
 

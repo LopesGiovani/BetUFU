@@ -19,7 +19,7 @@ Roadmap aprovado para o MVP da BETUFU. Ele entrega um piloto seguro e operado de
 - [x] **Phase 5: Créditos Virtuais e Palpites Protegidos** - Permitir que participantes elegíveis registrem palpites pré-jogo seguros e atômicos usando créditos virtuais.
 - [x] **Phase 05.1: Convergência das Jornadas do Usuário** - Conectar sessão, conta, evento, mercado e palpite em jornadas descobríveis, coerentes e verificadas no navegador real.
 - [x] **Phase 6: Resultados Confirmados, Rankings e Grupos** - Transformar resultados confirmados em liquidações corretas, classificação vitalícia e conquistas.
-- [ ] **Phase 7: Comunidade Moderada e Prontidão do Piloto** - Entregar chat seguro por partida e uma experiência responsiva, privada e operacionalmente pronta para o piloto público.
+- [x] **Phase 7: Comunidade Moderada e Prontidão do Piloto** - Entregar chat seguro por partida e uma experiência responsiva, privada e operacionalmente pronta para o piloto público. **Conclusão técnica local; publicação e piloto público bloqueados.**
 
 ## Detalhes das fases
 
@@ -562,9 +562,9 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 **Mode:** mvp
 **Depends on**: Phase 2, Phase 3, Phase 6
 **Requirements**: CHAT-01, CHAT-02, CHAT-03, CHAT-04, CHAT-05, CHAT-06, RT-01, INTE-05, PRIV-03, PRIV-04, PRIV-05, OPS-04, TEST-03, TEST-05, UX-01, UX-02
-**Frontend scope**: Entrada Comunidade no topo da Arena, chat no evento, denúncias/mute, console de moderação e pausas, revisão de sanções e Privacidade na conta. Angular Signals, sessão BFF, OpenAPI gerado e visual existente preservado; contrato UI ainda pendente.
-**Decisões consolidadas**: D-01..D-40 em 07-CONTEXT.md; global incluído expressamente no piloto. Esta atualização aprova somente a consolidação documental.
-**Decisões pendentes**: Protocolo server-push e reconciliação RT-01/STOMP; aprovação do UI-SPEC draft e arquitetura/falhas da preferência de regras; bordas de lifecycle/mute/limiter; políticas jurídicas, identidade institucional legítima, backup/chaves/destino e carga/SLO/erro. Nenhum provedor ou dependência selecionado por inferência.
+**Frontend scope**: Entrada Comunidade no topo da Arena, chat no evento, denúncias/mute, console de moderação e pausas, revisão de sanções e Privacidade na conta. Angular Signals, sessão BFF, OpenAPI gerado e visual existente preservado; contrato UI ratificado para implementação local; avaliação completa WCAG não alegada.
+**Decisões consolidadas**: D-01..D-40 e gates em docs/phase7-decisions.json; STOMP/RT-01, UI, lifecycle, preferências, carga e operação isolada ratificados pelo responsável.
+**Gates externos pendentes**: identidade institucional legítima, domínio, contato, responsável pela infraestrutura, revisão jurídica independente, demais políticas de descarte e operação de produção. Publicação e piloto público seguem bloqueados.
 **Success Criteria** (o que deve ser VERDADEIRO):
 
   1. Partidas publicadas têm leitura pública; global exige sessão inclusive para leitura, mas permite inativos. Ambos exigem ATIVO para escrever, texto até 280 caracteres e uma mensagem por usuário a cada três segundos. Partida fecha permanentemente duas horas após marco definitivo aprovado; correção concluída antes de fechar reconta o prazo, nunca reabre canal expirado.
@@ -573,85 +573,87 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
   4. Jornadas descobríveis global/evento/conta/operação funcionam em desktop/mobile/teclado com foco e estados compreensíveis. Fila offline é volátil por aba, retry idempotente revalida autorização e logout/troca de persona elimina pendentes.
   5. Lançamento depende de política jurídica/retencão/direitos, identidade legítima, ausência de vulnerabilidades confirmadas, CI/contrato/arquitetura e restore utilizável de BETUFU/Keycloak/objetos. Metas RPO <=1h/RTO <=4h e referência de 50 simultâneos precisam evidência real; supressões posteriores ao snapshot devem ser reaplicadas antes de servir.
 
-**Plans**: 35 planos em17 ondas,102 tasks;34 executados. Waves1-16 completas; Wave17 segue07-32. Fechamento restante limitado a parte tecnica local por decisao explicita; publicacao/piloto publico bloqueados. 07-29 restaurou os tres substratos em isolamento e reaplicou supressao posterior ao snapshot antes de servir. V1-V47 e estado dos documentos do responsavel preservados. Fase nao certificada; gates externos pendentes.
+**Plans**: 35/35 planos e 17/17 ondas concluídos no escopo técnico local expressamente ratificado. Certificado: docs/phase7-certification.json. Maven 1.141, Node 985, Angular 533, Chrome 26/26, carga de 50 usuários e restore dos três substratos com supressão antes da leitura. Global 170/170. V1–V47, documentos, seeds e volumes do responsável preservados. Publicação/piloto público não autorizados; PRIV-03/04/05 e gates externos pendentes.
 
-**Wave 1**
+**Wave 1 — concluída no escopo técnico local**
 - [x] 07-01-PLAN.md — Governanca de blocos e registro de gates.
 
-**Wave 2 — Próxima; exige autorização e gates dos consumidores**
+**Wave 2 — concluída no escopo técnico local**
 - [x] 07-02-PLAN.md — Preparacao juridica e institucional segregada.
 - [x] 07-03-PLAN.md — Pipeline real para fonte OpenAPI candidata.
 - [x] 07-04-PLAN.md — Canais global e por partida: schema V39.
 - [x] 07-28-PLAN.md — Backups automaticos completos com RPO1h.
 
-**Wave 3 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 3 — concluída no escopo técnico local**
 - [x] 07-05-PLAN.md — Portas publicas e leitura HTTP segura.
 
-**Wave 4 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 4 — concluída no escopo técnico local**
 - [x] 07-06-PLAN.md — Contrato gerado de leitura dos dois canais.
 - [x] 07-07-PLAN.md — Server push seguro e cursor de mudancas.
 - [x] 07-09-PLAN.md — Escrita ATIVO, limite e idempotencia: V40/backend.
 
-**Wave 5 - Concluida**
+**Wave 5 — concluída no escopo técnico local**
 - [x] 07-08-PLAN.md — Comunidade Arena e evento: tracer real de leitura.
 - [x] 07-10-PLAN.md — Marco definitivo e encerramento permanente: V41.
 
-**Wave 6 - Concluida**
+**Wave 6 — concluída no escopo técnico local**
 - [x] 07-11-PLAN.md — Contrato oficial de envio e recibo.
 - [x] 07-13-PLAN.md — Denuncia e mute sincronizado: V42/backend.
 
-**Wave 7 - Concluida**
+**Wave 7 — concluída no escopo técnico local**
 - [x] 07-14-PLAN.md — Contrato de denuncias e mute de conta.
 - [x] 07-16-PLAN.md — Moderacao scoped e evidencia restrita: V43.
 
-**Wave 8 - Concluida; 07-17 e 07-20**
+**Wave 8 — concluída no escopo técnico local**
 - [x] 07-17-PLAN.md — Sancoes globais e revisao na conta: backend.
 - [x] 07-20-PLAN.md — Pausa e retomada admin-only: V44/backend.
 
-**Wave 9 - Concluida; 07-18, 07-21 e 07-24**
+**Wave 9 — concluída no escopo técnico local**
 - [x] 07-18-PLAN.md — Contrato de moderacao e revisao privada.
 - [x] 07-21-PLAN.md — Guards atomicos de chat e novos palpites.
 - [x] 07-24-PLAN.md — Direitos do titular e resposta operacional: V45/backend.
 
-**Wave 10 - Concluida; 07-12, 07-22 e 07-27**
+**Wave 10 — concluída no escopo técnico local**
 - [x] 07-12-PLAN.md — Composer e fila volatil: tracer real de envio.
 - [x] 07-22-PLAN.md — Contrato oficial de pausas e estados.
 - [x] 07-27-PLAN.md — Retencao segregada, exports e supressoes: V46.
 
-**Wave 11 - Concluida; quatro planos verificados e integrados localmente**
+**Wave 11 — concluída no escopo técnico local**
 - [x] 07-15-PLAN.md — Denunciar e silenciar: tracer multi-dispositivo.
 - [x] 07-25-PLAN.md — Contrato oficial de Privacidade da conta.
 - [x] 07-29-PLAN.md — Restore real isolado e supressao antes de servir.
 - [x] 07-33-PLAN.md — Proposta de preferência de regras por conta: backend e V47 após V46.
 
-**Wave 12 — Em execucao; 07-19 concluido, proximo 07-34**
+**Wave 12 — concluída no escopo técnico local**
 - [x] 07-19-PLAN.md — Console e punicoes da conta: tracer integrado.
 - [x] 07-34-PLAN.md — Contrato privado gerado da preferência de regras, após 07-25/33.
 
-**Wave 13 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 13 — concluída no escopo técnico local**
 - [x] 07-23-PLAN.md — Pausas operacionais e estados: tracer real.
 
-**Wave 14 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 14 — concluída no escopo técnico local**
 - [x] 07-26-PLAN.md — Privacidade na conta: tracer titular/operacao.
 - [x] 07-35-PLAN.md — Popup de regras acessível e jornada real entre contas/dispositivos.
 
-**Wave 15 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 15 — concluída no escopo técnico local**
 - [x] 07-30-PLAN.md — CI, publicacao e carga de referencia50.
 
-**Wave 16 — Bloqueada pelas dependências explícitas dos planos**
+**Wave 16 — concluída no escopo técnico local**
 - [x] 07-31-PLAN.md — Jornadas reais integradas e regressao do piloto.
 
-**Wave 17 — Bloqueada pelas dependências explícitas dos planos**
-- [ ] 07-32-PLAN.md — Certificacao, snapshot e parecer do responsavel.
+**Wave 17 — concluída no escopo técnico local**
+- [x] 07-32-PLAN.md — Certificacao, snapshot e parecer do responsavel.
 
 **Cross-cutting constraints:**
 - Briefing/aprovação por bloco e candidatos/hashes antes de SQL/API governados; execução e Git separados, sem push.
 - Allowlists com até 15 paths incluindo candidatos/metadados/gerados. Inventário real extra interrompe publicação e exige revisão/subdivisão.
 - Portas públicas consumer-owned/adaptadores produtores, sem imports internos cruzados; schemas append-only candidatos V39..V47 não alteram V1..V38 nem fatos financeiros.
-- UI-SPEC existe como draft, com aprovação/checker pendentes; server-push não escolhe SSE implicitamente. CHAT-01/05 e Out of Scope reconciliados, sem marcar entrega.
+- UI-SPEC histórico permanece draft; os gates de UI e STOMP foram ratificados para a implementação executada. Prova desktop/320px/teclado não equivale a auditoria WCAG integral.
 - Sanções/pausas não geram punição financeira; DTOs/marcadores/cursor/stream respeitam autorização e privacidade.
 - Backup/restore/carga/E2E somente em alvos isolados aprovados; preservar documentos, apostas, volumes e serviços do responsável.
 - Ondas serializam gerador/contrato/rotas/shell compartilhados. Preferência inline; tabela não autoriza worktrees/agentes ou paralelismo.
+
+**Arquivo histórico de planejamento; não descreve o estado atual.**
 
 **Planning review anterior — 2026-10-04 (32 planos, escopo delimitado):** Subdivisão documental substitui o blocker de tamanho da proposta inicial: 32 allowlists com no máximo 15 paths; DAG local sem predecessor inválido ou colisão na mesma onda. Mapa de validação atualizado para 92 tasks. Revisão independente delimitada encontrou 0 BLOCKERs e 2 WARNINGs: ordem Flyway e ligação do validador. Ajustados por dependências monotônicas V39..V46 e chamadas bloqueantes por etapa; rechecagem independente confirmou os dois alertas resolvidos. Não há PASS global; estrutura 32/32 e referências 16/16 requisitos e 40/40 decisões são provas documentais, não testes de negócio. Verificações anteriores de 10/10 e 14 decisões são históricas. Fase 7 não implementada ou liberada para execução.
 **Reconciliation — 2026-10-04:** 07-08 inclui HTML/teste reais do header (15 paths). Acrescentadas propostas 07-33/34/35 (10/14/9 paths) nas ondas 11/12/14, sem renumerar 01..32. V47 depende de V46; API 34 serializa contrato/gerador após 25; UI 35 serializa chat-panel após 23. 31 exige 35 antes da certificação. Preferência no módulo chat e política de falhas são propostas para aprovação no primeiro checkpoint de 33, não decisões já autorizadas. Fechar regras não significa aceite jurídico. UI-D01..07 registradas no contexto; requisitos não marcados concluídos. Revisão atual inline, não independente; nenhuma implementação, Git ou liberação do piloto.
@@ -671,4 +673,4 @@ need scoped reconciliation; Phase 7 is pending, not automatically started.
 | 5. Créditos Virtuais e Palpites Protegidos | 8/8 | Complete; final snapshot approved and local seed reconciled | 2026-09-15 |
 | 05.1. Convergência das Jornadas do Usuário | 7/7 | Complete; integrated real-browser verification passed | 2026-09-17 |
 | 6. Resultados Confirmados, Rankings e Grupos | 8/8 | Complete; isolated real E2E and aggregate verification passed | 2026-10-03 |
-| 7. Comunidade Moderada e Prontidao do Piloto | 34/35 | Wave17; next07-32; local technical scope; public launch blocked | - |
+| 7. Comunidade Moderada e Prontidao do Piloto | 35/35 | Concluída localmente; publicação e gates externos bloqueados | 2026-10-31 |

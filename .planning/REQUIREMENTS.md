@@ -54,7 +54,7 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [x] **INTE-02**: Administrador de competição não pode apostar em nenhum evento da competição atribuída, ainda que não tenha criado a partida específica.
 - [x] **INTE-03**: Restrições vigentes de verificação, papel, escopo, estado do mercado e conflitos administrativos são validadas no servidor em toda tentativa de aposta; vínculo de atleta é permitido pela política do MVP.
 - [x] **INTE-04**: Negação de elegibilidade informa motivo adequado ao usuário sem revelar dados privados ou regras exploráveis.
-- [ ] **INTE-05**: Administrador autorizado pode suspender conta, partida, mercado ou canal sem apagar o histórico necessário à auditoria.
+- [x] **INTE-05**: Administrador autorizado pode suspender conta, partida, mercado ou canal sem apagar o histórico necessário à auditoria.
 
 ### Créditos Virtuais
 
@@ -133,12 +133,12 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 
 ### Chat e Moderação
 
-- [ ] **CHAT-01**: Partida publicada oferece leitura pública; a sala global exige sessão para leitura, inclusive para matrícula inativa. Publicar texto em ambos os canais exige usuário autenticado com matrícula ATIVO.
-- [ ] **CHAT-02**: Mensagens persistidas aparecem em atualização próxima do tempo real e o histórico é carregado por páginas.
-- [ ] **CHAT-03**: Usuário pode denunciar mensagem específica informando um motivo.
-- [ ] **CHAT-04**: Usuário pode silenciar outro participante sem notificá-lo nem alterar a visão dos demais.
-- [ ] **CHAT-05**: Moderador pode revisar denúncias, remover mensagens e escalar casos somente no escopo autorizado; apenas ADMINISTRADOR_GERAL aplica suspensões globais de escrita no chat (24h, 7 dias ou banimento de chat), com motivo e auditoria, sem alterar saldo, ranking ou histórico.
-- [ ] **CHAT-06**: Mensagem moderada preserva metadados internos necessários à auditoria sem continuar visível ao público.
+- [x] **CHAT-01**: Partida publicada oferece leitura pública; a sala global exige sessão para leitura, inclusive para matrícula inativa. Publicar texto em ambos os canais exige usuário autenticado com matrícula ATIVO.
+- [x] **CHAT-02**: Mensagens persistidas aparecem em atualização próxima do tempo real e o histórico é carregado por páginas.
+- [x] **CHAT-03**: Usuário pode denunciar mensagem específica informando um motivo.
+- [x] **CHAT-04**: Usuário pode silenciar outro participante sem notificá-lo nem alterar a visão dos demais.
+- [x] **CHAT-05**: Moderador pode revisar denúncias, remover mensagens e escalar casos somente no escopo autorizado; apenas ADMINISTRADOR_GERAL aplica suspensões globais de escrita no chat (24h, 7 dias ou banimento de chat), com motivo e auditoria, sem alterar saldo, ranking ou histórico.
+- [x] **CHAT-06**: Mensagem moderada preserva metadados internos necessários à auditoria sem continuar visível ao público.
 
 ### Arquitetura, Segurança e Qualidade
 
@@ -163,21 +163,21 @@ Requisitos do primeiro lançamento, centrado em uma edição piloto das Olimpía
 - [x] **API-01**: O backend publica REST JSON versionado em `/api/v1`, contrato OpenAPI e erros compatíveis com Problem Details.
 - [x] **API-02**: O frontend consome cliente TypeScript gerado do OpenAPI e o pipeline detecta divergência de contrato.
 - [x] **API-03**: Comando crítico usa idempotência persistente por ator, tipo e chave, vincula fingerprint do payload, repete a resposta original e rejeita reutilização concorrente com payload diferente.
-- [ ] **RT-01**: WebSocket/STOMP respeita sessão, origem e autorização de domínio, e mensagens do chat são persistidas no PostgreSQL.
+- [x] **RT-01**: WebSocket/STOMP respeita sessão, origem e autorização de domínio, e mensagens do chat são persistidas no PostgreSQL.
 - [x] **AUDT-01**: Evento auditável registra ator, papel, alvo, ação, referências aos estados anterior e novo — incluindo o vínculo e a versão da chave quando aplicável, sem armazenar o HMAC da matrícula —, motivo, horário, correlation ID e chave de idempotência quando aplicável. No MVP, a trilha não registra MFA nem evidência documental, pois o MFA não governa autorização e a verificação documental não faz parte do escopo.
 - [x] **AUDT-02**: Trilha de auditoria possui acesso restrito, proteção contra alteração e retenção definida sem armazenar segredos ou dados pessoais desnecessários.
 - [x] **OPS-01**: Desenvolvimento oferece dois modos reproduzíveis. No modo diário padrão, Docker Compose executa PostgreSQL, Redis, Keycloak, SeaweedFS como implementação S3 exclusivamente local e serviço de e-mail, enquanto Spring Boot e Angular rodam pelo terminal ou pela IDE. No perfil completo de validação, Spring também roda em contêiner e o Angular compilado é servido por Nginx. Ambos usam wrappers, versões de runtime e imagens aprovados e fixados antes da implementação ou implantação correspondente.
 - [x] **OPS-02**: Desenvolvimento, homologação e produção possuem configurações separadas, e segredos nunca são versionados.
 - [x] **OPS-03**: Aplicação fornece health checks, logs estruturados, correlation ID e métricas sem dados sensíveis.
 - [x] **DIAG-01**: O diagnóstico do backend publica somente os estados `UP`, `DEGRADED` e `DOWN`, em paridade com o contrato público, preservando agregação, probes, componentes, ordem, autorização, profiles e rota existentes.
-- [ ] **OPS-04**: Backups de dados BETUFU, Keycloak e objetos privados são automáticos, com RPO e RTO definidos, e a restauração é testada antes do lançamento.
+- [x] **OPS-04**: Backups de dados BETUFU, Keycloak e objetos privados são automáticos, com RPO e RTO definidos, e a restauração é testada antes do lançamento.
 - [x] **TEST-01**: Regras de domínio possuem testes JUnit e transações integradas usam PostgreSQL e dependências reais via Testcontainers.
 - [x] **TEST-02**: Spring Modulith Test e ArchUnit verificam limites modulares e dependências permitidas.
-- [ ] **TEST-03**: Contrato OpenAPI, componentes Angular e jornadas completas críticas possuem testes automatizados, incluindo Playwright.
+- [x] **TEST-03**: Contrato OpenAPI, componentes Angular e jornadas completas críticas possuem testes automatizados, incluindo Playwright.
 - [x] **TEST-04**: Testes concorrentes cobrem aposta, saldo, liquidação e devolução; perfil de carga, SLO e taxa máxima de erro são definidos e verificados antes do lançamento.
-- [ ] **TEST-05**: Pipeline bloqueia entrega com falha em testes, migrations, contrato, arquitetura ou achado de segurança acima da severidade definida.
-- [ ] **UX-01**: Fluxos públicos, autenticação, aposta, histórico, ranking, administração e chat funcionam em navegadores móveis e desktop.
-- [ ] **UX-02**: Interface apresenta estados de carregamento, vazio, erro, suspensão e confirmação sem depender apenas de cor.
+- [x] **TEST-05**: Pipeline bloqueia entrega com falha em testes, migrations, contrato, arquitetura ou achado de segurança acima da severidade definida.
+- [x] **UX-01**: Fluxos públicos, autenticação, aposta, histórico, ranking, administração e chat funcionam em navegadores móveis e desktop.
+- [x] **UX-02**: Interface apresenta estados de carregamento, vazio, erro, suspensão e confirmação sem depender apenas de cor.
 
 ## v2 Requirements
 
@@ -362,23 +362,23 @@ Mapa de planejamento aprovado. Cada requisito v1 mapeia para exatamente uma fase
 | ACHV-01 | Phase 6 | Complete |
 | ACHV-02 | Phase 6 | Complete |
 | ACHV-03 | Phase 6 | Complete |
-| TEST-04 | Phase 6 | Complete (Phase 6); launch gate pending |
-| CHAT-01 | Phase 7 | Pending |
-| CHAT-02 | Phase 7 | Pending |
-| CHAT-03 | Phase 7 | Pending |
-| CHAT-04 | Phase 7 | Pending |
-| CHAT-05 | Phase 7 | Pending |
-| CHAT-06 | Phase 7 | Pending |
-| RT-01 | Phase 7 | Pending |
-| INTE-05 | Phase 7 | Pending |
-| PRIV-03 | Phase 7 | Pending |
-| PRIV-04 | Phase 7 | Pending |
-| PRIV-05 | Phase 7 | Pending |
-| OPS-04 | Phase 7 | Pending |
-| TEST-03 | Phase 7 | Pending |
-| TEST-05 | Phase 7 | Pending |
-| UX-01 | Phase 7 | Pending |
-| UX-02 | Phase 7 | Pending |
+| TEST-04 | Phase 6 | Complete (Phase 6); local Phase 7 load passed; production not certified |
+| CHAT-01 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| CHAT-02 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| CHAT-03 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| CHAT-04 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| CHAT-05 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| CHAT-06 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| RT-01 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| INTE-05 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| PRIV-03 | Phase 7 | Partial local proof; public-launch obligations pending |
+| PRIV-04 | Phase 7 | Partial local proof; public-launch obligations pending |
+| PRIV-05 | Phase 7 | Partial local proof; public-launch obligations pending |
+| OPS-04 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| TEST-03 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| TEST-05 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| UX-01 | Phase 7 | Complete (isolated local scope; see 07-32) |
+| UX-02 | Phase 7 | Complete (isolated local scope; see 07-32) |
 
 ### Reconciliação da Fase 6 — 2026-10-04
 
@@ -396,6 +396,32 @@ a tabela mantém o gate de lançamento explicitamente pendente; sua definição 
 verificação devem ser discutidas na prontidão do piloto, sem remover a obrigação
 nem declarar um benchmark inexistente.
 
+### Reconciliação da Fase 7 — 2026-10-31
+
+O responsável delimitou o encerramento à parte técnica local. Os 35 planos
+foram executados; docs/phase7-certification.json mapeia os 16 requisitos e as
+40 decisões com fontes, comandos e hashes. Os 13 marcadores concluídos da
+Fase 7 têm esse alcance; os textos normativos foram preservados.
+
+CHAT-01..06, RT-01 e INTE-05 possuem provas HTTP/STOMP/PostgreSQL e de navegador.
+TEST-03 e UX-01/02 têm 533 testes Angular e 26 jornadas Chrome desktop/320px;
+não certificam todos os navegadores nem conformidade WCAG integral. TEST-05
+tem pipeline local bloqueante e scans de 239 versões Maven e 623 npm sem achados;
+o workflow hospedado não foi executado e o scan não substitui pentest.
+OPS-04 tem backup automático e restore dos três substratos em isolamento,
+RPO de 16,689 s/RTO de 12,387 s e supressão reaplicada antes de servir; destino,
+chaves, disponibilidade e operação de produção continuam pendentes.
+
+A obrigação local de carga de TEST-04 foi ratificada e medida: 50 usuários por
+300,8757162 s, 14.614 requisições, p95 de 39,1802 ms, 0% de erros e zero violações
+de integridade. Isso atualiza a ressalva histórica da Fase 6 sem certificar nuvem.
+
+PRIV-03/04/05 permanecem desmarcados. A recusa de publicação e os fluxos locais de
+direitos foram verificados, mas publicação, identidade institucional, contato,
+domínio, revisão jurídica independente e demais políticas por classe continuam
+pendentes. A retenção de 90/180 dias ratificada não autoriza apagar fatos
+append-only. Publicação e piloto público permanecem bloqueados.
+
 **Coverage:**
 
 - v1 requirements: 139 total
@@ -404,4 +430,4 @@ nem declarar um benchmark inexistente.
 
 ---
 *Requisitos definidos em: 2026-08-01*
-*Última atualização: 2026-10-04 após reconciliar os 31 requisitos entregues pela Fase 6; 139/139 requisitos v1 permanecem mapeados, com o gate pré-lançamento de TEST-04 explicitamente pendente*
+*Última atualização: 2026-10-31; Fase 7 certificada no escopo técnico local; 139/139 requisitos v1 mapeados, com PRIV-03/04/05 e obrigações externas de lançamento pendentes*
