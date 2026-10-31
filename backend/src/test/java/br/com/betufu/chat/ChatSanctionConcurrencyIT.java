@@ -7,6 +7,7 @@ import br.com.betufu.chat.internal.ChatSanctionService;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,49 +20,45 @@ class ChatSanctionConcurrencyIT extends ChatSanctionFixture {
   void waitingWriteSeesCommittedSanctionAndRollbackLeavesNoPunishment() throws Exception {
     UUID occurrence = occurrence();
     CountDownLatch inserted = new CountDownLatch(1), finish = new CountDownLatch(1);
-    var confirmation =
-        CompletableFuture.runAsync(
-            () ->
-                new TransactionTemplate(transactions)
-                    .executeWithoutResult(
-                        tx -> {
-                          sanctionsService.confirm(
-                              "https://idp.invalid",
-                              "sanction-admin",
-                              adminSession.getId(),
-                              occurrence,
-                              new ChatModerationModels.SanctionCommand(
-                                  UUID.randomUUID(),
-                                  "confirmed violation",
-                                  ChatModerationModels.SanctionKind.CHAT_SUSPENSION_24H));
-                          inserted.countDown();
-                          try {
-                            if (!finish.await(10, TimeUnit.SECONDS))
-                              throw new AssertionError("confirmation release timed out");
-                          } catch (InterruptedException error) {
-                            throw new RuntimeException(error);
-                          }
-                        }));
-    assertThat(inserted.await(10, TimeUnit.SECONDS)).isTrue();
-    var writing =
-        CompletableFuture.supplyAsync(
-            () -> {
-              try {
-                return post(ownerSession, null, UUID.randomUUID(), "concurrent attempt")
-                    .statusCode();
-              } catch (Exception error) {
-                throw new RuntimeException(error);
-              }
-            });
-    try {
-      awaitSanctionLock();
-    } finally {
-      finish.countDown();
+    // The lock holder must not starve the HTTP writer on a one-worker common pool.
+    try (var pool = Executors.newFixedThreadPool(2)) {
+      var confirmation =
+          pool.submit(
+              () ->
+                  new TransactionTemplate(transactions)
+                      .executeWithoutResult(
+                          tx -> {
+                            sanctionsService.confirm(
+                                "https://idp.invalid",
+                                "sanction-admin",
+                                adminSession.getId(),
+                                occurrence,
+                                new ChatModerationModels.SanctionCommand(
+                                    UUID.randomUUID(),
+                                    "confirmed violation",
+                                    ChatModerationModels.SanctionKind.CHAT_SUSPENSION_24H));
+                            inserted.countDown();
+                            try {
+                              if (!finish.await(10, TimeUnit.SECONDS))
+                                throw new AssertionError("confirmation release timed out");
+                            } catch (InterruptedException error) {
+                              throw new RuntimeException(error);
+                            }
+                          }));
+      assertThat(inserted.await(10, TimeUnit.SECONDS)).isTrue();
+      var writing =
+          pool.submit(
+              () -> post(ownerSession, null, UUID.randomUUID(), "concurrent attempt").statusCode());
+      try {
+        awaitSanctionLock();
+      } finally {
+        finish.countDown();
+      }
+      confirmation.get(10, TimeUnit.SECONDS);
+      assertThat(writing.get(10, TimeUnit.SECONDS)).isEqualTo(403);
+      assertThat(jdbc.queryForObject("SELECT count(*) FROM chat_write_receipt", Integer.class))
+          .isZero();
     }
-    confirmation.get(10, TimeUnit.SECONDS);
-    assertThat(writing.get(10, TimeUnit.SECONDS)).isEqualTo(403);
-    assertThat(jdbc.queryForObject("SELECT count(*) FROM chat_write_receipt", Integer.class))
-        .isZero();
   }
 
   @Test
