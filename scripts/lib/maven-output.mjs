@@ -20,6 +20,7 @@ export function createMavenOutputCollector({ writeLog = () => {}, maxFailureLine
   let pending = '';
   const testSummary = { testsRun: 0, failures: 0, errors: 0, skipped: 0 };
   let testSummaryLines = 0;
+  const firstFailureLines = [];
   const relevantFailureLines = [];
   const fallbackFailureLines = [];
 
@@ -40,7 +41,10 @@ export function createMavenOutputCollector({ writeLog = () => {}, maxFailureLine
 
     addToRing(fallbackFailureLines, line, maxFailureLines);
     const testFailure = testMatch && (Number(testMatch[2]) > 0 || Number(testMatch[3]) > 0);
-    if (RELEVANT_FAILURE.test(line) || testFailure) addToRing(relevantFailureLines, line, maxFailureLines);
+    if (RELEVANT_FAILURE.test(line) || testFailure) {
+      if (firstFailureLines.length < maxFailureLines) firstFailureLines.push(line);
+      else addToRing(relevantFailureLines, line, maxFailureLines);
+    }
   }
 
   return {
@@ -59,8 +63,8 @@ export function createMavenOutputCollector({ writeLog = () => {}, maxFailureLine
 
       return {
         testSummary: testSummaryLines > 0 ? { ...testSummary } : null,
-        failureLines: relevantFailureLines.length > 0
-          ? [...relevantFailureLines]
+        failureLines: firstFailureLines.length > 0
+          ? [...firstFailureLines, ...relevantFailureLines]
           : [...fallbackFailureLines],
       };
     },
@@ -86,7 +90,7 @@ export function formatMavenOutcome({ code, signal, testSummary, failureLines = [
   }
 
   const lines = [`[maven] BUILD FAILURE (exit code ${exitCode})`];
-  for (const line of failureLines.slice(-10)) lines.push(`[maven] ${line}`);
+  for (const line of failureLines) lines.push(`[maven] ${line}`);
   if (failureLines.length === 0) lines.push('[maven] See full log for details.');
   lines.push(`[maven] Full log: ${logPath}`);
   return { exitCode, keepLog: true, lines };

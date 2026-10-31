@@ -31,13 +31,36 @@ describe('maven-output', () => {
     assert.equal(result.testSummary, null);
   });
 
-  it('seleciona linhas relevantes e limita a janela a dez linhas', () => {
+  it('preserva sem sobreposicao as linhas relevantes de uma falha curta', () => {
     const chunks = Array.from({ length: 12 }, (_, index) => `[ERROR] falha-${index}\n`);
     const { result } = collect(chunks);
 
-    assert.equal(result.failureLines.length, 10);
-    assert.equal(result.failureLines[0], '[ERROR] falha-2');
-    assert.equal(result.failureLines[9], '[ERROR] falha-11');
+    assert.deepEqual(result.failureLines, chunks.map((line) => line.trimEnd()));
+  });
+
+  it('exibe a falha original e as ultimas dez linhas mesmo apos um rodape longo do Maven', () => {
+    const originalFailure = '[ERROR] ExampleIT.shouldPersist:42 expected: <1> but was: <0>';
+    const cause = 'Caused by: java.lang.IllegalStateException: token=test-token';
+    const footer = Array.from({ length: 30 }, (_, index) => `[ERROR] Maven help ${index}`);
+    const { result } = collect([`${originalFailure}\n${cause}\n${footer.join('\n')}\n`]);
+
+    assert.deepEqual(result.failureLines, [
+      originalFailure,
+      'Caused by: java.lang.IllegalStateException: token=[redacted]',
+      ...footer.slice(0, 8),
+      ...footer.slice(-10),
+    ]);
+
+    const outcome = formatMavenOutcome({
+      code: 1,
+      signal: null,
+      ...result,
+      logPath: '/tmp/maven.log',
+    });
+    assert.equal(outcome.exitCode, 1);
+    assert.equal(outcome.keepLog, true);
+    assert.deepEqual(outcome.lines.slice(1, -1), result.failureLines.map((line) => `[maven] ${line}`));
+    assert.ok(!outcome.lines.join('\n').includes('test-token'));
   });
 
   it('mantem resumo de testes com falhas entre as linhas relevantes', () => {
