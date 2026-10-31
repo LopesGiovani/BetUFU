@@ -36,6 +36,12 @@ jobs:
           cache: maven
       - name: Restore pinned frontend dependencies
         run: npm --prefix frontend ci --ignore-scripts
+      - name: Restore checksum-verified OpenAPI engine
+        run: |
+          mkdir -p frontend/tmp/openapi-generator/7.24.0
+          curl --fail --show-error --location https://repo.maven.apache.org/maven2/org/openapitools/openapi-generator-cli/7.24.0/openapi-generator-cli-7.24.0.jar --output frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar.download
+          echo '4b83ccc6fd43056c8c631cd0195e5100bd0550912502527bab09ac76152dab0c  frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar.download' | sha256sum --check -
+          mv frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar.download frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar
       - name: Prepare pinned integration-test images
         run: |
           docker pull docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636
