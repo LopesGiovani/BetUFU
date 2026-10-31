@@ -6,6 +6,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  realpath,
   rm,
   writeFile,
 } from 'node:fs/promises';
@@ -781,15 +782,12 @@ for (const [label, relativePath, contents] of [
   });
 }
 
-for (const [relativePath, expectedRule] of [
-  ['backend/Application.yaml', 'APPLICATION_CONFIG_SOURCE'],
-  ['backend/config/application.YAML', 'APPLICATION_CONFIG_SOURCE'],
-  [
-    'backend/src/main/resources/Application-prod.YAML',
-    'REDIS_SESSION_SETTING',
-  ],
+for (const relativePath of [
+  'backend/Application.yaml',
+  'backend/config/application.YAML',
+  'backend/src/main/resources/Application-prod.YAML',
 ]) {
-  test('rejeita ConfigData com casing alternativo no Windows: ' + relativePath, async () => {
+  test('rejeita ConfigData com casing alternativo: ' + relativePath, async () => {
     const root = await createFixture();
     const path = join(root, relativePath);
     await mkdir(dirname(path), { recursive: true });
@@ -798,7 +796,13 @@ for (const [relativePath, expectedRule] of [
       'spring:\n  data:\n    redis:\n      host: unsafe\n',
       'utf8',
     );
-    await expectRule(root, expectedRule);
+    // Case-insensitive filesystems overwrite the canonical file instead of adding a source.
+    const overwritesCanonical = await realpath(path)
+      === await realpath(join(root, 'backend/src/main/resources/application-prod.yaml'));
+    await expectRule(
+      root,
+      overwritesCanonical ? 'REDIS_SESSION_SETTING' : 'APPLICATION_CONFIG_SOURCE',
+    );
   });
 }
 
