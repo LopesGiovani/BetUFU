@@ -2,7 +2,27 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:net';
 import { once } from 'node:events';
+import { readFile } from 'node:fs/promises';
 import { assertSecurityReport, qualityCommands, runCommands } from './phase7-quality.mjs';
+
+test('CI keeps quick checks independent and full certification manual without dropping gates', async () => {
+  const workflow = (await readFile(new URL('../.github/workflows/quality.yml', import.meta.url), 'utf8')).replaceAll('\r\n', '\n');
+  const job = name => workflow.match(new RegExp(`^  ${name}:\\n([\\s\\S]*?)(?=^  [a-z-]+:|(?![\\s\\S]))`, 'm'))?.[1];
+  const backend = job('backend-unit'), frontend = job('frontend-quality'), full = job('local-quality');
+  assert.ok(backend && frontend && full);
+  for (const quick of [backend, frontend]) {
+    assert.doesNotMatch(quick, /^    (?:needs|if):/mu);
+    assert.doesNotMatch(quick, /docker (?:pull|build)|phase7-load\.mjs/u);
+  }
+  assert.match(backend, /-DskipITs verify/u);
+  assert.match(backend, /phase7-quality\.mjs --scan-security/u);
+  assert.match(full, /^    if: github\.event_name == 'workflow_dispatch' && \(inputs\.full_verification \|\| inputs\.publication_review\)$/mu);
+  assert.match(full, /^    needs: \[backend-unit, frontend-quality\]$/mu);
+  assert.doesNotMatch(full, /-DskipITs|-DskipTests|continue-on-error/u);
+  for (const command of qualityCommands) assert.ok(workflow.includes(command), command);
+  assert.match(job('publication-review'), /^    needs: local-quality$/mu);
+  assert.match(workflow, /^  cancel-in-progress: true$/mu);
+});
 
 test('generator get-uri caller can list and download through the patched FTP dependency', { timeout: 10_000 }, async () => {
   const { getUri } = await import('../frontend/node_modules/get-uri/dist/index.js');

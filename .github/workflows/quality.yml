@@ -6,6 +6,10 @@ on:
     branches: [master]
   workflow_dispatch:
     inputs:
+      full_verification:
+        description: Run full integration and isolated 50-user load certification (required before release)
+        type: boolean
+        default: true
       publication_review:
         description: Validate publication evidence (does not deploy)
         type: boolean
@@ -14,11 +18,43 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  local-quality:
-    name: Isolated local technical gates
+  backend-unit:
+    name: Quick backend unit, formatting and dependency security checks
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 20
+    env:
+      # Disposable integration-test fixture; never a runtime key.
+      BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION: v1
+      BETUFU_MATRICULA_HMAC_KEY_V1: dGVzdC1vbmx5LWZhaWwtY2xvc2VkLWtleS0wMDAwMDE=
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.22.3'
+      - name: Setup Java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '25.0.4+7.0.LTS'
+          cache: maven
+      - name: Unit tests and formatting (integration tests run in manual full certification)
+        run: node scripts/maven.mjs -f backend/pom.xml -DskipITs verify
+      - name: Scan resolved Maven and npm dependencies
+        run: node scripts/phase7-quality.mjs --scan-security
+
+  frontend-quality:
+    name: Quick Node, Angular, OpenAPI, lint and production checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITEST_MAX_WORKERS: '2'
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -42,6 +78,46 @@ jobs:
           curl --fail --show-error --location https://repo.maven.apache.org/maven2/org/openapitools/openapi-generator-cli/7.24.0/openapi-generator-cli-7.24.0.jar --output frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar.download
           echo '4b83ccc6fd43056c8c631cd0195e5100bd0550912502527bab09ac76152dab0c  frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar.download' | sha256sum --check -
           mv frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar.download frontend/tmp/openapi-generator/7.24.0/openapi-generator-cli-7.24.0.jar
+      - name: Node tests
+        run: node --test scripts/*.test.mjs
+      - name: Angular component tests
+        run: npm --prefix frontend test -- --watch=false
+      - name: Check generated API client
+        run: npm --prefix frontend run generate:api:check
+      - name: Lint
+        run: npm --prefix frontend run lint
+      - name: Production build
+        run: npm --prefix frontend run build:production
+      - name: Check patch whitespace
+        run: git diff --check
+
+  local-quality:
+    name: Full manual integration and isolated load certification
+    if: github.event_name == 'workflow_dispatch' && (inputs.full_verification || inputs.publication_review)
+    needs: [backend-unit, frontend-quality]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # Disposable integration-test fixture; never a runtime key.
+      BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION: v1
+      BETUFU_MATRICULA_HMAC_KEY_V1: dGVzdC1vbmx5LWZhaWwtY2xvc2VkLWtleS0wMDAwMDE=
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.22.3'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Setup Java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '25.0.4+7.0.LTS'
+          cache: maven
+      - name: Restore pinned frontend dependencies
+        run: npm --prefix frontend ci --ignore-scripts
       - name: Prepare pinned integration-test images
         run: |
           docker pull docker.io/library/postgres:18.4-trixie@sha256:a02db8cac496f15b094798a38254f14d6e00741f709360e5e00bb6668ea31636
@@ -49,12 +125,10 @@ jobs:
           docker pull docker.io/axllent/mailpit:v1.30.7@sha256:d5ecbb067db3705fa953d79e1b7f81ef84038df67aba6c52825d8c02a1ea748a
           docker pull quay.io/keycloak/keycloak:26.7.1@sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6
           docker build --file infra/keycloak/Dockerfile --tag betufu/keycloak:26.7.1-password-listener .
-      - name: Maven, Node, Angular, Flyway, Modulith, OpenAPI, production, isolated50-user load and vulnerability gates
-        env:
-          # Disposable integration-test fixture; never a runtime key.
-          BETUFU_MATRICULA_HMAC_KEY_CURRENT_VERSION: v1
-          BETUFU_MATRICULA_HMAC_KEY_V1: dGVzdC1vbmx5LWZhaWwtY2xvc2VkLWtleS0wMDAwMDE=
-        run: node scripts/phase7-quality.mjs --local
+      - name: Full Maven verification including integration, Flyway and Modulith
+        run: node scripts/maven.mjs -f backend/pom.xml verify
+      - name: Real isolated 50-user load for five minutes
+        run: node scripts/phase7-load.mjs --profile infra/load/phase7-load-profile.json --isolated
 
   publication-review:
     name: Publication evidence (blocked until actual institutional review)

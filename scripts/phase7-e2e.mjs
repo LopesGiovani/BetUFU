@@ -86,11 +86,44 @@ export function browserConfig(spec, directory) {
     ");\n"
   );
 }
-function safeDiagnostic(value) {
+export function safeDiagnostic(value, secrets = privateValues) {
   let safe = value;
-  for (const secret of privateValues)
+  for (const secret of secrets)
     safe = safe.replaceAll(secret, "[REDACTED]");
   return safe.split(/\r?\n/u).slice(-8).join("\n");
+}
+
+export async function isolatedDiagnostics(compose, execute = command, report = console.error) {
+  for (const service of ["frontend", "backend", "keycloak"]) {
+    try {
+      const log = await execute("docker", [
+        ...compose, "logs", "--no-color", "--tail", "120", service,
+      ]);
+      const errors = log.split(/\r?\n/u).filter(line => service === "frontend"
+        ? line.includes("GET /api/v1/chat/push ")
+        : /ERROR|Exception|Caused by|Description:|Action:|Permission denied/iu.test(line))
+        .map(line => {
+          const start = line.indexOf("{");
+          if (start < 0) return line;
+          try { return JSON.parse(line.slice(start)).message ?? "[unstructured service error]"; }
+          catch { return "[unstructured service error]"; }
+        });
+      if (errors.length) report(`[phase7-e2e] ${service}: ${safeDiagnostic(errors.join("\n"))}`);
+    } catch {
+      report(`[phase7-e2e] ${service}: diagnostics unavailable; preserving original failure.`);
+    }
+  }
+}
+
+export async function writeIsolatedConfig(directory, config, realm, nginx, spec) {
+  // Container users must read these templates; credentials remain in private compose.json.
+  await writeFile(resolve(directory, "realm.json"), JSON.stringify(realm), { mode: 0o644 });
+  await writeFile(resolve(directory, "nginx.conf"), nginx, { mode: 0o644 });
+  await writeFile(resolve(directory, "playwright.config.mjs"),
+    browserConfig(spec ?? "frontend/e2e/phase7-chat-read.spec.ts", directory), { mode: 0o600 });
+  const configPath = resolve(directory, "compose.json");
+  await writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
+  return configPath;
 }
 export function requireRun(run) {
   if (!/^betufu-phase7-e2e-[a-f0-9]{16}$/u.test(run))
@@ -582,17 +615,7 @@ export async function runIsolated(spec, loadWorkload, project) {
   const nginx = (
     await readFile(resolve(ROOT, "infra/nginx/nginx.conf"), "utf8")
   ).replaceAll("X-Forwarded-Port 4200", "X-Forwarded-Port 4300");
-  await writeFile(resolve(directory, "realm.json"), JSON.stringify(realm), {
-    mode: 0o600,
-  });
-  await writeFile(resolve(directory, "nginx.conf"), nginx, { mode: 0o600 });
-  await writeFile(
-    resolve(directory, "playwright.config.mjs"),
-    browserConfig(spec ?? "frontend/e2e/phase7-chat-read.spec.ts", directory),
-    { mode: 0o600 },
-  );
-  const configPath = resolve(directory, "compose.json");
-  await writeFile(configPath, JSON.stringify(config), { mode: 0o600 });
+  const configPath = await writeIsolatedConfig(directory, config, realm, nginx, spec);
   const compose = ["compose", "-f", configPath, "--project-name", run];
   console.log(`[phase7-e2e] Isolated run ${run}; owner volumes untouched.`);
   try {
@@ -667,43 +690,7 @@ export async function runIsolated(spec, loadWorkload, project) {
       { cwd: resolve(ROOT, "frontend"), env: childEnv, visible: true },
     );
   } catch (failure) {
-    const proxyLog = await command("docker", [
-      ...compose,
-      "logs",
-      "--no-color",
-      "--tail",
-      "100",
-      "frontend",
-    ]);
-    const pushRequests = proxyLog
-      .split(/\r?\n/u)
-      .filter((line) => line.includes("GET /api/v1/chat/push "));
-    if (pushRequests.length)
-      console.error(safeDiagnostic(pushRequests.join("\n")));
-    const log = await command("docker", [
-      ...compose,
-      "logs",
-      "--no-color",
-      "--tail",
-      "120",
-      "backend",
-    ]);
-    const errors = log
-      .split(/\r?\n/u)
-      .filter((line) =>
-        /ERROR|Exception|Caused by|Description:|Action:/u.test(line),
-      )
-      .map((line) => {
-        const start = line.indexOf("{");
-        if (start < 0) return line;
-        try {
-          const entry = JSON.parse(line.slice(start));
-          return entry.message;
-        } catch {
-          return "[unstructured backend error]";
-        }
-      });
-    if (errors.length) console.error(safeDiagnostic(errors.join("\n")));
+    await isolatedDiagnostics(compose);
     throw failure;
   } finally {
     const ids = (await command("docker", [...compose, "ps", "-aq"]))

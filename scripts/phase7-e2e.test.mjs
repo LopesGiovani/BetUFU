@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { stripApprovedStompCsrf } from "./validate-runtime-prerequisites.mjs";
 import { normalizePhaseSevenRoutes } from "./validate-angular-route-boundary.mjs";
@@ -14,7 +15,54 @@ import {
   specPlan,
   browserConfig,
   chatHistorySql,
+  writeIsolatedConfig,
+  isolatedDiagnostics,
+  safeDiagnostic,
 } from "./phase7-e2e.mjs";
+
+test("isolated config preserves private credentials and container-readable templates", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "betufu-config-test-"));
+  const config = { services: { keycloak: { environment: { PASSWORD: "private-fixture" } } } };
+  const realm = JSON.parse(await readFile(new URL("../infra/keycloak/realm-betufu.json", import.meta.url), "utf8"));
+  try {
+    const path = await writeIsolatedConfig(directory, config, realm, "server {}", undefined);
+    assert.deepEqual(JSON.parse(await readFile(path, "utf8")), config);
+    const template = await readFile(resolve(directory, "realm.json"), "utf8");
+    assert.match(template, /\$\{BETUFU_OIDC_CLIENT_SECRET\}/u);
+    assert.equal(template.includes("private-fixture"), false);
+    assert.equal(await readFile(resolve(directory, "nginx.conf"), "utf8"), "server {}");
+    if (process.platform !== "win32") {
+      for (const [name, mode] of [["realm.json", 0o644], ["nginx.conf", 0o644],
+        ["compose.json", 0o600], ["playwright.config.mjs", 0o600]])
+        assert.equal((await stat(resolve(directory, name))).mode & 0o777, mode, name);
+      assert.equal((await stat(directory)).mode & 0o777, 0o700);
+    }
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("startup diagnostics reach Keycloak even if other service logs are unavailable", async () => {
+  const services = [], reports = [];
+  await isolatedDiagnostics(["compose", "-f", "private.json"], async (executable, args) => {
+    assert.equal(executable, "docker");
+    const service = args.at(-1); services.push(service);
+    if (service !== "keycloak") throw Error("private diagnostic detail");
+    return 'INFO starting\nERROR Failed to import realm\nCaused by: java.nio.file.AccessDeniedException: realm.json';
+  }, message => reports.push(message));
+  assert.deepEqual(services, ["frontend", "backend", "keycloak"]);
+  assert.ok(reports.some(message => /keycloak:.*ERROR Failed to import realm/su.test(message)));
+  assert.ok(reports.some(message => message.includes("AccessDeniedException")));
+  assert.equal(reports.join().includes("private diagnostic detail"), false);
+});
+
+test("diagnostics redact generated secrets and bound log output", () => {
+  const log = [...Array.from({ length: 10 }, (_, index) => String(index)), "ERROR private-fixture"].join("\n");
+  const safe = safeDiagnostic(log, new Set(["private-fixture"]));
+  assert.equal(safe.split("\n").length, 8);
+  assert.ok(safe.endsWith("ERROR [REDACTED]"));
+  assert.equal(safe.includes("private-fixture"), false);
+});
 
 test("CSRF exception accepts only the owned CONNECT frame and official extractor", async () => {
   const path = "frontend/src/app/features/chat/chat-read.store.ts";
