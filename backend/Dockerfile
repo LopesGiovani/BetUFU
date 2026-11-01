@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile para BETUFU Backend (Java 25 / Spring Boot 4.1.0)
 # Estágio 1: Builder multi-stage hermético com digest OCI fixado
-FROM docker.io/library/eclipse-temurin:25-jre-noble@sha256:fbcf915c585659b30eb766ada4d6d7cfc9ec1040bf521e95bf61b10a25af73db AS builder
+FROM docker.io/library/eclipse-temurin:25-jre-noble@sha256:a98128a57de944a72bd31fbc79b898edd5a5864d3652071d5bbd2160ab7d7dce AS builder
 WORKDIR /workspace
 
 # Copia fontes e artefatos de build validados
@@ -16,7 +16,7 @@ RUN if [ -f /workspace/prebuilt/betufu-backend-0.1.0.jar ]; then \
     fi
 
 # Estágio 2: Imagem final de execução mínima JRE 25 com digest OCI fixado
-FROM docker.io/library/eclipse-temurin:25-jre-noble@sha256:fbcf915c585659b30eb766ada4d6d7cfc9ec1040bf521e95bf61b10a25af73db AS runtime
+FROM docker.io/library/eclipse-temurin:25-jre-noble@sha256:a98128a57de944a72bd31fbc79b898edd5a5864d3652071d5bbd2160ab7d7dce AS runtime
 WORKDIR /app
 
 # Instala curl e socat para probe de healthcheck e roteamento de loopback OIDC
