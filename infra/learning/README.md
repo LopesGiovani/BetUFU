@@ -4,11 +4,49 @@ Esta configuração prepara a BETUFU para uma única EC2, com acesso pelo túnel
 SSH. Não autoriza lançamento público. O Compose de desenvolvimento, suas
 credenciais e seus volumes permanecem separados.
 
-**Estado deste bloco:** arquivos preparados para revisão e validação local.
-Ainda faltam preparar o acesso da EC2 ao ECR, transferir as configurações,
-gerar credenciais e certificados novos, iniciar e testar os serviços.
-As etapas abaixo são um roteiro: cada próximo bloco depende da aprovação
-correspondente. Não execute tudo de uma vez.
+**Estado:** primeiro deploy privado em execução. O responsável apresentou os
+sete serviços `healthy` e confirmou acesso pelo túnel, cadastro e login. Upload,
+recuperação de senha, invalidação de sessões e E2E completos ficaram para um
+bloco posterior, por sua decisão. Isso não é certificação E2E nem liberação pública.
+
+## Registro da implantação
+
+- Instância: `i-0097430f1b99081fd`, região `sa-east-1`.
+- Último IP público confirmado: `54.207.66.110`; conferir novamente no console
+  após parar/iniciar a EC2.
+- Diretório no servidor: `/home/ubuntu/betufu-learning/infra/learning`.
+- Configuração implantada: commit `42bdb3f36ae0132960adca4bd6d136c324eb5d8e`.
+- Pacote: `BetUFU-learning-42bdb3f.tar`, 368.640 bytes, 16 arquivos.
+- SHA-256 conferido na origem e na EC2:
+  `433f8d743a34413d41f37863ede59cd1df9192f7b75582d44430d304f0d6d77a`.
+- Função IAM vinculada: `betufu-learning-ecr-pull`, com autenticação ECR em
+  São Paulo e download restrito aos três repositórios da aplicação. A identidade
+  dessa função foi confirmada pelo responsável dentro da EC2.
+- AWS CLI instalada na EC2 pelo Snap: `2.35.21`, com atualizações automáticas.
+- Rede Compose conferida: `172.18.0.0/16`, compatível com os proxies confiáveis.
+- Credenciais novas geradas na EC2; `.env` pertence a `ubuntu`, modo `600`.
+  Este registro não contém seus valores.
+
+Imagens da aplicação confirmadas no `compose ps -a` fornecido pelo responsável:
+
+| Componente | Digest do índice no ECR |
+| --- | --- |
+| backend | `sha256:8a7e896cb31f98efa34bf10bd58ebd1bf555bad93e174d96f5564d9a9b6b00a6` |
+| frontend | `sha256:062deb50a76e2ca7c645d29feb2997e5c0abc18123cc03f0a002c3118bb66197` |
+| keycloak | `sha256:4ae99a0b041905dbce17c7866bfcfbb25319b70e5801580af8c00701d88d3dc2` |
+
+Os quatro serviços auxiliares também usam os digests registrados no Compose
+desse commit. As verificações de saúde passaram para os sete serviços; as portas
+publicadas observadas foram somente `127.0.0.1:4200`, `:8081` e `:8025`.
+
+Certificados do backend e SeaweedFS válidos até **31/01/2027 UTC**; CA até
+**02/11/2027 UTC**. Planejar renovação antes dessas datas em um bloco próprio.
+Ambos os truststores importaram a CA com a impressão digital SHA-256
+`CB:E2:72:54:30:4E:16:83:F1:F9:93:40:DA:6F:00:05:84:4C:40:10:F4:02:2C:E7:AF:92:C8:16:9E:9D:A3:C2`.
+
+As seções de provisionamento abaixo são referência para uma instalação nova,
+não passos para repetir neste ambiente. Para o ambiente existente, use
+[parar](#encerrar-sem-apagar-dados) e [retomar](#retomar-o-ambiente-existente).
 
 ## O que cada serviço faz
 
@@ -46,7 +84,7 @@ Saída vazia com código zero significa configuração estruturalmente válida.
 Isso não valida certificados, Nginx em execução, credenciais ou jornadas da
 aplicação. Nunca use `.env.example` para iniciar os serviços.
 
-## Próximos blocos: acesso e pacote
+## Referência de provisionamento: acesso e pacote
 
 1. Confirmar no console o estado e o IP público atual da instância
    `i-0097430f1b99081fd`, em `sa-east-1`. O IP pode mudar após parar/iniciar.
@@ -56,7 +94,8 @@ aplicação. Nunca use `.env.example` para iniciar os serviços.
    O perfil local `betufu-deploy` foi identificado como root; a autorização
    anterior para ECR não libera alterações gerais de infraestrutura.
 3. Após revisão e aprovações separadas de stage e commit, empacotar somente os
-   caminhos abaixo a partir do commit aprovado, usando `git archive`:
+   caminhos abaixo a partir do commit aprovado, usando
+   `git -c core.autocrlf=false archive`:
 
    - `infra/learning/compose.yaml`, `nginx.conf`, `.env.example` e `README.md`;
    - `infra/postgres/init-databases.sh`;
@@ -64,15 +103,16 @@ aplicação. Nunca use `.env.example` para iniciar os serviços.
    - `infra/keycloak/themes/betufu/`.
 
    Preservar a hierarquia `infra/`, pois os mounts usam caminhos relativos.
-   O archive deve preservar LF no script de inicialização do PostgreSQL;
-   conferir o blob antes de transferir, evitando copiar a versão CRLF do Windows.
+   A opção temporária `core.autocrlf=false` evita a conversão para CRLF do
+   Windows sem alterar a configuração do Git. Conferir o conteúdo do pacote
+   contra os blobs do commit, incluindo LF no script do PostgreSQL.
    Não enviar o repositório inteiro, `.env`, volumes, bancos, arquivos de
    usuários, JARs ou caches locais. As imagens vêm do ECR.
 4. Transferir o pacote por SCP e conferir seu SHA-256 na origem e na EC2.
    Autenticar o Docker no ECR com as credenciais temporárias da função IAM e
    baixar as imagens fixadas. Esses comandos serão apresentados em seu bloco.
 
-## Próximo bloco: credenciais e TLS na EC2
+## Referência de provisionamento: credenciais e TLS na EC2
 
 TLS é a conexão criptografada usada aqui entre Nginx e backend, Keycloak e
 backend, e backend e armazenamento. É necessário também porque a aplicação
@@ -97,8 +137,12 @@ Preparar somente na EC2, sem imprimir segredos no terminal ou na conversa:
 - Criar `backend.p12` no formato PKCS12, contendo chave privada do backend,
   certificado e cadeia da CA, protegido por `BETUFU_TLS_KEYSTORE_PASSWORD`.
 - Criar truststores separados a partir de uma **cópia dos certificados públicos
-  padrão de cada imagem Java** (`$JAVA_HOME/lib/security/cacerts`). Importar a
-  CA privada com `keytool`; não substituir a lista inteira pela CA privada,
+  padrão de cada imagem Java**. No backend, a origem é
+  `$JAVA_HOME/lib/security/cacerts`; no Keycloak implantado, `JAVA_HOME` está
+  vazio e a origem confirmada é `/etc/pki/java/cacerts`. Usar `cp -L` e dar modo
+  `600` à cópia antes de alterá-la: a origem do Keycloak gerou uma cópia `400`,
+  e o `keytool` falhou ao tentar escrever até essa permissão ser corrigida.
+  Importar a CA privada com `keytool`; não substituir a lista inteira pela CA privada,
   pois isso quebraria chamadas HTTPS a serviços públicos.
 - Usar o `keytool` das próprias imagens aprovadas de backend e Keycloak,
   preservando a origem de cada truststore. Alterar a senha padrão da cópia
@@ -129,7 +173,7 @@ o diretório pai no host protegido por `700`; não abrir a pasta inteira para
 outros usuários. Conferir os UIDs nas imagens antes da preparação real.
 O acesso administrativo ao Docker permite ler esses segredos.
 
-## Próximo bloco: inicializar e conferir
+## Referência de provisionamento: inicializar e conferir
 
 Antes de iniciar, conferir caminhos, permissões, validade e nomes dos
 certificados, login ECR e variáveis obrigatórias sem mostrar seus valores.
@@ -155,7 +199,7 @@ Após iniciar no bloco aprovado, conferir saúde, logs sanitizados, memória e
 disco. Se houver falha, diagnosticar o serviço específico antes de repetir a
 inicialização. Não contornar erro TLS com validação de certificado desativada.
 
-## Acesso pelo túnel SSH e testes funcionais
+## Acesso pelo túnel SSH e E2E pendentes
 
 Depois de os serviços estarem saudáveis, usar o IP atual da EC2 no comando
 abaixo, em outro PowerShell. O marcador deve ser substituído antes de executar:
@@ -176,9 +220,11 @@ Usar `localhost`, pois os redirecionamentos OIDC foram configurados com esse
 nome. O backend mantém o cookie Secure; confirmar o comportamento no navegador
 usado para este acesso local. Não acessar a aplicação pelo IP público da EC2.
 
-Testar com contas e arquivos fictícios: cadastro, verificação de e-mail, login,
-upload e leitura autorizada de arquivos, recuperação de senha e invalidação
-das sessões antigas. Nginx aceita requisições de até 6 MB; o Spring mantém o
+As confirmações manuais de cadastro e login encerraram a checagem inicial do
+deploy. A suíte E2E completa não foi executada nesta EC2; o responsável a adiou
+para um bloco próprio. Nesse bloco, usar contas e arquivos fictícios para cobrir
+também upload, leitura autorizada, recuperação de senha e invalidação das
+sessões antigas. Nginx aceita requisições de até 6 MB; o Spring mantém o
 limite de 5 MB por arquivo. O listener do Keycloak assina o callback HTTPS de
 recuperação usando a mesma chave v1 configurada no backend. Mailpit captura os
 links de teste sem configurar entrega de e-mail para destinatários externos.
@@ -186,11 +232,62 @@ Somente essas provas em execução confirmarão o funcionamento integrado.
 
 ## Encerrar sem apagar dados
 
-`docker compose stop`, usando este arquivo e o `.env` real, para os serviços
-e preserva volumes. Nunca usar `down -v` neste ambiente com dados a preservar.
-Segredos e backups também precisam ser preservados para recuperar esses dados.
+Na sessão SSH da EC2, este comando para os serviços e preserva os volumes.
+Os caminhos absolutos permitem executá-lo mesmo estando na pasta pessoal `~`:
+
+```bash
+sudo docker compose \
+  --env-file /home/ubuntu/betufu-learning/infra/learning/.env \
+  --file /home/ubuntu/betufu-learning/infra/learning/compose.yaml \
+  stop
+```
+
+Nunca usar `down -v` neste ambiente com dados a preservar. Manter o `.env`, os
+certificados e as chaves junto dos dados; não regenerá-los em cada retomada.
+Parar preserva o disco existente, mas não cria um backup independente.
 
 Antes de sair, no console EC2: selecione a instância → **Estado da instância →
 Parar instância**. Isso preserva o disco; não escolha **Encerrar**.
 Fechar o SSH sozinho mantém a EC2 ligada e consumindo créditos. O disco EBS
 continua existindo e pode ter custo mesmo com a instância parada.
+
+## Retomar o ambiente existente
+
+1. No console EC2 em São Paulo, selecionar a mesma instância e escolher
+   **Iniciar instância**. Conferir o IP público atual.
+2. No PowerShell do Windows, conectar por SSH usando o IP atual:
+
+   ```powershell
+   ssh -i 'C:\Users\giova\Desktop\betufu-learning-key.pem' ubuntu@IP_PUBLICO_ATUAL
+   ```
+
+3. Na EC2, iniciar os serviços com os mesmos arquivos e volumes:
+
+   ```bash
+   sudo docker compose \
+     --env-file /home/ubuntu/betufu-learning/infra/learning/.env \
+     --file /home/ubuntu/betufu-learning/infra/learning/compose.yaml \
+     up -d
+   ```
+
+   O Compose atual não define reinício automático; iniciar a EC2 não substitui
+   este passo. Com as imagens já presentes, não é necessário baixá-las novamente.
+   A retomada reutiliza os dados existentes, sem repetir a criação de senhas.
+
+4. Conferir os serviços; a inicialização pode levar alguns minutos:
+
+   ```bash
+   sudo docker compose \
+     --env-file /home/ubuntu/betufu-learning/infra/learning/.env \
+     --file /home/ubuntu/betufu-learning/infra/learning/compose.yaml \
+     ps -a
+   ```
+
+5. Quando estiverem saudáveis, abrir outro PowerShell e executar o comando do
+   [túnel SSH](#acesso-pelo-túnel-ssh-e-e2e-pendentes), usando o IP atual.
+   Manter esse terminal aberto e acessar `http://localhost:4200`.
+
+Este roteiro registra comandos para o responsável executar; o fechamento
+documental não parou nem reiniciou a EC2. O pacote original contém o README do
+commit `42bdb3f`; atualizações locais deste arquivo não são transferidas
+automaticamente para o servidor.
