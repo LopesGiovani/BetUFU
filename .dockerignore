@@ -1,6 +1,8 @@
 .git
 .planning
 infra/.env*
+infra/learning/.env*
+infra/learning/secrets
 frontend/node_modules
 frontend/dist
 backend/target/classes

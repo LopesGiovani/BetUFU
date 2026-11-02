@@ -28,6 +28,9 @@ frontend/target/api-candidate/*
 
 # --- Environment & Local Secrets ---
 /infra/.env
+/infra/learning/.env*
+!/infra/learning/.env.example
+/infra/learning/secrets/
 
 # --- IDE & Editor Settings ---
 /.idea/
